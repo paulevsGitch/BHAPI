@@ -1,0 +1,33 @@
+{
+	"schemaVersion": 1,
+	"id": "bhapi",
+	"version": "${version}",
+
+	"name": "BHAPI",
+	"description": "API mod for Beta 1.7.3",
+	"authors": [
+		"paulevs"
+	],
+	"contact": {
+		"sources": "https://github.com/paulevsGitch/BHAPI",
+		"issues": "https://github.com/paulevsGitch/BHAPI/issues",
+		"discord": "https://discord.gg/qxcP8EjkUC"
+	},
+
+	"license": "MIT",
+	"icon": "assets/bhapi/icon.png",
+
+	"environment": "*",
+	"entrypoints": {
+		"main": [
+			"net.bhapi.BHAPI"
+		]
+	},
+	"mixins": [
+		"bhapi.mixins.common.json"
+	],
+
+	"depends": {
+		"minecraft": "1.0.0-beta.7.3"
+	}
+}

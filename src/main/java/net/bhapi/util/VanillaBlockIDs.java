@@ -1,0 +1,111 @@
+package net.bhapi.util;
+
+import java.util.HashSet;
+import java.util.Set;
+
+public final class VanillaBlockIDs {
+	private static final Set<Integer> ID_SET = new HashSet<>();
+	
+	public static boolean contains(int id) {
+		return ID_SET.contains(id);
+	}
+	
+	static {
+		ID_SET.add(1);
+		ID_SET.add(2);
+		ID_SET.add(3);
+		ID_SET.add(4);
+		ID_SET.add(5);
+		ID_SET.add(6);
+		ID_SET.add(7);
+		ID_SET.add(8);
+		ID_SET.add(9);
+		ID_SET.add(10);
+		ID_SET.add(11);
+		ID_SET.add(12);
+		ID_SET.add(13);
+		ID_SET.add(14);
+		ID_SET.add(15);
+		ID_SET.add(16);
+		ID_SET.add(17);
+		ID_SET.add(18);
+		ID_SET.add(19);
+		ID_SET.add(20);
+		ID_SET.add(21);
+		ID_SET.add(22);
+		ID_SET.add(23);
+		ID_SET.add(24);
+		ID_SET.add(25);
+		ID_SET.add(26);
+		ID_SET.add(27);
+		ID_SET.add(28);
+		ID_SET.add(29);
+		ID_SET.add(30);
+		ID_SET.add(31);
+		ID_SET.add(32);
+		ID_SET.add(33);
+		ID_SET.add(34);
+		ID_SET.add(35);
+		ID_SET.add(36);
+		ID_SET.add(37);
+		ID_SET.add(38);
+		ID_SET.add(39);
+		ID_SET.add(40);
+		ID_SET.add(41);
+		ID_SET.add(42);
+		ID_SET.add(43);
+		ID_SET.add(44);
+		ID_SET.add(45);
+		ID_SET.add(46);
+		ID_SET.add(47);
+		ID_SET.add(48);
+		ID_SET.add(49);
+		ID_SET.add(50);
+		ID_SET.add(51);
+		ID_SET.add(52);
+		ID_SET.add(53);
+		ID_SET.add(54);
+		ID_SET.add(55);
+		ID_SET.add(56);
+		ID_SET.add(57);
+		ID_SET.add(58);
+		ID_SET.add(59);
+		ID_SET.add(60);
+		ID_SET.add(61);
+		ID_SET.add(62);
+		ID_SET.add(63);
+		ID_SET.add(64);
+		ID_SET.add(65);
+		ID_SET.add(66);
+		ID_SET.add(67);
+		ID_SET.add(68);
+		ID_SET.add(69);
+		ID_SET.add(70);
+		ID_SET.add(71);
+		ID_SET.add(72);
+		ID_SET.add(73);
+		ID_SET.add(74);
+		ID_SET.add(75);
+		ID_SET.add(76);
+		ID_SET.add(77);
+		ID_SET.add(78);
+		ID_SET.add(79);
+		ID_SET.add(80);
+		ID_SET.add(81);
+		ID_SET.add(82);
+		ID_SET.add(83);
+		ID_SET.add(84);
+		ID_SET.add(85);
+		ID_SET.add(86);
+		ID_SET.add(87);
+		ID_SET.add(88);
+		ID_SET.add(89);
+		ID_SET.add(90);
+		ID_SET.add(91);
+		ID_SET.add(92);
+		ID_SET.add(93);
+		ID_SET.add(94);
+		ID_SET.add(95);
+		ID_SET.add(96);
+	}
+}

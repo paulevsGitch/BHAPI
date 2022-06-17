@@ -1,0 +1,12 @@
+{
+	"required": true,
+	"minVersion": "0.8",
+	"package": "net.bhapi.mixin.client",
+	"compatibilityLevel": "JAVA_17",
+	"mixins": [
+		"BlockEntityBaseMixin"
+	],
+	"injectors": {
+		"defaultRequire": 1
+	}
+}
