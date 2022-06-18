@@ -10,7 +10,7 @@ import net.minecraft.level.Level;
 import net.minecraft.level.LightType;
 import net.minecraft.level.chunk.Chunk;
 import net.minecraft.level.storage.NibbleArray;
-import net.minecraft.tileentity.BlockEntityBase;
+import net.minecraft.block.entity.BaseBlockEntity;
 import net.minecraft.util.maths.BlockPos;
 import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
@@ -89,10 +89,10 @@ public class ChunkMixin /*implements BlockStateProvider*/ {
 		info.setReturnValue(0);
 	}
 	
-	@Inject(method = "getBlockEntity(III)Lnet/minecraft/tileentity/BlockEntityBase;", at = @At("HEAD"), cancellable = true)
-	private void bhapi_getBlockEntity(int x, int y, int z, CallbackInfoReturnable<BlockEntityBase> info) {
+	@Inject(method = "getBlockEntity(III)Lnet/minecraft/tileentity/BaseBlockEntity;", at = @At("HEAD"), cancellable = true)
+	private void bhapi_getBlockEntity(int x, int y, int z, CallbackInfoReturnable<BaseBlockEntity> info) {
 		BlockPos pos = new BlockPos(x, y, z);
-		BlockEntityBase entity = (BlockEntityBase)this.blockEntities.get(pos);
+		BaseBlockEntity entity = (BaseBlockEntity)this.blockEntities.get(pos);
 		if (entity == null) {
 			BlockState state = getBlockState(x, y, z);
 			if (state == null) {
@@ -105,7 +105,7 @@ public class ChunkMixin /*implements BlockStateProvider*/ {
 				return;
 			}
 			state.getBlock().onBlockPlaced(this.level, this.x * 16 + x, y, this.z * 16 + z);
-			entity = (BlockEntityBase) this.blockEntities.get(pos);
+			entity = (BaseBlockEntity) this.blockEntities.get(pos);
 		}
 		if (entity != null && entity.isInvalid()) {
 			this.blockEntities.remove(pos);

@@ -3,15 +3,15 @@ package net.bhapi.mixin.client;
 import net.bhapi.blockstate.BlockStateProvider;
 import net.minecraft.block.BaseBlock;
 import net.minecraft.level.Level;
-import net.minecraft.tileentity.BlockEntityBase;
+import net.minecraft.block.entity.BaseBlockEntity;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
-@Mixin(BlockEntityBase.class)
-public class BlockEntityBaseMixin {
+@Mixin(BaseBlockEntity.class)
+public class BaseBlockEntityMixin {
 	@Shadow public Level level;
 	@Shadow public int x;
 	@Shadow public int y;
