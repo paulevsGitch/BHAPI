@@ -9,10 +9,12 @@ public class Identifier {
 	private static final String MINECRAFT = "minecraft";
 	private final String modID;
 	private final String name;
+	private final int hash;
 	
 	private Identifier(String modID, String name) {
 		this.modID = modID;
 		this.name = name;
+		this.hash = toString().hashCode();
 	}
 	
 	public String getModID() {
@@ -41,7 +43,7 @@ public class Identifier {
 	
 	@Override
 	public int hashCode() {
-		return Objects.hash(modID, name);
+		return this.hash;
 	}
 	
 	/**

@@ -1,5 +1,6 @@
 package net.bhapi.registry;
 
+import net.bhapi.block.BHAirBlock;
 import net.bhapi.blockstate.BlockState;
 import net.bhapi.blockstate.BlockStateContainer;
 import net.bhapi.util.Identifier;
@@ -9,6 +10,7 @@ import net.minecraft.item.ItemBase;
 public class DefaultRegistries {
 	public static final Registry<BaseBlock> BLOCK_REGISTRY = new Registry<>();
 	public static final Registry<ItemBase> ITEM_REGISTRY = new Registry<>();
+	public static final BHAirBlock AIR_BLOCK = new BHAirBlock();
 	
 	public static final SerialisationMap<BlockState> BLOCKSTATES_MAP = new SerialisationMap<>(
 		"blockstates",
@@ -17,6 +19,7 @@ public class DefaultRegistries {
 	);
 	
 	public static void initBlocks() {
+		BLOCK_REGISTRY.register(Identifier.make("air"), AIR_BLOCK);
 		BLOCK_REGISTRY.register(Identifier.make("stone"), BaseBlock.STONE);
 		BLOCK_REGISTRY.register(Identifier.make("grass"), BaseBlock.GRASS);
 		BLOCK_REGISTRY.register(Identifier.make("dirt"), BaseBlock.DIRT);

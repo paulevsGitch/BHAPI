@@ -1,6 +1,5 @@
 package net.bhapi.blockstate;
 
-import net.bhapi.BHAPI;
 import net.bhapi.blockstate.properties.StateProperty;
 import net.bhapi.registry.DefaultRegistries;
 import net.bhapi.util.Identifier;
@@ -14,6 +13,8 @@ import java.util.Map;
 
 public final class BlockState {
 	private static final Map<BaseBlock, BlockState[]> POSSIBLE_STATES = new HashMap<>();
+	public static final BlockState AIR_STATE = new BlockState(DefaultRegistries.AIR_BLOCK);
+	
 	private static int increment;
 	private static int index;
 	
@@ -67,6 +68,10 @@ public final class BlockState {
 	
 	public BaseBlock getBlock() {
 		return block;
+	}
+	
+	public BlockStateContainer getContainer() {
+		return BlockStateContainer.cast(block);
 	}
 	
 	public List<BlockState> getPossibleStates() {
@@ -131,7 +136,7 @@ public final class BlockState {
 	public static BlockState fromNBTString(String nbtString) {
 		String[] parts = nbtString.split(",");
 		String name = parts[0];
-		BaseBlock block = DefaultRegistries.BLOCK_REGISTRY.get(Identifier.make(name));
+		BaseBlock block = DefaultRegistries.BLOCK_REGISTRY.get(Identifier.make(name.substring(6)));
 		if (block == null) return null;
 		BlockState state = getDefaultState(block);
 		for (int i = 1; i < parts.length; i++) {

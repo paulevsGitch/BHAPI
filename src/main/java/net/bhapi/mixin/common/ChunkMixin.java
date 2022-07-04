@@ -1,11 +1,35 @@
 package net.bhapi.mixin.common;
 
+import net.bhapi.BHAPI;
+import net.bhapi.blockstate.BlockState;
+import net.bhapi.blockstate.BlockStateContainer;
+import net.bhapi.blockstate.BlockStateProvider;
+import net.bhapi.registry.DefaultRegistries;
+import net.bhapi.util.ChunkSection;
+import net.bhapi.util.NBTSerializable;
+import net.minecraft.block.BaseBlock;
+import net.minecraft.block.entity.BaseBlockEntity;
+import net.minecraft.level.Level;
+import net.minecraft.level.LightType;
 import net.minecraft.level.chunk.Chunk;
+import net.minecraft.level.storage.NibbleArray;
+import net.minecraft.util.io.CompoundTag;
+import net.minecraft.util.maths.BlockPos;
+import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
+import org.spongepowered.asm.mixin.Shadow;
+import org.spongepowered.asm.mixin.Unique;
+import org.spongepowered.asm.mixin.injection.At;
+import org.spongepowered.asm.mixin.injection.Inject;
+import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
+import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
+
+import java.util.Map;
 
 @Mixin(Chunk.class)
-public class ChunkMixin /*implements BlockStateProvider*/ {
-	/*@Shadow public boolean needUpdate;
+public class ChunkMixin implements BlockStateProvider, NBTSerializable {
+	@Shadow
+	public boolean needUpdate;
 	@Shadow public Map blockEntities;
 	@Shadow public byte[] heightmap;
 	@Shadow public NibbleArray meta;
@@ -14,65 +38,53 @@ public class ChunkMixin /*implements BlockStateProvider*/ {
 	@Shadow @Final public int z;
 	@Shadow public Level level;
 	
-	@Unique	private BlockState[] blockstates = new BlockState[32768];
+	@Unique private BlockState[] blockstates = new BlockState[32768];
+	@Unique private ChunkSection[] sections;
 	
 	@Inject(method = "<init>(Lnet/minecraft/level/Level;[BII)V", at = @At("TAIL"))
 	private void bhapi_onChunkInit(Level level, byte[] blocks, int x, int z, CallbackInfo info) {
-		for (int i = 0; i < blocks.length; i++) {
-			BaseBlock block = BaseBlock.BY_ID[blocks[i]];
-			if (block != null) {
-				blockstates[i] = BlockState.getDefaultState(block);
+		if (blocks != null) {
+			for (int i = 0; i < blocks.length; i++) {
+				blockstates[i] = getByID(blocks[i]);
 			}
 		}
 	}
 	
 	@Inject(method = "setBlock(IIIII)Z", at = @At("HEAD"), cancellable = true)
 	private void bhapi_setBlock(int x, int y, int z, int id, int meta, CallbackInfoReturnable<Boolean> info) {
-		if (VanillaBlockIDs.contains(id)) {
-			BaseBlock block = BaseBlock.BY_ID[id];
-			BlockState state = block == null ? null : BlockState.getDefaultState(block);
-			setBlockState(x, y, z, state);
-		}
-		else {
-			BHAPI.warn("Attempting to set numerical block id and meta\n");
-		}
-		info.cancel();
+		//BHAPI.warn("Attempting to set numerical block id and meta");
+		setBlockState(x, y, z, getByID(id));
+		//info.cancel();
 	}
 	
 	@Inject(method = "setBlock(IIII)Z", at = @At("HEAD"), cancellable = true)
 	private void bhapi_setBlock(int x, int y, int z, int id, CallbackInfoReturnable<Boolean> info) {
-		if (VanillaBlockIDs.contains(id)) {
-			BaseBlock block = BaseBlock.BY_ID[id];
-			BlockState state = block == null ? null : BlockState.getDefaultState(block);
-			setBlockState(x, y, z, state);
-		}
-		else {
-			BHAPI.warn("Attempting to set numerical block id\n");
-		}
-		info.cancel();
+		//BHAPI.warn("Attempting to set numerical block id and meta");
+		setBlockState(x, y, z, getByID(id));
+		//info.cancel();
 	}
 	
 	@Inject(method = "setMeta(IIII)V", at = @At("HEAD"), cancellable = true)
 	private void bhapi_disableMetaSet(int x, int y, int z, int id, CallbackInfo info) {
-		BHAPI.warn("Attempting to get numerical block meta\n");
-		info.cancel();
+		//BHAPI.warn("Attempting to get numerical block meta");
+		//info.cancel();
 	}
 	
-	@Inject(method = "getBlockId(III)I", at = @At("HEAD"), cancellable = true)
+	/*@Inject(method = "getBlockId(III)I", at = @At("HEAD"), cancellable = true)
 	private void bhapi_disableBlockIDGet(int x, int y, int z, CallbackInfoReturnable<Integer> info) {
-		BHAPI.warn("Attempting to get numerical block ID\n");
+		BHAPI.warn("Attempting to get numerical block ID");
 		info.setReturnValue(0);
 	}
 	
 	@Inject(method = "getMeta(III)I", at = @At("HEAD"))
 	private void bhapi_disableBlockMetaGet(int i, int j, int k, CallbackInfoReturnable<Integer> info) {
 		info.setReturnValue(0);
-	}
+	}*/
 	
-	@Inject(method = "getBlockEntity(III)Lnet/minecraft/tileentity/BaseBlockEntity;", at = @At("HEAD"), cancellable = true)
+	@Inject(method = "getBlockEntity", at = @At("HEAD"), cancellable = true)
 	private void bhapi_getBlockEntity(int x, int y, int z, CallbackInfoReturnable<BaseBlockEntity> info) {
 		BlockPos pos = new BlockPos(x, y, z);
-		BaseBlockEntity entity = (BaseBlockEntity)this.blockEntities.get(pos);
+		BaseBlockEntity entity = (BaseBlockEntity) this.blockEntities.get(pos);
 		if (entity == null) {
 			BlockState state = getBlockState(x, y, z);
 			if (state == null) {
@@ -114,7 +126,7 @@ public class ChunkMixin /*implements BlockStateProvider*/ {
 		int height = this.heightmap[z << 4 | x] & 0xFF;
 		
 		if (!this.level.dimension.noSkyLight) {
-			if (state != null && state.getBSC().getLightOpacity(state) != 0) {
+			if (state != null && state.getContainer().getLightOpacity(state) != 0) {
 				if (y >= height) {
 					this.updateSkylight(x, y + 1, z);
 				}
@@ -122,9 +134,9 @@ public class ChunkMixin /*implements BlockStateProvider*/ {
 			else if (y == height - 1) {
 				this.updateSkylight(x, y, z);
 			}
-			this.level.setLight(LightType.SKY, px, y, pz, px, y, pz);
+			this.level.updateLight(LightType.SKY, px, y, pz, px, y, pz);
 		}
-		this.level.setLight(LightType.BLOCK, px, y, pz, px, y, pz);
+		this.level.updateLight(LightType.BLOCK, px, y, pz, px, y, pz);
 		this.fillSkyLight(x, z);
 		state.getBlock().onBlockPlaced(this.level, px, y, pz);
 		this.needUpdate = true;
@@ -141,5 +153,34 @@ public class ChunkMixin /*implements BlockStateProvider*/ {
 	@Unique
 	private int getIndex(int x, int y, int z) {
 		return x << 11 | z << 7 | y;
-	}*/
+	}
+	
+	@Unique
+	private BlockState getByID(int id) {
+		BaseBlock block = BaseBlock.BY_ID[id];
+		if (block == null) block = DefaultRegistries.AIR_BLOCK;
+		return BlockStateContainer.cast(block).getDefaultState();
+	}
+	
+	@Unique
+	@Override
+	public void saveToNBT(CompoundTag tag) {
+		byte[] data = new byte[blockstates.length];
+		for (int i = 0; i < data.length; i++) {
+			data[i] = (byte) DefaultRegistries.BLOCKSTATES_MAP.getID(blockstates[i]);
+		}
+		tag.put("blockstates", data);
+	}
+	
+	@Unique
+	@Override
+	public void loadFromNBT(CompoundTag tag) {
+		byte[] data = tag.getByteArray("blockstates");
+		if (data.length == blockstates.length) {
+			for (int i = 0; i < data.length; i++) {
+				blockstates[i] = DefaultRegistries.BLOCKSTATES_MAP.get(data[i]);
+				if (blockstates[i] == null) blockstates[i] = BlockState.AIR_STATE;
+			}
+		}
+	}
 }
