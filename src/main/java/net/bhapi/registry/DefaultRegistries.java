@@ -1,5 +1,7 @@
 package net.bhapi.registry;
 
+import net.bhapi.blockstate.BlockState;
+import net.bhapi.blockstate.BlockStateContainer;
 import net.bhapi.util.Identifier;
 import net.minecraft.block.BaseBlock;
 import net.minecraft.item.ItemBase;
@@ -8,11 +10,13 @@ public class DefaultRegistries {
 	public static final Registry<BaseBlock> BLOCK_REGISTRY = new Registry<>();
 	public static final Registry<ItemBase> ITEM_REGISTRY = new Registry<>();
 	
-	public static void init() {
-		initBlocks();
-	}
+	public static final SerialisationMap<BlockState> BLOCKSTATES_MAP = new SerialisationMap<>(
+		"blockstates",
+		BlockState::toNBTString,
+		BlockState::fromNBTString
+	);
 	
-	private static void initBlocks() {
+	public static void initBlocks() {
 		BLOCK_REGISTRY.register(Identifier.make("stone"), BaseBlock.STONE);
 		BLOCK_REGISTRY.register(Identifier.make("grass"), BaseBlock.GRASS);
 		BLOCK_REGISTRY.register(Identifier.make("dirt"), BaseBlock.DIRT);
@@ -109,5 +113,7 @@ public class DefaultRegistries {
 		BLOCK_REGISTRY.register(Identifier.make("redstone_repeater_lit"), BaseBlock.REDSTONE_REPEATER_LIT);
 		BLOCK_REGISTRY.register(Identifier.make("locked_chest"), BaseBlock.LOCKED_CHEST);
 		BLOCK_REGISTRY.register(Identifier.make("trapdoor"), BaseBlock.TRAPDOOR);
+		
+		BLOCK_REGISTRY.forEach(block -> BlockStateContainer.cast(block).getDefaultState());
 	}
 }

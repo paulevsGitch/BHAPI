@@ -1,5 +1,6 @@
 package net.bhapi.blockstate;
 
+import net.bhapi.BHAPI;
 import net.bhapi.blockstate.properties.StateProperty;
 import net.bhapi.registry.DefaultRegistries;
 import net.bhapi.util.Identifier;
@@ -22,15 +23,15 @@ public final class BlockState {
 	
 	private BlockState(BaseBlock block) {
 		this.localCache = POSSIBLE_STATES.computeIfAbsent(block, key -> {
-			BlockStateContainer provider = (BlockStateContainer) block;
+			BlockStateContainer container = BlockStateContainer.cast(block);
 			List<StateProperty> properties = new ArrayList<>();
-			provider.appendProperties(properties);
+			container.appendProperties(properties);
 			int size = 1;
 			for (StateProperty property: properties) size *= property.getCount();
-			provider.setDefaultState(this);
+			container.setDefaultState(this);
 			properties.forEach(property -> this.properties.put(property, property.defaultValue()));
 			BlockState[] cache = new BlockState[size];
-			BlockStatesMap.addState(this);
+			DefaultRegistries.BLOCKSTATES_MAP.add(this);
 			cache[0] = this;
 			return cache;
 		});
@@ -54,7 +55,7 @@ public final class BlockState {
 			state.properties.putAll(properties);
 			state.properties.put(property, value);
 			localCache[index] = state;
-			BlockStatesMap.addState(state);
+			DefaultRegistries.BLOCKSTATES_MAP.add(state);
 		}
 		
 		return state;
@@ -66,10 +67,6 @@ public final class BlockState {
 	
 	public BaseBlock getBlock() {
 		return block;
-	}
-	
-	public BlockStateContainer getBSC() {
-		return (BlockStateContainer) block;
 	}
 	
 	public List<BlockState> getPossibleStates() {
@@ -97,8 +94,12 @@ public final class BlockState {
 	}
 	
 	public String toNBTString() {
+		Identifier blockID = DefaultRegistries.BLOCK_REGISTRY.getID(block);
+		if (blockID == null) {
+			throw new RuntimeException("Block " + block + " is not in registry!");
+		}
 		StringBuilder builder = new StringBuilder("block=");
-		builder.append(DefaultRegistries.BLOCK_REGISTRY.getID(block));
+		builder.append(blockID);
 		index = 0;
 		final int max = properties.size();
 		if (max > 0) {
@@ -118,20 +119,7 @@ public final class BlockState {
 	
 	@Override
 	public String toString() {
-		StringBuilder builder = new StringBuilder("[");
-		index = 0;
-		final int max = properties.size();
-		properties.forEach((prop, obj) -> {
-			index++;
-			builder.append(prop);
-			builder.append("=");
-			builder.append(obj);
-			if (index < max) {
-				builder.append(",");
-			}
-		});
-		builder.append("]");
-		return builder.toString();
+		return toNBTString();
 	}
 	
 	public static BlockState getDefaultState(BaseBlock block) {

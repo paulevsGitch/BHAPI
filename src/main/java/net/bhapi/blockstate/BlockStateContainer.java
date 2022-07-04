@@ -1,6 +1,7 @@
 package net.bhapi.blockstate;
 
 import net.bhapi.blockstate.properties.StateProperty;
+import net.minecraft.block.BaseBlock;
 import net.minecraft.block.BlockSounds;
 import net.minecraft.entity.BaseEntity;
 import net.minecraft.entity.player.PlayerBase;
@@ -21,4 +22,8 @@ public interface BlockStateContainer {
 	default float getHardness(BlockState state) { return state.getBlock().getHardness(); }
 	default float getHardness(BlockState state, PlayerBase player) { return state.getBlock().getHardness(player); }
 	default float getBlastResistance(BlockState state, BaseEntity entity) { return state.getBlock().getBlastResistance(entity); }
+	
+	static BlockStateContainer cast(BaseBlock block) {
+		return (BlockStateContainer) block;
+	}
 }

@@ -2,7 +2,6 @@ package net.bhapi;
 
 import net.bhapi.block.BHBaseBlock;
 import net.bhapi.blockstate.BlockState;
-import net.bhapi.blockstate.BlockStatesMap;
 import net.bhapi.registry.DefaultRegistries;
 import net.bhapi.util.Identifier;
 import net.fabricmc.api.ModInitializer;
@@ -19,11 +18,7 @@ public class BHAPI implements ModInitializer {
 	public void onInitialize() {
 		instance = this;
 		
-		DefaultRegistries.init();
-		
-		//Identifier id1 = Identifier.make("a");
-		//Identifier id2 = Identifier.make("a");
-		//System.out.println(id1 + " " + (id1 == id2));
+		DefaultRegistries.initBlocks();
 		
 		Identifier id = Identifier.make("testblock");
 		BHBaseBlock block = new BHBaseBlock(Material.STONE);

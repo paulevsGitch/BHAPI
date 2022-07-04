@@ -6,6 +6,8 @@ import org.jetbrains.annotations.Nullable;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.function.BiConsumer;
+import java.util.function.Consumer;
 
 public class Registry<T> {
 	private final Map<Identifier, T> idToObj = new HashMap<>();
@@ -33,5 +35,13 @@ public class Registry<T> {
 	
 	public Collection<T> values() {
 		return idToObj.values();
+	}
+	
+	public void forEach(Consumer<T> consumer) {
+		objToId.keySet().forEach(consumer);
+	}
+	
+	public void forEach(BiConsumer<Identifier, T> consumer) {
+		idToObj.forEach(consumer);
 	}
 }

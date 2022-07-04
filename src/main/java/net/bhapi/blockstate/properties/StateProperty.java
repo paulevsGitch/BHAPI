@@ -1,6 +1,5 @@
 package net.bhapi.blockstate.properties;
 
-import java.util.Collection;
 import java.util.List;
 
 public abstract class StateProperty <T> {

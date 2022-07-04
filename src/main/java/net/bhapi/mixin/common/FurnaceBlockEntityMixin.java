@@ -1,10 +1,8 @@
 package net.bhapi.mixin.common;
 
-import net.minecraft.block.BaseBlock;
-import net.minecraft.block.material.Material;
+import net.minecraft.block.entity.FurnaceBlockEntity;
 import net.minecraft.item.ItemBase;
 import net.minecraft.item.ItemStack;
-import net.minecraft.block.entity.FurnaceBlockEntity;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;

@@ -3,12 +3,11 @@ package net.bhapi.mixin.common;
 import net.bhapi.BHAPI;
 import net.bhapi.blockstate.BlockState;
 import net.bhapi.blockstate.BlockStateProvider;
-import net.bhapi.blockstate.BlockStatesMap;
+import net.bhapi.registry.DefaultRegistries;
 import net.minecraft.block.material.Material;
 import net.minecraft.level.Level;
 import net.minecraft.level.dimension.Dimension;
 import net.minecraft.level.dimension.DimensionData;
-import net.minecraft.util.ProgressListener;
 import net.minecraft.util.io.CompoundTag;
 import net.minecraft.util.io.NBTIO;
 import org.spongepowered.asm.mixin.Final;
@@ -22,7 +21,6 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 
@@ -70,28 +68,35 @@ public class LevelMixin implements BlockStateProvider {
 		info.setReturnValue(state == null ? Material.AIR : state.getBlock().material);
 	}
 	
-	@Inject(method = "method_271()V", at = @At("HEAD"))
+	@Inject(method = "saveLevelData()V", at = @At("HEAD"))
 	private void bhapi_onLevelSave(CallbackInfo ci) {
+		BHAPI.log("Saving registries");
 		CompoundTag tag = new CompoundTag();
-		BlockStatesMap.saveData(tag);
-		BHAPI.log("Saving blockstates map");
-		try {
-			File file = dimensionData.getFile("blockstates");
-			FileOutputStream stream = new FileOutputStream(file);
-			NBTIO.writeGzipped(tag, stream);
-			stream.close();
-		}
-		catch (IOException e) {
-			BHAPI.warn(e.getMessage());
+		
+		boolean requireSave = true;
+		requireSave &= DefaultRegistries.BLOCKSTATES_MAP.save(tag);
+		
+		if (requireSave) {
+			try {
+				File file = dimensionData.getFile("registries");
+				FileOutputStream stream = new FileOutputStream(file);
+				NBTIO.writeGzipped(tag, stream);
+				stream.close();
+			}
+			catch (IOException e) {
+				BHAPI.warn(e.getMessage());
+			}
 		}
 	}
 	
 	@Unique
 	private void loadBlockStates() {
-		BHAPI.log("Loading blockstates map");
+		BHAPI.log("Loading registries");
+		
 		CompoundTag tag = null;
 		try {
-			File file = dimensionData.getFile("blockstates");
+			File file = dimensionData.getFile("registries");
+			if (!file.exists()) return;
 			FileInputStream stream = new FileInputStream(file);
 			tag = NBTIO.readGzipped(stream);
 			stream.close();
@@ -100,7 +105,7 @@ public class LevelMixin implements BlockStateProvider {
 			BHAPI.warn(e.getMessage());
 		}
 		if (tag != null) {
-			BlockStatesMap.loadData(tag);
+			DefaultRegistries.BLOCKSTATES_MAP.load(tag);
 		}
 	}
 }
