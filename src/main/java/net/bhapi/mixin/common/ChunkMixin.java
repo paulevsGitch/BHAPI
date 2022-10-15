@@ -58,6 +58,7 @@ public abstract class ChunkMixin implements NBTSerializable {
 	@Shadow public abstract void afterBlockLightReset();
 	
 	@Unique private ChunkSection[] bhapi_sections;
+	@Unique private short[] bhapi_heightmap = new short[256];;
 	
 	@Inject(method = "<init>(Lnet/minecraft/level/Level;[BII)V", at = @At("TAIL"))
 	private void bhapi_onChunkInit(Level level, byte[] blocks, int x, int z, CallbackInfo info) {
@@ -72,6 +73,17 @@ public abstract class ChunkMixin implements NBTSerializable {
 		this.blockEntities = null;
 		this.skyLight = null;
 		this.blockLight = null;
+		this.heightmap = null;
+	}
+	
+	@Inject(method = "<init>(Lnet/minecraft/level/Level;II)V", at = @At("TAIL"))
+	private void bhapi_onChunkInit(Level level, int x, int z, CallbackInfo info) {
+		this.meta = null;
+		this.entities = null;
+		this.blockEntities = null;
+		this.skyLight = null;
+		this.blockLight = null;
+		this.heightmap = null;
 	}
 	
 	@Inject(method = "setBlock(IIIII)Z", at = @At("HEAD"), cancellable = true)
@@ -90,7 +102,7 @@ public abstract class ChunkMixin implements NBTSerializable {
 		
 		byte py = (byte) (y & 15);
 		
-		int height = this.heightmap[z << 4 | x] & 0xFF;
+		short height = bhapi_getHeight(x, z);
 		int blockID = section.getID(x, py, z);
 		if (blockID == id && section.getMeta(x, py, z) == meta) {
 			info.setReturnValue(false);
@@ -161,12 +173,12 @@ public abstract class ChunkMixin implements NBTSerializable {
 	@Inject(method = "updateHeightmap", at = @At("HEAD"), cancellable = true)
 	private void bhapi_updateHeightmap(CallbackInfo info) {
 		info.cancel();
-		int minHeight = 127;
+		short minHeight = 127;
 		for (byte x = 0; x < 16; ++x) {
 			for (byte z = 0; z < 16; ++z) {
-				byte y;
+				short y;
 				for (y = 127; y > 0 && BaseBlock.LIGHT_OPACITY[this.getBlockId(x, y - 1, z)] == 0; --y) {} // TODO change to blockstates
-				this.heightmap[z << 4 | x] = y;
+				bhapi_setHeight(x, z, y);
 				if (y >= minHeight) continue;
 				minHeight = y;
 			}
@@ -181,12 +193,12 @@ public abstract class ChunkMixin implements NBTSerializable {
 		bhapi_fillBlocks();
 		
 		byte x, z;
-		int minHeight = 127;
+		short minHeight = 127;
 		for (x = 0; x < 16; ++x) {
 			for (z = 0; z < 16; ++z) {
-				byte y;
+				short y;
 				for (y = 127; y > 0 && BaseBlock.LIGHT_OPACITY[this.getBlockId(x, y - 1, z)] == 0; --y) {} // TODO change to blockstates
-				this.heightmap[z << 4 | x] = y;
+				bhapi_setHeight(x, z, y);
 				if (y < minHeight) {
 					minHeight = y;
 				}
@@ -215,11 +227,12 @@ public abstract class ChunkMixin implements NBTSerializable {
 	private void bhapi_updateSkylight(int x, int y, int z, CallbackInfo info) {
 		info.cancel();
 		
-		int h, wz, wx, h2;
-		int h1 = h2 = this.heightmap[z << 4 | x] & 0xFF;
+		int h, wz, wx;
+		short h1, h2;
+		h1 = h2 = bhapi_getHeight(x, z);
 		
 		if (y > h2) {
-			h1 = y;
+			h1 = (short) y;
 		}
 		
 		while (h1 > 0 && BaseBlock.LIGHT_OPACITY[getBlockId(x, h1 - 1, z) & 0xFF] == 0) { // TODO change to blockstates
@@ -231,7 +244,7 @@ public abstract class ChunkMixin implements NBTSerializable {
 		}
 		
 		this.level.callColumnAreaEvent(x, z, h1, h2);
-		this.heightmap[z << 4 | x] = (byte)h1;
+		bhapi_setHeight(x, z, h1);
 		
 		if (h1 < this.minHeight) {
 			this.minHeight = h1;
@@ -240,8 +253,9 @@ public abstract class ChunkMixin implements NBTSerializable {
 			int minHeight = 127;
 			for (wz = 0; wz < 16; ++wz) {
 				for (h = 0; h < 16; ++h) {
-					if ((this.heightmap[h << 4 | wz] & 0xFF) >= minHeight) continue;
-					minHeight = this.heightmap[h << 4 | wz] & 0xFF;
+					short mh = bhapi_getHeight(wz, h << 4);
+					if (mh >= minHeight) continue;
+					minHeight = mh;
 				}
 			}
 			this.minHeight = minHeight;
@@ -484,6 +498,26 @@ public abstract class ChunkMixin implements NBTSerializable {
 		info.setReturnValue(light);
 	}
 	
+	@Inject(method = "isAboveGround", at = @At("HEAD"), cancellable = true)
+	private void isAboveGround(int x, int y, int z, CallbackInfoReturnable<Boolean> info) {
+		info.setReturnValue(y >= bhapi_getHeight(x, z));
+	}
+	
+	@Inject(method = "getHeight(II)I", at = @At("HEAD"), cancellable = true)
+	private void bhapi_getHeight(int x, int z, CallbackInfoReturnable<Integer> info) {
+		info.setReturnValue((int) bhapi_getHeight(x, z));
+	}
+	
+	@Unique
+	private short bhapi_getHeight(int x, int z) {
+		return bhapi_heightmap[x << 4 | z];
+	}
+	
+	@Unique
+	private void bhapi_setHeight(int x, int z, short height) {
+		bhapi_heightmap[x << 4 | z] = height;
+	}
+	
 	@Unique
 	private ChunkSection bhapi_getSection(int y) {
 		byte sectionY = (byte) (y >> 4);
@@ -519,11 +553,29 @@ public abstract class ChunkMixin implements NBTSerializable {
 	}
 	
 	@Unique
+	private void bhapi_loadHeightmap(byte[] data) {
+		for (int i = 0; i < 256; i++) {
+			int i2 = i << 1;
+			bhapi_heightmap[i] = (short) ((data[i2 | 1] & 255) << 8 | (data[i2] & 255));
+		}
+	}
+	
+	private byte[] bhapi_saveHeightmap() {
+		byte[] data = new byte[512];
+		for (int i = 0; i < 512; i++) {
+			int i2 = i >> 1;
+			data[i] = (byte) ((i & 1) == 0 ? (bhapi_heightmap[i2] & 255) : ((bhapi_heightmap[i2] >> 8) & 255));
+		}
+		return data;
+	}
+	
+	@Unique
 	@Override
 	public void saveToNBT(CompoundTag tag) {
 		tag.put("x", this.x);
 		tag.put("z", this.z);
-		tag.put("heightmap", this.heightmap);
+		//tag.put("heightmap", this.heightmap);
+		tag.put("heightmap", bhapi_saveHeightmap());
 		tag.put("populated", this.decorated);
 		
 		ListTag sectionList = new ListTag();
@@ -543,12 +595,20 @@ public abstract class ChunkMixin implements NBTSerializable {
 	public void loadFromNBT(CompoundTag tag) {
 		bhapi_initSections();
 		
-		this.heightmap = tag.getByteArray("heightmap");
+		//this.heightmap = tag.getByteArray("heightmap");
 		this.decorated = tag.getBoolean("populated");
 		
-		if (this.heightmap == null || this.heightmap.length != 256) {
+		/*if (this.heightmap == null || this.heightmap.length != 256) {
 			this.heightmap = new byte[256];
 			this.generateHeightmap();
+		}*/
+		
+		byte[] heightmap = tag.getByteArray("heightmap");
+		if (heightmap == null || heightmap.length != 512) {
+			this.generateHeightmap();
+		}
+		else {
+			this.bhapi_loadHeightmap(heightmap);
 		}
 		
 		ListTag sectionList = tag.getListTag("sections");
