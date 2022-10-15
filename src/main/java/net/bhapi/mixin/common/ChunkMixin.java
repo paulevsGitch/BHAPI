@@ -55,10 +55,9 @@ public abstract class ChunkMixin implements NBTSerializable {
 	@Shadow protected abstract void updateSkylight(int i, int j, int k);
 	@Shadow public abstract boolean setBlock(int i, int j, int k, int l, int m);
 	@Shadow public abstract void generateHeightmap();
-	@Shadow public abstract void afterBlockLightReset();
 	
 	@Unique private ChunkSection[] bhapi_sections;
-	@Unique private short[] bhapi_heightmap = new short[256];;
+	@Unique private short[] bhapi_heightmap = new short[256];
 	
 	@Inject(method = "<init>(Lnet/minecraft/level/Level;[BII)V", at = @At("TAIL"))
 	private void bhapi_onChunkInit(Level level, byte[] blocks, int x, int z, CallbackInfo info) {
@@ -88,16 +87,10 @@ public abstract class ChunkMixin implements NBTSerializable {
 	
 	@Inject(method = "setBlock(IIIII)Z", at = @At("HEAD"), cancellable = true)
 	private void bhapi_setBlock(int x, int y, int z, int id, int meta, CallbackInfoReturnable<Boolean> info) {
-		byte index = (byte) (y >> 4);
-		if (index < 0 || index >= bhapi_sections.length) {
+		ChunkSection section = bhapi_getOrCreateSection(y);
+		if (section == null) {
 			info.setReturnValue(false);
 			return;
-		}
-		
-		ChunkSection section = bhapi_sections[index];
-		if (section == null) {
-			section = new ChunkSection();
-			bhapi_sections[index] = section;
 		}
 		
 		byte py = (byte) (y & 15);
@@ -149,7 +142,7 @@ public abstract class ChunkMixin implements NBTSerializable {
 	
 	@Inject(method = "setMeta(IIII)V", at = @At("HEAD"), cancellable = true)
 	private void bhapi_setMeta(int x, int y, int z, int meta, CallbackInfo info) {
-		ChunkSection section = bhapi_getSection(y);
+		ChunkSection section = bhapi_getOrCreateSection(y);
 		if (section != null) {
 			section.setMeta(x, y & 15, z, meta);
 			this.needUpdate = true;
@@ -279,7 +272,7 @@ public abstract class ChunkMixin implements NBTSerializable {
 		}
 		
 		h = 15;
-		int n7 = h1;
+		h2 = h1;
 		while (h1 > 0 && h > 0) {
 			int n8;
 			if ((n8 = BaseBlock.LIGHT_OPACITY[this.getBlockId(x, --h1, z)]) == 0) {
@@ -296,8 +289,8 @@ public abstract class ChunkMixin implements NBTSerializable {
 			--h1;
 		}
 		
-		if (h1 != n7) {
-			this.level.updateLight(LightType.SKY, wx - 1, h1, wz - 1, wx + 1, n7, wz + 1);
+		if (h1 != h2) {
+			this.level.updateLight(LightType.SKY, wx - 1, h1, wz - 1, wx + 1, h2, wz + 1);
 		}
 		
 		this.needUpdate = true;
@@ -341,7 +334,7 @@ public abstract class ChunkMixin implements NBTSerializable {
 	private void bhapi_addEntitiesToLevel(CallbackInfo info) {
 		info.cancel();
 		this.canHaveBlockEntities = true;
-		Arrays.stream(bhapi_sections).forEach(section -> {
+		Arrays.stream(bhapi_sections).filter(s -> s != null).forEach(section -> {
 			this.level.addEntities(section.entities);
 			this.level.addBlockEntities(section.getBlockEntities());
 		});
@@ -351,7 +344,7 @@ public abstract class ChunkMixin implements NBTSerializable {
 	private void bhapi_removeEntitiesFromLevel(CallbackInfo info) {
 		info.cancel();
 		this.canHaveBlockEntities = false;
-		Arrays.stream(bhapi_sections).forEach(section -> {
+		Arrays.stream(bhapi_sections).filter(s -> s != null).forEach(section -> {
 			section.getBlockEntities().forEach(BaseBlockEntity::invalidate);
 			level.removeEntities(section.entities);
 		});
@@ -464,13 +457,15 @@ public abstract class ChunkMixin implements NBTSerializable {
 		if (section == null) {
 			info.setReturnValue(type == LightType.SKY && !this.level.dimension.noSkyLight ? 15 : 0);
 		}
-		info.setReturnValue(section.getLight(type, x, y & 15, z));
+		else {
+			info.setReturnValue(section.getLight(type, x, y & 15, z));
+		}
 	}
 	
 	@Inject(method = "setLight", at = @At("HEAD"), cancellable = true)
 	private void bhapi_setLight(LightType type, int x, int y, int z, int value, CallbackInfo info) {
 		info.cancel();
-		ChunkSection section = bhapi_getSection(y);
+		ChunkSection section = bhapi_getOrCreateSection(y);
 		if (section != null) {
 			section.setLight(type, x, y & 15, z, value);
 			this.needUpdate = true;
@@ -525,12 +520,32 @@ public abstract class ChunkMixin implements NBTSerializable {
 	}
 	
 	@Unique
+	private ChunkSection bhapi_getOrCreateSection(int y) {
+		byte sectionY = (byte) (y >> 4);
+		if (sectionY < 0 || sectionY >= bhapi_sections.length) return null;
+		ChunkSection section = bhapi_sections[sectionY];
+		if (section == null) {
+			section = new ChunkSection();
+			bhapi_sections[sectionY] = section;
+			int offset = sectionY << 4;
+			for (byte x = 0; x < 16; x++) {
+				for (byte z = 0; z < 16; z++) {
+					short height = bhapi_getHeight(x, z);
+					byte minY = (byte) Math.max(height - offset, 0);
+					byte maxY = (byte) Math.min(height - offset + 16, 16);
+					for (byte h = minY; h < maxY; h++) {
+						section.setLight(LightType.SKY, x, h, z, 15);
+					}
+				}
+			}
+		}
+		return section;
+	}
+	
+	@Unique
 	private void bhapi_initSections() {
 		if (bhapi_sections == null) {
 			bhapi_sections = new ChunkSection[8];
-			for (byte i = 0; i < bhapi_sections.length; i++) {
-				bhapi_sections[i] = new ChunkSection();
-			}
 		}
 	}
 	
@@ -538,10 +553,26 @@ public abstract class ChunkMixin implements NBTSerializable {
 	private void bhapi_fillBlocks() {
 		if (this.blocks != null) {
 			for (int i = 0; i < this.blocks.length; i++) {
+				if (this.blocks[i] == 0) continue;
+				
 				int px = (i >> 11) & 15;
 				int pz = (i >> 7) & 15;
 				int py = i & 127;
-				bhapi_sections[py >> 4].setID(px, py & 15, pz, this.blocks[i]);
+				
+				short sectionY = (short) (py >> 4);
+				ChunkSection section = bhapi_sections[sectionY];
+				if (section == null) {
+					section = new ChunkSection();
+					bhapi_sections[sectionY] = section;
+				}
+				section.setID(px, py & 15, pz, this.blocks[i]);
+				
+				short sectionY2 = (short) (sectionY + 1);
+				section = bhapi_sections[sectionY2];
+				if (section == null) {
+					section = new ChunkSection();
+					bhapi_sections[sectionY2] = section;
+				}
 			}
 			this.blocks = null;
 		}
@@ -549,7 +580,7 @@ public abstract class ChunkMixin implements NBTSerializable {
 	
 	@Unique
 	private void bhapi_updateHasEntities() {
-		this.hasEntities = Arrays.stream(bhapi_sections).anyMatch(section -> !section.entities.isEmpty());
+		this.hasEntities = Arrays.stream(bhapi_sections).anyMatch(section -> section != null && !section.entities.isEmpty());
 	}
 	
 	@Unique
@@ -560,6 +591,7 @@ public abstract class ChunkMixin implements NBTSerializable {
 		}
 	}
 	
+	@Unique
 	private byte[] bhapi_saveHeightmap() {
 		byte[] data = new byte[512];
 		for (int i = 0; i < 512; i++) {
@@ -574,13 +606,14 @@ public abstract class ChunkMixin implements NBTSerializable {
 	public void saveToNBT(CompoundTag tag) {
 		tag.put("x", this.x);
 		tag.put("z", this.z);
-		//tag.put("heightmap", this.heightmap);
 		tag.put("heightmap", bhapi_saveHeightmap());
 		tag.put("populated", this.decorated);
 		
 		ListTag sectionList = new ListTag();
 		tag.put("sections", sectionList);
+		
 		for (byte i = 0; i < bhapi_sections.length; i++) {
+			if (bhapi_sections[i] == null) continue;
 			CompoundTag sectionTag = new CompoundTag();
 			sectionTag.put("y", i);
 			bhapi_sections[i].saveToNBT(sectionTag);
@@ -593,15 +626,7 @@ public abstract class ChunkMixin implements NBTSerializable {
 	@Unique
 	@Override
 	public void loadFromNBT(CompoundTag tag) {
-		bhapi_initSections();
-		
-		//this.heightmap = tag.getByteArray("heightmap");
 		this.decorated = tag.getBoolean("populated");
-		
-		/*if (this.heightmap == null || this.heightmap.length != 256) {
-			this.heightmap = new byte[256];
-			this.generateHeightmap();
-		}*/
 		
 		byte[] heightmap = tag.getByteArray("heightmap");
 		if (heightmap == null || heightmap.length != 512) {
@@ -611,13 +636,16 @@ public abstract class ChunkMixin implements NBTSerializable {
 			this.bhapi_loadHeightmap(heightmap);
 		}
 		
+		bhapi_initSections();
 		ListTag sectionList = tag.getListTag("sections");
 		final int size = sectionList.size();
 		for (byte i = 0; i < size; i++) {
 			CompoundTag sectionTag = (CompoundTag) sectionList.get(i);
 			byte y = sectionTag.getByte("y");
-			bhapi_sections[y].loadFromNBT(sectionTag);
-			bhapi_sections[y].loadEntities(sectionTag, this.level, this.x, y, this.z, this.canHaveBlockEntities);
+			ChunkSection section = new ChunkSection();
+			bhapi_sections[y] = section;
+			section.loadFromNBT(sectionTag);
+			section.loadEntities(sectionTag, this.level, this.x, y, this.z, this.canHaveBlockEntities);
 		}
 		
 		bhapi_updateHasEntities();
