@@ -568,10 +568,12 @@ public abstract class ChunkMixin implements NBTSerializable {
 				section.setID(px, py & 15, pz, this.blocks[i]);
 				
 				short sectionY2 = (short) (sectionY + 1);
-				section = bhapi_sections[sectionY2];
-				if (section == null) {
-					section = new ChunkSection();
-					bhapi_sections[sectionY2] = section;
+				if (sectionY2 < bhapi_sections.length) {
+					section = bhapi_sections[sectionY2];
+					if (section == null) {
+						section = new ChunkSection();
+						bhapi_sections[sectionY2] = section;
+					}
 				}
 			}
 			this.blocks = null;
