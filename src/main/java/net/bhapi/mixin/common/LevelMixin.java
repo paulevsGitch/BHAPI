@@ -1,5 +1,6 @@
 package net.bhapi.mixin.common;
 
+import net.bhapi.level.LevelHeightProvider;
 import net.minecraft.block.BaseBlock;
 import net.minecraft.entity.BaseEntity;
 import net.minecraft.entity.Lightning;
@@ -17,7 +18,9 @@ import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
+import org.spongepowered.asm.mixin.injection.Constant;
 import org.spongepowered.asm.mixin.injection.Inject;
+import org.spongepowered.asm.mixin.injection.ModifyConstant;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 import java.util.List;
@@ -25,8 +28,7 @@ import java.util.Random;
 import java.util.Set;
 
 @Mixin(Level.class)
-public abstract class LevelMixin {
-	@Shadow @Final protected DimensionData dimensionData;
+public abstract class LevelMixin implements LevelHeightProvider {
 	@Shadow private Set field_194;
 	@Shadow public List players;
 	@Shadow private int field_195;
@@ -46,6 +48,8 @@ public abstract class LevelMixin {
 	@Shadow public abstract boolean method_184(BaseEntity arg);
 	@Shadow public abstract BiomeSource getBiomeSource();
 	@Shadow public abstract boolean setBlock(int i, int j, int k, int l);
+	
+	@Shadow @Final public BaseDimension dimension;
 	
 	@Inject(
 		method = "<init>(Lnet/minecraft/level/dimension/DimensionData;Ljava/lang/String;Lnet/minecraft/level/dimension/BaseDimension;J)V",
@@ -127,7 +131,7 @@ public abstract class LevelMixin {
 				index = this.field_203 >> 2;
 				px = index & 15;
 				pz = index >> 8 & 15;
-				py = index >> 16 & 128;
+				py = index >> 16 & 127;
 				blockID = chunk.getBlockId(px, py, pz);
 				if (blockID == 0 && this.getLightLevel(px += chunkX, py, pz += chunkZ) <= this.rand.nextInt(8) && this.getLight(LightType.SKY, px, py, pz) <= 0 && (playerBase = this.getClosestPlayer(px + 0.5, py + 0.5, pz + 0.5, 8.0)) != null && playerBase.squaredDistanceTo(px + 0.5, py + 0.5, pz + 0.5) > 4.0) {
 					this.playSound(px + 0.5, py + 0.5, pz + 0.5, "ambient.cave.cave", 0.7f, 0.8f + this.rand.nextFloat() * 0.2f);
@@ -196,5 +200,48 @@ public abstract class LevelMixin {
 		if (tag != null) {
 			DefaultRegistries.BLOCKSTATES_MAP.load(tag);
 		}*/
+	}
+	
+	@ModifyConstant(method = {
+		"getBlockId",
+		"isBlockLoaded(III)Z",
+		"isAreaLoaded(IIIIII)Z",
+		"getLightLevel(III)I",
+		"setBlockInChunk(IIII)Z",
+		"setBlockInChunk(IIIII)Z",
+		"getBlockMeta",
+		"setMetaInChunk",
+		"isAboveGround",
+		"getLight(IIIZ)I",
+		"getLight(Lnet/minecraft/level/LightType;III)I",
+		"setLight",
+		"method_193"
+	}, constant = @Constant(intValue = 128))
+	private int changeMaxHeight(int value) {
+		return getLevelHeight();
+	}
+	
+	@ModifyConstant(method = {
+		"getLightLevel(III)I",
+		"getLight(IIIZ)I",
+		"getLight(Lnet/minecraft/level/LightType;III)I",
+		"getHeightIterating"
+	}, constant = @Constant(intValue = 127))
+	private int changeMaxBlockHeight(int value) {
+		return getLevelHeight() - 1;
+	}
+	
+	@ModifyConstant(
+		method = "getHitResult(Lnet/minecraft/util/maths/Vec3f;Lnet/minecraft/util/maths/Vec3f;ZZ)Lnet/minecraft/util/hit/HitResult;",
+		constant = @Constant(intValue = 200)
+	)
+	private int changeMaxEntityCalcHeight(int value) {
+		return getLevelHeight() + 64;
+	}
+	
+	@Unique
+	@Override
+	public short getLevelHeight() {
+		return LevelHeightProvider.cast(this.dimension).getLevelHeight();
 	}
 }

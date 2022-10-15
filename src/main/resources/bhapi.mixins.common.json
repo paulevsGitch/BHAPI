@@ -4,11 +4,15 @@
 	"package": "net.bhapi.mixin.common",
 	"compatibilityLevel": "JAVA_17",
 	"mixins": [
+		"LevelPopulationRegionMixin",
+		"LevelMonsterSpawnerMixin",
 		"FurnaceBlockEntityMixin",
 		"LevelChunkLoaderMixin",
+		"LightUpdateAreaMixin",
 		"BaseDimensionMixin",
 		"LevelManagerMixin",
 		"BaseBlockMixin",
+		"BlockItemMixin",
 		"ChunkMixin",
 		"LevelMixin"
 	],

@@ -1,11 +1,11 @@
 package net.bhapi.level;
 
-public interface WorldHeightProvider {
+public interface LevelHeightProvider {
 	/**
-	 * Get maximum available world (building) height for this dimension.
+	 * Get maximum available building height for this dimension.
 	 * Can be in range 1-32768, but it's better to use values in range 128-4096.
 	 */
-	default short getWorldHeight() {
+	default short getLevelHeight() {
 		return 128;
 	}
 	
@@ -14,10 +14,10 @@ public interface WorldHeightProvider {
 	 * Each section is 16 blocks tall. Vanilla world is 8 sections tall (128 blocks height).
 	 */
 	default short getSectionsCount() {
-		return (short) Math.ceil(getWorldHeight() / 16F);
+		return (short) Math.ceil(getLevelHeight() / 16F);
 	}
 	
-	static WorldHeightProvider cast(Object obj) {
-		return (WorldHeightProvider) obj;
+	static LevelHeightProvider cast(Object obj) {
+		return (LevelHeightProvider) obj;
 	}
 }

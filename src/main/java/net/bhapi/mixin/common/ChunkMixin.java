@@ -1,7 +1,7 @@
 package net.bhapi.mixin.common;
 
 import net.bhapi.BHAPI;
-import net.bhapi.level.WorldHeightProvider;
+import net.bhapi.level.LevelHeightProvider;
 import net.bhapi.util.ChunkSection;
 import net.bhapi.util.MathUtil;
 import net.bhapi.util.NBTSerializable;
@@ -34,7 +34,7 @@ import java.util.List;
 import java.util.Map;
 
 @Mixin(Chunk.class)
-public abstract class ChunkMixin implements NBTSerializable, WorldHeightProvider {
+public abstract class ChunkMixin implements NBTSerializable, LevelHeightProvider {
 	@Shadow public boolean needUpdate;
 	@Shadow public Map blockEntities;
 	@Shadow public byte[] heightmap;
@@ -89,7 +89,7 @@ public abstract class ChunkMixin implements NBTSerializable, WorldHeightProvider
 	
 	@Inject(method = "setBlock(IIIII)Z", at = @At("HEAD"), cancellable = true)
 	private void bhapi_setBlock(int x, int y, int z, int id, int meta, CallbackInfoReturnable<Boolean> info) {
-		if (y >= getWorldHeight()) {
+		if (y >= getLevelHeight()) {
 			info.setReturnValue(false);
 			return;
 		}
@@ -150,7 +150,7 @@ public abstract class ChunkMixin implements NBTSerializable, WorldHeightProvider
 	@Inject(method = "setMeta(IIII)V", at = @At("HEAD"), cancellable = true)
 	private void bhapi_setMeta(int x, int y, int z, int meta, CallbackInfo info) {
 		info.cancel();
-		if (y >= getWorldHeight()) {
+		if (y >= getLevelHeight()) {
 			return;
 		}
 		ChunkSection section = bhapi_getOrCreateSection(y);
@@ -176,11 +176,11 @@ public abstract class ChunkMixin implements NBTSerializable, WorldHeightProvider
 	@Inject(method = "updateHeightmap", at = @At("HEAD"), cancellable = true)
 	private void bhapi_updateHeightmap(CallbackInfo info) {
 		info.cancel();
-		short minHeight = getWorldHeight();
+		short minHeight = getLevelHeight();
 		for (byte x = 0; x < 16; ++x) {
 			for (byte z = 0; z < 16; ++z) {
 				short y;
-				for (y = getWorldHeight(); y > 0 && BaseBlock.LIGHT_OPACITY[this.getBlockId(x, y - 1, z)] == 0; --y) {} // TODO change to blockstates
+				for (y = getLevelHeight(); y > 0 && BaseBlock.LIGHT_OPACITY[this.getBlockId(x, y - 1, z)] == 0; --y) {} // TODO change to blockstates
 				bhapi_setHeight(x, z, y);
 				if (y >= minHeight) continue;
 				minHeight = y;
@@ -196,18 +196,18 @@ public abstract class ChunkMixin implements NBTSerializable, WorldHeightProvider
 		bhapi_fillBlocks();
 		
 		byte x, z;
-		short minHeight = getWorldHeight();
+		short minHeight = getLevelHeight();
 		for (x = 0; x < 16; ++x) {
 			for (z = 0; z < 16; ++z) {
 				short y;
-				for (y = getWorldHeight(); y > 0 && BaseBlock.LIGHT_OPACITY[this.getBlockId(x, y - 1, z)] == 0; --y) {} // TODO change to blockstates
+				for (y = getLevelHeight(); y > 0 && BaseBlock.LIGHT_OPACITY[this.getBlockId(x, y - 1, z)] == 0; --y) {} // TODO change to blockstates
 				bhapi_setHeight(x, z, y);
 				if (y < minHeight) {
 					minHeight = y;
 				}
 				if (this.level.dimension.noSkyLight) continue;
 				int light = 15;
-				for (short h = getWorldHeight(); h >= 0; --h) {
+				for (short h = getLevelHeight(); h >= 0; --h) {
 					if ((light -= BaseBlock.LIGHT_OPACITY[this.getBlockId(x, h, z)]) <= 0) continue; // TODO change to blockstates
 					ChunkSection section = bhapi_getSection(h);
 					if (section != null) section.setLight(LightType.SKY, x, h & 15, z, light);
@@ -232,7 +232,7 @@ public abstract class ChunkMixin implements NBTSerializable, WorldHeightProvider
 		
 		int h, wz, wx;
 		short h1, h2;
-		h1 = h2 = bhapi_getHeight(x, z);
+		h1 = h2 = (short) Math.max(bhapi_getHeight(x, z), getLevelHeight() - 1);
 		
 		if (y > h2) {
 			h1 = (short) y;
@@ -253,7 +253,7 @@ public abstract class ChunkMixin implements NBTSerializable, WorldHeightProvider
 			this.minHeight = h1;
 		}
 		else {
-			int minHeight = getWorldHeight();
+			int minHeight = getLevelHeight();
 			for (wz = 0; wz < 16; ++wz) {
 				for (h = 0; h < 16; ++h) {
 					short mh = bhapi_getHeight(wz, h << 4);
@@ -322,7 +322,10 @@ public abstract class ChunkMixin implements NBTSerializable, WorldHeightProvider
 		short sectionY = (byte) MathHelper.floor(entity.y / 16.0);
 		sectionY = (short) MathUtil.clamp(sectionY, 0, bhapi_sections.length - 1);
 		ChunkSection section = bhapi_sections[sectionY];
-		if (section == null) return;
+		if (section == null) {
+			section = bhapi_getOrCreateSection(sectionY << 4);
+			if (section == null) return;
+		}
 		
 		this.hasEntities = true;
 		
@@ -463,7 +466,7 @@ public abstract class ChunkMixin implements NBTSerializable, WorldHeightProvider
 	
 	@Inject(method = "getLight(Lnet/minecraft/level/LightType;III)I", at = @At("HEAD"), cancellable = true)
 	private void bhapi_getLight(LightType type, int x, int y, int z, CallbackInfoReturnable<Integer> info) {
-		if (type == LightType.SKY && y >= getWorldHeight()) {
+		if (type == LightType.SKY && y >= getLevelHeight()) {
 			info.setReturnValue(15);
 		}
 		else {
@@ -489,7 +492,7 @@ public abstract class ChunkMixin implements NBTSerializable, WorldHeightProvider
 	
 	@Inject(method = "getLight(IIII)I", at = @At("HEAD"), cancellable = true)
 	private void bhapi_getLight(int x, int y, int z, int value, CallbackInfoReturnable<Integer> info) {
-		if (y >= getWorldHeight()) {
+		if (y >= getLevelHeight()) {
 			info.setReturnValue(15);
 			return;
 		}
@@ -561,7 +564,7 @@ public abstract class ChunkMixin implements NBTSerializable, WorldHeightProvider
 	@Unique
 	private void bhapi_initSections() {
 		if (bhapi_sections == null) {
-			short count = WorldHeightProvider.cast(this.level.dimension).getSectionsCount();
+			short count = LevelHeightProvider.cast(this.level.dimension).getSectionsCount();
 			bhapi_sections = new ChunkSection[count];
 		}
 	}
@@ -573,7 +576,7 @@ public abstract class ChunkMixin implements NBTSerializable, WorldHeightProvider
 				if (this.blocks[i] == 0) continue;
 				
 				int py = i & 127;
-				if (py >= getWorldHeight()) continue;
+				if (py >= getLevelHeight()) continue;
 				
 				int px = (i >> 11) & 15;
 				int pz = (i >> 7) & 15;
@@ -674,8 +677,8 @@ public abstract class ChunkMixin implements NBTSerializable, WorldHeightProvider
 	
 	@Unique
 	@Override
-	public short getWorldHeight() {
-		return WorldHeightProvider.cast(this.level.dimension).getWorldHeight();
+	public short getLevelHeight() {
+		return LevelHeightProvider.cast(this.level.dimension).getLevelHeight();
 	}
 	
 	@Unique
