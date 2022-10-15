@@ -18,12 +18,12 @@ public class BlockItemMixin {
 	@Unique private Level bhapi_level;
 	
 	@Inject(method = "useOnBlock", at = @At("HEAD"))
-	private void storeLevel(ItemStack item, PlayerBase player, Level level, int x, int y, int z, int facing, CallbackInfoReturnable<Boolean> info) {
+	private void bhapi_storeLevel(ItemStack item, PlayerBase player, Level level, int x, int y, int z, int facing, CallbackInfoReturnable<Boolean> info) {
 		this.bhapi_level = level;
 	}
 	
 	@ModifyConstant(method = "useOnBlock", constant = @Constant(intValue = 127))
-	private int changeMaxHeight(int value) {
+	private int bhapi_changeMaxHeight(int value) {
 		LevelHeightProvider provider = LevelHeightProvider.cast(bhapi_level.dimension);
 		return provider.getLevelHeight() - 1;
 	}

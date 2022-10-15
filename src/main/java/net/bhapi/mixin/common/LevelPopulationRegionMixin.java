@@ -18,7 +18,7 @@ public class LevelPopulationRegionMixin implements LevelHeightProvider {
 		"getBlockId(III)I",
 		"getBlockMeta(III)I"
 	}, constant = @Constant(intValue = 128))
-	private int changeMaxHeight(int value) {
+	private int bhapi_changeMaxHeight(int value) {
 		return getLevelHeight();
 	}
 	

@@ -16,12 +16,12 @@ public class LightUpdateAreaMixin {
 	@Unique private Level bhapi_currentLevel;
 	
 	@Inject(method = "process(Lnet/minecraft/level/Level;)V", at = @At("HEAD"))
-	private void method_1869(Level level, CallbackInfo info) {
+	private void bhapi_process(Level level, CallbackInfo info) {
 		bhapi_currentLevel = level;
 	}
 	
 	@ModifyConstant(method = "process(Lnet/minecraft/level/Level;)V", constant = @Constant(intValue = 128))
-	private int changeMaxHeight(int value) {
+	private int bhapi_changeMaxHeight(int value) {
 		return LevelHeightProvider.cast(bhapi_currentLevel).getLevelHeight() - 1;
 	}
 }

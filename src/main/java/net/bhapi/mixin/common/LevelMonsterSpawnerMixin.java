@@ -32,7 +32,7 @@ public class LevelMonsterSpawnerMixin {
 		"method_1869(Lnet/minecraft/level/Level;Ljava/util/List;)Z",
 		"method_1868(Lnet/minecraft/level/Level;II)Lnet/minecraft/util/maths/BlockPos;"
 	}, constant = @Constant(intValue = 128))
-	private static int changeMaxHeight(int value) {
+	private static int bhapi_changeMaxHeight(int value) {
 		return LevelHeightProvider.cast(bhapi_currentLevel).getLevelHeight();
 	}
 }

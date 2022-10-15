@@ -9,7 +9,7 @@ import org.spongepowered.asm.mixin.injection.ModifyConstant;
 @Mixin(ClientLevel.class)
 public class ClientLevelMixin implements LevelHeightProvider {
 	@ModifyConstant(method = "method_1494(IIZ)V", constant = @Constant(intValue = 128))
-	private int changeMaxHeight(int value) {
+	private int bhapi_changeMaxHeight(int value) {
 		return getLevelHeight();
 	}
 }

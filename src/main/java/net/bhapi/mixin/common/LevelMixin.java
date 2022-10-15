@@ -217,7 +217,7 @@ public abstract class LevelMixin implements LevelHeightProvider {
 		"setLight",
 		"method_193"
 	}, constant = @Constant(intValue = 128))
-	private int changeMaxHeight(int value) {
+	private int bhapi_changeMaxHeight(int value) {
 		return getLevelHeight();
 	}
 	
@@ -227,7 +227,7 @@ public abstract class LevelMixin implements LevelHeightProvider {
 		"getLight(Lnet/minecraft/level/LightType;III)I",
 		"getHeightIterating"
 	}, constant = @Constant(intValue = 127))
-	private int changeMaxBlockHeight(int value) {
+	private int bhapi_changeMaxBlockHeight(int value) {
 		return getLevelHeight() - 1;
 	}
 	
@@ -235,7 +235,7 @@ public abstract class LevelMixin implements LevelHeightProvider {
 		method = "getHitResult(Lnet/minecraft/util/maths/Vec3f;Lnet/minecraft/util/maths/Vec3f;ZZ)Lnet/minecraft/util/hit/HitResult;",
 		constant = @Constant(intValue = 200)
 	)
-	private int changeMaxEntityCalcHeight(int value) {
+	private int bhapi_changeMaxEntityCalcHeight(int value) {
 		return getLevelHeight() + 64;
 	}
 	
