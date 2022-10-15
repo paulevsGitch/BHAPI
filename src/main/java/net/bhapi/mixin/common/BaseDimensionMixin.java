@@ -1,5 +1,6 @@
 package net.bhapi.mixin.common;
 
+import net.bhapi.level.WorldHeightProvider;
 import net.minecraft.level.Level;
 import net.minecraft.level.dimension.BaseDimension;
 import org.spongepowered.asm.mixin.Mixin;
@@ -9,11 +10,16 @@ import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 @Mixin(BaseDimension.class)
-public class BaseDimensionMixin {
+public class BaseDimensionMixin implements WorldHeightProvider {
 	@Shadow public Level level;
 	
 	@Inject(method = "canSpawnOn", at = @At("HEAD"), cancellable = true)
 	private void bhapi_fixCanSpawnOn(int x, int z, CallbackInfoReturnable<Boolean> info) {
 		info.setReturnValue(true);
+	}
+	
+	@Override
+	public short getWorldHeight() {
+		return 64;
 	}
 }
