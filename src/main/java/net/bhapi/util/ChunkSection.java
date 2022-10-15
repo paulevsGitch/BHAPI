@@ -1,11 +1,10 @@
 package net.bhapi.util;
 
-import net.bhapi.BHAPI;
-import net.bhapi.blockstate.BlockState;
 import net.minecraft.block.entity.BaseBlockEntity;
 import net.minecraft.entity.BaseEntity;
 import net.minecraft.entity.EntityRegistry;
 import net.minecraft.level.Level;
+import net.minecraft.level.LightType;
 import net.minecraft.util.io.CompoundTag;
 import net.minecraft.util.io.ListTag;
 import net.minecraft.util.maths.BlockPos;
@@ -15,24 +14,14 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 
 public class ChunkSection implements NBTSerializable {
 	private final Map<BlockPos, BaseBlockEntity> blockEntities = new HashMap();
-	private final BlockState[] blockStates = new BlockState[4096];
 	private final byte[] blockMeta = new byte[4096];
 	private final byte[] blockID = new byte[4096];
+	private final byte[] light = new byte[4096];
 	
 	public final List<BaseEntity> entities = new ArrayList<>();
-	
-	public BlockState getState(int x, int y, int z) {
-		BlockState state = blockStates[getIndex(x, y, z)];
-		return state == null ? BlockState.AIR_STATE : state;
-	}
-	
-	public void setState(int x, int y, int z, BlockState state) {
-		blockStates[getIndex(x, y, z)] = state;
-	}
 	
 	private int getIndex(int x, int y, int z) {
 		return x << 8 | y << 4 | z;
@@ -76,10 +65,26 @@ public class ChunkSection implements NBTSerializable {
 		return blockEntities.values();
 	}
 	
+	public int getLight(LightType type, int x, int y, int z) {
+		int index = getIndex(x, y, z);
+		return type == LightType.SKY ? light[index] & 15 : (light[index] >> 4) & 15;
+	}
+	
+	public void setLight(LightType type, int x, int y, int z, int value) {
+		int index = getIndex(x, y, z);
+		if (type == LightType.SKY) {
+			light[index] = (byte) ((light[index] & 0xF0) | value);
+		}
+		else {
+			light[index] = (byte) ((light[index] & 0x0F) | (value << 4));
+		}
+	}
+	
 	@Override
 	public void saveToNBT(CompoundTag tag) {
 		tag.put("id", blockID);
 		tag.put("meta", blockMeta);
+		tag.put("light", light);
 		
 		if (!entities.isEmpty()) {
 			ListTag entitiesList = new ListTag();
@@ -113,6 +118,11 @@ public class ChunkSection implements NBTSerializable {
 		data = tag.getByteArray("meta");
 		if (data.length == blockMeta.length) {
 			System.arraycopy(data, 0, blockMeta, 0, data.length);
+		}
+		
+		data = tag.getByteArray("light");
+		if (data.length == light.length) {
+			System.arraycopy(data, 0, light, 0, data.length);
 		}
 	}
 	

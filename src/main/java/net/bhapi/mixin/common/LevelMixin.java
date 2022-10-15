@@ -1,7 +1,5 @@
 package net.bhapi.mixin.common;
 
-import net.bhapi.BHAPI;
-import net.bhapi.registry.DefaultRegistries;
 import net.minecraft.block.BaseBlock;
 import net.minecraft.entity.BaseEntity;
 import net.minecraft.entity.Lightning;
@@ -12,8 +10,6 @@ import net.minecraft.level.chunk.Chunk;
 import net.minecraft.level.dimension.BaseDimension;
 import net.minecraft.level.dimension.DimensionData;
 import net.minecraft.level.gen.BiomeSource;
-import net.minecraft.util.io.CompoundTag;
-import net.minecraft.util.io.NBTIO;
 import net.minecraft.util.maths.MathHelper;
 import net.minecraft.util.maths.Vec2i;
 import org.spongepowered.asm.mixin.Final;
@@ -24,10 +20,6 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
-import java.io.IOException;
 import java.util.List;
 import java.util.Random;
 import java.util.Set;

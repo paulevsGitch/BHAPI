@@ -47,18 +47,16 @@ public abstract class ChunkMixin implements NBTSerializable {
 	@Shadow public boolean decorated;
 	@Shadow public boolean hasEntities;
 	@Shadow public List[] entities;
+	@Shadow public boolean canHaveBlockEntities;
+	@Shadow public static boolean hasSkyLight;
 	
 	@Shadow public abstract int getBlockId(int i, int j, int k);
 	@Shadow protected abstract void fillSkyLight(int i, int j);
-	@Shadow public abstract int getMeta(int i, int j, int k);
 	@Shadow protected abstract void updateSkylight(int i, int j, int k);
 	@Shadow public abstract boolean setBlock(int i, int j, int k, int l, int m);
 	@Shadow public abstract void generateHeightmap();
 	@Shadow public abstract void afterBlockLightReset();
-	@Shadow public abstract void addEntity(BaseEntity arg);
-	@Shadow public abstract void addBlockEntity(BaseBlockEntity arg);
 	
-	@Shadow public boolean canHaveBlockEntities;
 	@Unique private ChunkSection[] bhapi_sections;
 	
 	@Inject(method = "<init>(Lnet/minecraft/level/Level;[BII)V", at = @At("TAIL"))
@@ -72,6 +70,8 @@ public abstract class ChunkMixin implements NBTSerializable {
 		this.meta = null;
 		this.entities = null;
 		this.blockEntities = null;
+		this.skyLight = null;
+		this.blockLight = null;
 	}
 	
 	@Inject(method = "setBlock(IIIII)Z", at = @At("HEAD"), cancellable = true)
@@ -191,10 +191,11 @@ public abstract class ChunkMixin implements NBTSerializable {
 					minHeight = y;
 				}
 				if (this.level.dimension.noSkyLight) continue;
-				int n6 = 15;
+				int light = 15;
 				for (byte h = 127; h >= 0; --h) {
-					if ((n6 -= BaseBlock.LIGHT_OPACITY[this.getBlockId(x, h, z)]) <= 0) continue; // TODO change to blockstates
-					this.skyLight.setValue(x, h, z, n6);
+					if ((light -= BaseBlock.LIGHT_OPACITY[this.getBlockId(x, h, z)]) <= 0) continue; // TODO change to blockstates
+					ChunkSection section = bhapi_getSection(h);
+					if (section != null) section.setLight(LightType.SKY, x, h & 15, z, light);
 				}
 			}
 		}
@@ -214,7 +215,7 @@ public abstract class ChunkMixin implements NBTSerializable {
 	private void bhapi_updateSkylight(int x, int y, int z, CallbackInfo info) {
 		info.cancel();
 		
-		int n, n2, n3, h2;
+		int h, wz, wx, h2;
 		int h1 = h2 = this.heightmap[z << 4 | x] & 0xFF;
 		
 		if (y > h2) {
@@ -236,42 +237,45 @@ public abstract class ChunkMixin implements NBTSerializable {
 			this.minHeight = h1;
 		}
 		else {
-			n3 = 127;
-			for (n2 = 0; n2 < 16; ++n2) {
-				for (n = 0; n < 16; ++n) {
-					if ((this.heightmap[n << 4 | n2] & 0xFF) >= n3) continue;
-					n3 = this.heightmap[n << 4 | n2] & 0xFF;
+			int minHeight = 127;
+			for (wz = 0; wz < 16; ++wz) {
+				for (h = 0; h < 16; ++h) {
+					if ((this.heightmap[h << 4 | wz] & 0xFF) >= minHeight) continue;
+					minHeight = this.heightmap[h << 4 | wz] & 0xFF;
 				}
 			}
-			this.minHeight = n3;
+			this.minHeight = minHeight;
 		}
 		
-		n3 = this.x * 16 + x;
-		n2 = this.z * 16 + z;
+		wx = this.x << 4 | x;
+		wz = this.z << 4 | z;
 		
 		if (h1 < h2) {
-			for (n = h1; n < h2; ++n) {
-				this.skyLight.setValue(x, n, z, 15);
+			for (h = h1; h < h2; ++h) {
+				ChunkSection section = bhapi_getSection(h);
+				if (section != null) section.setLight(LightType.SKY, x, h & 15, z, 15);
 			}
 		}
 		else {
-			this.level.updateLight(LightType.SKY, n3, h2, n2, n3, h1, n2);
-			for (n = h2; n < h1; ++n) {
-				this.skyLight.setValue(x, n, z, 0);
+			this.level.updateLight(LightType.SKY, wx, h2, wz, wx, h1, wz);
+			for (h = h2; h < h1; ++h) {
+				ChunkSection section = bhapi_getSection(h);
+				if (section != null) section.setLight(LightType.SKY, x, h & 15, z, 0);
 			}
 		}
 		
-		n = 15;
+		h = 15;
 		int n7 = h1;
-		while (h1 > 0 && n > 0) {
+		while (h1 > 0 && h > 0) {
 			int n8;
 			if ((n8 = BaseBlock.LIGHT_OPACITY[this.getBlockId(x, --h1, z)]) == 0) {
 				n8 = 1;
 			}
-			if ((n -= n8) < 0) {
-				n = 0;
+			if ((h -= n8) < 0) {
+				h = 0;
 			}
-			this.skyLight.setValue(x, h1, z, n);
+			ChunkSection section = bhapi_getSection(h1);
+			if (section != null) section.setLight(LightType.SKY, x, h1 & 15, z, h);
 		}
 		
 		while (h1 > 0 && BaseBlock.LIGHT_OPACITY[this.getBlockId(x, h1 - 1, z)] == 0) {
@@ -279,7 +283,7 @@ public abstract class ChunkMixin implements NBTSerializable {
 		}
 		
 		if (h1 != n7) {
-			this.level.updateLight(LightType.SKY, n3 - 1, h1, n2 - 1, n3 + 1, n7, n2 + 1);
+			this.level.updateLight(LightType.SKY, wx - 1, h1, wz - 1, wx + 1, n7, wz + 1);
 		}
 		
 		this.needUpdate = true;
@@ -440,6 +444,46 @@ public abstract class ChunkMixin implements NBTSerializable {
 		section.removeBlockEntity(pos);
 	}
 	
+	@Inject(method = "getLight(Lnet/minecraft/level/LightType;III)I", at = @At("HEAD"), cancellable = true)
+	private void bhapi_getLight(LightType type, int x, int y, int z, CallbackInfoReturnable<Integer> info) {
+		ChunkSection section = bhapi_getSection(y);
+		if (section == null) {
+			info.setReturnValue(type == LightType.SKY && !this.level.dimension.noSkyLight ? 15 : 0);
+		}
+		info.setReturnValue(section.getLight(type, x, y & 15, z));
+	}
+	
+	@Inject(method = "setLight", at = @At("HEAD"), cancellable = true)
+	private void bhapi_setLight(LightType type, int x, int y, int z, int value, CallbackInfo info) {
+		info.cancel();
+		ChunkSection section = bhapi_getSection(y);
+		if (section != null) {
+			section.setLight(type, x, y & 15, z, value);
+			this.needUpdate = true;
+		}
+	}
+	
+	@Inject(method = "getLight(IIII)I", at = @At("HEAD"), cancellable = true)
+	private void bhapi_getLight(int x, int y, int z, int value, CallbackInfoReturnable<Integer> info) {
+		ChunkSection section = bhapi_getSection(y);
+		if (section == null) {
+			info.setReturnValue(0);
+			return;
+		}
+		
+		int light = section.getLight(LightType.SKY, x, y & 15, z);
+		if (light > 0) {
+			this.hasSkyLight = true;
+		}
+		
+		int blockLight = section.getLight(LightType.BLOCK, x, y & 15, z);
+		if (blockLight > (light -= value)) {
+			light = blockLight;
+		}
+		
+		info.setReturnValue(light);
+	}
+	
 	@Unique
 	private ChunkSection bhapi_getSection(int y) {
 		byte sectionY = (byte) (y >> 4);
@@ -479,8 +523,6 @@ public abstract class ChunkMixin implements NBTSerializable {
 	public void saveToNBT(CompoundTag tag) {
 		tag.put("x", this.x);
 		tag.put("z", this.z);
-		tag.put("skyLight", this.skyLight.data);
-		tag.put("blockLight", this.blockLight.data);
 		tag.put("heightmap", this.heightmap);
 		tag.put("populated", this.decorated);
 		
@@ -501,20 +543,12 @@ public abstract class ChunkMixin implements NBTSerializable {
 	public void loadFromNBT(CompoundTag tag) {
 		bhapi_initSections();
 		
-		this.skyLight = new NibbleArray(tag.getByteArray("skyLight"));
-		this.blockLight = new NibbleArray(tag.getByteArray("blockLight"));
 		this.heightmap = tag.getByteArray("heightmap");
 		this.decorated = tag.getBoolean("populated");
 		
-		if (this.heightmap == null || !this.skyLight.isValid()) {
+		if (this.heightmap == null || this.heightmap.length != 256) {
 			this.heightmap = new byte[256];
-			this.skyLight = new NibbleArray(32768);
 			this.generateHeightmap();
-		}
-		
-		if (!this.blockLight.isValid()) {
-			this.blockLight = new NibbleArray(32768);
-			this.afterBlockLightReset();
 		}
 		
 		ListTag sectionList = tag.getListTag("sections");
