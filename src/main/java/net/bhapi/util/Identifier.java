@@ -2,7 +2,6 @@ package net.bhapi.util;
 
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Objects;
 
 public class Identifier {
 	private static final Map<String, Map<String, Identifier>> CACHE = new HashMap<>();

@@ -1,7 +1,6 @@
 package net.bhapi.registry;
 
 import net.bhapi.BHAPI;
-import net.bhapi.util.Identifier;
 import net.minecraft.util.io.CompoundTag;
 import net.minecraft.util.io.ListTag;
 

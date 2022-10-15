@@ -5,11 +5,11 @@ import net.bhapi.blockstate.BlockState;
 import net.bhapi.blockstate.BlockStateContainer;
 import net.bhapi.util.Identifier;
 import net.minecraft.block.BaseBlock;
-import net.minecraft.item.ItemBase;
+import net.minecraft.item.BaseItem;
 
 public class DefaultRegistries {
 	public static final Registry<BaseBlock> BLOCK_REGISTRY = new Registry<>();
-	public static final Registry<ItemBase> ITEM_REGISTRY = new Registry<>();
+	public static final Registry<BaseItem> ITEM_REGISTRY = new Registry<>();
 	public static final BHAirBlock AIR_BLOCK = new BHAirBlock();
 	
 	public static final SerialisationMap<BlockState> BLOCKSTATES_MAP = new SerialisationMap<>(

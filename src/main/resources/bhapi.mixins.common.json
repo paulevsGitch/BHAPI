@@ -5,6 +5,8 @@
 	"compatibilityLevel": "JAVA_17",
 	"mixins": [
 		"FurnaceBlockEntityMixin",
+		"LevelChunkLoaderMixin",
+		"BaseDimensionMixin",
 		"LevelManagerMixin",
 		"BaseBlockMixin",
 		"ChunkMixin",

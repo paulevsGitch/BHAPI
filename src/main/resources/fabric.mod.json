@@ -24,7 +24,8 @@
 		]
 	},
 	"mixins": [
-		"bhapi.mixins.common.json"
+		"bhapi.mixins.common.json",
+		"bhapi.mixins.client.json"
 	],
 
 	"depends": {
