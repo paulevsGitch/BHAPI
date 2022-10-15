@@ -35,8 +35,8 @@ public abstract class LevelManagerMixin {
 				Chunk chunk = LevelManager.loadData(level, tag);
 				if (!chunk.equalPosition(x, z)) {
 					BHAPI.log("Chunk file at " + x + "," + z + " is in the wrong location; relocating. (Expected " + x + ", " + z + ", got " + chunk.x + ", " + chunk.z + ")");
-					tag.put("xPos", x);
-					tag.put("zPos", z);
+					tag.put("x", x);
+					tag.put("z", z);
 					chunk = LevelManager.loadData(level, tag);
 				}
 				chunk.setBlockMask();

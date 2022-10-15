@@ -295,6 +295,7 @@ public abstract class ChunkMixin implements NBTSerializable {
 		if (chunkX != this.x || chunkZ != this.z) {
 			BHAPI.log("Wrong location! " + entity);
 			Thread.dumpStack();
+			return;
 		}
 		
 		byte sectionY = (byte) MathHelper.floor(entity.y / 16.0);
@@ -522,7 +523,7 @@ public abstract class ChunkMixin implements NBTSerializable {
 			CompoundTag sectionTag = (CompoundTag) sectionList.get(i);
 			byte y = sectionTag.getByte("y");
 			bhapi_sections[y].loadFromNBT(sectionTag);
-			bhapi_sections[y].loadEntities(sectionTag, level);
+			bhapi_sections[y].loadEntities(sectionTag, this.level, this.x, y, this.z, this.canHaveBlockEntities);
 		}
 		
 		bhapi_updateHasEntities();

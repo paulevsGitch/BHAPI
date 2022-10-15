@@ -1,5 +1,6 @@
 package net.bhapi.util;
 
+import net.bhapi.BHAPI;
 import net.bhapi.blockstate.BlockState;
 import net.minecraft.block.entity.BaseBlockEntity;
 import net.minecraft.entity.BaseEntity;
@@ -14,13 +15,15 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 public class ChunkSection implements NBTSerializable {
-	private BlockState[] blockStates = new BlockState[4096];
-	private byte[] blockID = new byte[4096];
-	private byte[] blockMeta = new byte[4096];
-	public List<BaseEntity> entities = new ArrayList<>();
-	private Map<BlockPos, BaseBlockEntity> blockEntities = new HashMap();
+	private final Map<BlockPos, BaseBlockEntity> blockEntities = new HashMap();
+	private final BlockState[] blockStates = new BlockState[4096];
+	private final byte[] blockMeta = new byte[4096];
+	private final byte[] blockID = new byte[4096];
+	
+	public final List<BaseEntity> entities = new ArrayList<>();
 	
 	public BlockState getState(int x, int y, int z) {
 		BlockState state = blockStates[getIndex(x, y, z)];
@@ -78,22 +81,26 @@ public class ChunkSection implements NBTSerializable {
 		tag.put("id", blockID);
 		tag.put("meta", blockMeta);
 		
-		ListTag entitiesList = new ListTag();
-		tag.put("entities", entitiesList);
-		entities.forEach(entity -> {
-			CompoundTag entityTag = new CompoundTag();
-			if (entity.checkAndSave(entityTag)) {
-				entitiesList.add(entityTag);
-			}
-		});
+		if (!entities.isEmpty()) {
+			ListTag entitiesList = new ListTag();
+			tag.put("entities", entitiesList);
+			entities.forEach(entity -> {
+				CompoundTag entityTag = new CompoundTag();
+				if (entity.checkAndSave(entityTag)) {
+					entitiesList.add(entityTag);
+				}
+			});
+		}
 		
-		ListTag blockEntitiesList = new ListTag();
-		tag.put("blockEntities", blockEntitiesList);
-		blockEntities.values().forEach(entity -> {
-			CompoundTag entityTag = new CompoundTag();
-			entity.writeIdentifyingData(entityTag);
-			blockEntitiesList.add(entityTag);
-		});
+		if (!blockEntities.isEmpty()) {
+			ListTag blockEntitiesList = new ListTag();
+			tag.put("blockEntities", blockEntitiesList);
+			blockEntities.values().forEach(entity -> {
+				CompoundTag entityTag = new CompoundTag();
+				entity.writeIdentifyingData(entityTag);
+				blockEntitiesList.add(entityTag);
+			});
+		}
 	}
 	
 	@Override
@@ -107,7 +114,9 @@ public class ChunkSection implements NBTSerializable {
 		if (data.length == blockMeta.length) {
 			System.arraycopy(data, 0, blockMeta, 0, data.length);
 		}
-		
+	}
+	
+	public void loadEntities(CompoundTag tag, Level level, int x, int y, int z, boolean canHaveBlockEntities) {
 		ListTag listTag = tag.getListTag("blockEntities");
 		if (listTag != null) {
 			for (int i = 0; i < listTag.size(); ++i) {
@@ -115,18 +124,25 @@ public class ChunkSection implements NBTSerializable {
 				BaseBlockEntity blockEntity = BaseBlockEntity.tileEntityFromNBT(entityTag);
 				if (blockEntity == null) continue;
 				BlockPos pos = new BlockPos(blockEntity.x, blockEntity.y, blockEntity.z);
+				blockEntity.level = level;
 				blockEntities.put(pos, blockEntity);
 			}
 		}
-	}
-	
-	public void loadEntities(CompoundTag tag, Level level) {
-		ListTag listTag = tag.getListTag("entities");
+		
+		if (canHaveBlockEntities) {
+			level.addBlockEntities(getBlockEntities());
+		}
+		
+		listTag = tag.getListTag("entities");
 		if (listTag == null) return;
 		for (int i = 0; i < listTag.size(); ++i) {
 			CompoundTag entityTag = (CompoundTag) listTag.get(i);
 			BaseEntity entity = EntityRegistry.create(entityTag, level);
 			if (entity != null) {
+				entity.placedInWorld = true;
+				entity.chunkX = x;
+				entity.chunkIndex = y;
+				entity.chunkZ = z;
 				entities.add(entity);
 			}
 		}

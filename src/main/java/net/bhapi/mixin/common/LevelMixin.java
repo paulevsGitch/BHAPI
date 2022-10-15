@@ -1,11 +1,8 @@
 package net.bhapi.mixin.common;
 
 import net.bhapi.BHAPI;
-import net.bhapi.blockstate.BlockState;
-import net.bhapi.blockstate.BlockStateProvider;
 import net.bhapi.registry.DefaultRegistries;
 import net.minecraft.block.BaseBlock;
-import net.minecraft.block.material.Material;
 import net.minecraft.entity.BaseEntity;
 import net.minecraft.entity.Lightning;
 import net.minecraft.entity.player.PlayerBase;
@@ -26,7 +23,6 @@ import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
-import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -85,7 +81,7 @@ public abstract class LevelMixin {
 	
 	@Inject(method = "saveLevelData()V", at = @At("HEAD"))
 	private void bhapi_onLevelSave(CallbackInfo ci) {
-		BHAPI.log("Saving registries");
+		/*BHAPI.log("Saving registries");
 		CompoundTag tag = new CompoundTag();
 		
 		boolean requireSave = true;
@@ -101,7 +97,7 @@ public abstract class LevelMixin {
 			catch (IOException e) {
 				BHAPI.warn(e.getMessage());
 			}
-		}
+		}*/
 	}
 	
 	// TODO optimise this, map this, make readable
@@ -192,7 +188,7 @@ public abstract class LevelMixin {
 	
 	@Unique
 	private void loadBlockStates() {
-		BHAPI.log("Loading registries");
+		/*BHAPI.log("Loading registries");
 		
 		CompoundTag tag = null;
 		try {
@@ -207,6 +203,6 @@ public abstract class LevelMixin {
 		}
 		if (tag != null) {
 			DefaultRegistries.BLOCKSTATES_MAP.load(tag);
-		}
+		}*/
 	}
 }
