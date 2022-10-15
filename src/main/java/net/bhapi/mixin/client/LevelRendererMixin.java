@@ -11,7 +11,7 @@ import org.spongepowered.asm.mixin.injection.ModifyConstant;
 
 @Mixin(LevelRenderer.class)
 public class LevelRendererMixin implements LevelHeightProvider {
-	@Shadow private Level bhapi_level;
+	@Shadow private Level level;
 	
 	@ModifyConstant(method = "method_1544(Lnet/minecraft/util/maths/Vec3f;Lnet/minecraft/class_68;F)V", constant = @Constant(intValue = 128))
 	private int bhapi_changeMaxHeight(int value) {
@@ -31,6 +31,6 @@ public class LevelRendererMixin implements LevelHeightProvider {
 	@Unique
 	@Override
 	public short getLevelHeight() {
-		return LevelHeightProvider.cast(this.bhapi_level).getLevelHeight();
+		return LevelHeightProvider.cast(this.level).getLevelHeight();
 	}
 }
