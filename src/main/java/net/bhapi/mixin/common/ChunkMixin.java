@@ -549,14 +549,14 @@ public abstract class ChunkMixin implements NBTSerializable, LevelHeightProvider
 			section = new ChunkSection();
 			bhapi_sections[sectionY] = section;
 			int offset = sectionY << 4;
-			for (byte x = 0; x < 16; x++) {
-				for (byte z = 0; z < 16; z++) {
-					short height = bhapi_getHeight(x, z);
-					byte minY = (byte) Math.max(height - offset, 0);
-					byte maxY = (byte) Math.min(height - offset + 16, 16);
-					for (byte h = minY; h < maxY; h++) {
-						section.setLight(LightType.SKY, x, h, z, 15);
-					}
+			for (short i = 0; i < 16; i++) {
+				byte x = (byte) (i & 15);
+				byte z = (byte) (i >> 4);
+				short height = (short) (bhapi_getHeight(x, z) - offset);
+				if (height > 15) continue;
+				if (height < 0) height = 0;
+				for (byte h = (byte) height; h < 16; h++) {
+					section.setLight(LightType.SKY, x, h, z, 15);
 				}
 			}
 		}

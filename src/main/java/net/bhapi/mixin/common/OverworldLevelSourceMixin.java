@@ -30,22 +30,24 @@ public class OverworldLevelSourceMixin {
 		Chunk chunk = new Chunk(this.level, chunkX, chunkZ);
 		info.setReturnValue(chunk);
 		
-		short height = 256;
-		short delta = (short) (height - 40);
 		ChunkSection[] sections = ChunkSectionProvider.cast(chunk).getChunkSections();
 		
+		short height;
 		short maxHeight = 64; // Water Level
 		for (short i = 0; i < 256; i++) {
 			int px = chunkX << 4 | (i & 15);
 			int pz = chunkZ << 4 | (i >> 4);
-			float noise = getNoise(px * 0.1, pz * 0.1);
-			noise += getNoise(px * 0.5, pz * 0.5) * 0.25F;
-			height = (short) (noise * delta + 32);
+			float noise = getNoise(px * 0.4, pz * 0.4);
+			noise += getNoise(px * 2, pz * 2) * 0.25F;
+			height = (short) (noise * 200 + 16);
 			bhapi_heightmap[i] = height;
 			if (height > maxHeight) maxHeight = height;
 		}
 		
-		final short count = (short) Math.ceil(maxHeight / 16F);
+		maxHeight = (short) ((maxHeight + 16) >> 4);
+		if (maxHeight >= sections.length) maxHeight = (short) (sections.length - 1);
+		final short count = maxHeight;
+		
 		customPool.submit(() -> IntStream.range(0, count).parallel().forEach(index -> {
 			ChunkSection section = new ChunkSection();
 			sections[index] = section;
