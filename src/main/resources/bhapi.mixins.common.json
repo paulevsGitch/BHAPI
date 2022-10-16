@@ -5,6 +5,7 @@
 	"compatibilityLevel": "JAVA_17",
 	"mixins": [
 		"LevelPopulationRegionMixin",
+		"OverworldLevelSourceMixin",
 		"LevelMonsterSpawnerMixin",
 		"FurnaceBlockEntityMixin",
 		"LevelChunkLoaderMixin",

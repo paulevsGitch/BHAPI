@@ -1,6 +1,7 @@
 package net.bhapi.mixin.common;
 
 import net.bhapi.BHAPI;
+import net.bhapi.level.ChunkSectionProvider;
 import net.bhapi.level.LevelHeightProvider;
 import net.bhapi.util.ChunkSection;
 import net.bhapi.util.MathUtil;
@@ -34,7 +35,7 @@ import java.util.List;
 import java.util.Map;
 
 @Mixin(Chunk.class)
-public abstract class ChunkMixin implements NBTSerializable, LevelHeightProvider {
+public abstract class ChunkMixin implements NBTSerializable, LevelHeightProvider, ChunkSectionProvider {
 	@Shadow public boolean needUpdate;
 	@Shadow public Map blockEntities;
 	@Shadow public byte[] heightmap;
@@ -79,6 +80,7 @@ public abstract class ChunkMixin implements NBTSerializable, LevelHeightProvider
 	
 	@Inject(method = "<init>(Lnet/minecraft/level/Level;II)V", at = @At("TAIL"))
 	private void bhapi_onChunkInit(Level level, int x, int z, CallbackInfo info) {
+		bhapi_initSections();
 		this.meta = null;
 		this.entities = null;
 		this.blockEntities = null;
@@ -275,10 +277,10 @@ public abstract class ChunkMixin implements NBTSerializable, LevelHeightProvider
 		}
 		else {
 			this.level.updateLight(LightType.SKY, wx, h2, wz, wx, h1, wz);
-			for (h = h2; h < h1; ++h) {
+			/*for (h = h2; h < h1; ++h) {
 				ChunkSection section = bhapi_getSection(h);
 				if (section != null) section.setLight(LightType.SKY, x, h & 15, z, 0);
-			}
+			}*/
 		}
 		
 		h = 15;
@@ -685,5 +687,11 @@ public abstract class ChunkMixin implements NBTSerializable, LevelHeightProvider
 	@Override
 	public short getSectionsCount() {
 		return (short) this.bhapi_sections.length;
+	}
+	
+	@Unique
+	@Override
+	public ChunkSection[] getChunkSections() {
+		return bhapi_sections;
 	}
 }
