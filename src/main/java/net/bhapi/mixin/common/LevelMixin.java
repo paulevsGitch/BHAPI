@@ -29,12 +29,12 @@ import java.util.Set;
 
 @Mixin(Level.class)
 public abstract class LevelMixin implements LevelHeightProvider {
-	@Shadow private Set field_194;
+	@Shadow private Set loadedChunkPositions;
 	@Shadow public List players;
-	@Shadow private int field_195;
-	@Shadow protected int field_203;
-	@Shadow public Random rand;
-	@Shadow protected int field_209;
+	@Shadow private int caveSoundTicks;
+	@Shadow protected int randomIndex;
+	@Shadow public Random random;
+	@Shadow protected int lightingTicks;
 	
 	@Shadow public abstract Chunk getChunkFromCache(int i, int j);
 	@Shadow public abstract int getLightLevel(int i, int j, int k);
@@ -45,7 +45,7 @@ public abstract class LevelMixin implements LevelHeightProvider {
 	@Shadow public abstract boolean isThundering();
 	@Shadow public abstract int getHeightIterating(int i, int j);
 	@Shadow public abstract boolean canRainAt(int i, int j, int k);
-	@Shadow public abstract boolean method_184(BaseEntity arg);
+	@Shadow public abstract boolean addEntity(BaseEntity arg);
 	@Shadow public abstract BiomeSource getBiomeSource();
 	@Shadow public abstract boolean setBlock(int i, int j, int k, int l);
 	
@@ -97,11 +97,11 @@ public abstract class LevelMixin implements LevelHeightProvider {
 	}
 	
 	// TODO optimise this, map this, make readable
-	@Inject(method = "method_248", at = @At("HEAD"), cancellable = true)
-	private void bhapi_method_248(CallbackInfo info) {
+	@Inject(method = "processLoadedChunks", at = @At("HEAD"), cancellable = true)
+	private void bhapi_processLoadedChunks(CallbackInfo info) {
 		info.cancel();
 		int px, index, chunkZ, chunkX;
-		this.field_194.clear();
+		this.loadedChunkPositions.clear();
 		
 		for (int i = 0; i < this.players.size(); ++i) {
 			PlayerBase player = (PlayerBase) this.players.get(i);
@@ -110,50 +110,50 @@ public abstract class LevelMixin implements LevelHeightProvider {
 			final int radius = 9;
 			for (i = -radius; i <= radius; ++i) {
 				for (px = -radius; px <= radius; ++px) {
-					this.field_194.add(new Vec2i(i + chunkX, px + chunkZ));
+					this.loadedChunkPositions.add(new Vec2i(i + chunkX, px + chunkZ));
 				}
 			}
 		}
 		
-		if (this.field_195 > 0) {
-			--this.field_195;
+		if (this.caveSoundTicks > 0) {
+			--this.caveSoundTicks;
 		}
 		
-		for (Object object : this.field_194) {
+		for (Object object : this.loadedChunkPositions) {
 			int blockID, py, pz;
 			chunkX = ((Vec2i)object).x << 4;
 			chunkZ = ((Vec2i)object).z << 4;
 			Chunk chunk = this.getChunkFromCache(((Vec2i)object).x, ((Vec2i)object).z);
 			
-			if (this.field_195 == 0) {
+			if (this.caveSoundTicks == 0) {
 				PlayerBase playerBase;
-				this.field_203 = this.field_203 * 3 + 1013904223;
-				index = this.field_203 >> 2;
+				this.randomIndex = this.randomIndex * 3 + 1013904223;
+				index = this.randomIndex >> 2;
 				px = index & 15;
 				pz = index >> 8 & 15;
 				py = index >> 16 & 127;
 				blockID = chunk.getBlockId(px, py, pz);
-				if (blockID == 0 && this.getLightLevel(px += chunkX, py, pz += chunkZ) <= this.rand.nextInt(8) && this.getLight(LightType.SKY, px, py, pz) <= 0 && (playerBase = this.getClosestPlayer(px + 0.5, py + 0.5, pz + 0.5, 8.0)) != null && playerBase.squaredDistanceTo(px + 0.5, py + 0.5, pz + 0.5) > 4.0) {
-					this.playSound(px + 0.5, py + 0.5, pz + 0.5, "ambient.cave.cave", 0.7f, 0.8f + this.rand.nextFloat() * 0.2f);
-					this.field_195 = this.rand.nextInt(12000) + 6000;
+				if (blockID == 0 && this.getLightLevel(px += chunkX, py, pz += chunkZ) <= this.random.nextInt(8) && this.getLight(LightType.SKY, px, py, pz) <= 0 && (playerBase = this.getClosestPlayer(px + 0.5, py + 0.5, pz + 0.5, 8.0)) != null && playerBase.squaredDistanceTo(px + 0.5, py + 0.5, pz + 0.5) > 4.0) {
+					this.playSound(px + 0.5, py + 0.5, pz + 0.5, "ambient.cave.cave", 0.7f, 0.8f + this.random.nextFloat() * 0.2f);
+					this.caveSoundTicks = this.random.nextInt(12000) + 6000;
 				}
 			}
 			
-			if (this.rand.nextInt(100000) == 0 && this.isRaining() && this.isThundering()) {
-				this.field_203 = this.field_203 * 3 + 1013904223;
-				index = this.field_203 >> 2;
+			if (this.random.nextInt(100000) == 0 && this.isRaining() && this.isThundering()) {
+				this.randomIndex = this.randomIndex * 3 + 1013904223;
+				index = this.randomIndex >> 2;
 				px = chunkX + (index & 0xF);
 				pz = chunkZ + (index >> 8 & 0xF);
 				py = this.getHeightIterating(px, pz);
 				if (this.canRainAt(px, py, pz)) {
-					this.method_184(new Lightning(Level.class.cast(this), px, py, pz));
-					this.field_209 = 2;
+					this.addEntity(new Lightning(Level.class.cast(this), px, py, pz));
+					this.lightingTicks = 2;
 				}
 			}
 			
-			if (this.rand.nextInt(16) == 0) {
-				this.field_203 = this.field_203 * 3 + 1013904223;
-				index = this.field_203 >> 2;
+			if (this.random.nextInt(16) == 0) {
+				this.randomIndex = this.randomIndex * 3 + 1013904223;
+				index = this.randomIndex >> 2;
 				px = index & 15;
 				pz = index >> 8 & 15;
 				py = this.getHeightIterating(px | chunkX, pz | chunkZ);
@@ -170,14 +170,14 @@ public abstract class LevelMixin implements LevelHeightProvider {
 			}
 			
 			for (int k = 0; k < 80; ++k) {
-				this.field_203 = this.field_203 * 3 + 1013904223;
-				index = this.field_203 >> 2;
+				this.randomIndex = this.randomIndex * 3 + 1013904223;
+				index = this.randomIndex >> 2;
 				px = index & 15;
 				pz = index >> 8 & 15;
 				py = index >> 16 & 127;
 				blockID = chunk.getBlockId(px, py, pz);
 				if (!BaseBlock.TICKS_RANDOMLY[blockID]) continue;
-				BaseBlock.BY_ID[blockID].onScheduledTick(Level.class.cast(this), px | chunkX, py, pz | chunkZ, this.rand);
+				BaseBlock.BY_ID[blockID].onScheduledTick(Level.class.cast(this), px | chunkX, py, pz | chunkZ, this.random);
 			}
 		}
 	}
@@ -215,7 +215,7 @@ public abstract class LevelMixin implements LevelHeightProvider {
 		"getLight(IIIZ)I",
 		"getLight(Lnet/minecraft/level/LightType;III)I",
 		"setLight",
-		"method_193"
+		"addEntityWithChecks(Lnet/minecraft/entity/BaseEntity;Z)V"
 	}, constant = @Constant(intValue = 128))
 	private int bhapi_changeMaxHeight(int value) {
 		return getLevelHeight();

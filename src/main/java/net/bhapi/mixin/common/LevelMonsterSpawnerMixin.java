@@ -18,19 +18,19 @@ import java.util.List;
 public class LevelMonsterSpawnerMixin {
 	@Unique private static Level bhapi_currentLevel;
 	
-	@Inject(method = "method_1869(Lnet/minecraft/level/Level;Ljava/util/List;)Z", at = @At("HEAD"))
+	@Inject(method = "spawnMonsters(Lnet/minecraft/level/Level;Ljava/util/List;)Z", at = @At("HEAD"))
 	private static void bhapi_initLevel(Level level, List list, CallbackInfoReturnable<Boolean> info) {
 		bhapi_currentLevel = level;
 	}
 	
-	@Inject(method = "method_1868(Lnet/minecraft/level/Level;II)Lnet/minecraft/util/maths/BlockPos;", at = @At("HEAD"))
+	@Inject(method = "getPositionWithOffset(Lnet/minecraft/level/Level;II)Lnet/minecraft/util/maths/BlockPos;", at = @At("HEAD"))
 	private static void bhapi_initLevel(Level level, int px, int pz, CallbackInfoReturnable<BlockPos> info) {
 		bhapi_currentLevel = level;
 	}
 	
 	@ModifyConstant(method = {
-		"method_1869(Lnet/minecraft/level/Level;Ljava/util/List;)Z",
-		"method_1868(Lnet/minecraft/level/Level;II)Lnet/minecraft/util/maths/BlockPos;"
+		"spawnMonsters(Lnet/minecraft/level/Level;Ljava/util/List;)Z",
+		"getPositionWithOffset(Lnet/minecraft/level/Level;II)Lnet/minecraft/util/maths/BlockPos;"
 	}, constant = @Constant(intValue = 128))
 	private static int bhapi_changeMaxHeight(int value) {
 		return LevelHeightProvider.cast(bhapi_currentLevel).getLevelHeight();
