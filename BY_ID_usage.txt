@@ -1,55 +1,35 @@
 Constant field
     BY_ID
-Usages in Project and Libraries  (170 usages found)
-    Value read  (170 usages found)
-        BHAPI  (2 usages found)
-            net.bhapi.mixin.common  (2 usages found)
+Usages in Project and Libraries  (175 usages found)
+    Value read  (175 usages found)
+        BHAPI  (7 usages found)
+            net.bhapi.mixin.common  (7 usages found)
                 BaseBlockMixin  (1 usage found)
                     bhapi_resetBlockEntries(int, Material, CallbackInfo)  (1 usage found)
                         22 BaseBlock.BY_ID[255] = null;
-                ChunkMixin  (1 usage found)
-                    getByID(int)  (1 usage found)
-                        160 BaseBlock block = BaseBlock.BY_ID[id];
-        C:\Users\paulevs\.gradle\caches\fabric-loom\b1.7.3\com.github.paulevsGitch.BIN-Mappings-BH.b1_7_3.70fa1b1\minecraft-merged-named.jar  (168 usages found)
-            net.minecraft  (21 usages found)
-                class_108  (1 usage found)
-                    method_404(BaseEntity, int, int, int, Vec3i)  (1 usage found)
-                        154 Material material = BaseBlock.BY_ID[n].material;
-                class_556  (5 usages found)
-                    method_1862(Living, ItemStack)  (2 usages found)
-                        43 if (arg2.itemId < 256 && BlockRenderer.isSpecificRenderType(BaseBlock.BY_ID[arg2.itemId].getRenderType())) {
-                        45 this.field_2405.renderBlockItem(BaseBlock.BY_ID[arg2.itemId], arg2.getDamage(), arg.getBrightnessAtEyes(1.0f));
-                    method_1864(float)  (3 usages found)
-                        296 this.method_1861(f, BaseBlock.BY_ID[n5].getTextureForSide(2));
-                        309 if (BaseBlock.BY_ID[n5] != null) {
-                        310 this.method_1861(f, BaseBlock.BY_ID[n5].getTextureForSide(2));
+                ChunkMixin  (4 usages found)
+                    bhapi_setBlock(int, int, int, int, int, CallbackInfoReturnable<Boolean>)  (2 usages found)
+                        120 BaseBlock.BY_ID[blockID].onBlockRemoved(this.level, wx, y, wz);
+                        140 BaseBlock.BY_ID[id].onBlockPlaced(this.level, wx, y, wz);
+                    bhapi_getBlockEntity(int, int, int, CallbackInfoReturnable<BaseBlockEntity>)  (1 usage found)
+                        418 BlockWithEntity blockWithEntity = (BlockWithEntity) BaseBlock.BY_ID[blockID];
+                    bhapi_setBlockEntity(int, int, int, BaseBlockEntity, CallbackInfo)  (1 usage found)
+                        446 if (this.getBlockId(x, y, z) == 0 || !(BaseBlock.BY_ID[this.getBlockId(x, y, z)] instanceof BlockWithEntity)) {
+                LevelMixin  (2 usages found)
+                    bhapi_processLoadedChunks(CallbackInfo)  (2 usages found)
+                        163 blockID != BaseBlock.ICE.id && BaseBlock.BY_ID[blockID].material.blocksMovement()) {
+                        180 BaseBlock.BY_ID[blockID].onScheduledTick(Level.class.cast(this), px | chunkX, py, pz | chunkZ, this.random);
+        C:\Users\paulevs\.gradle\caches\fabric-loom\b1.7.3\com.github.paulevsGitch.BIN-Mappings-BH.b1_7_3.25795e4\minecraft-merged-named.jar  (168 usages found)
+            net.minecraft  (6 usages found)
                 class_586  (6 usages found)
                     class_586()  (4 usages found)
                         63 if (BaseBlock.BY_ID[i] == null) continue;
-                        64 this.field_2531[i * 3 + 0] = BaseBlock.BY_ID[i].getTextureForSide(1);
-                        65 this.field_2531[i * 3 + 1] = BaseBlock.BY_ID[i].getTextureForSide(2);
-                        66 this.field_2531[i * 3 + 2] = BaseBlock.BY_ID[i].getTextureForSide(3);
+                        64 this.textures[i * 3 + 0] = BaseBlock.BY_ID[i].getTextureForSide(1);
+                        65 this.textures[i * 3 + 1] = BaseBlock.BY_ID[i].getTextureForSide(2);
+                        66 this.textures[i * 3 + 2] = BaseBlock.BY_ID[i].getTextureForSide(3);
                     method_1939(class_478)  (2 usages found)
                         103 BaseBlock baseBlock = BaseBlock.BY_ID[level.getBlockId(j, k, i)];
                         110 if (n10 != 0 && BaseBlock.BY_ID[n10].material == Material.WATER) continue;
-                class_66  (1 usage found)
-                    method_296()  (1 usage found)
-                        150 if ((n8 = (baseBlock = BaseBlock.BY_ID[n9]).getRenderPass()) != i) {
-                class_70  (8 usages found)
-                    method_1828()  (1 usage found)
-                        42 BaseBlock baseBlock = BaseBlock.BY_ID[n2];
-                    method_1830(int, int, int, int)  (2 usages found)
-                        59 BaseBlock.BY_ID[n].activate((Level)this.field_2310, i, j, k, this.field_2309);
-                        61 if (n > 0 && BaseBlock.BY_ID[n].getHardness(this.field_2309) >= 1.0f) {
-                    method_1829(int, int, int)  (1 usage found)
-                        75 BaseBlock baseBlock = BaseBlock.BY_ID[n2];
-                    method_1833(int, int, int)  (1 usage found)
-                        92 BaseBlock baseBlock = BaseBlock.BY_ID[this.field_2310.getBlockId(i, j, k)];
-                    method_1834(int, int, int)  (2 usages found)
-                        114 if (bl && this.field_2309.canRemoveBlock(BaseBlock.BY_ID[n])) {
-                        115 BaseBlock.BY_ID[n].afterBreak(this.field_2310, this.field_2309, i, j, k, n2);
-                    method_1832(PlayerBase, Level, ItemStack, int, int, int, int)  (1 usage found)
-                        136 if (n > 0 && BaseBlock.BY_ID[n].canUse(arg2, i, j, k, arg)) {
             net.minecraft.block  (33 usages found)
                 BaseBlock  (6 usages found)
                     BaseBlock(int, Material)  (3 usages found)
@@ -58,7 +38,7 @@ Usages in Project and Libraries  (170 usages found)
                         242 BaseBlock.BY_ID[i] = this;
                     canPlaceAt(Level, int, int, int)  (1 usage found)
                         582 return n == 0 || BaseBlock.BY_ID[n].material.isReplaceable();
-                    683 if (BY_ID[i] == null || ItemBase.byId[i] != null) continue;
+                    683 if (BY_ID[i] == null || BaseItem.byId[i] != null) continue;
                     685 BY_ID[i].init();
                 DispenserBlock  (1 usage found)
                     onAdjacentBlockUpdate(Level, int, int, int, int)  (1 usage found)
@@ -68,9 +48,9 @@ Usages in Project and Libraries  (170 usages found)
                         144 if (l > 0 && BaseBlock.BY_ID[l].getEmitsRedstonePower()) {
                         164 } else if (l > 0 && BaseBlock.BY_ID[l].getEmitsRedstonePower()) {
                 FlowingFluidBlock  (2 usages found)
-                    method_1054(Level, int, int, int, int)  (1 usage found)
+                    placeBlockIfPossible(Level, int, int, int, int)  (1 usage found)
                         114 BaseBlock.BY_ID[n].drop(arg, i, j, k, arg.getBlockMeta(i, j, k));
-                    method_1057(Level, int, int, int)  (1 usage found)
+                    blocksFluid(Level, int, int, int)  (1 usage found)
                         193 Material material = BaseBlock.BY_ID[n].material;
                 MovingPistonBlock  (3 usages found)
                     drop(Level, int, int, int, int, float)  (1 usage found)
@@ -85,11 +65,11 @@ Usages in Project and Libraries  (170 usages found)
                 PistonBlock  (7 usages found)
                     onBlockAction(Level, int, int, int, int, int)  (1 usage found)
                         177 arg, n2, n3, n4, false) && (BaseBlock.BY_ID[n5].getPistonPushMode() == 0 || n5 == BaseBlock.PISTON.id || n5 == BaseBlock.STICKY_PISTON.id)) {
-                    method_759(int, Level, int, int, int, boolean)  (3 usages found)
+                    canMoveBlock(int, Level, int, int, int, boolean)  (3 usages found)
                         289 if (BaseBlock.BY_ID[i].getHardness() == -1.0f) {
                         292 if (BaseBlock.BY_ID[i].getPistonPushMode() == 2) {
                         295 if (!bl && BaseBlock.BY_ID[i].getPistonPushMode() == 1) {
-                    method_765(Level, int, int, int, int)  (1 usage found)
+                    canMoveBlock(Level, int, int, int, int)  (1 usage found)
                         315 if (BaseBlock.BY_ID[n4].getPistonPushMode() == 1) break;
                     pushByPiston(Level, int, int, int, int)  (2 usages found)
                         341 if (BaseBlock.BY_ID[n].getPistonPushMode() == 1) {
@@ -98,21 +78,21 @@ Usages in Project and Libraries  (170 usages found)
                     onBlockRemoved(Level, int, int, int)  (1 usage found)
                         44 BaseBlock.BY_ID[n3].drop(arg, i, j, k, n);
                     onAdjacentBlockUpdate(Level, int, int, int, int)  (1 usage found)
-                        174 BaseBlock.BY_ID[n2].onAdjacentBlockUpdate(arg, i - MagicPistonNumbers.OFFSET_X[n], j - MagicPistonNumbers.OFFSET_Y[n], k - MagicPistonNumbers.OFFSET_Z[n], l);
+                        174 BaseBlock.BY_ID[n2].onAdjacentBlockUpdate(arg, i - PistonDataValues.OFFSET_X[n], j - PistonDataValues.OFFSET_Y[n], k - PistonDataValues.OFFSET_Z[n], l);
                 PumpkinBlock  (1 usage found)
                     canPlaceAt(Level, int, int, int)  (1 usage found)
                         68 return (n == 0 || BaseBlock.BY_ID[n].material.isReplaceable()) && arg.canSuffocate(i, j - 1, k);
                 RailBlock  (1 usage found)
                     onAdjacentBlockUpdate(Level, int, int, int, int)  (1 usage found)
-                        140 } else if (l > 0 && BaseBlock.BY_ID[l].getEmitsRedstonePower() && !this.field_1262 && new RailMagicStuff(arg, i, j, k).method_1116() == 3) {
-                RailBlock.RailMagicStuff  (1 usage found)
-                    RailMagicStuff(Level, int, int, int)  (1 usage found)
-                        265 if (((RailBlock)BaseBlock.BY_ID[n]).field_1262) {
+                        140 } else if (l > 0 && BaseBlock.BY_ID[l].getEmitsRedstonePower() && !this.wrapMeta && new RailData(arg, i, j, k).countNeighbours() == 3) {
+                RailBlock.RailData  (1 usage found)
+                    RailData(Level, int, int, int)  (1 usage found)
+                        265 if (((RailBlock)BaseBlock.BY_ID[n]).wrapMeta) {
                 RedstoneDustBlock  (1 usage found)
-                    method_1287(BlockView, int, int, int, int)  (1 usage found)
+                    canConnect(BlockView, int, int, int, int)  (1 usage found)
                         362 if (BaseBlock.BY_ID[n].getEmitsRedstonePower()) {
                 SandBlock  (1 usage found)
-                    method_435(Level, int, int, int)  (1 usage found)
+                    canReplace(Level, int, int, int)  (1 usage found)
                         65 Material material = BaseBlock.BY_ID[n].material;
                 SnowLayerBlock  (1 usage found)
                     canPlaceAt(Level, int, int, int)  (1 usage found)
@@ -135,24 +115,24 @@ Usages in Project and Libraries  (170 usages found)
                         194 if (n < 256 && BaseBlock.BY_ID[n].material == Material.WOOD) {
             net.minecraft.client  (10 usages found)
                 BaseClientInteractionManager  (2 usages found)
-                    method_1716(int, int, int, int)  (1 usage found)
+                    activateBlock(int, int, int, int)  (1 usage found)
                         35 BaseBlock baseBlock = BaseBlock.BY_ID[level.getBlockId(i, j, k)];
-                    method_1713(PlayerBase, Level, ItemStack, int, int, int, int)  (1 usage found)
+                    useOnBlock(PlayerBase, Level, ItemStack, int, int, int, int)  (1 usage found)
                         86 if (n > 0 && BaseBlock.BY_ID[n].canUse(arg2, i, j, k, arg)) {
                 MultiPlayerClientInteractionManager  (3 usages found)
-                    method_1707(int, int, int, int)  (2 usages found)
+                    playerDigBlock(int, int, int, int)  (2 usages found)
                         65 BaseBlock.BY_ID[n].activate(this.minecraft.level, i, j, k, this.minecraft.player);
                         67 if (n > 0 && BaseBlock.BY_ID[n].getHardness(this.minecraft.player) >= 1.0f) {
-                    method_1721(int, int, int, int)  (1 usage found)
+                    digBlock(int, int, int, int)  (1 usage found)
                         101 BaseBlock baseBlock = BaseBlock.BY_ID[n];
                 SinglePlayerClientInteractionManager  (5 usages found)
-                    method_1716(int, int, int, int)  (2 usages found)
+                    activateBlock(int, int, int, int)  (2 usages found)
                         39 boolean bl2 = this.minecraft.player.canRemoveBlock(BaseBlock.BY_ID[n]);
                         48 BaseBlock.BY_ID[n].afterBreak(this.minecraft.level, this.minecraft.player, i, j, k, n2);
-                    method_1707(int, int, int, int)  (2 usages found)
+                    playerDigBlock(int, int, int, int)  (2 usages found)
                         57 BaseBlock.BY_ID[n].activate(this.minecraft.level, i, j, k, this.minecraft.player);
                         59 if (n > 0 && BaseBlock.BY_ID[n].getHardness(this.minecraft.player) >= 1.0f) {
-                    method_1721(int, int, int, int)  (1 usage found)
+                    digBlock(int, int, int, int)  (1 usage found)
                         79 BaseBlock baseBlock = BaseBlock.BY_ID[n];
             net.minecraft.client.particle  (2 usages found)
                 ParticleManager  (2 usages found)
@@ -160,41 +140,58 @@ Usages in Project and Libraries  (170 usages found)
                         112 BaseBlock baseBlock = BaseBlock.BY_ID[l];
                     addBlockClickParticle(int, int, int, int)  (1 usage found)
                         132 BaseBlock baseBlock = BaseBlock.BY_ID[n];
-            net.minecraft.client.render  (4 usages found)
+            net.minecraft.client.render  (14 usages found)
+                AreaRenderer  (1 usage found)
+                    update()  (1 usage found)
+                        150 if ((n8 = (baseBlock = BaseBlock.BY_ID[n9]).getRenderPass()) != i) {
+                GameRenderer  (4 usages found)
+                    weatherEffects()  (4 usages found)
+                        578 if (BaseBlock.BY_ID[n9].material == Material.LAVA) {
+                        579 this.minecraft.particleManager.addParticle(new SmokeParticle(level, (float)n6 + f2, (double)((float)n8 + 0.1f) - BaseBlock.BY_ID[n9].minY, (float)n7 + f3, 0.0, 0.0, 0.0));
+                        584 d2 = (double)((float)n8 + 0.1f) - BaseBlock.BY_ID[n9].minY;
+                        587 this.minecraft.particleManager.addParticle(new RainParticle(level, (float)n6 + f2, (double)((float)n8 + 0.1f) - BaseBlock.BY_ID[n9].minY, (float)n7 + f3));
                 LevelRenderer  (4 usages found)
-                    method_1547(PlayerBase, HitResult, int, ItemStack, float)  (1 usage found)
+                    renderBlockBreak(PlayerBase, HitResult, int, ItemStack, float)  (1 usage found)
                         975 BaseBlock baseBlock = n2 > 0 ? BaseBlock.BY_ID[n2] : null;
-                    method_1554(PlayerBase, HitResult, int, ItemStack, float)  (2 usages found)
+                    renderBlockOutline(PlayerBase, HitResult, int, ItemStack, float)  (2 usages found)
                         1042 BaseBlock.BY_ID[n].updateBoundingBox(this.level, arg2.x, arg2.y, arg2.z);
-                        1046 this.method_1545(BaseBlock.BY_ID[n].getOutlineShape(this.level, arg2.x, arg2.y, arg2.z).expandNegative(f2, f2, f2).expandPositive(-d, -d2, -d3));
+                        1046 this.renderBox(BaseBlock.BY_ID[n].getOutlineShape(this.level, arg2.x, arg2.y, arg2.z).expandNegative(f2, f2, f2).expandPositive(-d, -d2, -d3));
                     playLevelEvent(PlayerBase, int, int, int, int, int)  (1 usage found)
                         1261 BaseBlock baseBlock = BaseBlock.BY_ID[n];
+                OverlaysRenderer  (5 usages found)
+                    renderHand(LivingEntity, ItemStack)  (2 usages found)
+                        43 if (arg2.itemId < 256 && BlockRenderer.isSpecificRenderType(BaseBlock.BY_ID[arg2.itemId].getRenderType())) {
+                        45 this.blockRenderer.renderBlockItem(BaseBlock.BY_ID[arg2.itemId], arg2.getDamage(), arg.getBrightnessAtEyes(1.0f));
+                    renderOverlays(float)  (3 usages found)
+                        296 this.renderSuffocateOverlay(f, BaseBlock.BY_ID[n5].getTextureForSide(2));
+                        309 if (BaseBlock.BY_ID[n5] != null) {
+                        310 this.renderSuffocateOverlay(f, BaseBlock.BY_ID[n5].getTextureForSide(2));
+            net.minecraft.client.render.blockentity  (1 usage found)
+                PistonRenderer  (1 usage found)
+                    render(PistonBlockEntity, double, double, double, float)  (1 usage found)
+                        25 BaseBlock baseBlock = BaseBlock.BY_ID[arg.getBlockID()];
             net.minecraft.client.render.entity  (10 usages found)
                 BipedEntityRenderer  (1 usage found)
-                    method_827(Living, float)  (1 usage found)
+                    renderPlayerEffects(LivingEntity, float)  (1 usage found)
                         33 if (itemStack.itemId < 256 && BlockRenderer.isSpecificRenderType(BaseBlock.BY_ID[itemStack.itemId].getRenderType())) {
                 EntityRenderer  (1 usage found)
-                    method_2033(BaseEntity, double, double, double, float, float)  (1 usage found)
-                        131 this.method_2030(BaseBlock.BY_ID[n7], d, e + (double)arg.getEyeHeight(), f, i, j, k, g, f2, d5, d6 + (double)arg.getEyeHeight(), d7);
+                    renderShadow(BaseEntity, double, double, double, float, float)  (1 usage found)
+                        131 this.renderShadowPart(BaseBlock.BY_ID[n7], d, e + (double)arg.getEyeHeight(), f, i, j, k, g, f2, d5, d6 + (double)arg.getEyeHeight(), d7);
                 FallingBlockRenderer  (1 usage found)
-                    method_770(FallingBlock, double, double, double, float, float)  (1 usage found)
+                    render(FallingBlockEntity, double, double, double, float, float)  (1 usage found)
                         29 BaseBlock baseBlock = BaseBlock.BY_ID[arg.tile];
                 ItemRenderer  (5 usages found)
-                    method_1484(Item, double, double, double, float, float)  (3 usages found)
+                    render(ItemEntity, double, double, double, float, float)  (3 usages found)
                         51 if (itemStack.itemId < 256 && BlockRenderer.isSpecificRenderType(BaseBlock.BY_ID[itemStack.itemId].getRenderType())) {
                         55 if (!BaseBlock.BY_ID[itemStack.itemId].isFullCube() && itemStack.itemId != BaseBlock.STONE_SLAB.id && BaseBlock.BY_ID[itemStack.itemId].getRenderType() != 16) {
-                        67 this.field_1708.renderBlockItem(BaseBlock.BY_ID[itemStack.itemId], itemStack.getDamage(), arg.getBrightnessAtEyes(h));
-                    renderItemOnGui(TextRenderer, TextureManager, int, int, int, int, int)  (2 usages found)
+                        67 this.internalBlockRenderer.renderBlockItem(BaseBlock.BY_ID[itemStack.itemId], itemStack.getDamage(), arg.getBrightnessAtEyes(h));
+                    renderItemInGUI(TextRenderer, TextureManager, int, int, int, int, int)  (2 usages found)
                         122 if (i < 256 && BlockRenderer.isSpecificRenderType(BaseBlock.BY_ID[i].getRenderType())) {
                         125 BaseBlock baseBlock = BaseBlock.BY_ID[n];
                 PlayerRenderer  (2 usages found)
                     method_342(PlayerBase, float)  (2 usages found)
                         135 if (BlockRenderer.isSpecificRenderType(BaseBlock.BY_ID[itemStack2.itemId].getRenderType())) {
                         201 if (itemStack.itemId < 256 && BlockRenderer.isSpecificRenderType(BaseBlock.BY_ID[itemStack.itemId].getRenderType())) {
-            net.minecraft.client.render.tileentity  (1 usage found)
-                PistonRenderer  (1 usage found)
-                    method_973(PistonBlockEntity, double, double, double, float)  (1 usage found)
-                        25 BaseBlock baseBlock = BaseBlock.BY_ID[arg.getBlockID()];
             net.minecraft.entity  (12 usages found)
                 BaseEntity  (5 usages found)
                     move(double, double, double)  (4 usages found)
@@ -204,22 +201,22 @@ Usages in Project and Libraries  (170 usages found)
                         460 BaseBlock.BY_ID[n14].onEntityCollision(this.level, n, i, j, this);
                     isInFluid(Material)  (1 usage found)
                         532 if (n4 != 0 && BaseBlock.BY_ID[n4].material == arg) {
-                Item  (1 usage found)
+                ItemEntity  (1 usage found)
                     tick()  (1 usage found)
                         73 f = BaseBlock.BY_ID[n].slipperiness * 0.98f;
-                Living  (3 usages found)
+                LivingEntity  (3 usages found)
                     handleFallDamage(float)  (1 usage found)
                         424 BlockSounds blockSounds = BaseBlock.BY_ID[n2].sounds;
                     travel(float, float)  (2 usages found)
                         459 f2 = BaseBlock.BY_ID[n].slipperiness * 0.91f;
                         469 f2 = BaseBlock.BY_ID[n].slipperiness * 0.91f;
-                Minecart  (3 usages found)
+                MinecartEntity  (3 usages found)
                     tick()  (1 usage found)
-                        232 if (((RailBlock)BaseBlock.BY_ID[n4]).method_1108()) {
-                    method_1814(double, double, double, double)  (1 usage found)
-                        470 if (((RailBlock)BaseBlock.BY_ID[n]).method_1108()) {
-                    method_1813(double, double, double)  (1 usage found)
-                        502 if (((RailBlock)BaseBlock.BY_ID[n]).method_1108()) {
+                        232 if (((RailBlock)BaseBlock.BY_ID[n4]).wrapMeta()) {
+                    checkRails(double, double, double, double)  (1 usage found)
+                        470 if (((RailBlock)BaseBlock.BY_ID[n]).wrapMeta()) {
+                    getDirection(double, double, double)  (1 usage found)
+                        502 if (((RailBlock)BaseBlock.BY_ID[n]).wrapMeta()) {
             net.minecraft.entity.living  (2 usages found)
                 FlyingBase  (2 usages found)
                     travel(float, float)  (2 usages found)
@@ -244,19 +241,25 @@ Usages in Project and Libraries  (170 usages found)
                     getTranslationKey()  (1 usage found)
                         72 return BaseBlock.BY_ID[this.blockId].getTranslationKey();
                 MapItem  (4 usages found)
-                    method_1729(Level, BaseEntity, MapStorage)  (4 usages found)
-                        125 } else if (n13 > 0 && n28 > 0 && BaseBlock.BY_ID[n28].material.materialColour == MaterialColour.AIR) {
+                    drawMap(Level, BaseEntity, MapStorage)  (4 usages found)
+                        125 } else if (n13 > 0 && n28 > 0 && BaseBlock.BY_ID[n28].material.materialColor == MaterialColor.AIR) {
                         131 if (n28 != 0 && BaseBlock.BY_ID[n28].material.isLiquid()) {
                         137 } while (n11 > 0 && n29 != 0 && BaseBlock.BY_ID[n29].material.isLiquid());
-                        167 MaterialColour materialColour = BaseBlock.BY_ID[n14].material.materialColour;
+                        167 MaterialColor materialColor = BaseBlock.BY_ID[n14].material.materialColor;
                 SecondaryBlockItem  (3 usages found)
                     useOnBlock(ItemStack, PlayerBase, Level, int, int, int, int)  (3 usages found)
                         48 BaseBlock baseBlock = BaseBlock.BY_ID[this.tileId];
                         50 BaseBlock.BY_ID[this.tileId].onBlockPlaced(arg3, i, j, k, l);
                         51 BaseBlock.BY_ID[this.tileId].afterPlaced(arg3, i, j, k, arg2);
-            net.minecraft.level  (28 usages found)
+            net.minecraft.level  (31 usages found)
                 BlockMask  (1 usage found)
                     21 if (by != 0 && BaseBlock.BY_ID[by & 0xFF] == null) {
+                Explosion  (3 usages found)
+                    kaboomPhase1()  (1 usage found)
+                        69 f3 -= (BaseBlock.BY_ID[n8].getBlastResistance(this.cause) + 0.3f) * f2;
+                    kaboomPhase2(boolean)  (2 usages found)
+                        152 BaseBlock.BY_ID[n4].drop(this.level, n, n2, n3, this.level.getBlockMeta(n, n2, n3), 0.3f);
+                        154 BaseBlock.BY_ID[n4].onDestroyedByExplosion(this.level, n, n2, n3);
                 Level  (24 usages found)
                     getMaterial(int, int, int)  (1 usage found)
                         346 return BaseBlock.BY_ID[n].material;
@@ -271,27 +274,27 @@ Usages in Project and Libraries  (170 usages found)
                         988 Material material2 = material = n == 0 ? Material.AIR : BaseBlock.BY_ID[n].material;
                     getHeightIterate(int, int)  (1 usage found)
                         1017 if (n == 0 || !BaseBlock.BY_ID[n].material.blocksMovement()) {
-                    powerWithDelay(int, int, int, int, int)  (1 usage found)
-                        1031 BaseBlock.BY_ID[n2].onScheduledTick(this, timeInfo.posX, timeInfo.posY, timeInfo.posZ, this.rand);
-                    method_206(Box)  (1 usage found)
+                    scheduleTick(int, int, int, int, int)  (1 usage found)
+                        1031 BaseBlock.BY_ID[n2].onScheduledTick(this, timeInfo.posX, timeInfo.posY, timeInfo.posZ, this.random);
+                    containsBlocks(Box)  (1 usage found)
                         1218 BaseBlock baseBlock = BaseBlock.BY_ID[this.getBlockId(i, j, k)];
-                    method_218(Box)  (1 usage found)
+                    containsLiquids(Box)  (1 usage found)
                         1246 BaseBlock baseBlock = BaseBlock.BY_ID[this.getBlockId(i, j, k)];
-                    method_170(Box, Material, BaseEntity)  (1 usage found)
+                    collidesWithMaterial(Box, Material, BaseEntity)  (1 usage found)
                         1292 BaseBlock baseBlock = BaseBlock.BY_ID[this.getBlockId(i, j, k)];
-                    method_169(Box, Material)  (1 usage found)
+                    containsMaterial(Box, Material)  (1 usage found)
                         1319 BaseBlock baseBlock = BaseBlock.BY_ID[this.getBlockId(i, j, k)];
-                    method_207(Box, Material)  (1 usage found)
+                    containsMaterialMetaCheck(Box, Material)  (1 usage found)
                         1338 BaseBlock baseBlock = BaseBlock.BY_ID[this.getBlockId(i, j, k)];
                     isFullOpaque(int, int, int)  (1 usage found)
                         1474 BaseBlock baseBlock = BaseBlock.BY_ID[this.getBlockId(i, j, k)];
                     canSuffocate(int, int, int)  (1 usage found)
                         1482 BaseBlock baseBlock = BaseBlock.BY_ID[this.getBlockId(i, j, k)];
-                    method_248()  (2 usages found)
+                    processLoadedChunks()  (2 usages found)
                         1739 if (this.isRaining() && n9 == 0 && BaseBlock.SNOW.canPlaceAt(this, n + n4, n7, n8 + n3) && n6 != 0 && n6 != BaseBlock.ICE.id && BaseBlock.BY_ID[n6].material.blocksMovement()) {
-                        1755 BaseBlock.BY_ID[n10].onScheduledTick(this, n8 + n4, n6, n7 + n3, this.rand);
+                        1755 BaseBlock.BY_ID[n10].onScheduledTick(this, n8 + n4, n6, n7 + n3, this.random);
                     processBlockTicks(boolean)  (1 usage found)
-                        1776 BaseBlock.BY_ID[n2].onScheduledTick(this, timeInfo.posX, timeInfo.posY, timeInfo.posZ, this.rand);
+                        1776 BaseBlock.BY_ID[n2].onScheduledTick(this, timeInfo.posX, timeInfo.posY, timeInfo.posZ, this.random);
                     randomDisplayTick(int, int, int)  (1 usage found)
                         1791 BaseBlock.BY_ID[n5].randomDisplayTick(this, n4, n3, n2, random);
                     canPlaceBlock(int, int, int, int, boolean, int)  (2 usages found)
@@ -323,7 +326,7 @@ Usages in Project and Libraries  (170 usages found)
                     setBlockEntity(int, int, int, BaseBlockEntity)  (1 usage found)
                         397 if (this.getBlockId(i, j, k) == 0 || !(BaseBlock.BY_ID[this.getBlockId(i, j, k)] instanceof BlockWithEntity)) {
             net.minecraft.level.dimension  (1 usage found)
-                Skylands  (1 usage found)
+                SkylandsDimension  (1 usage found)
                     canSpawnOn(int, int)  (1 usage found)
                         68 return BaseBlock.BY_ID[n].material.blocksMovement();
             net.minecraft.level.structure  (6 usages found)
@@ -345,19 +348,22 @@ Usages in Project and Libraries  (170 usages found)
                 TallGrass  (1 usage found)
                     generate(Level, Random, int, int, int)  (1 usage found)
                         31 nextInt(8)) || !((PlantBlock)BaseBlock.BY_ID[this.tileId]).canGrow(arg, n4, n3, n2)) continue;
-            net.minecraft.sortme  (7 usages found)
-                Explosion  (3 usages found)
-                    kaboomPhase1()  (1 usage found)
-                        69 f3 -= (BaseBlock.BY_ID[n8].getBlastResistance(this.cause) + 0.3f) * f2;
-                    kaboomPhase2(boolean)  (2 usages found)
-                        152 BaseBlock.BY_ID[n4].drop(this.level, n, n2, n3, this.level.getBlockMeta(n, n2, n3), 0.3f);
-                        154 BaseBlock.BY_ID[n4].onDestroyedByExplosion(this.level, n, n2, n3);
-                GameRenderer  (4 usages found)
-                    method_1846()  (4 usages found)
-                        578 if (BaseBlock.BY_ID[n9].material == Material.LAVA) {
-                        579 this.minecraft.particleManager.addParticle(new SmokeParticle(level, (float)n6 + f2, (double)((float)n8 + 0.1f) - BaseBlock.BY_ID[n9].minY, (float)n7 + f3, 0.0, 0.0, 0.0));
-                        584 d2 = (double)((float)n8 + 0.1f) - BaseBlock.BY_ID[n9].minY;
-                        587 this.minecraft.particleManager.addParticle(new RainParticle(level, (float)n6 + f2, (double)((float)n8 + 0.1f) - BaseBlock.BY_ID[n9].minY, (float)n7 + f3));
+            net.minecraft.server  (8 usages found)
+                ServerPlayerInterractionManager  (8 usages found)
+                    tick()  (1 usage found)
+                        42 BaseBlock baseBlock = BaseBlock.BY_ID[n2];
+                    activateBlock(int, int, int, int)  (2 usages found)
+                        59 BaseBlock.BY_ID[n].activate((Level)this.level, i, j, k, this.player);
+                        61 if (n > 0 && BaseBlock.BY_ID[n].getHardness(this.player) >= 1.0f) {
+                    setBlockPos(int, int, int)  (1 usage found)
+                        75 BaseBlock baseBlock = BaseBlock.BY_ID[n2];
+                    removeBlock(int, int, int)  (1 usage found)
+                        92 BaseBlock baseBlock = BaseBlock.BY_ID[this.level.getBlockId(i, j, k)];
+                    processBlockBreak(int, int, int)  (2 usages found)
+                        114 if (bl && this.player.canRemoveBlock(BaseBlock.BY_ID[n])) {
+                        115 BaseBlock.BY_ID[n].afterBreak(this.level, this.player, i, j, k, n2);
+                    useOnBlock(PlayerBase, Level, ItemStack, int, int, int, int)  (1 usage found)
+                        136 if (n > 0 && BaseBlock.BY_ID[n].canUse(arg2, i, j, k, arg)) {
             net.minecraft.stat  (7 usages found)
                 Stats  (7 usages found)
                     setupBlockStats()  (2 usages found)
@@ -371,3 +377,7 @@ Usages in Project and Libraries  (170 usages found)
                         102 String string2 = I18n.translate(string, BaseBlock.BY_ID[j].getTranslatedName());
                     setupUse(Stat[], String, int, int, int)  (1 usage found)
                         118 if (i2 < BaseBlock.BY_ID.length) continue;
+            net.minecraft.util  (1 usage found)
+                Pathfinder  (1 usage found)
+                    getMovement(BaseEntity, int, int, int, Vec3i)  (1 usage found)
+                        154 Material material = BaseBlock.BY_ID[n].material;

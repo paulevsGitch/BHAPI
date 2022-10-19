@@ -3,7 +3,7 @@ package net.bhapi.mixin.common;
 import net.bhapi.level.LevelHeightProvider;
 import net.minecraft.block.BaseBlock;
 import net.minecraft.entity.BaseEntity;
-import net.minecraft.entity.Lightning;
+import net.minecraft.entity.LightningEntity;
 import net.minecraft.entity.player.PlayerBase;
 import net.minecraft.level.Level;
 import net.minecraft.level.LightType;
@@ -146,7 +146,7 @@ public abstract class LevelMixin implements LevelHeightProvider {
 				pz = chunkZ + (index >> 8 & 0xF);
 				py = this.getHeightIterating(px, pz);
 				if (this.canRainAt(px, py, pz)) {
-					this.addEntity(new Lightning(Level.class.cast(this), px, py, pz));
+					this.addEntity(new LightningEntity(Level.class.cast(this), px, py, pz));
 					this.lightingTicks = 2;
 				}
 			}

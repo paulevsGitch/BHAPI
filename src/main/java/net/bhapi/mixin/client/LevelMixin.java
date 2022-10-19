@@ -10,12 +10,6 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 @Mixin(Level.class)
 public abstract class LevelMixin {
-	@Shadow public abstract int getBlockId(int i, int j, int k);
-	
-	@Shadow public abstract int getLight(int i, int j, int k);
-	
-	@Shadow public abstract int getLight(LightType arg, int i, int j, int k);
-	
 	@Inject(method = "shuffleSpawnPoint", at = @At("HEAD"), cancellable = true)
 	private void bhapi_fixShuffleSpawnPoint(CallbackInfo info) {
 		info.cancel();
