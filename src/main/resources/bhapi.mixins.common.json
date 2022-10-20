@@ -11,6 +11,7 @@
 		"LevelChunkLoaderMixin",
 		"LightUpdateAreaMixin",
 		"BaseDimensionMixin",
+		"BaseBlockAccessor",
 		"LevelManagerMixin",
 		"BaseBlockMixin",
 		"BlockItemMixin",

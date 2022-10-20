@@ -1,0 +1,139 @@
+BaseBlockMixin	bhapi_resetBlockEntries
+ChunkMixin		bhapi_setBlock
+ChunkMixin		bhapi_getBlockEntity
+ChunkMixin		bhapi_setBlockEntity
+LevelMixin		bhapi_processLoadedChunks
+
+net.minecraft.block.BaseBlock			canPlaceAt
+net.minecraft.block.BaseBlock			683
+net.minecraft.block.BaseBlock			685
+net.minecraft.block.DispenserBlock		onAdjacentBlockUpdate
+net.minecraft.block.DoorBlock			onAdjacentBlockUpdate
+net.minecraft.block.FlowingFluidBlock	placeBlockIfPossible
+net.minecraft.block.FlowingFluidBlock	blocksFluid
+net.minecraft.block.MovingPistonBlock	drop
+net.minecraft.block.MovingPistonBlock	updateBoundingBox
+net.minecraft.block.MovingPistonBlock	getExtendedBox
+net.minecraft.block.Noteblock			onAdjacentBlockUpdate
+net.minecraft.block.PistonBlock			onBlockAction
+net.minecraft.block.PistonBlock			canMoveBlock(int, Level, int, int, int, boolean)
+net.minecraft.block.PistonBlock			canMoveBlock(Level, int, int, int, int)
+net.minecraft.block.PistonBlock			pushByPiston
+net.minecraft.block.PistonHeadBlock		onBlockRemoved
+net.minecraft.block.PistonHeadBlock		onAdjacentBlockUpdate
+net.minecraft.block.PumpkinBlock		canPlaceAt
+net.minecraft.block.RailBlock			onAdjacentBlockUpdate
+net.minecraft.block.RailBlock.RailData	265
+net.minecraft.block.RedstoneDustBlock	canConnect
+net.minecraft.block.SandBlock			canReplace
+net.minecraft.block.SnowLayerBlock		canPlaceAt
+net.minecraft.block.StaticFluid			onScheduledTick
+net.minecraft.block.TntBlock			onAdjacentBlockUpdate
+net.minecraft.block.TrapdoorBlock		onAdjacentBlockUpdate
+
+net.minecraft.block.entity.BaseBlockEntity		getBlock
+net.minecraft.block.entity.FurnaceBlockEntity	getFuelTime
+
+net.minecraft.client.BaseClientInteractionManager			activateBlock
+net.minecraft.client.BaseClientInteractionManager			useOnBlock
+net.minecraft.client.MultiPlayerClientInteractionManager	playerDigBlock
+net.minecraft.client.MultiPlayerClientInteractionManager	digBlock
+net.minecraft.client.SinglePlayerClientInteractionManager	activateBlock
+net.minecraft.client.SinglePlayerClientInteractionManager	playerDigBlock
+net.minecraft.client.SinglePlayerClientInteractionManager	digBlock
+
+net.minecraft.client.particle.ParticleManager	addBlockBreakParticles
+net.minecraft.client.particle.ParticleManager	addBlockClickParticle
+
+net.minecraft.client.render.AreaRenderer		update
+net.minecraft.client.render.GameRenderer		weatherEffects
+net.minecraft.client.render.LevelRenderer		renderBlockBreak
+net.minecraft.client.render.LevelRenderer		renderBlockOutline
+net.minecraft.client.render.LevelRenderer		playLevelEvent
+net.minecraft.client.render.OverlaysRenderer	renderHand
+net.minecraft.client.render.OverlaysRenderer	renderOverlays
+
+net.minecraft.client.render.blockentity.PistonRenderer	render
+net.minecraft.client.render.entity.BipedEntityRenderer	renderPlayerEffects
+net.minecraft.client.render.entity.EntityRenderer		renderShadow
+net.minecraft.client.render.entity.EntityRenderer		renderShadowPart
+net.minecraft.client.render.entity.FallingBlockRenderer	render
+net.minecraft.client.render.entity.ItemRenderer			render
+net.minecraft.client.render.entity.ItemRenderer			renderItemInGUI
+net.minecraft.client.render.entity.PlayerRenderer		method_342
+
+net.minecraft.entity.BaseEntity		move
+net.minecraft.entity.BaseEntity		isInFluid
+net.minecraft.entity.ItemEntity		tick
+net.minecraft.entity.LivingEntity	handleFallDamage
+net.minecraft.entity.LivingEntity	travel
+net.minecraft.entity.MinecartEntity	tick
+net.minecraft.entity.MinecartEntity	checkRails
+net.minecraft.entity.MinecartEntity	getDirection
+
+net.minecraft.entity.living.FlyingBase	travel
+net.minecraft.entity.projectile.Arrow	tick
+
+net.minecraft.item.BlockItem			BlockItem(int) (setTexturePosition)
+net.minecraft.item.BlockItem			useOnBlock
+net.minecraft.item.BlockItem			getTranslationKey(ItemStack)
+net.minecraft.item.BlockItem			getTranslationKey()
+net.minecraft.item.MapItem				drawMap
+net.minecraft.item.SecondaryBlockItem	useOnBlock
+
+net.minecraft.level.BlockMask	21
+net.minecraft.level.Explosion	kaboomPhase1
+net.minecraft.level.Explosion	kaboomPhase2
+net.minecraft.level.Level		getMaterial
+net.minecraft.level.Level		updateAdjacentBlock
+net.minecraft.level.Level		getHitResult
+net.minecraft.level.Level		getCollidingEntities
+net.minecraft.level.Level		getHeightIterating
+net.minecraft.level.Level		getHeightIterate
+net.minecraft.level.Level		scheduleTick
+net.minecraft.level.Level		containsBlocks
+net.minecraft.level.Level		containsLiquids
+net.minecraft.level.Level		collidesWithMaterial
+net.minecraft.level.Level		containsMaterial
+net.minecraft.level.Level		containsMaterialMetaCheck
+net.minecraft.level.Level		isFullOpaque
+net.minecraft.level.Level		canSuffocate
+net.minecraft.level.Level		processLoadedChunks
+net.minecraft.level.Level		processBlockTicks
+net.minecraft.level.Level		randomDisplayTick
+net.minecraft.level.Level		canPlaceBlock
+net.minecraft.level.Level		hasInderectPower
+net.minecraft.level.Level		hasRedstonePower
+net.minecraft.level.Level		processBlockAction
+
+net.minecraft.level.LevelPopulationRegion	getMaterial
+net.minecraft.level.LevelPopulationRegion	isFullOpaque
+net.minecraft.level.LevelPopulationRegion	canSuffocate
+
+net.minecraft.level.chunk.Chunk	setBlock(int, int, int, int, int)
+net.minecraft.level.chunk.Chunk	setBlock(int, int, int, int)
+net.minecraft.level.chunk.Chunk	getBlockEntity
+net.minecraft.level.chunk.Chunk	setBlockEntity
+
+net.minecraft.level.dimension.SkylandsDimension	canSpawnOn
+
+net.minecraft.level.structure.Deadbush		generate
+net.minecraft.level.structure.Lake			generate
+net.minecraft.level.structure.Mushroom		generate
+net.minecraft.level.structure.NetherSpring	generate
+net.minecraft.level.structure.Spring		generate
+net.minecraft.level.structure.TallGrass		generate
+
+net.minecraft.server.ServerPlayerInterractionManager	tick
+net.minecraft.server.ServerPlayerInterractionManager	activateBlock
+net.minecraft.server.ServerPlayerInterractionManager	setBlockPos
+net.minecraft.server.ServerPlayerInterractionManager	removeBlock
+net.minecraft.server.ServerPlayerInterractionManager	processBlockBreak
+net.minecraft.server.ServerPlayerInterractionManager	useOnBlock
+
+net.minecraft.stat.Stats	setupBlockStats
+net.minecraft.stat.Stats	setupItemStats
+net.minecraft.stat.Stats	setupMinedBlocks
+net.minecraft.stat.Stats	setupUse
+
+net.minecraft.util.Pathfinder	getMovement
