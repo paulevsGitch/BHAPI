@@ -1,5 +1,6 @@
 package net.bhapi.blockstate;
 
+import net.bhapi.block.LegacyBlockInfo;
 import net.bhapi.blockstate.properties.StateProperty;
 import net.minecraft.block.BaseBlock;
 import net.minecraft.block.BlockSounds;
@@ -12,16 +13,102 @@ public interface BlockStateContainer {
 	BlockState getDefaultState();
 	void setDefaultState(BlockState state);
 	default void appendProperties(List<StateProperty> properties) {}
-	default BlockSounds getSounds(BlockState state) { return state.getBlock().sounds; }
-	default boolean hasRandomTicks(BlockState state) { return false; }
-	default boolean isFullOpaque(BlockState state) { return true; }
-	default boolean hasTileEntity(BlockState state) { return false; }
-	default int getLightOpacity(BlockState state) { return 0; }
-	default boolean allowsGrasUnder(BlockState state) { return false; }
-	default int getEmittance(BlockState state) { return 0; }
-	default float getHardness(BlockState state) { return state.getBlock().getHardness(); }
-	default float getHardness(BlockState state, PlayerBase player) { return state.getBlock().getHardness(player); }
-	default float getBlastResistance(BlockState state, BaseEntity entity) { return state.getBlock().getBlastResistance(entity); }
+	
+	/**
+	 * Get {@link BlockSounds} for specified {@link BlockState}.
+	 * @param state current {@link BlockState}
+	 * @return {@link BlockSounds}
+	 */
+	default BlockSounds getSounds(BlockState state) {
+		return state.getBlock().sounds;
+	}
+	
+	/**
+	 * Check if specified {@link BlockState} has random ticks.
+	 * Example of blocks with random ticks: saplings, crops, grass blocks.
+	 * @param state current {@link BlockState}
+	 * @return {@code true} if state has random ticks and {@code false} if not
+	 */
+	default boolean hasRandomTicks(BlockState state) {
+		return LegacyBlockInfo.getInfo(state.getBlock()).ticksRandomly();
+	}
+	
+	/**
+	 * Check if specified {@link BlockState} if full opaque block (example: stone).
+	 * @param state current {@link BlockState}
+	 * @return {@code true} if state is opaque and {@code false} if not
+	 */
+	default boolean isFullOpaque(BlockState state) {
+		return LegacyBlockInfo.getInfo(state.getBlock()).fullOpaque();
+	}
+	
+	/**
+	 * Check if specified {@link BlockState} has {@link net.minecraft.block.entity.BaseBlockEntity} (examples: furnace, sign).
+	 * @param state current {@link BlockState}
+	 * @return {@code true} if state has entity and {@code false} if not
+	 */
+	default boolean hasBlockEntity(BlockState state) {
+		return LegacyBlockInfo.getInfo(state.getBlock()).hasBlockEntity();
+	}
+	
+	/**
+	 * Get {@link BlockState} light opacity, determines how light will be shadowed by block during transition.
+	 * Transparent blocks have this value equal to zero, water = 3, leaves = 1, opaque blocks = 255.
+	 * @param state current {@link BlockState}
+	 * @return {@code integer} value of light opacity
+	 */
+	default int getLightOpacity(BlockState state) {
+		return LegacyBlockInfo.getInfo(state.getBlock()).lightOpacity();
+	}
+	
+	/**
+	 * Checks if {@link BlockState} allows grass blocks to grow under it.
+	 * Opaque blocks have this value equal to {@code false}.
+	 * If this value is false grass block below current state will be transformed into dirt.
+	 * @param state current {@link BlockState}
+	 * @return {@code true} if state allows grass growing and {@code false} if not
+	 */
+	default boolean allowsGrasUnder(BlockState state) {
+		return LegacyBlockInfo.getInfo(state.getBlock()).allowsGrassUnder();
+	}
+	
+	/**
+	 * Get light value of this {@link BlockState}. 0 is no light and 15 is full-brightness light.
+	 * @param state current {@link BlockState}
+	 * @return {@code integer} value of emittance in [0-15] range
+	 */
+	default int getEmittance(BlockState state) {
+		return LegacyBlockInfo.getInfo(state.getBlock()).emittance();
+	}
+	
+	/**
+	 * Get current state hardness, used in digging time calculations.
+	 * @param state current {@link BlockState}
+	 * @return {@code float} hardness value
+	 */
+	default float getHardness(BlockState state) {
+		return state.getBlock().getHardness();
+	}
+	
+	/**
+	 * Get current state hardness for specific {@link PlayerBase}, used in digging time calculations.
+	 * @param state current {@link BlockState}
+	 * @param player current {@link PlayerBase}
+	 * @return {@code float} hardness value
+	 */
+	default float getHardness(BlockState state, PlayerBase player) {
+		return state.getBlock().getHardness(player);
+	}
+	
+	/**
+	 * Get state blast resistance, used in digging explosions calculations.
+	 * @param state current {@link BlockState}
+	 * @param entity current {@link BaseEntity} (explosion cause)
+	 * @return {@code float} blast resistance value
+	 */
+	default float getBlastResistance(BlockState state, BaseEntity entity) {
+		return state.getBlock().getBlastResistance(entity);
+	}
 	
 	static BlockStateContainer cast(BaseBlock block) {
 		return (BlockStateContainer) block;

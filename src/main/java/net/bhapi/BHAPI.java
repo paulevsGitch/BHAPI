@@ -1,6 +1,7 @@
 package net.bhapi;
 
 import net.bhapi.block.BHBaseBlock;
+import net.bhapi.block.LegacyBlockInfo;
 import net.bhapi.blockstate.BlockState;
 import net.bhapi.registry.DefaultRegistries;
 import net.bhapi.util.Identifier;
@@ -18,6 +19,7 @@ public class BHAPI implements ModInitializer {
 	public void onInitialize() {
 		instance = this;
 		
+		LegacyBlockInfo.init();
 		DefaultRegistries.initBlocks();
 		
 		Identifier id = Identifier.make("testblock");

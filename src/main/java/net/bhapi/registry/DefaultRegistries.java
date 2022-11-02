@@ -8,8 +8,6 @@ import net.bhapi.util.Identifier;
 import net.minecraft.block.BaseBlock;
 import net.minecraft.item.BaseItem;
 
-import java.util.Arrays;
-
 public class DefaultRegistries {
 	public static final Registry<BaseBlock> BLOCK_REGISTRY = new Registry<>();
 	public static final Registry<BaseItem> ITEM_REGISTRY = new Registry<>();
