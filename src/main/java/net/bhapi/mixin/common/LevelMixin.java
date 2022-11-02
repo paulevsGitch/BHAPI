@@ -85,15 +85,13 @@ public abstract class LevelMixin implements LevelHeightProvider {
 		bhapi_loadBlockStates();
 	}
 	
-	/*@Inject(method = "saveLevelData()V", at = @At("HEAD"))
+	@Inject(method = "saveLevelData()V", at = @At("HEAD"))
 	private void bhapi_onLevelSave(CallbackInfo ci) {
-		BHAPI.log("Saving registries");
 		CompoundTag tag = new CompoundTag();
-		
-		boolean requireSave = true;
-		requireSave &= DefaultRegistries.BLOCKSTATES_MAP.save(tag);
+		boolean requireSave = DefaultRegistries.BLOCKSTATES_MAP.save(tag);
 		
 		if (requireSave) {
+			BHAPI.log("Saving registries");
 			try {
 				File file = dimensionData.getFile("registries");
 				FileOutputStream stream = new FileOutputStream(file);
@@ -104,7 +102,7 @@ public abstract class LevelMixin implements LevelHeightProvider {
 				BHAPI.warn(e.getMessage());
 			}
 		}
-	}*/
+	}
 	
 	// TODO optimise this, map this, make readable
 	@Inject(method = "processLoadedChunks", at = @At("HEAD"), cancellable = true)

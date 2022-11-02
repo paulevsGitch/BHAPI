@@ -20,12 +20,16 @@ public final class BlockState {
 	private static int increment;
 	private static int index;
 	
-	private final List<StateProperty<?>> properties = new ArrayList<>();
 	private final Map<StateProperty<?>, Object> propertyValues = new HashMap<>();
+	private final List<StateProperty<?>> properties;
 	private final BlockState[] localCache;
 	private final BaseBlock block;
 	
 	private BlockState(BaseBlock block) {
+		this(block, new ArrayList<>());
+	}
+	
+	private BlockState(BaseBlock block, List<StateProperty<?>> properties) {
 		this.localCache = POSSIBLE_STATES.computeIfAbsent(block, key -> {
 			BlockStateContainer container = BlockStateContainer.cast(block);
 			container.appendProperties(properties);
@@ -39,6 +43,7 @@ public final class BlockState {
 			return cache;
 		});
 		this.block = block;
+		this.properties = properties;
 	}
 	
 	public <T> BlockState with(StateProperty<T> property, T value) {
@@ -54,7 +59,8 @@ public final class BlockState {
 		
 		BlockState state = localCache[index];
 		if (state == null) {
-			state = new BlockState(block);
+			state = new BlockState(block, localCache[0].properties);
+			DefaultRegistries.BLOCKSTATES_MAP.add(state);
 			state.propertyValues.putAll(propertyValues);
 			state.propertyValues.put(property, value);
 			localCache[index] = state;
@@ -94,7 +100,8 @@ public final class BlockState {
 				
 				BlockState state = localCache[index];
 				if (state == null) {
-					state = new BlockState(block);
+					state = new BlockState(block, localCache[0].properties);
+					DefaultRegistries.BLOCKSTATES_MAP.add(state);
 					state.propertyValues.putAll(newProperties);
 					localCache[i] = state;
 				}
@@ -104,7 +111,8 @@ public final class BlockState {
 		return List.of(localCache);
 	}
 	
-	public String toNBTString() {
+	@Override
+	public String toString() {
 		Identifier blockID = DefaultRegistries.BLOCK_REGISTRY.getID(block);
 		if (blockID == null) {
 			throw new RuntimeException("Block " + block + " is not in registry!");
@@ -128,11 +136,6 @@ public final class BlockState {
 		return builder.toString();
 	}
 	
-	@Override
-	public String toString() {
-		return toNBTString();
-	}
-	
 	public static BlockState getDefaultState(BaseBlock block) {
 		if (POSSIBLE_STATES.containsKey(block)) return POSSIBLE_STATES.get(block)[0];
 		return new BlockState(block);
@@ -150,6 +153,10 @@ public final class BlockState {
 			}
 		}
 		return null;
+	}
+	
+	public <T> T getValue(StateProperty<T> property) {
+		return (T) propertyValues.get(property);
 	}
 	
 	/**

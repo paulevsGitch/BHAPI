@@ -16,7 +16,10 @@
 		"BaseBlockMixin",
 		"BlockItemMixin",
 		"ChunkMixin",
-		"LevelMixin"
+		"LevelMixin",
+		
+		"block.LeavesBlockMixin",
+		"block.LogBlockMixin"
 	],
 	"injectors": {
 		"defaultRequire": 1

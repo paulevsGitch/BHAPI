@@ -12,6 +12,11 @@ import java.util.List;
 public interface BlockStateContainer {
 	BlockState getDefaultState();
 	void setDefaultState(BlockState state);
+	
+	/**
+	 * Add additional properties into block. Properties should be added into input list.
+	 * @param properties {@link List} of available {@link StateProperty}
+	 */
 	default void appendProperties(List<StateProperty<?>> properties) {}
 	
 	/**

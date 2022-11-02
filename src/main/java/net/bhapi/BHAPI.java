@@ -44,4 +44,12 @@ public class BHAPI implements ModInitializer {
 	public static void warn(String message) {
 		LOGGER.warn(message);
 	}
+	
+	/**
+	 * Check if object is not null, made for streams.
+	 * Example: Arrays.stream(BaseBlock.BY_ID).filter(BHAPI::notNull)
+	 */
+	public static boolean notNull(Object obj) {
+		return obj != null;
+	}
 }

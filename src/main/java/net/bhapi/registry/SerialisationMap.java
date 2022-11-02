@@ -9,7 +9,6 @@ import java.util.Map;
 import java.util.function.Function;
 
 public class SerialisationMap<T> {
-	private static final String KEY_OBJECT = "object";
 	private static final String KEY_ID = "rawID";
 	
 	private final Map<Integer, T> loadingObjects = new HashMap<>();
@@ -18,9 +17,9 @@ public class SerialisationMap<T> {
 	private final Function<CompoundTag, T> deserializer;
 	private final Function<T, CompoundTag> serializer;
 	private final String dataKey;
-	private int globalIndex = 0;
 	private boolean requireSave;
 	private boolean isLoading;
+	private int globalIndex;
 	
 	public SerialisationMap(String dataKey, Function<T, CompoundTag> serializer, Function<CompoundTag, T> deserializer) {
 		this.deserializer = deserializer;
@@ -68,7 +67,6 @@ public class SerialisationMap<T> {
 	
 	public void load(CompoundTag tag) {
 		isLoading = true;
-		loadingObjects.clear();
 		
 		ListTag list = tag.getListTag(dataKey);
 		int size = list.size();
@@ -94,12 +92,11 @@ public class SerialisationMap<T> {
 			loadingObjects.put(rawID, obj);
 		}
 		
+		globalIndex = 0;
 		idToOBJ.forEach((rawID, obj) -> {
-			if (loadingObjects.containsKey(rawID)) {
-				loadingObjects.put(getFreeID(loadingObjects), obj);
-			}
-			else {
-				loadingObjects.put(rawID, obj);
+			if (!loadingObjects.containsValue(obj)) {
+				int newID = getFreeID(loadingObjects);
+				loadingObjects.put(newID, obj);
 			}
 		});
 		
@@ -108,6 +105,8 @@ public class SerialisationMap<T> {
 		
 		idToOBJ.putAll(loadingObjects);
 		idToOBJ.forEach((rawID, obj) -> objToID.put(obj, rawID));
+		loadingObjects.clear();
+		
 		requireSave = true;
 		isLoading = false;
 	}

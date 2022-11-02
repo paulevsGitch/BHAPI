@@ -18,6 +18,12 @@ public class DefaultRegistries {
 	);
 	
 	public static void initBlocks() {
+		/*Arrays.stream(BaseBlock.BY_ID).filter(BHAPI::notNull).map(BlockStateContainer::cast).forEach(
+			container -> container.getDefaultState().getPossibleStates().forEach(state -> {
+				System.out.println(state.getBlock() + " " + state.getProperties());
+			})
+		);*/
+		
 		BLOCK_REGISTRY.register(Identifier.make("air"), BHAirBlock.AIR);
 		BLOCK_REGISTRY.register(Identifier.make("stone"), BaseBlock.STONE);
 		BLOCK_REGISTRY.register(Identifier.make("grass"), BaseBlock.GRASS);
@@ -116,6 +122,7 @@ public class DefaultRegistries {
 		BLOCK_REGISTRY.register(Identifier.make("locked_chest"), BaseBlock.LOCKED_CHEST);
 		BLOCK_REGISTRY.register(Identifier.make("trapdoor"), BaseBlock.TRAPDOOR);
 		
-		BLOCK_REGISTRY.forEach(block -> BlockStateContainer.cast(block).getDefaultState());
+		// Make sure that all vanilla blocks are generated on startup
+		BLOCK_REGISTRY.forEach(block -> BlockStateContainer.cast(block).getDefaultState().getPossibleStates());
 	}
 }
