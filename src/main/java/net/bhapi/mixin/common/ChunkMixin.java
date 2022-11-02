@@ -663,6 +663,7 @@ public abstract class ChunkMixin implements NBTSerializable, LevelHeightProvider
 		return bhapi_sections;
 	}
 	
+	@Unique
 	@Override
 	public boolean setBlockState(int x, int y, int z, BlockState state) {
 		if (y < 0 || y >= getLevelHeight()) {
@@ -716,8 +717,14 @@ public abstract class ChunkMixin implements NBTSerializable, LevelHeightProvider
 		return true;
 	}
 	
+	@Unique
 	@Override
 	public BlockState getBlockState(int x, int y, int z) {
-		return null;
+		if (y < 0 || y >= getLevelHeight()) return BlockUtil.AIR_STATE;
+		
+		ChunkSection section = bhapi_getOrCreateSection(y);
+		if (section == null) return BlockUtil.AIR_STATE;
+		
+		return section.getBlockState(x, y & 15, z);
 	}
 }

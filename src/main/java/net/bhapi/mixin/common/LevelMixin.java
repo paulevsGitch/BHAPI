@@ -1,6 +1,8 @@
 package net.bhapi.mixin.common;
 
 import net.bhapi.BHAPI;
+import net.bhapi.blockstate.BlockState;
+import net.bhapi.level.BlockStateProvider;
 import net.bhapi.level.LevelHeightProvider;
 import net.bhapi.registry.DefaultRegistries;
 import net.minecraft.block.BaseBlock;
@@ -36,7 +38,7 @@ import java.util.Random;
 import java.util.Set;
 
 @Mixin(Level.class)
-public abstract class LevelMixin implements LevelHeightProvider {
+public abstract class LevelMixin implements LevelHeightProvider, BlockStateProvider {
 	@Shadow private Set loadedChunkPositions;
 	@Shadow public List players;
 	@Shadow private int caveSoundTicks;
@@ -266,5 +268,19 @@ public abstract class LevelMixin implements LevelHeightProvider {
 	@Override
 	public short getLevelHeight() {
 		return LevelHeightProvider.cast(this.dimension).getLevelHeight();
+	}
+	
+	@Unique
+	@Override
+	public boolean setBlockState(int x, int y, int z, BlockState state) {
+		BlockStateProvider provider = BlockStateProvider.cast(this.getChunkFromCache(x >> 4, z >> 4));
+		return provider.setBlockState(x & 15, y, z & 15, state);
+	}
+	
+	@Unique
+	@Override
+	public BlockState getBlockState(int x, int y, int z) {
+		BlockStateProvider provider = BlockStateProvider.cast(this.getChunkFromCache(x >> 4, z >> 4));
+		return provider.getBlockState(x & 15, y, z & 15);
 	}
 }

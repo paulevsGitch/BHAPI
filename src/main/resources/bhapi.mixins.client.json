@@ -8,6 +8,7 @@
 		"BaseBlockEntityMixin",
 		"LevelRendererMixin",
 		"ClientLevelMixin",
+		"InGameMixin",
 		"LevelMixin"
 	],
 	"injectors": {
