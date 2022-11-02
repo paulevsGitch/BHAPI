@@ -19,7 +19,18 @@
 		"LevelMixin",
 		
 		"block.FlowingFluidBlockMixin",
+		"block.PistonHeadBlockMixin",
+		"block.DispenserBlockMixin",
+		"block.StoneSlabBlockMixin",
+		"block.TallGrassBlockMixin",
+		"block.SaplingBlockMixin",
 		"block.LeavesBlockMixin",
+		"block.PistonBlockMixin",
+		"block.TorchBlockMixin",
+		"block.NoteblockMixin",
+		"block.RailBlockMixin",
+		"block.WoolBlockMixin",
+		"block.BedBlockMixin",
 		"block.LogBlockMixin"
 	],
 	"injectors": {
