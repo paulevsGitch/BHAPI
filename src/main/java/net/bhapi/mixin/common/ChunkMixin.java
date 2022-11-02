@@ -1,10 +1,15 @@
 package net.bhapi.mixin.common;
 
 import net.bhapi.BHAPI;
+import net.bhapi.block.BHAirBlock;
+import net.bhapi.blockstate.BlockState;
+import net.bhapi.blockstate.BlockStateContainer;
 import net.bhapi.interfaces.NBTSerializable;
+import net.bhapi.level.BlockStateProvider;
+import net.bhapi.level.ChunkSection;
 import net.bhapi.level.ChunkSectionProvider;
 import net.bhapi.level.LevelHeightProvider;
-import net.bhapi.util.ChunkSection;
+import net.bhapi.util.BlockUtil;
 import net.bhapi.util.MathUtil;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
@@ -35,7 +40,7 @@ import java.util.List;
 import java.util.Map;
 
 @Mixin(Chunk.class)
-public abstract class ChunkMixin implements NBTSerializable, LevelHeightProvider, ChunkSectionProvider {
+public abstract class ChunkMixin implements NBTSerializable, LevelHeightProvider, ChunkSectionProvider, BlockStateProvider {
 	@Shadow public boolean needUpdate;
 	@Shadow public Map blockEntities;
 	@Shadow public byte[] heightmap;
@@ -91,62 +96,16 @@ public abstract class ChunkMixin implements NBTSerializable, LevelHeightProvider
 	
 	@Inject(method = "setBlock(IIIII)Z", at = @At("HEAD"), cancellable = true)
 	private void bhapi_setBlock(int x, int y, int z, int id, int meta, CallbackInfoReturnable<Boolean> info) {
-		if (y >= getLevelHeight()) {
-			info.setReturnValue(false);
-			return;
-		}
-		
-		ChunkSection section = bhapi_getOrCreateSection(y);
-		if (section == null) {
-			info.setReturnValue(false);
-			return;
-		}
-		
-		byte py = (byte) (y & 15);
-		
-		short height = bhapi_getHeight(x, z);
-		int blockID = section.getID(x, py, z);
-		if (blockID == id && section.getMeta(x, py, z) == meta) {
-			info.setReturnValue(false);
-			return;
-		}
-		
-		int wx = this.x << 4 | x;
-		int wz = this.z << 4 | z;
-		
-		section.setID(x, py, z, id);
-		
-		if (blockID != 0 && !this.level.isClientSide) {
-			BaseBlock.BY_ID[blockID].onBlockRemoved(this.level, wx, y, wz);
-		}
-		
-		section.setMeta(x, py, z, meta);
-		
-		if (!this.level.dimension.noSkyLight) {
-			if (BaseBlock.LIGHT_OPACITY[id] != 0) {
-				if (y >= height) {
-					this.updateSkylight(x, y + 1, z);
-				}
-			} else if (y == height - 1) {
-				this.updateSkylight(x, y, z);
-			}
-			this.level.updateLight(LightType.SKY, wx, y, wz, wx, y, wz);
-		}
-		
-		this.level.updateLight(LightType.BLOCK, wx, y, wz, wx, y, wz);
-		this.fillSkyLight(x, z);
-		
-		if (id != 0) {
-			BaseBlock.BY_ID[id].onBlockPlaced(this.level, wx, y, wz);
-		}
-		
-		this.needUpdate = true;
-		info.setReturnValue(true);
+		BlockState state = BlockUtil.getLegacyBlock(id, meta);
+		if (state == null) state = BlockUtil.AIR_STATE;
+		info.setReturnValue(setBlockState(x, y, z, state));
 	}
 	
 	@Inject(method = "setBlock(IIII)Z", at = @At("HEAD"), cancellable = true)
 	private void bhapi_setBlock(int x, int y, int z, int id, CallbackInfoReturnable<Boolean> info) {
-		info.setReturnValue(this.setBlock(x, y, z, id, 0));
+		BlockState state = BlockUtil.getLegacyBlock(id, 0);
+		if (state == null) state = BlockUtil.AIR_STATE;
+		info.setReturnValue(setBlockState(x, y, z, state));
 	}
 	
 	@Inject(method = "setMeta(IIII)V", at = @At("HEAD"), cancellable = true)
@@ -165,7 +124,13 @@ public abstract class ChunkMixin implements NBTSerializable, LevelHeightProvider
 	@Inject(method = "getBlockId(III)I", at = @At("HEAD"), cancellable = true)
 	private void bhapi_getBlockId(int x, int y, int z, CallbackInfoReturnable<Integer> info) {
 		ChunkSection section = bhapi_getSection(y);
-		info.setReturnValue(section == null ? 0 : section.getID(x, y & 15, z));
+		if (section == null) {
+			info.setReturnValue(0);
+			return;
+		}
+		int id = section.getBlockState(x, y & 15, z).getBlock().id;
+		if (id == BlockUtil.MOD_BLOCK_ID) id = 0;
+		info.setReturnValue(id);
 	}
 	
 	@Inject(method = "getMeta(III)I", at = @At("HEAD"), cancellable = true)
@@ -589,7 +554,10 @@ public abstract class ChunkMixin implements NBTSerializable, LevelHeightProvider
 					section = new ChunkSection();
 					bhapi_sections[sectionY] = section;
 				}
-				section.setID(px, py & 15, pz, this.blocks[i]);
+				
+				BlockState state = BlockUtil.getLegacyBlock(this.blocks[i], 0);
+				if (state == null) continue;
+				section.setBlockState(px, py & 15, pz, state);
 				
 				short sectionY2 = (short) (sectionY + 1);
 				if (sectionY2 < bhapi_sections.length) {
@@ -693,5 +661,63 @@ public abstract class ChunkMixin implements NBTSerializable, LevelHeightProvider
 	@Override
 	public ChunkSection[] getChunkSections() {
 		return bhapi_sections;
+	}
+	
+	@Override
+	public boolean setBlockState(int x, int y, int z, BlockState state) {
+		if (y < 0 || y >= getLevelHeight()) {
+			return false;
+		}
+		
+		ChunkSection section = bhapi_getOrCreateSection(y);
+		if (section == null) {
+			return false;
+		}
+		
+		byte py = (byte) (y & 15);
+		
+		short height = bhapi_getHeight(x, z);
+		BlockState oldState = section.getBlockState(x, py, z);
+		if (oldState == state) {
+			return false;
+		}
+		
+		int wx = this.x << 4 | x;
+		int wz = this.z << 4 | z;
+		
+		section.setBlockState(x, py, z, state);
+		boolean isAir = oldState.getBlock() instanceof BHAirBlock;
+		
+		if (!isAir && !this.level.isClientSide) {
+			oldState.getContainer().onBlockRemoved(this.level, wx, y, wz, oldState, state);
+		}
+		
+		BlockStateContainer container = state.getContainer();
+		if (!this.level.dimension.noSkyLight) {
+			if (container.getLightOpacity(state) != 0) {
+				if (y >= height) {
+					this.updateSkylight(x, y + 1, z);
+				}
+			}
+			else if (y == height - 1) {
+				this.updateSkylight(x, y, z);
+			}
+			this.level.updateLight(LightType.SKY, wx, y, wz, wx, y, wz);
+		}
+		
+		this.level.updateLight(LightType.BLOCK, wx, y, wz, wx, y, wz);
+		this.fillSkyLight(x, z);
+		
+		if (!isAir) {
+			container.onBlockPlaced(this.level, wx, y, wz, state);
+		}
+		
+		this.needUpdate = true;
+		return true;
+	}
+	
+	@Override
+	public BlockState getBlockState(int x, int y, int z) {
+		return null;
 	}
 }

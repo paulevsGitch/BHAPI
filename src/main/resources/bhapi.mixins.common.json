@@ -18,6 +18,7 @@
 		"ChunkMixin",
 		"LevelMixin",
 		
+		"block.FlowingFluidBlockMixin",
 		"block.LeavesBlockMixin",
 		"block.LogBlockMixin"
 	],

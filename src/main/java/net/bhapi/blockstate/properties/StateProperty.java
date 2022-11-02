@@ -4,7 +4,7 @@ import java.util.List;
 
 public abstract class StateProperty <T> {
 	public abstract List<T> getValues();
-	public abstract String getType();
+	public abstract BlockPropertyType getType();
 	public abstract T defaultValue();
 	public abstract int getCount();
 	public abstract int getIndex(T value);

@@ -18,6 +18,7 @@ public class BaseDimensionMixin implements LevelHeightProvider {
 		info.setReturnValue(true);
 	}
 	
+	// TODO remove this
 	@Override
 	public short getLevelHeight() {
 		return 256;

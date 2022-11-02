@@ -4,7 +4,6 @@ import java.util.List;
 
 public class BooleanProperty extends StateProperty<Boolean> {
 	private static final List<Boolean> VALUES = List.of(Boolean.FALSE, Boolean.TRUE);
-	private static final String TYPE = "boolean";
 	
 	public BooleanProperty(String name) {
 		super(name);
@@ -21,8 +20,8 @@ public class BooleanProperty extends StateProperty<Boolean> {
 	}
 	
 	@Override
-	public String getType() {
-		return TYPE;
+	public BlockPropertyType getType() {
+		return BlockPropertyType.BOOLEAN;
 	}
 	
 	@Override

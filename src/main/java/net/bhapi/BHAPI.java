@@ -4,6 +4,7 @@ import net.bhapi.block.BHBaseBlock;
 import net.bhapi.block.LegacyBlockInfo;
 import net.bhapi.blockstate.BlockState;
 import net.bhapi.registry.DefaultRegistries;
+import net.bhapi.util.BlockUtil;
 import net.bhapi.util.Identifier;
 import net.fabricmc.api.ModInitializer;
 import net.minecraft.block.material.Material;
@@ -21,6 +22,7 @@ public class BHAPI implements ModInitializer {
 		
 		LegacyBlockInfo.init();
 		DefaultRegistries.initBlocks();
+		BlockUtil.init();
 		
 		Identifier id = Identifier.make("testblock");
 		BHBaseBlock block = new BHBaseBlock(Material.STONE);

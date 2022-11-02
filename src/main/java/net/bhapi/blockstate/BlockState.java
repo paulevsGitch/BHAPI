@@ -1,6 +1,5 @@
 package net.bhapi.blockstate;
 
-import net.bhapi.block.BHAirBlock;
 import net.bhapi.blockstate.properties.StateProperty;
 import net.bhapi.registry.DefaultRegistries;
 import net.bhapi.util.Identifier;
@@ -9,41 +8,45 @@ import net.minecraft.util.io.CompoundTag;
 import net.minecraft.util.io.ListTag;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
 public final class BlockState {
 	private static final Map<BaseBlock, BlockState[]> POSSIBLE_STATES = new HashMap<>();
-	public static final BlockState AIR = new BlockState(BHAirBlock.AIR);
 	
 	private static int increment;
 	private static int index;
 	
 	private final Map<StateProperty<?>, Object> propertyValues = new HashMap<>();
-	private final List<StateProperty<?>> properties;
+	private final Map<String, StateProperty<?>> properties;
 	private final BlockState[] localCache;
 	private final BaseBlock block;
 	
 	private BlockState(BaseBlock block) {
-		this(block, new ArrayList<>());
+		this(block, new HashMap<>());
 	}
 	
-	private BlockState(BaseBlock block, List<StateProperty<?>> properties) {
+	private BlockState(BaseBlock block, Map<String, StateProperty<?>> properties) {
+		this.properties = properties;
 		this.localCache = POSSIBLE_STATES.computeIfAbsent(block, key -> {
 			BlockStateContainer container = BlockStateContainer.cast(block);
-			container.appendProperties(properties);
+			ArrayList<StateProperty<?>> rawProperties = new ArrayList<>();
+			container.appendProperties(rawProperties);
 			int size = 1;
-			for (StateProperty<?> property: properties) size *= property.getCount();
+			for (StateProperty<?> property: rawProperties) size *= property.getCount();
 			container.setDefaultState(this);
-			properties.forEach(property -> this.propertyValues.put(property, property.defaultValue()));
+			rawProperties.forEach(property -> {
+				this.propertyValues.put(property, property.defaultValue());
+				this.properties.put(property.getName(), property);
+			});
 			BlockState[] cache = new BlockState[size];
 			DefaultRegistries.BLOCKSTATES_MAP.add(this);
 			cache[0] = this;
 			return cache;
 		});
 		this.block = block;
-		this.properties = properties;
 	}
 	
 	public <T> BlockState with(StateProperty<T> property, T value) {
@@ -70,7 +73,7 @@ public final class BlockState {
 		return state;
 	}
 	
-	private  <T> BlockState withCast(StateProperty<T> property, Object value) {
+	public <T> BlockState withCast(StateProperty<T> property, Object value) {
 		return with(property, (T) value);
 	}
 	
@@ -147,12 +150,7 @@ public final class BlockState {
 	 * @return
 	 */
 	public StateProperty<?> getProperty(String name) {
-		for (StateProperty<?> property: propertyValues.keySet()) {
-			if (property.getName().equals(name)) {
-				return property;
-			}
-		}
-		return null;
+		return properties.get(name);
 	}
 	
 	public <T> T getValue(StateProperty<T> property) {
@@ -162,8 +160,8 @@ public final class BlockState {
 	/**
 	 * Get {@link List} of available {@link StateProperty} for this state.
 	 */
-	public List<StateProperty<?>> getProperties() {
-		return properties;
+	public Collection<StateProperty<?>> getProperties() {
+		return properties.values();
 	}
 	
 	/**

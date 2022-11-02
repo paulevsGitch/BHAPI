@@ -1,8 +1,8 @@
 package net.bhapi.registry;
 
-import net.bhapi.block.BHAirBlock;
 import net.bhapi.blockstate.BlockState;
 import net.bhapi.blockstate.BlockStateContainer;
+import net.bhapi.util.BlockUtil;
 import net.bhapi.util.Identifier;
 import net.minecraft.block.BaseBlock;
 import net.minecraft.item.BaseItem;
@@ -18,13 +18,7 @@ public class DefaultRegistries {
 	);
 	
 	public static void initBlocks() {
-		/*Arrays.stream(BaseBlock.BY_ID).filter(BHAPI::notNull).map(BlockStateContainer::cast).forEach(
-			container -> container.getDefaultState().getPossibleStates().forEach(state -> {
-				System.out.println(state.getBlock() + " " + state.getProperties());
-			})
-		);*/
-		
-		BLOCK_REGISTRY.register(Identifier.make("air"), BHAirBlock.AIR);
+		BLOCK_REGISTRY.register(Identifier.make("air"), BlockUtil.AIR_BLOCK);
 		BLOCK_REGISTRY.register(Identifier.make("stone"), BaseBlock.STONE);
 		BLOCK_REGISTRY.register(Identifier.make("grass"), BaseBlock.GRASS);
 		BLOCK_REGISTRY.register(Identifier.make("dirt"), BaseBlock.DIRT);

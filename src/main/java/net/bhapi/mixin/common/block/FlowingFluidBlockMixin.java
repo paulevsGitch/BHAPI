@@ -3,15 +3,15 @@ package net.bhapi.mixin.common.block;
 import net.bhapi.blockstate.BlockStateContainer;
 import net.bhapi.blockstate.properties.LegacyProperties;
 import net.bhapi.blockstate.properties.StateProperty;
-import net.minecraft.block.LeavesBlock;
+import net.minecraft.block.FlowingFluidBlock;
 import org.spongepowered.asm.mixin.Mixin;
 
 import java.util.List;
 
-@Mixin(LeavesBlock.class)
-public abstract class LeavesBlockMixin implements BlockStateContainer {
+@Mixin(FlowingFluidBlock.class)
+public abstract class FlowingFluidBlockMixin implements BlockStateContainer {
 	@Override
 	public void appendProperties(List<StateProperty<?>> properties) {
-		properties.add(LegacyProperties.META_16); // Leaves use meta | 8 for updating states.
+		properties.add(LegacyProperties.META_16);
 	}
 }

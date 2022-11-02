@@ -6,6 +6,7 @@ import net.minecraft.block.BaseBlock;
 import net.minecraft.block.BlockSounds;
 import net.minecraft.entity.BaseEntity;
 import net.minecraft.entity.player.PlayerBase;
+import net.minecraft.level.Level;
 
 import java.util.List;
 
@@ -113,6 +114,31 @@ public interface BlockStateContainer {
 	 */
 	default float getBlastResistance(BlockState state, BaseEntity entity) {
 		return state.getBlock().getBlastResistance(entity);
+	}
+	
+	/**
+	 * Called after state is removed from the world.
+	 * @param level {@link Level} where block is located
+	 * @param x X coordinate
+	 * @param y Y coordinate
+	 * @param z Z coordinate
+	 * @param oldState {@link BlockState} that will be removed
+	 * @param newState {@link BlockState} that will replace old state
+	 */
+	default void onBlockRemoved(Level level, int x, int y, int z, BlockState oldState, BlockState newState) {
+		oldState.getBlock().onBlockRemoved(level, x, y, z);
+	}
+	
+	/**
+	 * Called after state is placed in the world.
+	 * @param level {@link Level} where block is located
+	 * @param x X coordinate
+	 * @param y Y coordinate
+	 * @param z Z coordinate
+	 * @param state {@link BlockState} that was placed
+	 */
+	default void onBlockPlaced(Level level, int x, int y, int z, BlockState state) {
+		state.getBlock().onBlockPlaced(level, x, y, z);
 	}
 	
 	static BlockStateContainer cast(BaseBlock block) {

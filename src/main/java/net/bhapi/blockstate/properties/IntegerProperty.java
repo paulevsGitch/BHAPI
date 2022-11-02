@@ -5,7 +5,6 @@ import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
 public class IntegerProperty extends StateProperty<Integer> {
-	private static final String TYPE = "integer";
 	private final List<Integer> values;
 	final int minValue;
 	final int maxValue;
@@ -18,7 +17,6 @@ public class IntegerProperty extends StateProperty<Integer> {
 		this.maxValue = maxValue;
 		this.count = maxValue - minValue + 1;
 		this.values = IntStream.rangeClosed(minValue, maxValue).boxed().collect(Collectors.toUnmodifiableList());
-		System.out.println(values.size() + " " + count);
 	}
 	
 	@Override
@@ -27,8 +25,8 @@ public class IntegerProperty extends StateProperty<Integer> {
 	}
 	
 	@Override
-	public String getType() {
-		return TYPE;
+	public BlockPropertyType getType() {
+		return BlockPropertyType.INTEGER;
 	}
 	
 	@Override

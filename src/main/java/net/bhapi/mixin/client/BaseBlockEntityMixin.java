@@ -1,6 +1,6 @@
 package net.bhapi.mixin.client;
 
-import net.bhapi.blockstate.BlockStateProvider;
+import net.bhapi.level.BlockStateProvider;
 import net.minecraft.block.BaseBlock;
 import net.minecraft.block.entity.BaseBlockEntity;
 import net.minecraft.level.Level;

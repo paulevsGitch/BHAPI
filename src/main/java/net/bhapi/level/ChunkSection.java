@@ -1,6 +1,10 @@
-package net.bhapi.util;
+package net.bhapi.level;
 
+import net.bhapi.blockstate.BlockState;
+import net.bhapi.blockstate.properties.BlockPropertyType;
+import net.bhapi.blockstate.properties.StateProperty;
 import net.bhapi.interfaces.NBTSerializable;
+import net.bhapi.util.BlockUtil;
 import net.minecraft.block.entity.BaseBlockEntity;
 import net.minecraft.entity.BaseEntity;
 import net.minecraft.entity.EntityRegistry;
@@ -17,9 +21,9 @@ import java.util.List;
 import java.util.Map;
 
 public class ChunkSection implements NBTSerializable {
+	private static final StatesLoader LOADER = new StatesLoader();
 	private final Map<BlockPos, BaseBlockEntity> blockEntities = new HashMap();
-	private final byte[] blockMeta = new byte[4096];
-	private final byte[] blockID = new byte[4096];
+	private final BlockState[] states = new BlockState[4096];
 	private final byte[] light = new byte[4096];
 	
 	public final List<BaseEntity> entities = new ArrayList<>();
@@ -28,26 +32,29 @@ public class ChunkSection implements NBTSerializable {
 		return x << 8 | y << 4 | z;
 	}
 	
-	public int getID(int x, int y, int z) {
-		return blockID[getIndex(x, y, z)];
+	public BlockState getBlockState(int x, int y, int z) {
+		BlockState state = states[getIndex(x, y, z)];
+		return state == null ? BlockUtil.AIR_STATE : state;
 	}
 	
-	public void setID(int x, int y, int z, int id) {
-		blockID[getIndex(x, y, z)] = (byte) id;
+	public void setBlockState(int x, int y, int z, BlockState state) {
+		states[getIndex(x, y, z)] = state;
 	}
 	
 	public int getMeta(int x, int y, int z) {
-		return blockMeta[getIndex(x, y, z)];
+		BlockState state = getBlockState(x, y, z);
+		StateProperty<?> meta = state.getProperty("meta");
+		return meta != null && meta.getType() == BlockPropertyType.INTEGER ? (int) state.getValue(meta) : 0;
 	}
 	
 	public void setMeta(int x, int y, int z, int meta) {
-		blockMeta[getIndex(x, y, z)] = (byte) meta;
-	}
-	
-	public void set(int x, int y, int z, int id, int meta) {
 		int index = getIndex(x, y, z);
-		blockID[index] = (byte) id;
-		blockMeta[index] = (byte) meta;
+		BlockState state = states[index];
+		if (state == null) return;
+		StateProperty<?> property = state.getProperty("meta");
+		if (property != null && property.getType() == BlockPropertyType.INTEGER) {
+			states[index] = state.withCast(property, meta);
+		}
 	}
 	
 	public BaseBlockEntity getBlockEntity(BlockPos pos) {
@@ -83,8 +90,12 @@ public class ChunkSection implements NBTSerializable {
 	
 	@Override
 	public void saveToNBT(CompoundTag tag) {
-		tag.put("id", blockID);
-		tag.put("meta", blockMeta);
+		LOADER.fillFrom(states);
+		
+		CompoundTag statesTag = new CompoundTag();
+		LOADER.saveToNBT(statesTag);
+		
+		tag.put("states", statesTag);
 		tag.put("light", light);
 		
 		if (!entities.isEmpty()) {
@@ -111,17 +122,10 @@ public class ChunkSection implements NBTSerializable {
 	
 	@Override
 	public void loadFromNBT(CompoundTag tag) {
-		byte[] data = tag.getByteArray("id");
-		if (data.length == blockID.length) {
-			System.arraycopy(data, 0, blockID, 0, data.length);
-		}
+		LOADER.loadFromNBT(tag.getCompoundTag("states"));
+		LOADER.fillTo(states);
 		
-		data = tag.getByteArray("meta");
-		if (data.length == blockMeta.length) {
-			System.arraycopy(data, 0, blockMeta, 0, data.length);
-		}
-		
-		data = tag.getByteArray("light");
+		byte[] data = tag.getByteArray("light");
 		if (data.length == light.length) {
 			System.arraycopy(data, 0, light, 0, data.length);
 		}

@@ -1,7 +1,8 @@
 package net.bhapi.mixin.common;
 
+import net.bhapi.blockstate.BlockState;
+import net.bhapi.level.ChunkSection;
 import net.bhapi.level.ChunkSectionProvider;
-import net.bhapi.util.ChunkSection;
 import net.minecraft.block.BaseBlock;
 import net.minecraft.level.Level;
 import net.minecraft.level.chunk.Chunk;
@@ -48,6 +49,11 @@ public class OverworldLevelSourceMixin {
 		if (maxHeight >= sections.length) maxHeight = (short) (sections.length - 1);
 		final short count = maxHeight;
 		
+		BlockState water = BlockState.getDefaultState(BaseBlock.STILL_WATER);
+		BlockState stone = BlockState.getDefaultState(BaseBlock.STONE);
+		BlockState grass = BlockState.getDefaultState(BaseBlock.GRASS);
+		BlockState dirt = BlockState.getDefaultState(BaseBlock.DIRT);
+		
 		customPool.submit(() -> IntStream.range(0, count).parallel().forEach(index -> {
 			ChunkSection section = new ChunkSection();
 			sections[index] = section;
@@ -62,42 +68,13 @@ public class OverworldLevelSourceMixin {
 				if (maxY > 16) maxY = 16;
 				for (short y = 0; y < maxY; y++) {
 					short py = (short) (secY | y);
-					if (py > bhapi_heightmap[i] && py < 64) section.setID(x, y, z, BaseBlock.STILL_WATER.id);
-					else if (py == grassLevel) section.setID(x, y, z, BaseBlock.GRASS.id);
-					else if (py > dirtLevel) section.setID(x, y, z, BaseBlock.DIRT.id);
-					else section.setID(x, y, z, BaseBlock.STONE.id);
+					if (py > bhapi_heightmap[i] && py < 64) section.setBlockState(x, y, z, water);
+					else if (py == grassLevel) section.setBlockState(x, y, z, grass);
+					else if (py > dirtLevel) section.setBlockState(x, y, z, dirt);
+					else section.setBlockState(x, y, z, stone);
 				}
 			}
 		}));
-		
-		/*for (byte x = 0; x < 16; x++) {
-			int px = chunkX << 4 | x;
-			for (byte z = 0; z < 16; z++) {
-				int pz = chunkZ << 4 | z;
-				float noise = getNoise(px * 0.1, pz * 0.1);
-				noise += getNoise(px * 0.5, pz * 0.5) * 0.25F;
-				height = (short) (noise * delta + 32);
-				short dirtLevel = (short) (height - 3);
-				short grassLevel = (short) (height - 1);
-				for (short y = 0; y < dirtLevel; y++) {
-					setter.setBlockFast(x, y, z, BaseBlock.STONE.id);
-				}
-				if (height < 62) {
-					for (short y = dirtLevel; y <= grassLevel; y++) {
-						setter.setBlockFast(x, y, z, BaseBlock.GRAVEL.id);
-					}
-					for (short y = height; y < 62; y++) {
-						setter.setBlockFast(x, y, z, BaseBlock.STILL_WATER.id);
-					}
-				}
-				else {
-					for (short y = dirtLevel; y < grassLevel; y++) {
-						setter.setBlockFast(x, y, z, BaseBlock.DIRT.id);
-					}
-					setter.setBlockFast(x, grassLevel, z, BaseBlock.GRASS.id);
-				}
-			}
-		}*/
 		
 		chunk.generateHeightmap();
 	}
