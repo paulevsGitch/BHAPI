@@ -3,7 +3,6 @@ package net.bhapi.registry;
 import net.bhapi.block.BHAirBlock;
 import net.bhapi.blockstate.BlockState;
 import net.bhapi.blockstate.BlockStateContainer;
-import net.bhapi.mixin.common.BaseBlockAccessor;
 import net.bhapi.util.Identifier;
 import net.minecraft.block.BaseBlock;
 import net.minecraft.item.BaseItem;
@@ -11,25 +10,15 @@ import net.minecraft.item.BaseItem;
 public class DefaultRegistries {
 	public static final Registry<BaseBlock> BLOCK_REGISTRY = new Registry<>();
 	public static final Registry<BaseItem> ITEM_REGISTRY = new Registry<>();
-	public static final BHAirBlock AIR_BLOCK = new BHAirBlock();
 	
 	public static final SerialisationMap<BlockState> BLOCKSTATES_MAP = new SerialisationMap<>(
 		"blockstates",
-		BlockState::toNBTString,
-		BlockState::fromNBTString
+		BlockState::saveToNBT,
+		BlockState::loadFromNBT
 	);
 	
 	public static void initBlocks() {
-		// Experimental ID extension
-		BaseBlock[] blocks = new BaseBlock[512];
-		System.arraycopy(BaseBlock.BY_ID, 0, blocks, 0, BaseBlock.BY_ID.length);
-		//blocks[2] = BaseBlock.BY_ID[1];
-		//blocks[1] = BaseBlock.BY_ID[2];
-		BaseBlockAccessor.bhapi_setBlocks(blocks);
-		
-		System.out.println("New Length " + BaseBlock.BY_ID.length);
-		
-		BLOCK_REGISTRY.register(Identifier.make("air"), AIR_BLOCK);
+		BLOCK_REGISTRY.register(Identifier.make("air"), BHAirBlock.AIR);
 		BLOCK_REGISTRY.register(Identifier.make("stone"), BaseBlock.STONE);
 		BLOCK_REGISTRY.register(Identifier.make("grass"), BaseBlock.GRASS);
 		BLOCK_REGISTRY.register(Identifier.make("dirt"), BaseBlock.DIRT);

@@ -1,7 +1,7 @@
 package net.bhapi.mixin.common;
 
 import net.bhapi.BHAPI;
-import net.bhapi.util.NBTSerializable;
+import net.bhapi.interfaces.NBTSerializable;
 import net.minecraft.level.Level;
 import net.minecraft.level.LevelManager;
 import net.minecraft.level.LevelProperties;

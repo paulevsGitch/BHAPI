@@ -10,24 +10,26 @@ import java.util.function.Function;
 
 public class SerialisationMap<T> {
 	private static final String KEY_OBJECT = "object";
-	private static final String KEY_ID = "id";
+	private static final String KEY_ID = "rawID";
 	
 	private final Map<Integer, T> loadingObjects = new HashMap<>();
 	private final Map<Integer, T> idToOBJ = new HashMap<>();
 	private final Map<T, Integer> objToID = new HashMap<>();
-	private final Function<String, T> deserializer;
-	private final Function<T, String> serializer;
+	private final Function<CompoundTag, T> deserializer;
+	private final Function<T, CompoundTag> serializer;
 	private final String dataKey;
 	private int globalIndex = 0;
 	private boolean requireSave;
+	private boolean isLoading;
 	
-	public SerialisationMap(String dataKey, Function<T, String> serializer, Function<String, T> deserializer) {
+	public SerialisationMap(String dataKey, Function<T, CompoundTag> serializer, Function<CompoundTag, T> deserializer) {
 		this.deserializer = deserializer;
 		this.serializer = serializer;
 		this.dataKey = dataKey;
 	}
 	
 	public void add(T obj) {
+		if (isLoading) return;
 		if (objToID.containsKey(obj)) return;
 		int index = getFreeID(idToOBJ);
 		idToOBJ.put(index, obj);
@@ -55,9 +57,8 @@ public class SerialisationMap<T> {
 		tag.put(dataKey, list);
 		
 		idToOBJ.forEach((rawID, obj) -> {
-			CompoundTag entry = new CompoundTag();
+			CompoundTag entry = serializer.apply(obj);
 			entry.put(KEY_ID, rawID);
-			entry.put(KEY_OBJECT, serializer.apply(obj));
 			list.add(entry);
 		});
 		
@@ -66,25 +67,27 @@ public class SerialisationMap<T> {
 	}
 	
 	public void load(CompoundTag tag) {
+		isLoading = true;
 		loadingObjects.clear();
 		
 		ListTag list = tag.getListTag(dataKey);
 		int size = list.size();
 		for (int i = 0; i < size; i++) {
 			CompoundTag entry = (CompoundTag) list.get(i);
+			T obj = deserializer.apply(entry);
 			int rawID = entry.getInt(KEY_ID);
-			String serialized = entry.getString(KEY_OBJECT);
-			T obj = deserializer.apply(serialized);
+			
 			if (obj == null) {
-				BHAPI.warn("Object " + serialized + " is null! Skipping");
+				BHAPI.warn("Object " + rawID + " is null! Skipping");
 				continue;
-			};
+			}
+			
 			if (loadingObjects.containsKey(rawID)) {
 				StringBuilder builder = new StringBuilder("Object [");
 				builder.append(loadingObjects.get(rawID));
 				builder.append("] and [");
 				builder.append(obj);
-				builder.append("] have same rawID: ");
+				builder.append("] have identical rawID: ");
 				builder.append(rawID);
 				throw new RuntimeException(builder.toString());
 			}
@@ -106,5 +109,6 @@ public class SerialisationMap<T> {
 		idToOBJ.putAll(loadingObjects);
 		idToOBJ.forEach((rawID, obj) -> objToID.put(obj, rawID));
 		requireSave = true;
+		isLoading = false;
 	}
 }

@@ -12,7 +12,7 @@ import java.util.List;
 public interface BlockStateContainer {
 	BlockState getDefaultState();
 	void setDefaultState(BlockState state);
-	default void appendProperties(List<StateProperty> properties) {}
+	default void appendProperties(List<StateProperty<?>> properties) {}
 	
 	/**
 	 * Get {@link BlockSounds} for specified {@link BlockState}.

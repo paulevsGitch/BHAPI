@@ -1,4 +1,4 @@
-package net.bhapi.util;
+package net.bhapi.interfaces;
 
 import net.minecraft.util.io.CompoundTag;
 

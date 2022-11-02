@@ -5,7 +5,7 @@ import net.bhapi.level.ChunkSectionProvider;
 import net.bhapi.level.LevelHeightProvider;
 import net.bhapi.util.ChunkSection;
 import net.bhapi.util.MathUtil;
-import net.bhapi.util.NBTSerializable;
+import net.bhapi.interfaces.NBTSerializable;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
 import net.minecraft.block.BaseBlock;

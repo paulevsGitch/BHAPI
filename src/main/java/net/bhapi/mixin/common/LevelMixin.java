@@ -1,6 +1,8 @@
 package net.bhapi.mixin.common;
 
+import net.bhapi.BHAPI;
 import net.bhapi.level.LevelHeightProvider;
+import net.bhapi.registry.DefaultRegistries;
 import net.minecraft.block.BaseBlock;
 import net.minecraft.entity.BaseEntity;
 import net.minecraft.entity.LightningEntity;
@@ -11,6 +13,8 @@ import net.minecraft.level.chunk.Chunk;
 import net.minecraft.level.dimension.BaseDimension;
 import net.minecraft.level.dimension.DimensionData;
 import net.minecraft.level.gen.BiomeSource;
+import net.minecraft.util.io.CompoundTag;
+import net.minecraft.util.io.NBTIO;
 import net.minecraft.util.maths.MathHelper;
 import net.minecraft.util.maths.Vec2i;
 import org.spongepowered.asm.mixin.Final;
@@ -23,6 +27,10 @@ import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.ModifyConstant;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.IOException;
 import java.util.List;
 import java.util.Random;
 import java.util.Set;
@@ -51,12 +59,14 @@ public abstract class LevelMixin implements LevelHeightProvider {
 	
 	@Shadow @Final public BaseDimension dimension;
 	
+	@Shadow @Final protected DimensionData dimensionData;
+	
 	@Inject(
 		method = "<init>(Lnet/minecraft/level/dimension/DimensionData;Ljava/lang/String;Lnet/minecraft/level/dimension/BaseDimension;J)V",
 		at = @At("TAIL")
 	)
 	private void bhapi_onWorldInit1(DimensionData data, String name, BaseDimension dimension, long seed, CallbackInfo info) {
-		loadBlockStates();
+		bhapi_loadBlockStates();
 	}
 	
 	@Inject(
@@ -64,7 +74,7 @@ public abstract class LevelMixin implements LevelHeightProvider {
 		at = @At("TAIL")
 	)
 	private void bhapi_onWorldInit2(Level level, BaseDimension dimension, CallbackInfo info) {
-		loadBlockStates();
+		bhapi_loadBlockStates();
 	}
 	
 	@Inject(
@@ -72,12 +82,12 @@ public abstract class LevelMixin implements LevelHeightProvider {
 		at = @At("TAIL")
 	)
 	private void bhapi_onWorldInit3(DimensionData data, String name, long seed, BaseDimension dimension, CallbackInfo info) {
-		loadBlockStates();
+		bhapi_loadBlockStates();
 	}
 	
-	@Inject(method = "saveLevelData()V", at = @At("HEAD"))
+	/*@Inject(method = "saveLevelData()V", at = @At("HEAD"))
 	private void bhapi_onLevelSave(CallbackInfo ci) {
-		/*BHAPI.log("Saving registries");
+		BHAPI.log("Saving registries");
 		CompoundTag tag = new CompoundTag();
 		
 		boolean requireSave = true;
@@ -93,8 +103,8 @@ public abstract class LevelMixin implements LevelHeightProvider {
 			catch (IOException e) {
 				BHAPI.warn(e.getMessage());
 			}
-		}*/
-	}
+		}
+	}*/
 	
 	// TODO optimise this, map this, make readable
 	@Inject(method = "processLoadedChunks", at = @At("HEAD"), cancellable = true)
@@ -183,23 +193,38 @@ public abstract class LevelMixin implements LevelHeightProvider {
 	}
 	
 	@Unique
-	private void loadBlockStates() {
-		/*BHAPI.log("Loading registries");
+	private void bhapi_loadBlockStates() {
+		BHAPI.log("Loading registries");
 		
+		File file = this.dimensionData.getFile("registries");
 		CompoundTag tag = null;
+		
+		if (file.exists()) {
+			try {
+				FileInputStream stream = new FileInputStream(file);
+				tag = NBTIO.readGzipped(stream);
+				stream.close();
+			}
+			catch (IOException e) {
+				BHAPI.warn(e.getMessage());
+			}
+		}
+		
+		if (tag != null) {
+			DefaultRegistries.BLOCKSTATES_MAP.load(tag);
+		}
+		
+		if (tag == null) tag = new CompoundTag();
+		DefaultRegistries.BLOCKSTATES_MAP.save(tag);
+		
 		try {
-			File file = dimensionData.getFile("registries");
-			if (!file.exists()) return;
-			FileInputStream stream = new FileInputStream(file);
-			tag = NBTIO.readGzipped(stream);
+			FileOutputStream stream = new FileOutputStream(file);
+			NBTIO.writeGzipped(tag, stream);
 			stream.close();
 		}
 		catch (IOException e) {
 			BHAPI.warn(e.getMessage());
 		}
-		if (tag != null) {
-			DefaultRegistries.BLOCKSTATES_MAP.load(tag);
-		}*/
 	}
 	
 	@ModifyConstant(method = {

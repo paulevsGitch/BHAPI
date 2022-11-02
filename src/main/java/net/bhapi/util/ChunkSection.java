@@ -1,5 +1,6 @@
 package net.bhapi.util;
 
+import net.bhapi.interfaces.NBTSerializable;
 import net.minecraft.block.entity.BaseBlockEntity;
 import net.minecraft.entity.BaseEntity;
 import net.minecraft.entity.EntityRegistry;
