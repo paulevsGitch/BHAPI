@@ -2,6 +2,8 @@ package net.bhapi.mixin.client;
 
 import net.bhapi.blockstate.BlockState;
 import net.bhapi.blockstate.properties.StateProperty;
+import net.bhapi.client.gui.DebugAllItems;
+import net.bhapi.client.gui.DebugAllItemsScreen;
 import net.bhapi.level.BlockStateProvider;
 import net.bhapi.registry.DefaultRegistries;
 import net.fabricmc.loader.api.FabricLoader;
@@ -11,8 +13,10 @@ import net.minecraft.client.gui.DrawableHelper;
 import net.minecraft.client.gui.InGame;
 import net.minecraft.client.render.TextRenderer;
 import net.minecraft.client.util.ScreenScaler;
+import net.minecraft.item.ItemStack;
 import net.minecraft.util.hit.HitResult;
 import net.minecraft.util.hit.HitType;
+import org.lwjgl.input.Keyboard;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.injection.At;
@@ -26,6 +30,25 @@ import java.util.Collection;
 @Mixin(InGame.class)
 public abstract class InGameMixin extends DrawableHelper {
 	@Shadow private Minecraft minecraft;
+	
+	@Inject(method = "renderHud(FZII)V", at = @At("HEAD"))
+	private void bhapi_openItemsGUI(float bl, boolean i, int j, int par4, CallbackInfo ci) {
+		if (!FabricLoader.getInstance().isDevelopmentEnvironment()) return;
+		if (Keyboard.getEventKey() == Keyboard.KEY_G && this.minecraft.currentScreen == null) {
+			int size = DefaultRegistries.BLOCK_REGISTRY.values().size();
+			size = (int) Math.ceil(size / 18F) * 18;
+			DebugAllItems inventory = new DebugAllItems(size);
+			ItemStack[] items = inventory.getItems();
+			int[] index = new int[1];
+			DefaultRegistries.BLOCK_REGISTRY.forEach(block -> {
+				ItemStack stack = new ItemStack(block);
+				if (stack.getType() != null) {
+					items[index[0]++] = stack;
+				}
+			});
+			this.minecraft.openScreen(new DebugAllItemsScreen(this.minecraft.player.inventory, inventory));
+		}
+	}
 	
 	@Inject(
 		method = "renderHud(FZII)V",

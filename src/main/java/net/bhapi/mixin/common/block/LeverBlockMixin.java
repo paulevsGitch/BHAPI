@@ -12,6 +12,7 @@ import java.util.List;
 public abstract class LeverBlockMixin implements BlockStateContainer {
 	@Override
 	public void appendProperties(List<StateProperty<?>> properties) {
-		properties.add(LegacyProperties.META_6);
+		properties.add(LegacyProperties.META_16);
+		System.out.println("Lever! " + properties);
 	}
 }
