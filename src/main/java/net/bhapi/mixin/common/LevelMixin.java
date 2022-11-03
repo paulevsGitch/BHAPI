@@ -228,7 +228,7 @@ public abstract class LevelMixin implements LevelHeightProvider, BlockStateProvi
 	}
 	
 	@ModifyConstant(method = {
-		"getBlockId",
+		"getBlockId(III)I",
 		"isBlockLoaded(III)Z",
 		"isAreaLoaded(IIIIII)Z",
 		"getLightLevel(III)I",

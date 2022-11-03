@@ -12,6 +12,7 @@ public class DebugAllItemsScreen extends ContainerBase {
 		super(new WideChest(playerInv, allItems, 18));
 		this.allItems = allItems;
 		rows = allItems.getInventorySize() / 18;
+		this.width = width * 2;
 	}
 	
 	@Override

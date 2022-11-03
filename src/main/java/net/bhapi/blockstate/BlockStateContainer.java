@@ -11,8 +11,17 @@ import net.minecraft.level.Level;
 import java.util.List;
 
 public interface BlockStateContainer {
-	BlockState getDefaultState();
-	void setDefaultState(BlockState state);
+	/**
+	 * Get default {@link BlockState} for this block.
+	 */
+	default BlockState getDefaultState() {
+		return null;
+	}
+	
+	/**
+	 * Set default {@link BlockState} for this block.
+	 */
+	default void setDefaultState(BlockState state) {}
 	
 	/**
 	 * Add additional properties into block. Properties should be added into input list.

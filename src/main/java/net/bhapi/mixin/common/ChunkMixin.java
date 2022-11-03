@@ -687,9 +687,8 @@ public abstract class ChunkMixin implements NBTSerializable, LevelHeightProvider
 		int wz = this.z << 4 | z;
 		
 		section.setBlockState(x, py, z, state);
-		boolean isAir = oldState.getBlock() instanceof BHAirBlock;
 		
-		if (!isAir && !this.level.isClientSide) {
+		if (!(oldState.getBlock() instanceof BHAirBlock) && !this.level.isClientSide) {
 			oldState.getContainer().onBlockRemoved(this.level, wx, y, wz, oldState, state);
 		}
 		
@@ -709,7 +708,7 @@ public abstract class ChunkMixin implements NBTSerializable, LevelHeightProvider
 		this.level.updateLight(LightType.BLOCK, wx, y, wz, wx, y, wz);
 		this.fillSkyLight(x, z);
 		
-		if (!isAir) {
+		if (!(state.getBlock() instanceof BHAirBlock)) {
 			container.onBlockPlaced(this.level, wx, y, wz, state);
 		}
 		
