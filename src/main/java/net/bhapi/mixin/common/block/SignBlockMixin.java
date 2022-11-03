@@ -3,7 +3,6 @@ package net.bhapi.mixin.common.block;
 import net.bhapi.blockstate.BlockStateContainer;
 import net.bhapi.blockstate.properties.LegacyProperties;
 import net.bhapi.blockstate.properties.StateProperty;
-import net.minecraft.block.FireBlock;
 import net.minecraft.block.SignBlock;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;

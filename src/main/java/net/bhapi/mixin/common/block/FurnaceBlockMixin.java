@@ -4,7 +4,6 @@ import net.bhapi.blockstate.BlockStateContainer;
 import net.bhapi.blockstate.properties.LegacyProperties;
 import net.bhapi.blockstate.properties.StateProperty;
 import net.minecraft.block.FurnaceBlock;
-import net.minecraft.block.TorchBlock;
 import org.spongepowered.asm.mixin.Mixin;
 
 import java.util.List;
