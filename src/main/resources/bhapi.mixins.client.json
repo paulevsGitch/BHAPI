@@ -4,6 +4,7 @@
 	"package": "net.bhapi.mixin.client",
 	"compatibilityLevel": "JAVA_17",
 	"mixins": [
+		"AbstractClientPlayerMixin",
 		"OverworldDimensionMixin",
 		"BaseBlockEntityMixin",
 		"LevelRendererMixin",

@@ -1,0 +1,25 @@
+package net.bhapi.mixin.client;
+
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.util.Session;
+import net.minecraft.entity.player.AbstractClientPlayer;
+import net.minecraft.entity.player.PlayerBase;
+import net.minecraft.level.Level;
+import org.spongepowered.asm.mixin.Mixin;
+import org.spongepowered.asm.mixin.injection.At;
+import org.spongepowered.asm.mixin.injection.Inject;
+import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
+
+@Mixin(AbstractClientPlayer.class)
+public abstract class AbstractClientPlayerMixin extends PlayerBase {
+	public AbstractClientPlayerMixin(Level arg) {
+		super(arg);
+	}
+	
+	@Inject(method = "<init>", at = @At("TAIL"))
+	private void bhapi_onClientPlayerInit(Minecraft minecraft, Level arg, Session arg2, int i, CallbackInfo info) {
+		if (arg2 != null && arg2.username != null && arg2.username.length() > 0) {
+			this.skinUrl = "https://minotar.net/skin/" + arg2.username + ".png";
+		}
+	}
+}
