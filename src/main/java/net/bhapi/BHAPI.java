@@ -7,10 +7,13 @@ import net.bhapi.registry.DefaultRegistries;
 import net.bhapi.util.BlockUtil;
 import net.bhapi.util.Identifier;
 import net.fabricmc.api.ModInitializer;
+import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.block.material.Material;
 import org.apache.logging.log4j.Level;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+
+import java.io.File;
 
 public class BHAPI implements ModInitializer {
 	public static final Logger LOGGER = LogManager.getLogger();
@@ -19,6 +22,13 @@ public class BHAPI implements ModInitializer {
 	@Override
 	public void onInitialize() {
 		instance = this;
+		
+		if (FabricLoader.getInstance().isDevelopmentEnvironment()) {
+			System.setProperty(
+				"net.java.games.input.librarypath",
+				new File("../.gradle/loom-cache/natives/b1.7.3").getAbsolutePath()
+			);
+		}
 		
 		LegacyBlockInfo.init();
 		DefaultRegistries.initBlocks();
