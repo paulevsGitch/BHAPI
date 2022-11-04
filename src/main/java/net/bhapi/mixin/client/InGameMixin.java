@@ -13,6 +13,7 @@ import net.minecraft.client.gui.DrawableHelper;
 import net.minecraft.client.gui.InGame;
 import net.minecraft.client.render.TextRenderer;
 import net.minecraft.client.util.ScreenScaler;
+import net.minecraft.item.BaseItem;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.hit.HitResult;
 import net.minecraft.util.hit.HitType;
@@ -37,10 +38,25 @@ public abstract class InGameMixin extends DrawableHelper {
 	private void bhapi_openItemsGUI(float bl, boolean i, int j, int par4, CallbackInfo ci) {
 		if (!FabricLoader.getInstance().isDevelopmentEnvironment()) return;
 		if (Keyboard.getEventKey() == Keyboard.KEY_G && this.minecraft.currentScreen == null) {
-			DebugAllItems inventory = new DebugAllItems(9 * 3);
+			DebugAllItems inventory = new DebugAllItems(9 * 4);
 			ItemStack[] items = inventory.getItems();
-			items[0] = new ItemStack(BaseBlock.STILL_WATER, 64);
-			items[1] = new ItemStack(BaseBlock.STONE, 64);
+			int index = 0;
+			items[index++] = new ItemStack(BaseItem.bed, 64);
+			items[index++] = new ItemStack(BaseBlock.BUTTON, 64);
+			items[index++] = new ItemStack(BaseItem.cake, 64);
+			for (byte m = 0; m < 7; m++) items[index++] = new ItemStack(BaseBlock.CROPS, 64, m);
+			items[index++] = new ItemStack(BaseBlock.DISPENSER, 64);
+			items[index++] = new ItemStack(BaseItem.woodDoor, 64);
+			items[index++] = new ItemStack(BaseItem.ironDoor, 64);
+			items[index++] = new ItemStack(BaseBlock.FARMLAND, 64);
+			items[index++] = new ItemStack(BaseBlock.FURNACE, 64);
+			items[index++] = new ItemStack(BaseBlock.LADDER, 64);
+			items[index++] = new ItemStack(BaseBlock.WOODEN_PRESSURE_PLATE, 64);
+			items[index++] = new ItemStack(BaseBlock.STONE_PRESSURE_PLATE, 64);
+			items[index++] = new ItemStack(BaseBlock.RAIL, 64);
+			items[index++] = new ItemStack(BaseBlock.WOOD_STAIRS, 64);
+			for (byte m = 0; m < 3; m++) items[index++] = new ItemStack(BaseBlock.TALLGRASS, 64, m);
+			for (byte m = 0; m < 7; m++) items[index++] = new ItemStack(BaseBlock.WOOL, 64, m);
 			this.minecraft.player.openChestScreen(inventory);
 		}
 	}

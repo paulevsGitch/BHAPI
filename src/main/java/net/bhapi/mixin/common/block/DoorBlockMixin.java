@@ -12,7 +12,7 @@ import java.util.List;
 public abstract class DoorBlockMixin implements BlockStateContainer {
 	@Override
 	public void appendProperties(List<StateProperty<?>> properties) {
-		properties.add(LegacyProperties.META_8);
+		properties.add(LegacyProperties.META_16);
 	}
 }
 
