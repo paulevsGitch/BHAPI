@@ -27,9 +27,9 @@ public class DefaultRegistries {
 		BLOCK_REGISTRY.register(Identifier.make("sapling"), BaseBlock.SAPLING);
 		BLOCK_REGISTRY.register(Identifier.make("bedrock"), BaseBlock.BEDROCK);
 		BLOCK_REGISTRY.register(Identifier.make("flowing_water"), BaseBlock.FLOWING_WATER);
-		BLOCK_REGISTRY.register(Identifier.make("still_water"), BaseBlock.STILL_WATER);
+		BLOCK_REGISTRY.register(Identifier.make("static_water"), BaseBlock.STILL_WATER);
 		BLOCK_REGISTRY.register(Identifier.make("flowing_lava"), BaseBlock.FLOWING_LAVA);
-		BLOCK_REGISTRY.register(Identifier.make("still_lava"), BaseBlock.STILL_LAVA);
+		BLOCK_REGISTRY.register(Identifier.make("static_lava"), BaseBlock.STILL_LAVA);
 		BLOCK_REGISTRY.register(Identifier.make("sand"), BaseBlock.SAND);
 		BLOCK_REGISTRY.register(Identifier.make("gravel"), BaseBlock.GRAVEL);
 		BLOCK_REGISTRY.register(Identifier.make("gold_ore"), BaseBlock.GOLD_ORE);

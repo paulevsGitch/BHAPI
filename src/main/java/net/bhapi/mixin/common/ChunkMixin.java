@@ -665,7 +665,7 @@ public abstract class ChunkMixin implements NBTSerializable, LevelHeightProvider
 	
 	@Unique
 	@Override
-	public boolean setBlockState(int x, int y, int z, BlockState state) {
+	public boolean setBlockState(int x, int y, int z, BlockState state, boolean update) {
 		if (y < 0 || y >= getLevelHeight()) {
 			return false;
 		}
@@ -687,6 +687,11 @@ public abstract class ChunkMixin implements NBTSerializable, LevelHeightProvider
 		int wz = this.z << 4 | z;
 		
 		section.setBlockState(x, py, z, state);
+		
+		if (!update) {
+			this.needUpdate = true;
+			return true;
+		}
 		
 		if (!(oldState.getBlock() instanceof BHAirBlock) && !this.level.isClientSide) {
 			oldState.getContainer().onBlockRemoved(this.level, wx, y, wz, oldState, state);

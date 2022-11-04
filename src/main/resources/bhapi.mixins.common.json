@@ -18,11 +18,12 @@
 		"BlockItemMixin",
 		"ChunkMixin",
 		"LevelMixin",
-		
+		,
 		"block.RedstoneRepeaterBlockMixin",
 		"block.PressurePlateBlockMixin",
 		"block.FlowingFluidBlockMixin",
 		"block.RedstoneDustBlockMixin",
+		"block.StaticFluidBlockMixin",
 		"block.PistonHeadBlockMixin",
 		"block.DispenserBlockMixin",
 		"block.SnowLayerBlockMixin",

@@ -50,9 +50,4 @@ public class BHAirBlock extends BHBaseBlock {
 	
 	@Override
 	protected void drop(Level arg, int i, int j, int k, ItemStack arg2) {}
-	
-	@Override
-	public int getPistonPushMode() {
-		return 0;
-	}
 }

@@ -1,11 +1,14 @@
 package net.bhapi.util;
 
+import org.jetbrains.annotations.NotNull;
+
 import java.util.HashMap;
 import java.util.Map;
 
-public class Identifier {
+public class Identifier implements Comparable<Identifier> {
 	private static final Map<String, Map<String, Identifier>> CACHE = new HashMap<>();
 	private static final String MINECRAFT = "minecraft";
+	private final String complete;
 	private final String modID;
 	private final String name;
 	private final int hash;
@@ -13,7 +16,8 @@ public class Identifier {
 	private Identifier(String modID, String name) {
 		this.modID = modID;
 		this.name = name;
-		this.hash = toString().hashCode();
+		this.complete = modID + ":" + name;
+		this.hash = this.complete.hashCode();
 	}
 	
 	public String getModID() {
@@ -26,10 +30,7 @@ public class Identifier {
 	
 	@Override
 	public String toString() {
-		StringBuilder builder = new StringBuilder(modID);
-		builder.append(':');
-		builder.append(name);
-		return builder.toString();
+		return this.complete;
 	}
 	
 	@Override
@@ -65,5 +66,10 @@ public class Identifier {
 	public static Identifier make(String name) {
 		int index = name.indexOf(':');
 		return index < 0 ? make(MINECRAFT, name) : make(name.substring(0, index), name.substring(index + 1));
+	}
+	
+	@Override
+	public int compareTo(@NotNull Identifier id) {
+		return 0;
 	}
 }

@@ -9,6 +9,7 @@ import net.minecraft.entity.player.PlayerBase;
 import net.minecraft.level.Level;
 
 import java.util.List;
+import java.util.Random;
 
 public interface BlockStateContainer {
 	/**
@@ -46,6 +47,19 @@ public interface BlockStateContainer {
 	 */
 	default boolean hasRandomTicks(BlockState state) {
 		return LegacyBlockInfo.getInfo(state.getBlock()).ticksRandomly();
+	}
+	
+	/**
+	 * Applied on random or scheduled ticks.
+	 * @param level {@link Level} where block is located
+	 * @param x X coordinate
+	 * @param y Y coordinate
+	 * @param z Z coordinate
+	 * @param random {@link Random}
+	 * @param state {@link BlockState}
+	 */
+	default void onScheduledTick(Level level, int x, int y, int z, Random random, BlockState state) {
+		state.getBlock().onScheduledTick(level, x, y, z, random);
 	}
 	
 	/**

@@ -1,5 +1,6 @@
 package net.bhapi.blockstate;
 
+import net.bhapi.block.BHAirBlock;
 import net.bhapi.blockstate.properties.StateProperty;
 import net.bhapi.registry.DefaultRegistries;
 import net.bhapi.util.Identifier;
@@ -212,5 +213,13 @@ public final class BlockState {
 		}
 		
 		return state;
+	}
+	
+	public boolean isAir() {
+		return this.block instanceof BHAirBlock;
+	}
+	
+	public boolean is(BaseBlock block) {
+		return this.block == block;
 	}
 }
