@@ -13,7 +13,6 @@ import net.minecraft.client.gui.DrawableHelper;
 import net.minecraft.client.gui.InGame;
 import net.minecraft.client.render.TextRenderer;
 import net.minecraft.client.util.ScreenScaler;
-import net.minecraft.inventory.Chest;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.hit.HitResult;
 import net.minecraft.util.hit.HitType;
@@ -29,8 +28,6 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import org.spongepowered.asm.mixin.injection.callback.LocalCapture;
 
 import java.util.Collection;
-import java.util.Comparator;
-import java.util.List;
 
 @Mixin(InGame.class)
 public abstract class InGameMixin extends DrawableHelper {
@@ -40,23 +37,6 @@ public abstract class InGameMixin extends DrawableHelper {
 	private void bhapi_openItemsGUI(float bl, boolean i, int j, int par4, CallbackInfo ci) {
 		if (!FabricLoader.getInstance().isDevelopmentEnvironment()) return;
 		if (Keyboard.getEventKey() == Keyboard.KEY_G && this.minecraft.currentScreen == null) {
-			int size = DefaultRegistries.BLOCK_REGISTRY.values().size();
-			size = (int) Math.ceil(size / 18F) * 18;
-			/*DebugAllItems inventory = new DebugAllItems(size);
-			ItemStack[] items = inventory.getItems();
-			int[] index = new int[1];
-			DefaultRegistries.BLOCK_REGISTRY
-				.values()
-				.stream()
-				.sorted(Comparator.comparing(DefaultRegistries.BLOCK_REGISTRY::getID))
-				.forEach(block -> {
-					ItemStack stack = new ItemStack(block);
-					if (stack.getType() != null) {
-						items[index[0]++] = stack;
-					}
-				});
-			this.minecraft.openScreen(new DebugAllItemsScreen(this.minecraft.player.inventory, inventory));*/
-			
 			DebugAllItems inventory = new DebugAllItems(9 * 3);
 			ItemStack[] items = inventory.getItems();
 			items[0] = new ItemStack(BaseBlock.STILL_WATER, 64);
