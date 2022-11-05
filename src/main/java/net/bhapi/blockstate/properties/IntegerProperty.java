@@ -51,4 +51,8 @@ public class IntegerProperty extends StateProperty<Integer> {
 	public Integer parseValue(String value) {
 		return Integer.parseInt(value);
 	}
+	
+	public boolean isInRange(int value) {
+		return value >= minValue && value <= maxValue;
+	}
 }

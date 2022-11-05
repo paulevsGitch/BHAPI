@@ -2,8 +2,10 @@ package net.bhapi.level;
 
 import net.bhapi.blockstate.BlockState;
 import net.bhapi.blockstate.properties.BlockPropertyType;
+import net.bhapi.blockstate.properties.IntegerProperty;
 import net.bhapi.blockstate.properties.StateProperty;
 import net.bhapi.interfaces.NBTSerializable;
+import net.bhapi.storage.MultiThreadStorage;
 import net.bhapi.util.BlockUtil;
 import net.minecraft.block.entity.BaseBlockEntity;
 import net.minecraft.entity.BaseEntity;
@@ -21,7 +23,7 @@ import java.util.List;
 import java.util.Map;
 
 public class ChunkSection implements NBTSerializable {
-	private static final StatesLoader LOADER = new StatesLoader();
+	private static final MultiThreadStorage<StatesLoader> LOADERS = new MultiThreadStorage<>(StatesLoader::new);
 	private final Map<BlockPos, BaseBlockEntity> blockEntities = new HashMap();
 	private final BlockState[] states = new BlockState[4096];
 	private final byte[] light = new byte[4096];
@@ -53,7 +55,8 @@ public class ChunkSection implements NBTSerializable {
 		if (state == null) return;
 		StateProperty<?> property = state.getProperty("meta");
 		if (property != null && property.getType() == BlockPropertyType.INTEGER) {
-			states[index] = state.with(property, meta);
+			IntegerProperty iProperty = (IntegerProperty) property;
+			if (iProperty.isInRange(meta)) states[index] = state.with(iProperty, meta);
 		}
 	}
 	
@@ -97,10 +100,11 @@ public class ChunkSection implements NBTSerializable {
 	
 	@Override
 	public void saveToNBT(CompoundTag tag) {
-		LOADER.fillFrom(states);
+		StatesLoader loader = LOADERS.get();
+		loader.fillFrom(states);
 		
 		CompoundTag statesTag = new CompoundTag();
-		LOADER.saveToNBT(statesTag);
+		loader.saveToNBT(statesTag);
 		
 		tag.put("states", statesTag);
 		tag.put("light", light);
@@ -129,8 +133,9 @@ public class ChunkSection implements NBTSerializable {
 	
 	@Override
 	public void loadFromNBT(CompoundTag tag) {
-		LOADER.loadFromNBT(tag.getCompoundTag("states"));
-		LOADER.fillTo(states);
+		StatesLoader loader = LOADERS.get();
+		loader.loadFromNBT(tag.getCompoundTag("states"));
+		loader.fillTo(states);
 		
 		byte[] data = tag.getByteArray("light");
 		if (data.length == light.length) {

@@ -13,6 +13,7 @@ import net.minecraft.entity.player.PlayerBase;
 import net.minecraft.level.Level;
 import net.minecraft.level.LevelProperties;
 import net.minecraft.level.LightType;
+import net.minecraft.level.LightUpdateArea;
 import net.minecraft.level.chunk.Chunk;
 import net.minecraft.level.dimension.BaseDimension;
 import net.minecraft.level.dimension.DimensionData;
@@ -71,6 +72,12 @@ public abstract class LevelMixin implements LevelHeightProvider, BlockStateProvi
 	@Shadow public abstract void updateAdjacentBlocks(int i, int j, int k, int l);
 	
 	@Shadow public abstract Chunk getChunk(int i, int j);
+	
+	@Shadow private int lightUpdateTicks;
+	@Shadow private List lightingUpdates;
+	@Shadow private static int areaUpdates;
+	
+	@Shadow public abstract boolean isBlockLoaded(int i, int j, int k);
 	
 	@Unique private LevelChunkUpdater bhapi_updater;
 	
@@ -188,6 +195,93 @@ public abstract class LevelMixin implements LevelHeightProvider, BlockStateProvi
 			state.onScheduledTick(Level.class.cast(this), info.posX, info.posY, info.posZ, this.random);
 		}
 		cir.setReturnValue(this.treeSet.size() != 0);
+	}
+	
+	@Inject(method = "updateLight()Z", at = @At("HEAD"), cancellable = true)
+	private void bhapi_updateLight(CallbackInfoReturnable<Boolean> info) {
+		Level level = Level.class.cast(this);
+		
+		synchronized (lightingUpdates) {
+			if (this.lightUpdateTicks >= 50) {
+				info.setReturnValue(false);
+				return;
+			}
+			
+			++this.lightUpdateTicks;
+			try {
+				int n = 500;
+				
+				while (this.lightingUpdates.size() > 0) {
+					if (--n <= 0) {
+						info.setReturnValue(true);
+						return;
+					}
+					LightUpdateArea area = (LightUpdateArea) this.lightingUpdates.remove(this.lightingUpdates.size() - 1);
+					if (area != null) area.process(level);
+				}
+				info.setReturnValue(false);
+				return;
+			}
+			finally {
+				--this.lightUpdateTicks;
+			}
+		}
+	}
+	
+	@Inject(method = "updateLight(Lnet/minecraft/level/LightType;IIIIIIZ)V", at = @At("HEAD"), cancellable = true)
+	private void bhapi_updateLight(LightType type, int i, int j, int k, int l, int m, int n, boolean bl, CallbackInfo info) {
+		info.cancel();
+		
+		if (this.dimension.noSkyLight && type == LightType.SKY) {
+			return;
+		}
+		
+		synchronized (lightingUpdates) {
+			++this.areaUpdates;
+			try {
+				int count;
+				
+				if (areaUpdates == 50) {
+					return;
+				}
+				
+				int x = (l + i) / 2;
+				int z = (n + k) / 2;
+				
+				if (!this.isBlockLoaded(x, 64, z)) {
+					return;
+				}
+				
+				if (this.getChunk(x, z).isClient()) {
+					return;
+				}
+				
+				int lights = this.lightingUpdates.size();
+				
+				if (bl) {
+					count = 5;
+					if (count > lights) {
+						count = lights;
+					}
+					for (int i2 = 0; i2 < count; ++i2) {
+						LightUpdateArea lightUpdateArea = (LightUpdateArea) this.lightingUpdates.get(this.lightingUpdates.size() - i2 - 1);
+						if (lightUpdateArea == null) continue;
+						if (lightUpdateArea.lightType != type || !lightUpdateArea.checkAndUpdate(i, j, k, l, m, n)) continue;
+						return;
+					}
+				}
+				
+				count = 1000000;
+				this.lightingUpdates.add(new LightUpdateArea(type, i, j, k, l, m, n));
+				if (this.lightingUpdates.size() > count) {
+					BHAPI.warn("More than " + count + " updates, aborting lighting updates");
+					this.lightingUpdates.clear();
+				}
+			}
+			finally {
+				--areaUpdates;
+			}
+		}
 	}
 	
 	@Unique

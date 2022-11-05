@@ -5,6 +5,8 @@ import net.bhapi.mixin.common.LevelAccessor;
 import net.bhapi.storage.ExpandableCache;
 import net.bhapi.storage.Vec2I;
 import net.bhapi.storage.Vec3I;
+import net.bhapi.util.ThreadManager;
+import net.bhapi.util.ThreadManager.RunnableThread;
 import net.minecraft.block.BaseBlock;
 import net.minecraft.entity.LightningEntity;
 import net.minecraft.entity.player.PlayerBase;
@@ -13,34 +15,68 @@ import net.minecraft.level.LightType;
 import net.minecraft.level.biome.BaseBiome;
 import net.minecraft.level.chunk.Chunk;
 import net.minecraft.level.gen.BiomeSource;
+import net.minecraft.level.gen.FixedBiomeSource;
 import net.minecraft.util.maths.MathHelper;
 
+import java.lang.reflect.InvocationTargetException;
 import java.util.HashSet;
 import java.util.Random;
 import java.util.Set;
-import java.util.concurrent.locks.ReentrantLock;
 
 public class LevelChunkUpdater {
 	private final ExpandableCache<Vec3I> cache3D = new ExpandableCache<>(Vec3I::new);
 	private final ExpandableCache<Vec2I> cache2D = new ExpandableCache<>(Vec2I::new);
 	private final Set<Vec3I> loadedSections = new HashSet<>();
 	private final Set<Vec2I> loadedChunks = new HashSet<>();
-	private final BaseBiome biomes[] = new BaseBiome[1];
+	private final BaseBiome[] biomes = new BaseBiome[1];
 	private final Random random = new Random();
+	private final BiomeSource biomeSource;
 	private final Level level;
 	private final int height;
 	private int caveSoundTicks;
-	
-	private ReentrantLock lock = new ReentrantLock();
+	private RunnableThread updatingThread;
 	
 	public LevelChunkUpdater(Level level) {
 		this.level = level;
 		LevelHeightProvider heightProvider = LevelHeightProvider.cast(level);
 		height = heightProvider.getSectionsCount();
 		caveSoundTicks = random.nextInt(12000) + 6000;
+		
+		// TODO Replace this with reading biomes from chunk cache
+		BiomeSource source = null;
+		BiomeSource levelSource = level.getBiomeSource();
+		try {
+			if (levelSource instanceof FixedBiomeSource) {
+				Class[] args = new Class[] {BaseBiome.class, Double.class, Double.class};
+				BaseBiome[] biome = levelSource.getBiomes(biomes, 0, 0, 1, 1);
+				source = levelSource.getClass().getConstructor(args).newInstance(biome, 1.0, 0.0);
+			}
+			else source = levelSource.getClass().getConstructor(Level.class).newInstance(level);
+		}
+		catch (InstantiationException | IllegalAccessException | InvocationTargetException | NoSuchMethodException e) {
+			e.printStackTrace();
+		}
+		biomeSource = source;
+		
+		updatingThread = ThreadManager.makeThread("chunk_updater_" + level.dimension.id, this::processChunks);
+		if (!updatingThread.isAlive()) updatingThread.start();
 	}
 	
 	public void process() {
+		final boolean useThreads = true; // TODO make configurable
+		if (useThreads) {
+			if (!level.players.isEmpty() && updatingThread == null) {
+				updatingThread = ThreadManager.makeThread("chunk_updater_" + level.dimension.id, this::processChunks);
+				updatingThread.start();
+			}
+			if (level.players.isEmpty() && updatingThread != null) {
+				ThreadManager.stopThread(updatingThread);
+				updatingThread = null;
+			}
+		}
+	}
+	
+	private void processChunks() {
 		final int updatesVertical = 8;
 		final int updatesHorizontal = 8;
 		
@@ -73,7 +109,7 @@ public class LevelChunkUpdater {
 		final BlockStateProvider levelProvider = BlockStateProvider.cast(level);
 		
 		this.caveSoundTicks--;
-		loadedSections.forEach(pos -> {
+		loadedSections.parallelStream().forEach(pos -> {
 			Chunk chunk = level.getChunkFromCache(pos.x, pos.z);
 			ChunkSection section = ChunkSectionProvider.cast(chunk).getChunkSection(pos.y);
 			
@@ -102,11 +138,13 @@ public class LevelChunkUpdater {
 				}
 				
 				// Convert water into ice
-				if (random.nextInt(16) == 0) {
+				if (biomeSource != null && random.nextInt(16) == 0) {
 					px = random.nextInt() & 15;
 					pz = random.nextInt() & 15;
 					py = random.nextInt() & 15;
-					if (level.getBiomeSource().getBiome(px | chunkX, pz | chunkZ).canSnow() && section.getLight(LightType.BLOCK, px, py, pz) < 10) {
+					BaseBiome[] biome = new BaseBiome[1];
+					biomeSource.getBiomes(biome, px | chunkX, pz | chunkZ, 1, 1);
+					if (biome[0].canSnow() && section.getLight(LightType.BLOCK, px, py, pz) < 10) {
 						BlockStateProvider provider = BlockStateProvider.cast(chunk);
 						BlockState block = provider.getBlockState(px, py - 1 + chunkY, pz);
 						BlockState up = section.getBlockState(px, py, pz);
@@ -147,14 +185,11 @@ public class LevelChunkUpdater {
 			}
 			
 			// Cover areas with snow during rain
-			if (random.nextInt(16) == 0) {
+			if (biomeSource != null && random.nextInt(16) == 0) {
 				px = random.nextInt() & 15;
 				pz = random.nextInt() & 15;
 				py = level.getHeightIterating(px | chunkX, pz | chunkZ);
-				BiomeSource source = level.getBiomeSource();
-				lock.lock();
-				source.getBiomes(biomes, px | chunkX, pz | chunkZ, 1, 1);
-				lock.unlock();
+				biomeSource.getBiomes(biomes, px | chunkX, pz | chunkZ, 1, 1);
 				if (biomes[0].canSnow() && chunk.getLight(LightType.BLOCK, px, py, pz) < 10) {
 					BlockStateProvider provider = BlockStateProvider.cast(chunk);
 					BlockState block = provider.getBlockState(px, py - 1, pz);

@@ -97,14 +97,14 @@ public abstract class ChunkMixin implements NBTSerializable, LevelHeightProvider
 	private void bhapi_setBlock(int x, int y, int z, int id, int meta, CallbackInfoReturnable<Boolean> info) {
 		BlockState state = BlockUtil.getLegacyBlock(id, meta);
 		if (state == null) state = BlockUtil.AIR_STATE;
-		info.setReturnValue(setBlockState(x, y, z, state));
+		info.setReturnValue(setBlockState(x & 15, y, z & 15, state));
 	}
 	
 	@Inject(method = "setBlock(IIII)Z", at = @At("HEAD"), cancellable = true)
 	private void bhapi_setBlock(int x, int y, int z, int id, CallbackInfoReturnable<Boolean> info) {
 		BlockState state = BlockUtil.getLegacyBlock(id, 0);
 		if (state == null) state = BlockUtil.AIR_STATE;
-		info.setReturnValue(setBlockState(x, y, z, state));
+		info.setReturnValue(setBlockState(x & 15, y, z & 15, state));
 	}
 	
 	@Inject(method = "setMeta(IIII)V", at = @At("HEAD"), cancellable = true)
@@ -115,7 +115,7 @@ public abstract class ChunkMixin implements NBTSerializable, LevelHeightProvider
 		}
 		ChunkSection section = bhapi_getOrCreateSection(y);
 		if (section != null) {
-			section.setMeta(x, y & 15, z, meta);
+			section.setMeta(x & 15, y & 15, z & 15, meta);
 			this.needUpdate = true;
 		}
 	}
