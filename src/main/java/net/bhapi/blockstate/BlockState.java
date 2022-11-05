@@ -5,6 +5,11 @@ import net.bhapi.blockstate.properties.StateProperty;
 import net.bhapi.registry.DefaultRegistries;
 import net.bhapi.util.Identifier;
 import net.minecraft.block.BaseBlock;
+import net.minecraft.block.BlockSounds;
+import net.minecraft.block.material.Material;
+import net.minecraft.entity.BaseEntity;
+import net.minecraft.entity.player.PlayerBase;
+import net.minecraft.level.Level;
 import net.minecraft.util.io.CompoundTag;
 import net.minecraft.util.io.ListTag;
 
@@ -13,6 +18,7 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Random;
 
 public final class BlockState {
 	private static final Map<BaseBlock, BlockState[]> POSSIBLE_STATES = new HashMap<>();
@@ -50,7 +56,7 @@ public final class BlockState {
 		this.block = block;
 	}
 	
-	public <T> BlockState with(StateProperty<T> property, T value) {
+	private <T> BlockState withProperty(StateProperty<T> property, T value) {
 		if (!propertyValues.containsKey(property)) throw new RuntimeException("No property " + property + " in block " + block);
 		
 		index = 0;
@@ -74,15 +80,15 @@ public final class BlockState {
 		return state;
 	}
 	
-	public <T> BlockState withCast(StateProperty<T> property, Object value) {
-		return with(property, (T) value);
+	public <T> BlockState with(StateProperty<T> property, Object value) {
+		return withProperty(property, (T) value);
 	}
 	
 	public BaseBlock getBlock() {
 		return block;
 	}
 	
-	public BlockStateContainer getContainer() {
+	private BlockStateContainer getContainer() {
 		return BlockStateContainer.cast(block);
 	}
 	
@@ -207,7 +213,7 @@ public final class BlockState {
 					int index = propertyTag.getInt("index");
 					List<?> values = property.getValues();
 					if (index < 0 || index >= values.size()) continue;
-					state = state.withCast(property, values.get(index));
+					state = state.with(property, values.get(index));
 				}
 			}
 		}
@@ -221,5 +227,134 @@ public final class BlockState {
 	
 	public boolean is(BaseBlock block) {
 		return this.block == block;
+	}
+	
+	/**
+	 * Get {@link BlockSounds} for this {@link BlockState}.
+	 * @return {@link BlockSounds}
+	 */
+	public BlockSounds getSounds() {
+		return getContainer().getSounds(this);
+	}
+	
+	/**
+	 * Check if {@link BlockState} has random ticks.
+	 * Example of blocks with random ticks: saplings, crops, grass blocks.
+	 * @return {@code true} if state has random ticks and {@code false} if not
+	 */
+	public boolean hasRandomTicks() {
+		return getContainer().hasRandomTicks(this);
+	}
+	
+	/**
+	 * Check if {@link BlockState} is full opaque block (example: stone).
+	 * @return {@code true} if state is opaque and {@code false} if not
+	 */
+	public boolean isFullOpaque() {
+		return getContainer().isFullOpaque(this);
+	}
+	
+	/**
+	 * Check if this {@link BlockState} has {@link net.minecraft.block.entity.BaseBlockEntity} (examples: furnace, sign).
+	 * @return {@code true} if state has entity and {@code false} if not
+	 */
+	public boolean hasBlockEntity() {
+		return getContainer().hasBlockEntity(this);
+	}
+	
+	/**
+	 * Get {@link BlockState} light opacity, determines how light will be shadowed by block during transition.
+	 * Transparent blocks have this value equal to zero, water = 3, leaves = 1, opaque blocks = 255.
+	 * @return {@code integer} value of light opacity
+	 */
+	public int getLightOpacity() {
+		return getContainer().getLightOpacity(this);
+	}
+	
+	/**
+	 * Checks if {@link BlockState} allows grass blocks to grow under it.
+	 * Opaque blocks have this value equal to {@code false}.
+	 * If this value is false grass block below current state will be transformed into dirt.
+	 * @return {@code true} if state allows grass growing and {@code false} if not
+	 */
+	public boolean allowsGrasUnder() {
+		return getContainer().allowsGrasUnder(this);
+	}
+	
+	/**
+	 * Get light value of this {@link BlockState}. 0 is no light and 15 is full-brightness light.
+	 * @return {@code integer} value of emittance in [0-15] range
+	 */
+	public int getEmittance() {
+		return getContainer().getEmittance(this);
+	}
+	
+	/**
+	 * Get current {@link BlockState} hardness, used in digging time calculations.
+	 * @return {@code float} hardness value
+	 */
+	public float getHardness() {
+		return getContainer().getHardness(this);
+	}
+	
+	/**
+	 * Get current {@link BlockState} hardness for specific {@link PlayerBase}, used in digging time calculations.
+	 * @param player current {@link PlayerBase}
+	 * @return {@code float} hardness value
+	 */
+	public float getHardness(PlayerBase player) {
+		return getContainer().getHardness(this, player);
+	}
+	
+	/**
+	 * Get {@link BlockState} blast resistance, used in digging explosions calculations.
+	 * @param entity current {@link BaseEntity} (explosion cause)
+	 * @return {@code float} blast resistance value
+	 */
+	public float getBlastResistance(BaseEntity entity) {
+		return getContainer().getBlastResistance(this, entity);
+	}
+	
+	/**
+	 * Called after {@link BlockState} is removed from the world.
+	 * @param level {@link Level} where block is located
+	 * @param x X coordinate
+	 * @param y Y coordinate
+	 * @param z Z coordinate
+	 * @param newState {@link BlockState} that will replace this state
+	 */
+	public void onBlockRemoved(Level level, int x, int y, int z, BlockState newState) {
+		getContainer().onBlockRemoved(level, x, y, z, this, newState);
+	}
+	
+	/**
+	 * Called after {@link BlockState} is placed in the world.
+	 * @param level {@link Level} where block is located
+	 * @param x X coordinate
+	 * @param y Y coordinate
+	 * @param z Z coordinate
+	 */
+	public void onBlockPlaced(Level level, int x, int y, int z) {
+		getContainer().onBlockPlaced(level, x, y, z, this);
+	}
+	
+	/**
+	 * Applied on random or scheduled ticks.
+	 * @param level {@link Level} where block is located
+	 * @param x X coordinate
+	 * @param y Y coordinate
+	 * @param z Z coordinate
+	 * @param random {@link Random}
+	 */
+	public void onScheduledTick(Level level, int x, int y, int z, Random random) {
+		getContainer().onScheduledTick(level, x, y, z, random, this);
+	}
+	
+	/**
+	 * Get block material
+	 * @return {@link Material}
+	 */
+	public Material getMaterial() {
+		return getBlock().material;
 	}
 }

@@ -41,22 +41,8 @@ public abstract class InGameMixin extends DrawableHelper {
 			DebugAllItems inventory = new DebugAllItems(9 * 4);
 			ItemStack[] items = inventory.getItems();
 			int index = 0;
-			items[index++] = new ItemStack(BaseItem.bed, 64);
-			items[index++] = new ItemStack(BaseBlock.BUTTON, 64);
-			items[index++] = new ItemStack(BaseItem.cake, 64);
-			for (byte m = 0; m < 7; m++) items[index++] = new ItemStack(BaseBlock.CROPS, 64, m);
-			items[index++] = new ItemStack(BaseBlock.DISPENSER, 64);
-			items[index++] = new ItemStack(BaseItem.woodDoor, 64);
-			items[index++] = new ItemStack(BaseItem.ironDoor, 64);
-			items[index++] = new ItemStack(BaseBlock.FARMLAND, 64);
-			items[index++] = new ItemStack(BaseBlock.FURNACE, 64);
-			items[index++] = new ItemStack(BaseBlock.LADDER, 64);
-			items[index++] = new ItemStack(BaseBlock.WOODEN_PRESSURE_PLATE, 64);
-			items[index++] = new ItemStack(BaseBlock.STONE_PRESSURE_PLATE, 64);
-			items[index++] = new ItemStack(BaseBlock.RAIL, 64);
-			items[index++] = new ItemStack(BaseBlock.WOOD_STAIRS, 64);
-			for (byte m = 0; m < 3; m++) items[index++] = new ItemStack(BaseBlock.TALLGRASS, 64, m);
-			for (byte m = 0; m < 7; m++) items[index++] = new ItemStack(BaseBlock.WOOL, 64, m);
+			items[index++] = new ItemStack(BaseItem.seeds, 64);
+			for (byte m = 0; m < 3; m++) items[index++] = new ItemStack(BaseBlock.SAPLING, 64, m);
 			this.minecraft.player.openChestScreen(inventory);
 		}
 	}

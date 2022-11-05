@@ -53,7 +53,7 @@ public class ChunkSection implements NBTSerializable {
 		if (state == null) return;
 		StateProperty<?> property = state.getProperty("meta");
 		if (property != null && property.getType() == BlockPropertyType.INTEGER) {
-			states[index] = state.withCast(property, meta);
+			states[index] = state.with(property, meta);
 		}
 	}
 	
@@ -71,6 +71,13 @@ public class ChunkSection implements NBTSerializable {
 	
 	public Collection<BaseBlockEntity> getBlockEntities() {
 		return blockEntities.values();
+	}
+	
+	public int getMaxLight(int x, int y, int z) {
+		int index = getIndex(x, y, z);
+		int a = light[index] & 15;
+		int b = (light[index] >> 4) & 15;
+		return a > b ? a : b;
 	}
 	
 	public int getLight(LightType type, int x, int y, int z) {

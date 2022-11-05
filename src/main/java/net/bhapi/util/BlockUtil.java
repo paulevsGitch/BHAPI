@@ -28,7 +28,7 @@ public class BlockUtil {
 		if (meta > 0) {
 			StateProperty<?> property = state.getProperty("meta");
 			if (property != null) {
-				state = state.withCast(property, meta);
+				state = state.with(property, meta);
 			}
 		}
 		return state;

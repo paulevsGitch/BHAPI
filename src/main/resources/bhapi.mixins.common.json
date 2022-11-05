@@ -11,14 +11,16 @@
 		"FurnaceBlockEntityMixin",
 		"LevelChunkLoaderMixin",
 		"LightUpdateAreaMixin",
+		"NetherDimensionMixin",
 		"BaseDimensionMixin",
 		"BaseBlockAccessor",
 		"LevelManagerMixin",
 		"BaseBlockMixin",
 		"BlockItemMixin",
+		"LevelAccessor",
 		"ChunkMixin",
 		"LevelMixin",
-		,
+		
 		"block.RedstoneRepeaterBlockMixin",
 		"block.PressurePlateBlockMixin",
 		"block.FlowingFluidBlockMixin",
@@ -49,7 +51,9 @@
 		"block.SignBlockMixin",
 		"block.WoolBlockMixin",
 		"block.BedBlockMixin",
-		"block.LogBlockMixin"
+		"block.LogBlockMixin",
+		
+		"structure.BirchTreeMixin"
 	],
 	"injectors": {
 		"defaultRequire": 1

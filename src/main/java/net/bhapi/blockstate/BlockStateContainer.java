@@ -63,7 +63,7 @@ public interface BlockStateContainer {
 	}
 	
 	/**
-	 * Check if specified {@link BlockState} if full opaque block (example: stone).
+	 * Check if specified {@link BlockState} is full opaque block (example: stone).
 	 * @param state current {@link BlockState}
 	 * @return {@code true} if state is opaque and {@code false} if not
 	 */

@@ -3,7 +3,6 @@ package net.bhapi.mixin.common;
 import net.bhapi.BHAPI;
 import net.bhapi.block.BHAirBlock;
 import net.bhapi.blockstate.BlockState;
-import net.bhapi.blockstate.BlockStateContainer;
 import net.bhapi.interfaces.NBTSerializable;
 import net.bhapi.level.BlockStateProvider;
 import net.bhapi.level.ChunkSection;
@@ -694,12 +693,11 @@ public abstract class ChunkMixin implements NBTSerializable, LevelHeightProvider
 		}
 		
 		if (!(oldState.getBlock() instanceof BHAirBlock) && !this.level.isClientSide) {
-			oldState.getContainer().onBlockRemoved(this.level, wx, y, wz, oldState, state);
+			oldState.onBlockRemoved(this.level, wx, y, wz, state);
 		}
 		
-		BlockStateContainer container = state.getContainer();
 		if (!this.level.dimension.noSkyLight) {
-			if (container.getLightOpacity(state) != 0) {
+			if (state.getLightOpacity() != 0) {
 				if (y >= height) {
 					this.updateSkylight(x, y + 1, z);
 				}
@@ -713,8 +711,8 @@ public abstract class ChunkMixin implements NBTSerializable, LevelHeightProvider
 		this.level.updateLight(LightType.BLOCK, wx, y, wz, wx, y, wz);
 		this.fillSkyLight(x, z);
 		
-		if (!(state.getBlock() instanceof BHAirBlock)) {
-			container.onBlockPlaced(this.level, wx, y, wz, state);
+		if (!state.isAir()) {
+			state.onBlockPlaced(this.level, wx, y, wz);
 		}
 		
 		this.needUpdate = true;
