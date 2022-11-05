@@ -1,5 +1,7 @@
 package net.bhapi.block;
 
+import net.bhapi.blockstate.BlockState;
+import net.bhapi.blockstate.BlockStateContainer;
 import net.minecraft.block.material.Material;
 import net.minecraft.item.ItemStack;
 import net.minecraft.level.Level;
@@ -7,7 +9,7 @@ import net.minecraft.util.maths.Box;
 
 import java.util.ArrayList;
 
-public class BHAirBlock extends BHBaseBlock {
+public class BHAirBlock extends BHBaseBlock implements BlockStateContainer {
 	public BHAirBlock() {
 		super(Material.AIR);
 		disableNotifyOnMetaDataChange();
@@ -30,11 +32,6 @@ public class BHAirBlock extends BHBaseBlock {
 	}
 	
 	@Override
-	public boolean isFullOpaque() {
-		return false;
-	}
-	
-	@Override
 	public void doesBoxCollide(Level arg, int i, int j, int k, Box arg2, ArrayList arrayList) {}
 	
 	@Override
@@ -50,4 +47,9 @@ public class BHAirBlock extends BHBaseBlock {
 	
 	@Override
 	protected void drop(Level arg, int i, int j, int k, ItemStack arg2) {}
+	
+	@Override
+	public boolean isFullOpaque(BlockState state) {
+		return false;
+	}
 }

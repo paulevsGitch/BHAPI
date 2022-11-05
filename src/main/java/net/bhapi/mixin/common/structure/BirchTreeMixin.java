@@ -68,21 +68,6 @@ public class BirchTreeMixin {
 		BlockState placing = BlockState.getDefaultState(BaseBlock.LEAVES);
 		placing = placing.with(placing.getProperty("meta"), 2);
 		
-		/*for (py = y - 3 + height; py <= y + height; ++py) {
-			int maxY = py - (y + height);
-			int dxz = 1 - maxY / 2;
-			for (px = x - dxz; px <= x + dxz; ++px) {
-				int dx = px - x;
-				for (pz = z - dxz; pz <= z + dxz; ++pz) {
-					int dz = pz - z;
-					if (Math.abs(dx) == dxz && Math.abs(dz) == dxz && (random.nextInt(2) == 0 || maxY == 0)) continue;
-					state = stateProvider.getBlockState(px, py, pz);
-					if (state.isFullOpaque()) continue;
-					stateProvider.setBlockState(px, py, pz, placing);
-				}
-			}
-		}*/
-		
 		for (py = y - 3 + height; py <= y + height; ++py) {
 			int dy = py - (y + height);
 			radius = 1 - dy / 2;
@@ -93,7 +78,6 @@ public class BirchTreeMixin {
 					if (Math.abs(dx) == radius && Math.abs(dz) == radius && (random.nextInt(2) == 0 || dy == 0)) continue;
 					state = stateProvider.getBlockState(px, py, pz);
 					if (state.isFullOpaque()) continue;
-					//arg.setBlockInChunk(px, py, pz, BaseBlock.LEAVES.id, 2);
 					stateProvider.setBlockState(px, py, pz, placing);
 				}
 			}

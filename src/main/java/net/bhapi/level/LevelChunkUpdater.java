@@ -7,7 +7,11 @@ import net.bhapi.storage.Vec2I;
 import net.bhapi.storage.Vec3I;
 import net.bhapi.util.ThreadManager;
 import net.bhapi.util.ThreadManager.RunnableThread;
+import net.bhapi.util.XorShift128;
+import net.fabricmc.api.EnvType;
+import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.block.BaseBlock;
+import net.minecraft.client.Minecraft;
 import net.minecraft.entity.LightningEntity;
 import net.minecraft.entity.player.PlayerBase;
 import net.minecraft.level.Level;
@@ -20,7 +24,6 @@ import net.minecraft.util.maths.MathHelper;
 
 import java.lang.reflect.InvocationTargetException;
 import java.util.HashSet;
-import java.util.Random;
 import java.util.Set;
 
 public class LevelChunkUpdater {
@@ -29,18 +32,20 @@ public class LevelChunkUpdater {
 	private final Set<Vec3I> loadedSections = new HashSet<>();
 	private final Set<Vec2I> loadedChunks = new HashSet<>();
 	private final BaseBiome[] biomes = new BaseBiome[1];
-	private final Random random = new Random();
+	private final XorShift128 random = new XorShift128();
+	//private final Random random = new Random();
 	private final BiomeSource biomeSource;
 	private final Level level;
 	private final int height;
 	private int caveSoundTicks;
 	private RunnableThread updatingThread;
+	private boolean isEmpty = true;
 	
 	public LevelChunkUpdater(Level level) {
 		this.level = level;
 		LevelHeightProvider heightProvider = LevelHeightProvider.cast(level);
 		height = heightProvider.getSectionsCount();
-		caveSoundTicks = random.nextInt(12000) + 6000;
+		caveSoundTicks = random.getInt(12000) + 6000;
 		
 		// TODO Replace this with reading biomes from chunk cache
 		BiomeSource source = null;
@@ -57,22 +62,31 @@ public class LevelChunkUpdater {
 			e.printStackTrace();
 		}
 		biomeSource = source;
-		
-		updatingThread = ThreadManager.makeThread("chunk_updater_" + level.dimension.id, this::processChunks);
-		if (!updatingThread.isAlive()) updatingThread.start();
+		//updatingThread = ThreadManager.makeThread("chunk_updater_" + level.dimension.id, this::processChunks);
+		//if (!updatingThread.isAlive()) updatingThread.start();
 	}
 	
 	public void process() {
 		final boolean useThreads = true; // TODO make configurable
 		if (useThreads) {
-			if (!level.players.isEmpty() && updatingThread == null) {
+			if (updatingThread == null) {
 				updatingThread = ThreadManager.makeThread("chunk_updater_" + level.dimension.id, this::processChunks);
-				updatingThread.start();
+				if (!updatingThread.isAlive()) updatingThread.start();
 			}
-			if (level.players.isEmpty() && updatingThread != null) {
+		}
+		else {
+			processChunks();
+		}
+	}
+	
+	private void check() {
+		if (FabricLoader.getInstance().getEnvironmentType() == EnvType.CLIENT) {
+			boolean empty = ((Minecraft) FabricLoader.getInstance().getGameInstance()).viewEntity == null;
+			if (!isEmpty && empty) {
 				ThreadManager.stopThread(updatingThread);
 				updatingThread = null;
 			}
+			isEmpty = empty;
 		}
 	}
 	
@@ -109,7 +123,7 @@ public class LevelChunkUpdater {
 		final BlockStateProvider levelProvider = BlockStateProvider.cast(level);
 		
 		this.caveSoundTicks--;
-		loadedSections.parallelStream().forEach(pos -> {
+		loadedSections.forEach(pos -> {
 			Chunk chunk = level.getChunkFromCache(pos.x, pos.z);
 			ChunkSection section = ChunkSectionProvider.cast(chunk).getChunkSection(pos.y);
 			
@@ -121,27 +135,27 @@ public class LevelChunkUpdater {
 				
 				// Cave sounds in dark areas
 				if (this.caveSoundTicks <= 0) {
-					px = random.nextInt() & 15;
-					py = random.nextInt() & 15;
-					pz = random.nextInt() & 15;
+					px = random.getInt() & 15;
+					py = random.getInt() & 15;
+					pz = random.getInt() & 15;
 					BlockState state = section.getBlockState(px, py, pz);
-					if (state.isAir() && section.getMaxLight(px, py, pz) <= random.nextInt(8)) {
+					if (state.isAir() && section.getMaxLight(px, py, pz) <= random.getInt(8)) {
 						px |= chunkX;
 						py |= chunkY;
 						pz |= chunkZ;
 						PlayerBase playerBase = level.getClosestPlayer(px + 0.5, py + 0.5, pz + 0.5, 8.0);
 						if (playerBase != null && playerBase.squaredDistanceTo(px + 0.5, py + 0.5, pz + 0.5) > 4.0) {
-							level.playSound(px + 0.5, py + 0.5, pz + 0.5, "ambient.cave.cave", 0.7F, 0.8F + random.nextFloat() * 0.2F);
-							this.caveSoundTicks = random.nextInt(12000) + 6000;
+							level.playSound(px + 0.5, py + 0.5, pz + 0.5, "ambient.cave.cave", 0.7F, 0.8F + random.getFloat() * 0.2F);
+							this.caveSoundTicks = random.getInt(12000) + 6000;
 						}
 					}
 				}
 				
 				// Convert water into ice
-				if (biomeSource != null && random.nextInt(16) == 0) {
-					px = random.nextInt() & 15;
-					pz = random.nextInt() & 15;
-					py = random.nextInt() & 15;
+				if (biomeSource != null && random.getInt(16) == 0) {
+					px = random.getInt() & 15;
+					pz = random.getInt() & 15;
+					py = random.getInt() & 15;
 					BaseBiome[] biome = new BaseBiome[1];
 					biomeSource.getBiomes(biome, px | chunkX, pz | chunkZ, 1, 1);
 					if (biome[0].canSnow() && section.getLight(LightType.BLOCK, px, py, pz) < 10) {
@@ -156,12 +170,12 @@ public class LevelChunkUpdater {
 				
 				// Random ticks, 10 per section, vanilla has 80 per chunk and chunk have 8 sections
 				for (int k = 0; k < 10; ++k) {
-					px = random.nextInt() & 15;
-					py = random.nextInt() & 15;
-					pz = random.nextInt() & 15;
+					px = random.getInt() & 15;
+					py = random.getInt() & 15;
+					pz = random.getInt() & 15;
 					BlockState state = section.getBlockState(px, py, pz);
 					if (state.hasRandomTicks()) {
-						state.onScheduledTick(level, px | chunkX, py | chunkY, pz | chunkZ, random);
+						state.onScheduledTick(level, px | chunkX, py | chunkY, pz | chunkZ, level.random);
 					}
 				}
 			}
@@ -174,9 +188,9 @@ public class LevelChunkUpdater {
 			int px, py, pz;
 			
 			// Lighting during storm
-			if (level.isRaining() && level.isThundering() && random.nextInt(100000) == 0) {
-				px = random.nextInt() & 15;
-				pz = random.nextInt() & 15;
+			if (level.isRaining() && level.isThundering() && random.getInt(100000) == 0) {
+				px = random.getInt() & 15;
+				pz = random.getInt() & 15;
 				py = level.getHeightIterating(px | chunkX, pz | chunkZ);
 				if (level.canRainAt(px, py, pz)) {
 					level.addEntity(new LightningEntity(level, px, py, pz));
@@ -185,9 +199,9 @@ public class LevelChunkUpdater {
 			}
 			
 			// Cover areas with snow during rain
-			if (biomeSource != null && random.nextInt(16) == 0) {
-				px = random.nextInt() & 15;
-				pz = random.nextInt() & 15;
+			if (biomeSource != null && random.getInt(16) == 0) {
+				px = random.getInt() & 15;
+				pz = random.getInt() & 15;
 				py = level.getHeightIterating(px | chunkX, pz | chunkZ);
 				biomeSource.getBiomes(biomes, px | chunkX, pz | chunkZ, 1, 1);
 				if (biomes[0].canSnow() && chunk.getLight(LightType.BLOCK, px, py, pz) < 10) {
@@ -200,5 +214,7 @@ public class LevelChunkUpdater {
 				}
 			}
 		});
+		
+		check();
 	}
 }

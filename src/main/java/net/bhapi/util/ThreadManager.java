@@ -16,13 +16,15 @@ public class ThreadManager {
 	}
 	
 	public static void stopThread(RunnableThread thread) {
-		thread.stopThread();
-		THREADS.remove(thread);
+		stopThread(thread.getName());
 	}
 	
 	public static void stopThread(String name) {
 		RunnableThread thread = THREADS.get(name);
-		if (thread != null) stopThread(thread);
+		if (thread != null) {
+			thread.stopThread();
+			THREADS.remove(name);
+		}
 	}
 	
 	public static class RunnableThread extends Thread {

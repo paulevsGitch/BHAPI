@@ -1,5 +1,6 @@
 package net.bhapi.block;
 
+import net.bhapi.util.BlockUtil;
 import net.minecraft.block.BaseBlock;
 
 import java.util.HashMap;
@@ -26,6 +27,7 @@ public class LegacyBlockInfo {
 	}
 	
 	public static BlockInfo getInfo(BaseBlock block) {
+		if (block.id == BlockUtil.MOD_BLOCK_ID) return DEFAULT;
 		return INFO_MAP.getOrDefault(block, DEFAULT);
 	}
 	
