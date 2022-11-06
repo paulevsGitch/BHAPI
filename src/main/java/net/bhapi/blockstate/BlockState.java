@@ -23,9 +23,6 @@ import java.util.Random;
 public final class BlockState {
 	private static final Map<BaseBlock, BlockState[]> POSSIBLE_STATES = new HashMap<>();
 	
-	private static int increment;
-	private static int index;
-	
 	private final Map<StateProperty<?>, Object> propertyValues = new HashMap<>();
 	private final Map<String, StateProperty<?>> properties;
 	private final BlockState[] localCache;
@@ -37,47 +34,49 @@ public final class BlockState {
 	
 	private BlockState(BaseBlock block, Map<String, StateProperty<?>> properties) {
 		this.properties = properties;
-		this.localCache = POSSIBLE_STATES.computeIfAbsent(block, key -> {
-			BlockStateContainer container = BlockStateContainer.cast(block);
-			ArrayList<StateProperty<?>> rawProperties = new ArrayList<>();
-			container.appendProperties(rawProperties);
-			int size = 1;
-			for (StateProperty<?> property: rawProperties) size *= property.getCount();
-			container.setDefaultState(this);
-			rawProperties.forEach(property -> {
-				this.propertyValues.put(property, property.defaultValue());
-				this.properties.put(property.getName(), property);
+		synchronized (POSSIBLE_STATES) {
+			this.localCache = POSSIBLE_STATES.computeIfAbsent(block, key -> {
+				BlockStateContainer container = BlockStateContainer.cast(block);
+				ArrayList<StateProperty<?>> rawProperties = new ArrayList<>();
+				container.appendProperties(rawProperties);
+				int size = 1;
+				for (StateProperty<?> property : rawProperties) size *= property.getCount();
+				container.setDefaultState(this);
+				rawProperties.forEach(property -> {
+					this.propertyValues.put(property, property.defaultValue());
+					this.properties.put(property.getName(), property);
+				});
+				BlockState[] cache = new BlockState[size];
+				DefaultRegistries.BLOCKSTATES_MAP.add(this);
+				cache[0] = this;
+				return cache;
 			});
-			BlockState[] cache = new BlockState[size];
-			DefaultRegistries.BLOCKSTATES_MAP.add(this);
-			cache[0] = this;
-			return cache;
-		});
+		}
 		this.block = block;
 	}
 	
 	private <T> BlockState withProperty(StateProperty<T> property, T value) {
-		if (!propertyValues.containsKey(property)) throw new RuntimeException("No property " + property + " in block " + block);
-		
-		index = 0;
-		increment = 1;
-		propertyValues.forEach((prop, obj) -> {
-			if (prop == property) index += property.getIndex(value) * increment;
-			else index += prop.getCastedIndex(obj) * increment;
-			increment *= prop.getCount();
-		});
-		
-		BlockState state = localCache[index];
-		if (state == null) {
-			state = new BlockState(block, localCache[0].properties);
-			DefaultRegistries.BLOCKSTATES_MAP.add(state);
-			state.propertyValues.putAll(propertyValues);
-			state.propertyValues.put(property, value);
-			localCache[index] = state;
-			DefaultRegistries.BLOCKSTATES_MAP.add(state);
+		synchronized (propertyValues) {
+			int[] indAndInc = new int[] {0, 1};
+			if (!propertyValues.containsKey(property)) {
+				throw new RuntimeException("No property " + property + " in block " + block);
+			}
+			propertyValues.forEach((prop, obj) -> {
+				if (prop == property) indAndInc[0] += property.getIndex(value) * indAndInc[1];
+				else indAndInc[0] += prop.getCastedIndex(obj) * indAndInc[1];
+				indAndInc[1] *= prop.getCount();
+			});
+			BlockState state = localCache[indAndInc[0]];
+			if (state == null) {
+				state = new BlockState(block, localCache[0].properties);
+				DefaultRegistries.BLOCKSTATES_MAP.add(state);
+				state.propertyValues.putAll(propertyValues);
+				state.propertyValues.put(property, value);
+				localCache[indAndInc[0]] = state;
+				DefaultRegistries.BLOCKSTATES_MAP.add(state);
+			}
+			return state;
 		}
-		
-		return state;
 	}
 	
 	public <T> BlockState with(StateProperty<T> property, Object value) {
@@ -97,18 +96,19 @@ public final class BlockState {
 	 * @return {@link List} of {@link BlockState}
 	 */
 	public List<BlockState> getPossibleStates() {
+		int[] indAndInc = new int[] {0, 1};
 		for (int i = 0; i < localCache.length; i++) {
 			if (localCache[i] == null) {
-				index = i;
-				increment = 1;
+				indAndInc[0] = i;
+				indAndInc[1] = 1;
 				Map<StateProperty<?>, Object> newProperties = new HashMap<>();
 				propertyValues.keySet().forEach(prop -> {
-					int indexInternal = (index / increment) % prop.getCount();
+					int indexInternal = (indAndInc[0] / indAndInc[1]) % prop.getCount();
 					newProperties.put(prop, prop.getValues().get(indexInternal));
-					increment *= prop.getCount();
+					indAndInc[1] *= prop.getCount();
 				});
 				
-				BlockState state = localCache[index];
+				BlockState state = localCache[indAndInc[0]];
 				if (state == null) {
 					state = new BlockState(block, localCache[0].properties);
 					DefaultRegistries.BLOCKSTATES_MAP.add(state);
@@ -129,16 +129,16 @@ public final class BlockState {
 		}
 		StringBuilder builder = new StringBuilder("block=");
 		builder.append(blockID);
-		index = 0;
+		int[] index = new int[] {0};
 		final int max = propertyValues.size();
 		if (max > 0) {
 			builder.append(",");
 			propertyValues.forEach((prop, obj) -> {
-				index++;
+				index[0]++;
 				builder.append(prop.getName());
 				builder.append("=");
 				builder.append(obj);
-				if (index < max) {
+				if (index[0] < max) {
 					builder.append(",");
 				}
 			});

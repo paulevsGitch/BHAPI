@@ -5,6 +5,7 @@ import net.bhapi.blockstate.properties.StateProperty;
 import net.bhapi.client.gui.DebugAllItems;
 import net.bhapi.level.BlockStateProvider;
 import net.bhapi.registry.DefaultRegistries;
+import net.bhapi.util.BlockUtil;
 import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.block.BaseBlock;
 import net.minecraft.block.entity.BaseBlockEntity;
@@ -77,7 +78,9 @@ public abstract class InGameMixin extends DrawableHelper {
 		BlockState state = BlockStateProvider.cast(minecraft.level).getBlockState(x, y, z);
 		BaseBlockEntity entity = minecraft.level.getBlockEntity(x, y, z);
 		
-		String text = "\u00A7bBlock:\u00A7r " + state.getBlock().getTranslatedName();
+		String text = "\u00A7bBlock:\u00A7r ";
+		if (state.is(BlockUtil.AIR_BLOCK)) text += "Air";
+		else text += state.getBlock().getTranslatedName();
 		drawTextWithShadow(renderer, text, px - renderer.getTextWidth(text) - 2, py += 10, 16777215);
 		
 		text = "\u00A7bID:\u00A7r " + DefaultRegistries.BLOCK_REGISTRY.getID(state.getBlock());

@@ -15,8 +15,8 @@ public class IntegerProperty extends StateProperty<Integer> {
 		if (maxValue < minValue) throw new RuntimeException("Maximum is less than minimum for " + name + " property");
 		this.minValue = minValue;
 		this.maxValue = maxValue;
-		this.count = maxValue - minValue + 1;
 		this.values = IntStream.rangeClosed(minValue, maxValue).boxed().collect(Collectors.toUnmodifiableList());
+		this.count = this.values.size();
 	}
 	
 	@Override
@@ -41,7 +41,7 @@ public class IntegerProperty extends StateProperty<Integer> {
 	
 	@Override
 	public int getIndex(Integer value) {
-		if (value < minValue || value > maxValue) {
+		if (!isInRange(value)) {
 			throw new RuntimeException(String.format("Value %d is not in range [%d - %d]", value, minValue, maxValue));
 		}
 		return value - minValue;
