@@ -40,6 +40,7 @@ public class LevelChunkUpdater {
 	private int caveSoundTicks;
 	private RunnableThread updatingThread;
 	private boolean isEmpty = true;
+	private long time;
 	
 	public LevelChunkUpdater(Level level) {
 		this.level = level;
@@ -71,6 +72,7 @@ public class LevelChunkUpdater {
 		if (useThreads) {
 			if (updatingThread == null) {
 				updatingThread = ThreadManager.makeThread("chunk_updater_" + level.dimension.id, this::processChunks);
+				time = System.currentTimeMillis();
 				if (!updatingThread.isAlive()) updatingThread.start();
 			}
 		}
@@ -80,13 +82,31 @@ public class LevelChunkUpdater {
 	}
 	
 	private void check() {
-		if (FabricLoader.getInstance().getEnvironmentType() == EnvType.CLIENT) {
+		final boolean useThreads = true; // TODO make configurable
+		if (useThreads && FabricLoader.getInstance().getEnvironmentType() == EnvType.CLIENT) {
 			boolean empty = ((Minecraft) FabricLoader.getInstance().getGameInstance()).viewEntity == null;
 			if (!isEmpty && empty) {
 				ThreadManager.stopThread(updatingThread);
 				updatingThread = null;
 			}
 			isEmpty = empty;
+		}
+	}
+	
+	private void delay() {
+		final boolean useThreads = true; // TODO make configurable
+		if (!useThreads) return;
+		long t = System.currentTimeMillis();
+		int delta = (int) (t - time);
+		time = t;
+		if (delta < 50) {
+			delta = 50 - delta;
+			try {
+				Thread.sleep(delta);
+			}
+			catch (InterruptedException e) {
+				e.printStackTrace();
+			}
 		}
 	}
 	
@@ -216,5 +236,6 @@ public class LevelChunkUpdater {
 		});
 		
 		check();
+		delay();
 	}
 }
