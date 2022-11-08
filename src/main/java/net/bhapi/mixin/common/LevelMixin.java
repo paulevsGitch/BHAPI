@@ -6,6 +6,8 @@ import net.bhapi.level.BlockStateProvider;
 import net.bhapi.level.LevelChunkUpdater;
 import net.bhapi.level.LevelHeightProvider;
 import net.bhapi.registry.DefaultRegistries;
+import net.fabricmc.api.EnvType;
+import net.fabricmc.api.Environment;
 import net.minecraft.block.material.Material;
 import net.minecraft.block.technical.TimeInfo;
 import net.minecraft.entity.BaseEntity;
@@ -79,12 +81,15 @@ public abstract class LevelMixin implements LevelHeightProvider, BlockStateProvi
 	
 	@Shadow public abstract boolean isBlockLoaded(int i, int j, int k);
 	
+	@Shadow public abstract void callAreaEvents(int i, int j, int k, int l, int m, int n);
+	
 	@Unique private LevelChunkUpdater bhapi_updater;
 	
 	@Inject(
 		method = "<init>(Lnet/minecraft/level/dimension/DimensionData;Ljava/lang/String;Lnet/minecraft/level/dimension/BaseDimension;J)V",
 		at = @At("TAIL")
 	)
+	@Environment(value= EnvType.CLIENT)
 	private void bhapi_onWorldInit1(DimensionData data, String name, BaseDimension dimension, long seed, CallbackInfo info) {
 		bhapi_loadBlockStates();
 		initUpdater();
@@ -94,6 +99,7 @@ public abstract class LevelMixin implements LevelHeightProvider, BlockStateProvi
 		method = "<init>(Lnet/minecraft/level/Level;Lnet/minecraft/level/dimension/BaseDimension;)V",
 		at = @At("TAIL")
 	)
+	@Environment(value=EnvType.CLIENT)
 	private void bhapi_onWorldInit2(Level level, BaseDimension dimension, CallbackInfo info) {
 		bhapi_loadBlockStates();
 		initUpdater();
@@ -284,11 +290,86 @@ public abstract class LevelMixin implements LevelHeightProvider, BlockStateProvi
 		}
 	}
 	
+	@Environment(value=EnvType.SERVER)
+	@Inject(method = "getServerBlockData", at = @At("HEAD"), cancellable = true)
+	private void bhapi_getServerBlockData(int x1, int y1, int z1, int dx, int dy, int dz, CallbackInfoReturnable<byte[]> info) {
+		byte[] data = new byte[dx * dy * dz * 5];
+		
+		int cx1 = x1 >> 4;
+		int cz1 = z1 >> 4;
+		int cx2 = x1 + dx - 1 >> 4;
+		int cz2 = z1 + dz - 1 >> 4;
+		int index = 0;
+		int py1 = y1;
+		int py2 = y1 + dy;
+		
+		if (py1 < 0) py1 = 0;
+		short height = getLevelHeight();
+		if (py2 > height) py2 = height;
+		
+		for (int cx = cx1; cx <= cx2; ++cx) {
+			int px1 = x1 - (cx << 4);
+			int px2 = x1 + dx - (cx << 4);
+			if (px1 < 0) px1 = 0;
+			if (px2 > 16) px2 = 16;
+			for (int cz = cz1; cz <= cz2; ++cz) {
+				int pz1 = z1 - (cz << 4);
+				int pz2 = z1 + dz - (cz << 4);
+				if (pz1 < 0) {
+					pz1 = 0;
+				}
+				if (pz2 > 16) {
+					pz2 = 16;
+				}
+				index = this.getChunkFromCache(cx, cz).getServerBlockData(data, px1, py1, pz1, px2, py2, pz2, index);
+			}
+		}
+		info.setReturnValue(data);
+	}
+	
+	@Environment(value=EnvType.CLIENT)
+	@Inject(method = "setClientBlockData", at = @At("HEAD"), cancellable = true)
+	private void bhapi_setClientBlockData(int x1, int y1, int z1, int dx, int dy, int dz, byte[] data, CallbackInfo info) {
+		info.cancel();
+		
+		int cx1 = x1 >> 4;
+		int cz1 = z1 >> 4;
+		int cx2 = x1 + dx - 1 >> 4;
+		int cz2 = z1 + dz - 1 >> 4;
+		int index = 0;
+		int py1 = y1;
+		int py2 = y1 + dy;
+		
+		if (py1 < 0) py1 = 0;
+		short height = getLevelHeight();
+		if (py2 > height) py2 = height;
+		
+		for (int cx = cx1; cx <= cx2; ++cx) {
+			int px1 = x1 - (cx << 4);
+			int px2 = x1 + dx - (cx << 4);
+			if (px1 < 0) px1 = 0;
+			if (px2 > 16) px2 = 16;
+			for (int cz = cz1; cz <= cz2; ++cz) {
+				int pz1 = z1 - (cz << 4);
+				int pz2 = z1 + dz - (cz << 4);
+				if (pz1 < 0) {
+					pz1 = 0;
+				}
+				if (pz2 > 16) {
+					pz2 = 16;
+				}
+				index = this.getChunkFromCache(cx, cz).setClientBlockData(data, px1, py1, pz1, px2, py2, pz2, index);
+				this.callAreaEvents((cx << 4) + px1, py1, (cz << 4) + pz1, (cx << 4) + x1 + px2, py2, (cz << 4) + pz2);
+			}
+		}
+	}
+	
 	@Unique
 	private void bhapi_loadBlockStates() {
 		BHAPI.log("Loading registries");
 		
 		File file = this.dimensionData.getFile("registries");
+		if (file == null) return; // When player connects to server
 		CompoundTag tag = null;
 		
 		if (file.exists()) {
@@ -307,6 +388,7 @@ public abstract class LevelMixin implements LevelHeightProvider, BlockStateProvi
 		}
 		
 		if (tag == null) tag = new CompoundTag();
+		BHAPI.log("Saving registries");
 		DefaultRegistries.BLOCKSTATES_MAP.save(tag);
 		
 		try {
@@ -319,6 +401,7 @@ public abstract class LevelMixin implements LevelHeightProvider, BlockStateProvi
 		}
 	}
 	
+	@Unique
 	private void initUpdater() {
 		if (bhapi_updater == null) {
 			bhapi_updater = new LevelChunkUpdater(Level.class.cast(this));

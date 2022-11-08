@@ -49,22 +49,23 @@ public class LevelChunkUpdater {
 		caveSoundTicks = random.getInt(12000) + 6000;
 		
 		// TODO Replace this with reading biomes from chunk cache
-		BiomeSource source = null;
-		BiomeSource levelSource = level.getBiomeSource();
-		try {
-			if (levelSource instanceof FixedBiomeSource) {
-				Class[] args = new Class[] {BaseBiome.class, Double.class, Double.class};
-				BaseBiome[] biome = levelSource.getBiomes(biomes, 0, 0, 1, 1);
-				source = levelSource.getClass().getConstructor(args).newInstance(biome, 1.0, 0.0);
+		if (FabricLoader.getInstance().getEnvironmentType() == EnvType.CLIENT) {
+			BiomeSource source = null;
+			BiomeSource levelSource = level.getBiomeSource();
+			try {
+				if (levelSource instanceof FixedBiomeSource) {
+					Class[] args = new Class[] {BaseBiome.class, Double.class, Double.class};
+					BaseBiome[] biome = levelSource.getBiomes(biomes, 0, 0, 1, 1);
+					source = levelSource.getClass().getConstructor(args).newInstance(biome, 1.0, 0.0);
+				}
+				else source = levelSource.getClass().getConstructor(Level.class).newInstance(level);
 			}
-			else source = levelSource.getClass().getConstructor(Level.class).newInstance(level);
+			catch (InstantiationException | IllegalAccessException | InvocationTargetException | NoSuchMethodException e) {
+				e.printStackTrace();
+			}
+			biomeSource = source;
 		}
-		catch (InstantiationException | IllegalAccessException | InvocationTargetException | NoSuchMethodException e) {
-			e.printStackTrace();
-		}
-		biomeSource = source;
-		//updatingThread = ThreadManager.makeThread("chunk_updater_" + level.dimension.id, this::processChunks);
-		//if (!updatingThread.isAlive()) updatingThread.start();
+		else biomeSource = level.getBiomeSource(); // Weird behavior on server, missing constructors
 	}
 	
 	public void process() {

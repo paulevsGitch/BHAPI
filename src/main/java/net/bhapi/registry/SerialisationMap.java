@@ -3,7 +3,11 @@ package net.bhapi.registry;
 import net.bhapi.BHAPI;
 import net.minecraft.util.io.CompoundTag;
 import net.minecraft.util.io.ListTag;
+import net.minecraft.util.io.NBTIO;
 
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.function.Function;
@@ -16,6 +20,7 @@ public class SerialisationMap<T> {
 	private final Map<T, Integer> objToID = new HashMap<>();
 	private final Function<CompoundTag, T> deserializer;
 	private final Function<T, CompoundTag> serializer;
+	private byte[] compressedData;
 	private final String dataKey;
 	private boolean requireSave;
 	private boolean isLoading;
@@ -60,6 +65,16 @@ public class SerialisationMap<T> {
 			entry.put(KEY_ID, rawID);
 			list.add(entry);
 		});
+		
+		ByteArrayOutputStream stream = new ByteArrayOutputStream();
+		NBTIO.writeGzipped(tag, stream);
+		compressedData = stream.toByteArray();
+		try {
+			stream.close();
+		}
+		catch (IOException e) {
+			e.printStackTrace();
+		}
 		
 		requireSave = false;
 		return true;
@@ -108,6 +123,20 @@ public class SerialisationMap<T> {
 		loadingObjects.clear();
 		
 		requireSave = true;
+		isLoading = false;
+	}
+	
+	public byte[] getCompressedData() {
+		return compressedData;
+	}
+	
+	public void readFromData(byte[] data) {
+		isLoading = true;
+		this.compressedData = data;
+		ByteArrayInputStream stream = new ByteArrayInputStream(data);
+		CompoundTag tag = NBTIO.readGzipped(stream);
+		load(tag);
+		requireSave = false;
 		isLoading = false;
 	}
 }

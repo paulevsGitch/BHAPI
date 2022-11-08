@@ -3,6 +3,8 @@ package net.bhapi;
 import net.bhapi.block.BHBaseBlock;
 import net.bhapi.block.LegacyBlockInfo;
 import net.bhapi.blockstate.BlockState;
+import net.bhapi.mixin.common.AbstractPackerAccessor;
+import net.bhapi.packet.BlockStatesPacket;
 import net.bhapi.registry.DefaultRegistries;
 import net.bhapi.util.BlockUtil;
 import net.bhapi.util.Identifier;
@@ -22,6 +24,8 @@ public class BHAPI implements ModInitializer {
 	@Override
 	public void onInitialize() {
 		instance = this;
+		
+		AbstractPackerAccessor.callRegister(132, true, false, BlockStatesPacket.class);
 		
 		if (FabricLoader.getInstance().isDevelopmentEnvironment()) {
 			System.setProperty(

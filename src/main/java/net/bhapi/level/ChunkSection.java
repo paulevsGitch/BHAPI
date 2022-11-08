@@ -5,8 +5,10 @@ import net.bhapi.blockstate.properties.BlockPropertyType;
 import net.bhapi.blockstate.properties.IntegerProperty;
 import net.bhapi.blockstate.properties.StateProperty;
 import net.bhapi.interfaces.NBTSerializable;
+import net.bhapi.registry.DefaultRegistries;
 import net.bhapi.storage.MultiThreadStorage;
 import net.bhapi.util.BlockUtil;
+import net.bhapi.util.MathUtil;
 import net.minecraft.block.entity.BaseBlockEntity;
 import net.minecraft.entity.BaseEntity;
 import net.minecraft.entity.EntityRegistry;
@@ -23,6 +25,7 @@ import java.util.List;
 import java.util.Map;
 
 public class ChunkSection implements NBTSerializable {
+	public static final ChunkSection EMPTY = new ChunkSection();
 	private static final MultiThreadStorage<StatesLoader> LOADERS = new MultiThreadStorage<>(StatesLoader::new);
 	private final Map<BlockPos, BaseBlockEntity> blockEntities = new HashMap();
 	private final BlockState[] states = new BlockState[4096];
@@ -96,6 +99,32 @@ public class ChunkSection implements NBTSerializable {
 		else {
 			light[index] = (byte) ((light[index] & 0x0F) | (value << 4));
 		}
+	}
+	
+	public int writeData(byte[] data, int x, int y, int z, int index) {
+		int secIndex = getIndex(x, y, z);
+		
+		BlockState state = states[secIndex];
+		if (state == null) state = BlockUtil.AIR_STATE;
+		int stateID = DefaultRegistries.BLOCKSTATES_MAP.getID(state);
+		index = MathUtil.writeInt(data, stateID, index);
+		
+		data[index++] = light[secIndex];
+		
+		return index;
+	}
+	
+	public int readData(byte[] data, int x, int y, int z, int index) {
+		int secIndex = getIndex(x, y, z);
+		
+		int stateID = MathUtil.readInt(data, index);
+		BlockState state = DefaultRegistries.BLOCKSTATES_MAP.get(stateID);
+		states[secIndex] = state;
+		
+		index += 4;
+		light[secIndex] = data[index++];
+		
+		return index;
 	}
 	
 	@Override
@@ -172,6 +201,12 @@ public class ChunkSection implements NBTSerializable {
 				entity.chunkZ = z;
 				entities.add(entity);
 			}
+		}
+	}
+	
+	static {
+		for (int i = 0; i < 4096; i++) {
+			EMPTY.setLight(LightType.SKY, i & 15, (i >> 4) & 15, i >> 8, 15);
 		}
 	}
 }

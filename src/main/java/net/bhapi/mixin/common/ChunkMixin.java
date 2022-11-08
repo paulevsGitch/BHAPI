@@ -70,7 +70,7 @@ public abstract class ChunkMixin implements NBTSerializable, LevelHeightProvider
 	private void bhapi_onChunkInit(Level level, byte[] blocks, int x, int z, CallbackInfo info) {
 		bhapi_initSections();
 		
-		if (blocks != null && blocks[0] != 0) {
+		if (blocks != null && blocks.length > 0 && blocks[0] != 0) {
 			bhapi_fillBlocks();
 		}
 		
@@ -488,6 +488,35 @@ public abstract class ChunkMixin implements NBTSerializable, LevelHeightProvider
 		info.setReturnValue((int) bhapi_getHeight(x, z));
 	}
 	
+	@Environment(value=EnvType.CLIENT)
+	@Inject(method = "setClientBlockData", at = @At("HEAD"), cancellable = true)
+	private void bhapi_setClientBlockData(byte[] data, int x1, int y1, int z1, int x2, int y2, int z2, int index, CallbackInfoReturnable<Integer> info) {
+		for (int y = y1; y < y2; y++) {
+			ChunkSection section = bhapi_getOrCreateSection(y);
+			for (int x = x1; x < x2; x++) {
+				for (int z = z1; z < z2; z++) {
+					index = section.readData(data, x, y & 15, z, index);
+				}
+			}
+		}
+		info.setReturnValue(index);
+	}
+	
+	@Environment(value=EnvType.SERVER)
+	@Inject(method = "getServerBlockData", at = @At("HEAD"), cancellable = true)
+	private void bhapi_getServerBlockData(byte[] data, int x1, int y1, int z1, int x2, int y2, int z2, int index, CallbackInfoReturnable<Integer> info) {
+		for (int y = y1; y < y2; y++) {
+			ChunkSection section = bhapi_sections[y >> 4];
+			if (section == null) section = ChunkSection.EMPTY;
+			for (int x = x1; x < x2; x++) {
+				for (int z = z1; z < z2; z++) {
+					index = section.writeData(data, x, y & 15, z, index);
+				}
+			}
+		}
+		info.setReturnValue(index);
+	}
+	
 	@Unique
 	private short bhapi_getHeight(int x, int z) {
 		return bhapi_heightmap[x << 4 | z];
@@ -728,5 +757,11 @@ public abstract class ChunkMixin implements NBTSerializable, LevelHeightProvider
 		if (section == null) return BlockUtil.AIR_STATE;
 		
 		return section.getBlockState(x, y & 15, z);
+	}
+	
+	@Unique
+	@Override
+	public ChunkSection getChunkSection(int index) {
+		return bhapi_sections[index];
 	}
 }
