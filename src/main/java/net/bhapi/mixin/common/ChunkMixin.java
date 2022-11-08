@@ -492,7 +492,13 @@ public abstract class ChunkMixin implements NBTSerializable, LevelHeightProvider
 	@Inject(method = "setClientBlockData", at = @At("HEAD"), cancellable = true)
 	private void bhapi_setClientBlockData(byte[] data, int x1, int y1, int z1, int x2, int y2, int z2, int index, CallbackInfoReturnable<Integer> info) {
 		for (int y = y1; y < y2; y++) {
-			ChunkSection section = bhapi_getOrCreateSection(y);
+			//ChunkSection section = bhapi_getOrCreateSection(y);
+			short sectionIndex = (short) (y >> 4);
+			ChunkSection section = bhapi_sections[sectionIndex];
+			if (section == null) {
+				section = new ChunkSection();
+				bhapi_sections[sectionIndex] = section;
+			}
 			for (int x = x1; x < x2; x++) {
 				for (int z = z1; z < z2; z++) {
 					index = section.readData(data, x, y & 15, z, index);

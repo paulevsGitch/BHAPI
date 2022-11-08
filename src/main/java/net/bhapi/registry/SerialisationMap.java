@@ -1,6 +1,8 @@
 package net.bhapi.registry;
 
 import net.bhapi.BHAPI;
+import net.bhapi.interfaces.IDProvider;
+import net.bhapi.storage.ExpandableArray;
 import net.minecraft.util.io.CompoundTag;
 import net.minecraft.util.io.ListTag;
 import net.minecraft.util.io.NBTIO;
@@ -16,7 +18,7 @@ public class SerialisationMap<T> {
 	private static final String KEY_ID = "rawID";
 	
 	private final Map<Integer, T> loadingObjects = new HashMap<>();
-	private final Map<Integer, T> idToOBJ = new HashMap<>();
+	private final ExpandableArray<T> idToOBJ = new ExpandableArray<>();
 	private final Map<T, Integer> objToID = new HashMap<>();
 	private final Function<CompoundTag, T> deserializer;
 	private final Function<T, CompoundTag> serializer;
@@ -35,7 +37,7 @@ public class SerialisationMap<T> {
 	public void add(T obj) {
 		if (isLoading) return;
 		if (objToID.containsKey(obj)) return;
-		int index = getFreeID(idToOBJ);
+		int index = idToOBJ.getFreeID();
 		idToOBJ.put(index, obj);
 		objToID.put(obj, index);
 		requireSave = true;
@@ -46,6 +48,7 @@ public class SerialisationMap<T> {
 	}
 	
 	public int getID(T obj) {
+		if (obj instanceof IDProvider) return ((IDProvider) obj).getID();
 		return objToID.getOrDefault(obj, -1);
 	}
 	
@@ -55,7 +58,7 @@ public class SerialisationMap<T> {
 	}
 	
 	public boolean save(CompoundTag tag) {
-		if (!requireSave || idToOBJ.isEmpty()) return false;
+		if (!requireSave || objToID.isEmpty()) return false;
 		
 		ListTag list = new ListTag();
 		tag.put(dataKey, list);
@@ -119,7 +122,12 @@ public class SerialisationMap<T> {
 		objToID.clear();
 		
 		idToOBJ.putAll(loadingObjects);
-		idToOBJ.forEach((rawID, obj) -> objToID.put(obj, rawID));
+		idToOBJ.forEach((rawID, obj) -> {
+			objToID.put(obj, rawID);
+			if (obj instanceof IDProvider) {
+				((IDProvider) obj).setID(rawID);
+			}
+		});
 		loadingObjects.clear();
 		
 		requireSave = true;

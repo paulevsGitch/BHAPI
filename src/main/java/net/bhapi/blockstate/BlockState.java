@@ -2,6 +2,7 @@ package net.bhapi.blockstate;
 
 import net.bhapi.block.BHAirBlock;
 import net.bhapi.blockstate.properties.StateProperty;
+import net.bhapi.interfaces.IDProvider;
 import net.bhapi.registry.DefaultRegistries;
 import net.bhapi.util.Identifier;
 import net.minecraft.block.BaseBlock;
@@ -20,13 +21,14 @@ import java.util.List;
 import java.util.Map;
 import java.util.Random;
 
-public final class BlockState {
+public final class BlockState implements IDProvider {
 	private static final Map<BaseBlock, BlockState[]> POSSIBLE_STATES = new HashMap<>();
 	
 	private final Map<StateProperty<?>, Object> propertyValues = new HashMap<>();
 	private final Map<String, StateProperty<?>> properties;
 	private final BlockState[] localCache;
 	private final BaseBlock block;
+	private int rawID;
 	
 	private BlockState(BaseBlock block) {
 		this(block, new HashMap<>());
@@ -356,5 +358,15 @@ public final class BlockState {
 	 */
 	public Material getMaterial() {
 		return getBlock().material;
+	}
+	
+	@Override
+	public int getID() {
+		return rawID;
+	}
+	
+	@Override
+	public void setID(int id) {
+		rawID = id;
 	}
 }
