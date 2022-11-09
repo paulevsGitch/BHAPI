@@ -11,7 +11,4 @@ public class TestEvent {
 		event.register(Identifier.make("testblock"), new BHBaseBlock(Material.STONE));
 		event.register(Identifier.make("testblock2"), new BHBaseBlock(Material.DIRT));
 	}
-	
-	@EventListener
-	public void testUnexistingClass(EventRegistrationEvent event) {}
 }

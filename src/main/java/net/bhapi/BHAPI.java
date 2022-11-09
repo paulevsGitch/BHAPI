@@ -3,6 +3,7 @@ package net.bhapi;
 import net.bhapi.block.LegacyBlockInfo;
 import net.bhapi.event.BHEvent;
 import net.bhapi.event.EventListener;
+import net.bhapi.event.EventRegistrationEvent;
 import net.bhapi.mixin.common.AbstractPackerAccessor;
 import net.bhapi.packet.BlockStatesPacket;
 import net.bhapi.registry.DefaultRegistries;
@@ -23,6 +24,7 @@ import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.function.Supplier;
 
 public class BHAPI implements ModInitializer {
@@ -78,10 +80,10 @@ public class BHAPI implements ModInitializer {
 				});
 		});
 		
-		events.keySet().stream().map(DefaultRegistries.EVENT_REGISTRY::get).map(Supplier::get).sorted().forEach(event ->
-			events.get(event.getClass()).stream().sorted(
-				Comparator.comparingInt(p -> p.second().getAnnotation(EventListener.class).priority())
-			).forEach(pair -> {
+		List<Pair<Object, Method>> registerEvents = events.get(EventRegistrationEvent.class);
+		if (!registerEvents.isEmpty()) {
+			EventRegistrationEvent event = new EventRegistrationEvent(DefaultRegistries.EVENT_REGISTRY);
+			registerEvents.forEach(pair -> {
 				Object entrypoint = pair.first();
 				Method method = pair.second();
 				try {
@@ -90,7 +92,28 @@ public class BHAPI implements ModInitializer {
 				catch (IllegalAccessException | InvocationTargetException e) {
 					e.printStackTrace();
 				}
-			})
-		);
+			});
+		}
+		
+		events.keySet()
+			.stream()
+			.map(DefaultRegistries.EVENT_REGISTRY::get)
+			.filter(Objects::nonNull)
+			.map(Supplier::get)
+			.sorted()
+			.forEach(event ->
+				events.get(event.getClass()).stream().sorted(
+					Comparator.comparingInt(p -> p.second().getAnnotation(EventListener.class).priority())
+				).forEach(pair -> {
+					Object entrypoint = pair.first();
+					Method method = pair.second();
+					try {
+						method.invoke(entrypoint, event);
+					}
+					catch (IllegalAccessException | InvocationTargetException e) {
+						e.printStackTrace();
+					}
+				})
+			);
 	}
 }
