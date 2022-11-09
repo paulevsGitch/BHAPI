@@ -1,21 +1,29 @@
 package net.bhapi;
 
-import net.bhapi.block.BHBaseBlock;
 import net.bhapi.block.LegacyBlockInfo;
-import net.bhapi.blockstate.BlockState;
+import net.bhapi.event.BHEvent;
+import net.bhapi.event.EventListener;
 import net.bhapi.mixin.common.AbstractPackerAccessor;
 import net.bhapi.packet.BlockStatesPacket;
 import net.bhapi.registry.DefaultRegistries;
 import net.bhapi.util.BlockUtil;
-import net.bhapi.util.Identifier;
 import net.fabricmc.api.ModInitializer;
 import net.fabricmc.loader.api.FabricLoader;
-import net.minecraft.block.material.Material;
+import net.fabricmc.tinyremapper.extension.mixin.common.data.Pair;
 import org.apache.logging.log4j.Level;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import java.io.File;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Comparator;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.function.Supplier;
 
 public class BHAPI implements ModInitializer {
 	public static final Logger LOGGER = LogManager.getLogger();
@@ -36,17 +44,9 @@ public class BHAPI implements ModInitializer {
 		
 		LegacyBlockInfo.init();
 		DefaultRegistries.initBlocks();
+		DefaultRegistries.initEvents();
 		BlockUtil.init();
-		
-		Identifier id = Identifier.make("testblock");
-		BHBaseBlock block = new BHBaseBlock(Material.STONE);
-		DefaultRegistries.BLOCK_REGISTRY.register(id, block);
-		BlockState.getDefaultState(block);
-		
-		id = Identifier.make("testblock2");
-		block = new BHBaseBlock(Material.STONE);
-		DefaultRegistries.BLOCK_REGISTRY.register(id, block);
-		BlockState.getDefaultState(block);
+		handleEvents();
 	}
 	
 	public static BHAPI getInstance() {
@@ -61,11 +61,45 @@ public class BHAPI implements ModInitializer {
 		LOGGER.warn(message);
 	}
 	
-	/**
-	 * Check if object is not null, made for streams.
-	 * Example: Arrays.stream(BaseBlock.BY_ID).filter(BHAPI::notNull)
-	 */
-	public static boolean notNull(Object obj) {
-		return obj != null;
+	@SuppressWarnings("unchecked")
+	private void handleEvents() {
+		Map<Class<? extends BHEvent>, List<Pair<Object, Method>>> events = new HashMap<>();
+		FabricLoader.getInstance().getEntrypointContainers("bhapi:events", Object.class).forEach(entrypointContainer -> {
+			Object entrypoint = entrypointContainer.getEntrypoint();
+			Arrays.stream(entrypoint.getClass().getDeclaredMethods())
+				.filter(method -> method.isAnnotationPresent(EventListener.class))
+				.forEach(method -> {
+					Class<?>[] parameters = method.getParameterTypes();
+					if (parameters.length == 1 && BHEvent.class.isAssignableFrom(parameters[0])) {
+						Class<? extends BHEvent> event = (Class<? extends BHEvent>) parameters[0];
+						List<Pair<Object, Method>> pairs = events.computeIfAbsent(event, i -> new ArrayList<>());
+						pairs.add(Pair.of(entrypoint, method));
+					}
+				});
+		});
+		
+		events.keySet().stream().sorted().forEach(
+			eventClass -> {
+				Supplier<? extends BHEvent> supplier = DefaultRegistries.EVENT_REGISTRY.get(eventClass);
+				if (supplier == null) {
+					warn("Event " + eventClass + " is missing in event registry!");
+				}
+				else {
+					BHEvent event = supplier.get();
+					events.get(eventClass).stream().sorted(
+						Comparator.comparingInt(p -> p.second().getAnnotation(EventListener.class).priority())
+					).forEach(pair -> {
+						Object entrypoint = pair.first();
+						Method method = pair.second();
+						try {
+							method.invoke(entrypoint, event);
+						}
+						catch (IllegalAccessException | InvocationTargetException e) {
+							e.printStackTrace();
+						}
+					});
+				}
+			}
+		);
 	}
 }

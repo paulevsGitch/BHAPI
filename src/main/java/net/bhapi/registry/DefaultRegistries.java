@@ -2,14 +2,22 @@ package net.bhapi.registry;
 
 import net.bhapi.blockstate.BlockState;
 import net.bhapi.blockstate.BlockStateContainer;
+import net.bhapi.event.BHEvent;
+import net.bhapi.event.BlockRegistryEvent;
+import net.bhapi.event.ItemRegistryEvent;
 import net.bhapi.util.BlockUtil;
 import net.bhapi.util.Identifier;
 import net.minecraft.block.BaseBlock;
 import net.minecraft.item.BaseItem;
 
+import java.util.HashMap;
+import java.util.Map;
+import java.util.function.Supplier;
+
 public class DefaultRegistries {
 	public static final Registry<BaseBlock> BLOCK_REGISTRY = new Registry<>();
 	public static final Registry<BaseItem> ITEM_REGISTRY = new Registry<>();
+	public static final Map<Class<? extends BHEvent>, Supplier<? extends BHEvent>> EVENT_REGISTRY = new HashMap<>();
 	
 	public static final SerialisationMap<BlockState> BLOCKSTATES_MAP = new SerialisationMap<>(
 		"blockstates",
@@ -118,5 +126,10 @@ public class DefaultRegistries {
 		
 		// Make sure that all vanilla blocks are generated on startup
 		BLOCK_REGISTRY.forEach(block -> BlockStateContainer.cast(block).getDefaultState().getPossibleStates());
+	}
+	
+	public static void initEvents() {
+		EVENT_REGISTRY.put(BlockRegistryEvent.class, () -> new BlockRegistryEvent(BLOCK_REGISTRY));
+		EVENT_REGISTRY.put(ItemRegistryEvent.class, () -> new ItemRegistryEvent(ITEM_REGISTRY));
 	}
 }
