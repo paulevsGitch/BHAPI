@@ -4,6 +4,7 @@ import net.bhapi.blockstate.BlockState;
 import net.bhapi.blockstate.BlockStateContainer;
 import net.bhapi.event.BHEvent;
 import net.bhapi.event.BlockRegistryEvent;
+import net.bhapi.event.EventRegistrationEvent;
 import net.bhapi.event.ItemRegistryEvent;
 import net.bhapi.util.BlockUtil;
 import net.bhapi.util.Identifier;
@@ -129,6 +130,7 @@ public class DefaultRegistries {
 	}
 	
 	public static void initEvents() {
+		EVENT_REGISTRY.put(EventRegistrationEvent.class, () -> new EventRegistrationEvent(EVENT_REGISTRY));
 		EVENT_REGISTRY.put(BlockRegistryEvent.class, () -> new BlockRegistryEvent(BLOCK_REGISTRY));
 		EVENT_REGISTRY.put(ItemRegistryEvent.class, () -> new ItemRegistryEvent(ITEM_REGISTRY));
 	}

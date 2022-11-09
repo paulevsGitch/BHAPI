@@ -78,28 +78,19 @@ public class BHAPI implements ModInitializer {
 				});
 		});
 		
-		events.keySet().stream().sorted().forEach(
-			eventClass -> {
-				Supplier<? extends BHEvent> supplier = DefaultRegistries.EVENT_REGISTRY.get(eventClass);
-				if (supplier == null) {
-					warn("Event " + eventClass + " is missing in event registry!");
+		events.keySet().stream().map(DefaultRegistries.EVENT_REGISTRY::get).map(Supplier::get).sorted().forEach(event ->
+			events.get(event.getClass()).stream().sorted(
+				Comparator.comparingInt(p -> p.second().getAnnotation(EventListener.class).priority())
+			).forEach(pair -> {
+				Object entrypoint = pair.first();
+				Method method = pair.second();
+				try {
+					method.invoke(entrypoint, event);
 				}
-				else {
-					BHEvent event = supplier.get();
-					events.get(eventClass).stream().sorted(
-						Comparator.comparingInt(p -> p.second().getAnnotation(EventListener.class).priority())
-					).forEach(pair -> {
-						Object entrypoint = pair.first();
-						Method method = pair.second();
-						try {
-							method.invoke(entrypoint, event);
-						}
-						catch (IllegalAccessException | InvocationTargetException e) {
-							e.printStackTrace();
-						}
-					});
+				catch (IllegalAccessException | InvocationTargetException e) {
+					e.printStackTrace();
 				}
-			}
+			})
 		);
 	}
 }
