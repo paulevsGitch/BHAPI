@@ -143,9 +143,8 @@ public abstract class LevelMixin implements LevelHeightProvider, BlockStateProvi
 	private void bhapi_scheduleTick(int x, int y, int z, int id, int m, CallbackInfo ci) {
 		ci.cancel();
 		
-		// TODO Make configurable
-		final int updatesVertical = 8;
-		final int updatesHorizontal = 8;
+		final int updatesVertical = bhapi_updater.getUpdatesVertical();
+		final int updatesHorizontal = bhapi_updater.getUpdatesHorizontal();
 		
 		TimeInfo info = new TimeInfo(x, y, z, id);
 		

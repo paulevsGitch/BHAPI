@@ -1,6 +1,7 @@
 package net.bhapi;
 
 import net.bhapi.block.LegacyBlockInfo;
+import net.bhapi.config.BHConfigs;
 import net.bhapi.event.BHEvent;
 import net.bhapi.event.EventListener;
 import net.bhapi.event.EventRegistrationEvent;
@@ -35,6 +36,13 @@ public class BHAPI implements ModInitializer {
 	public void onInitialize() {
 		instance = this;
 		
+		BHConfigs.load();
+		
+		// Betacraft proxy (tests)
+		if (BHConfigs.GENERAL.getBool("network.useBetacraftProxy", true)) {
+			System.setProperty("http.proxyHost", "betacraft.uk");
+			System.setProperty("http.proxyPort", "11705");
+		}
 		AbstractPackerAccessor.callRegister(132, true, false, BlockStatesPacket.class);
 		
 		if (FabricLoader.getInstance().isDevelopmentEnvironment()) {
@@ -49,6 +57,8 @@ public class BHAPI implements ModInitializer {
 		DefaultRegistries.initEvents();
 		BlockUtil.init();
 		handleEvents();
+		
+		BHConfigs.save();
 	}
 	
 	public static BHAPI getInstance() {

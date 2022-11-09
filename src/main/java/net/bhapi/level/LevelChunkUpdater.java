@@ -1,6 +1,7 @@
 package net.bhapi.level;
 
 import net.bhapi.blockstate.BlockState;
+import net.bhapi.config.BHConfigs;
 import net.bhapi.mixin.common.LevelAccessor;
 import net.bhapi.storage.ExpandableCache;
 import net.bhapi.storage.Vec2I;
@@ -33,7 +34,6 @@ public class LevelChunkUpdater {
 	private final Set<Vec2I> loadedChunks = new HashSet<>();
 	private final BaseBiome[] biomes = new BaseBiome[1];
 	private final XorShift128 random = new XorShift128();
-	//private final Random random = new Random();
 	private final BiomeSource biomeSource;
 	private final Level level;
 	private final int height;
@@ -41,6 +41,10 @@ public class LevelChunkUpdater {
 	private RunnableThread updatingThread;
 	private boolean isEmpty = true;
 	private long time;
+	
+	private boolean useThreads;
+	private int updatesVertical;
+	private int updatesHorizontal;
 	
 	public LevelChunkUpdater(Level level) {
 		this.level = level;
@@ -66,10 +70,14 @@ public class LevelChunkUpdater {
 			biomeSource = source;
 		}
 		else biomeSource = level.getBiomeSource(); // Weird behavior on server, missing constructors
+		
+		useThreads = BHConfigs.GENERAL.getBool("multithreading.useThreads", true);
+		updatesVertical = BHConfigs.GENERAL.getInt("updates.verticalChunks", 8);
+		updatesHorizontal = BHConfigs.GENERAL.getInt("updates.horizontalChunks", 8);
+		BHConfigs.GENERAL.save();
 	}
 	
 	public void process() {
-		final boolean useThreads = true; // TODO make configurable
 		if (useThreads) {
 			if (updatingThread == null) {
 				updatingThread = ThreadManager.makeThread("chunk_updater_" + level.dimension.id, this::processChunks);
@@ -83,7 +91,6 @@ public class LevelChunkUpdater {
 	}
 	
 	private void check() {
-		final boolean useThreads = true; // TODO make configurable
 		if (useThreads && FabricLoader.getInstance().getEnvironmentType() == EnvType.CLIENT) {
 			boolean empty = ((Minecraft) FabricLoader.getInstance().getGameInstance()).viewEntity == null;
 			if (!isEmpty && empty) {
@@ -95,7 +102,6 @@ public class LevelChunkUpdater {
 	}
 	
 	private void delay() {
-		final boolean useThreads = true; // TODO make configurable
 		if (!useThreads) return;
 		long t = System.currentTimeMillis();
 		int delta = (int) (t - time);
@@ -112,9 +118,6 @@ public class LevelChunkUpdater {
 	}
 	
 	private void processChunks() {
-		final int updatesVertical = 8;
-		final int updatesHorizontal = 8;
-		
 		cache3D.clear();
 		cache2D.clear();
 		loadedSections.clear();
@@ -238,5 +241,13 @@ public class LevelChunkUpdater {
 		
 		check();
 		delay();
+	}
+	
+	public int getUpdatesVertical() {
+		return updatesVertical;
+	}
+	
+	public int getUpdatesHorizontal() {
+		return updatesHorizontal;
 	}
 }

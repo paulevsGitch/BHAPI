@@ -1,5 +1,6 @@
 package net.bhapi.mixin.client;
 
+import net.bhapi.config.BHConfigs;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.util.Session;
 import net.minecraft.entity.player.AbstractClientPlayer;
@@ -18,8 +19,9 @@ public abstract class AbstractClientPlayerMixin extends PlayerBase {
 	
 	@Inject(method = "<init>", at = @At("TAIL"))
 	private void bhapi_onClientPlayerInit(Minecraft minecraft, Level arg, Session arg2, int i, CallbackInfo info) {
-		if (arg2 != null && arg2.username != null && arg2.username.length() > 0) {
+		if (arg2 != null && arg2.username != null && arg2.username.length() > 0 && BHConfigs.GENERAL.getBool("network.useMinotarSkins", true)) {
 			this.skinUrl = "https://minotar.net/skin/" + arg2.username + ".png";
+			BHConfigs.GENERAL.save();
 		}
 	}
 }
