@@ -81,7 +81,7 @@ public class BHAPI implements ModInitializer {
 		});
 		
 		List<Pair<Object, Method>> registerEvents = events.get(EventRegistrationEvent.class);
-		if (!registerEvents.isEmpty()) {
+		if (registerEvents != null && !registerEvents.isEmpty()) {
 			EventRegistrationEvent event = new EventRegistrationEvent(DefaultRegistries.EVENT_REGISTRY);
 			registerEvents.forEach(pair -> {
 				Object entrypoint = pair.first();
