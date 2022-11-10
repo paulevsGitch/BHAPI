@@ -139,6 +139,7 @@ public abstract class LevelMixin implements LevelHeightProvider, BlockStateProvi
 		bhapi_updater.process();
 	}
 	
+	@SuppressWarnings("unchecked")
 	@Inject(method = "scheduleTick", at = @At("HEAD"), cancellable = true)
 	private void bhapi_scheduleTick(int x, int y, int z, int id, int m, CallbackInfo ci) {
 		ci.cancel();
@@ -174,17 +175,24 @@ public abstract class LevelMixin implements LevelHeightProvider, BlockStateProvi
 				info.setTime((long) m + this.properties.getTime());
 			}
 			if (!this.tickNextTick.contains(info)) {
-				this.tickNextTick.add(info);
-				this.treeSet.add(info);
+				synchronized (this) {
+					this.tickNextTick.add(info);
+					this.treeSet.add(info);
+				}
 			}
 		}
 	}
 	
+	@SuppressWarnings("unchecked")
 	@Inject(method = "processBlockTicks", at = @At("HEAD"), cancellable = true)
 	private void bhapi_processBlockTicks(boolean flag, CallbackInfoReturnable<Boolean> cir) {
 		int n = this.treeSet.size();
 		if (n != this.tickNextTick.size()) {
-			throw new IllegalStateException("TickNextTick list out of synch");
+			//throw new IllegalStateException("TickNextTick list out of synch");
+			synchronized (this) {
+				this.treeSet.stream().filter(o -> !this.tickNextTick.contains(o)).forEach(this.tickNextTick::add);
+				this.tickNextTick.stream().filter(o -> !this.treeSet.contains(o)).forEach(this.treeSet::add);
+			}
 		}
 		if (n > 1000) {
 			n = 1000;

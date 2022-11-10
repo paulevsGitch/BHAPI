@@ -5,6 +5,7 @@ import net.bhapi.blockstate.BlockStateContainer;
 import net.bhapi.event.BHEvent;
 import net.bhapi.event.BlockRegistryEvent;
 import net.bhapi.event.ItemRegistryEvent;
+import net.bhapi.item.BHBlockItem;
 import net.bhapi.util.BlockUtil;
 import net.bhapi.util.Identifier;
 import net.minecraft.block.BaseBlock;
@@ -131,7 +132,10 @@ public class CommonRegistries {
 		BLOCK_REGISTRY.register(Identifier.make("trapdoor"), BaseBlock.TRAPDOOR);
 		
 		// Make sure that all vanilla blocks are generated on startup
-		BLOCK_REGISTRY.forEach(block -> BlockStateContainer.cast(block).getDefaultState().getPossibleStates());
+		BLOCK_REGISTRY.forEach(block -> {
+			BlockStateContainer.cast(block).getDefaultState().getPossibleStates();
+			ITEM_REGISTRY.register(BLOCK_REGISTRY.getID(block), new BHBlockItem(block));
+		});
 	}
 	
 	private static void initItems() {

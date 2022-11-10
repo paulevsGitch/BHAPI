@@ -8,6 +8,7 @@ import net.bhapi.mixin.common.AbstractPackerAccessor;
 import net.bhapi.packet.BlockStatesPacket;
 import net.bhapi.registry.CommonRegistries;
 import net.bhapi.util.BlockUtil;
+import net.bhapi.util.ItemUtil;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.ModInitializer;
 import net.fabricmc.loader.api.FabricLoader;
@@ -55,6 +56,7 @@ public class BHAPI implements ModInitializer {
 		
 		CommonRegistries.init();
 		BlockUtil.init();
+		ItemUtil.init();
 		handleEvents();
 		
 		BHConfigs.save();

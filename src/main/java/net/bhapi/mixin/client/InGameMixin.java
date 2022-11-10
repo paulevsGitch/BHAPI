@@ -43,6 +43,7 @@ public abstract class InGameMixin extends DrawableHelper {
 			ItemStack[] items = inventory.getItems();
 			int index = 0;
 			items[index++] = new ItemStack(CommonRegistries.ITEM_REGISTRY.get(Identifier.make("testitem")), 64);
+			items[index++] = new ItemStack(CommonRegistries.ITEM_REGISTRY.get(Identifier.make("testitem2")), 64);
 			for (byte m = 0; m < 3; m++) items[index++] = new ItemStack(BaseBlock.SAPLING, 64, m);
 			this.minecraft.player.openChestScreen(inventory);
 		}

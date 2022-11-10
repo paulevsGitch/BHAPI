@@ -2,6 +2,7 @@ package net.bhapi.mixin.common;
 
 import net.bhapi.registry.CommonRegistries;
 import net.bhapi.util.Identifier;
+import net.bhapi.util.ItemUtil;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
 import net.minecraft.block.BaseBlock;
@@ -34,6 +35,21 @@ public abstract class ItemStackMixin {
 	@Shadow public int cooldown;
 	@Unique private BaseItem bhapi_item;
 	
+	@Inject(method = "<init>(Lnet/minecraft/block/BaseBlock;)V", at = @At("TAIL"))
+	private void bhapi_onItemStackInit(BaseBlock arg, CallbackInfo info) {
+	
+	}
+	
+	@Inject(method = "<init>(Lnet/minecraft/block/BaseBlock;I)V", at = @At("TAIL"))
+	private void bhapi_onItemStackInit(BaseBlock arg, int i, CallbackInfo info) {
+	
+	}
+	
+	@Inject(method = "<init>(Lnet/minecraft/block/BaseBlock;II)V", at = @At("TAIL"))
+	private void bhapi_onItemStackInit(BaseBlock arg, int i, int j, CallbackInfo info) {
+	
+	}
+	
 	@Inject(method = "<init>(Lnet/minecraft/item/BaseItem;)V", at = @At("TAIL"))
 	private void bhapi_onItemStackInit(BaseItem item, CallbackInfo info) {
 		this.bhapi_item = item;
@@ -51,12 +67,12 @@ public abstract class ItemStackMixin {
 	
 	@Inject(method = "<init>(III)V", at = @At("TAIL"))
 	private void bhapi_onItemStackInit(int id, int count, int damage, CallbackInfo info) {
-		if (this.bhapi_item == null) {
-			/*if (id == BlockUtil.MOD_BLOCK_ID) {
-				throw new RuntimeException("Attempt to use block item with ID instead of BaseItem");
-			}*/
-			this.itemId = 256;
-			this.count = 0;
+		if (this.bhapi_item == null && this.itemId != ItemUtil.MOD_ITEM_ID) {
+			this.bhapi_item = ItemUtil.getLegacyItem(id + 256);
+			if (this.bhapi_item == null) {
+				this.itemId = 256;
+				this.count = 0;
+			}
 		}
 	}
 	

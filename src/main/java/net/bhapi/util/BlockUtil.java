@@ -5,6 +5,7 @@ import net.bhapi.blockstate.BlockState;
 import net.bhapi.blockstate.BlockStateContainer;
 import net.bhapi.blockstate.properties.StateProperty;
 import net.bhapi.registry.CommonRegistries;
+import net.bhapi.storage.ExpandableArray;
 import net.minecraft.block.BaseBlock;
 
 import java.util.Arrays;
@@ -16,7 +17,7 @@ public class BlockUtil {
 	private static final Map<BaseBlock, BlockInfo> INFO_MAP = new HashMap<>();
 	private static final BlockInfo DEFAULT = new BlockInfo(false, true, false, 0, false, 0);
 	
-	private static final Map<Integer, BlockState> LEGACY_BLOCKS = new HashMap<>();
+	private static final ExpandableArray<BlockState> LEGACY_BLOCKS = new ExpandableArray<>();
 	public static final BHAirBlock AIR_BLOCK = new BHAirBlock();
 	public static final BlockState AIR_STATE = BlockState.getDefaultState(AIR_BLOCK);
 	public static final int MOD_BLOCK_ID = 255;
