@@ -5,7 +5,7 @@ import net.bhapi.blockstate.properties.BlockPropertyType;
 import net.bhapi.blockstate.properties.IntegerProperty;
 import net.bhapi.blockstate.properties.StateProperty;
 import net.bhapi.interfaces.NBTSerializable;
-import net.bhapi.registry.DefaultRegistries;
+import net.bhapi.registry.CommonRegistries;
 import net.bhapi.storage.MultiThreadStorage;
 import net.bhapi.util.BlockUtil;
 import net.bhapi.util.MathUtil;
@@ -106,7 +106,7 @@ public class ChunkSection implements NBTSerializable {
 		
 		BlockState state = states[secIndex];
 		if (state == null) state = BlockUtil.AIR_STATE;
-		int stateID = DefaultRegistries.BLOCKSTATES_MAP.getID(state);
+		int stateID = CommonRegistries.BLOCKSTATES_MAP.getID(state);
 		index = MathUtil.writeInt(data, stateID, index);
 		
 		data[index++] = light[secIndex];
@@ -118,7 +118,7 @@ public class ChunkSection implements NBTSerializable {
 		int secIndex = getIndex(x, y, z);
 		
 		int stateID = MathUtil.readInt(data, index);
-		BlockState state = DefaultRegistries.BLOCKSTATES_MAP.get(stateID);
+		BlockState state = CommonRegistries.BLOCKSTATES_MAP.get(stateID);
 		states[secIndex] = state;
 		
 		index += 4;

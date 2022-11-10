@@ -14,7 +14,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.function.Supplier;
 
-public class DefaultRegistries {
+public class CommonRegistries {
 	public static final Registry<BaseBlock> BLOCK_REGISTRY = new Registry<>();
 	public static final Registry<BaseItem> ITEM_REGISTRY = new Registry<>();
 	public static final Map<Class<? extends BHEvent>, Supplier<? extends BHEvent>> EVENT_REGISTRY = new HashMap<>();
@@ -25,7 +25,13 @@ public class DefaultRegistries {
 		BlockState::loadFromNBT
 	);
 	
-	public static void initBlocks() {
+	public static void init() {
+		initBlocks();
+		initItems();
+		initEvents();
+	}
+	
+	private static void initBlocks() {
 		BLOCK_REGISTRY.register(Identifier.make("air"), BlockUtil.AIR_BLOCK);
 		BLOCK_REGISTRY.register(Identifier.make("stone"), BaseBlock.STONE);
 		BLOCK_REGISTRY.register(Identifier.make("grass"), BaseBlock.GRASS);
@@ -128,7 +134,116 @@ public class DefaultRegistries {
 		BLOCK_REGISTRY.forEach(block -> BlockStateContainer.cast(block).getDefaultState().getPossibleStates());
 	}
 	
-	public static void initEvents() {
+	private static void initItems() {
+		ITEM_REGISTRY.register(Identifier.make("iron_shovel"), BaseItem.ironShovel);
+		ITEM_REGISTRY.register(Identifier.make("iron_pickaxe"), BaseItem.ironPickaxe);
+		ITEM_REGISTRY.register(Identifier.make("iron_axe"), BaseItem.ironAxe);
+		ITEM_REGISTRY.register(Identifier.make("flint_and_steel"), BaseItem.flintAndSteel);
+		ITEM_REGISTRY.register(Identifier.make("apple"), BaseItem.apple);
+		ITEM_REGISTRY.register(Identifier.make("bow"), BaseItem.bow);
+		ITEM_REGISTRY.register(Identifier.make("arrow"), BaseItem.arrow);
+		ITEM_REGISTRY.register(Identifier.make("coal"), BaseItem.coal);
+		ITEM_REGISTRY.register(Identifier.make("diamond"), BaseItem.diamond);
+		ITEM_REGISTRY.register(Identifier.make("iron_ingot"), BaseItem.ironIngot);
+		ITEM_REGISTRY.register(Identifier.make("gold_ingot"), BaseItem.goldIngot);
+		ITEM_REGISTRY.register(Identifier.make("iron_sword"), BaseItem.ironSword);
+		ITEM_REGISTRY.register(Identifier.make("wood_sword"), BaseItem.woodSword);
+		ITEM_REGISTRY.register(Identifier.make("wood_shovel"), BaseItem.woodShovel);
+		ITEM_REGISTRY.register(Identifier.make("wood_pickaxe"), BaseItem.woodPickaxe);
+		ITEM_REGISTRY.register(Identifier.make("wood_axe"), BaseItem.woodAxe);
+		ITEM_REGISTRY.register(Identifier.make("stone_sword"), BaseItem.stoneSword);
+		ITEM_REGISTRY.register(Identifier.make("stone_shovel"), BaseItem.stoneShovel);
+		ITEM_REGISTRY.register(Identifier.make("stone_pickaxe"), BaseItem.stonePickaxe);
+		ITEM_REGISTRY.register(Identifier.make("stone_axe"), BaseItem.stoneAxe);
+		ITEM_REGISTRY.register(Identifier.make("diamond_sword"), BaseItem.diamondSword);
+		ITEM_REGISTRY.register(Identifier.make("diamond_shovel"), BaseItem.diamondShovel);
+		ITEM_REGISTRY.register(Identifier.make("diamond_pickaxe"), BaseItem.diamondPickaxe);
+		ITEM_REGISTRY.register(Identifier.make("diamond_axe"), BaseItem.diamondAxe);
+		ITEM_REGISTRY.register(Identifier.make("stick"), BaseItem.stick);
+		ITEM_REGISTRY.register(Identifier.make("bowl"), BaseItem.bowl);
+		ITEM_REGISTRY.register(Identifier.make("mushroom_stew"), BaseItem.mushroomStew);
+		ITEM_REGISTRY.register(Identifier.make("gold_sword"), BaseItem.goldSword);
+		ITEM_REGISTRY.register(Identifier.make("gold_shovel"), BaseItem.goldShovel);
+		ITEM_REGISTRY.register(Identifier.make("gold_pickaxe"), BaseItem.goldPickaxe);
+		ITEM_REGISTRY.register(Identifier.make("gold_axe"), BaseItem.goldAxe);
+		ITEM_REGISTRY.register(Identifier.make("string"), BaseItem.string);
+		ITEM_REGISTRY.register(Identifier.make("feather"), BaseItem.feather);
+		ITEM_REGISTRY.register(Identifier.make("gunpowder"), BaseItem.gunpowder);
+		ITEM_REGISTRY.register(Identifier.make("wood_hoe"), BaseItem.woodHoe);
+		ITEM_REGISTRY.register(Identifier.make("stone_hoe"), BaseItem.stoneHoe);
+		ITEM_REGISTRY.register(Identifier.make("iron_hoe"), BaseItem.ironHoe);
+		ITEM_REGISTRY.register(Identifier.make("diamond_hoe"), BaseItem.diamondHoe);
+		ITEM_REGISTRY.register(Identifier.make("gold_hoe"), BaseItem.goldHoe);
+		ITEM_REGISTRY.register(Identifier.make("seeds"), BaseItem.seeds);
+		ITEM_REGISTRY.register(Identifier.make("wheat"), BaseItem.wheat);
+		ITEM_REGISTRY.register(Identifier.make("bread"), BaseItem.bread);
+		ITEM_REGISTRY.register(Identifier.make("leather_helmet"), BaseItem.leatherHelmet);
+		ITEM_REGISTRY.register(Identifier.make("leather_chestplate"), BaseItem.leatherChestplate);
+		ITEM_REGISTRY.register(Identifier.make("leather_leggings"), BaseItem.leatherLeggings);
+		ITEM_REGISTRY.register(Identifier.make("leather_boots"), BaseItem.leatherBoots);
+		ITEM_REGISTRY.register(Identifier.make("chain_helmet"), BaseItem.chainHelmet);
+		ITEM_REGISTRY.register(Identifier.make("chain_chestplate"), BaseItem.chainChestplate);
+		ITEM_REGISTRY.register(Identifier.make("chain_leggings"), BaseItem.chainLeggings);
+		ITEM_REGISTRY.register(Identifier.make("chain_boots"), BaseItem.chainBoots);
+		ITEM_REGISTRY.register(Identifier.make("iron_helmet"), BaseItem.ironHelmet);
+		ITEM_REGISTRY.register(Identifier.make("iron_chestplate"), BaseItem.ironChestplate);
+		ITEM_REGISTRY.register(Identifier.make("iron_leggings"), BaseItem.ironLeggings);
+		ITEM_REGISTRY.register(Identifier.make("iron_boots"), BaseItem.ironBoots);
+		ITEM_REGISTRY.register(Identifier.make("diamond_helmet"), BaseItem.diamondHelmet);
+		ITEM_REGISTRY.register(Identifier.make("diamond_chestplate"), BaseItem.diamondChestplate);
+		ITEM_REGISTRY.register(Identifier.make("diamond_leggings"), BaseItem.diamondLeggings);
+		ITEM_REGISTRY.register(Identifier.make("diamond_boots"), BaseItem.diamondBoots);
+		ITEM_REGISTRY.register(Identifier.make("gold_helmet"), BaseItem.goldHelmet);
+		ITEM_REGISTRY.register(Identifier.make("gold_chestplate"), BaseItem.goldChestplate);
+		ITEM_REGISTRY.register(Identifier.make("gold_leggings"), BaseItem.goldLeggings);
+		ITEM_REGISTRY.register(Identifier.make("gold_boots"), BaseItem.goldBoots);
+		ITEM_REGISTRY.register(Identifier.make("flint"), BaseItem.flint);
+		ITEM_REGISTRY.register(Identifier.make("raw_porkchop"), BaseItem.rawPorkchop);
+		ITEM_REGISTRY.register(Identifier.make("cooked_porkchop"), BaseItem.cookedPorkchop);
+		ITEM_REGISTRY.register(Identifier.make("painting"), BaseItem.painting);
+		ITEM_REGISTRY.register(Identifier.make("golden_apple"), BaseItem.goldenApple);
+		ITEM_REGISTRY.register(Identifier.make("sign"), BaseItem.sign);
+		ITEM_REGISTRY.register(Identifier.make("wood_door"), BaseItem.woodDoor);
+		ITEM_REGISTRY.register(Identifier.make("bucket"), BaseItem.bucket);
+		ITEM_REGISTRY.register(Identifier.make("water_bucket"), BaseItem.waterBucket);
+		ITEM_REGISTRY.register(Identifier.make("lava_bucket"), BaseItem.lavaBucket);
+		ITEM_REGISTRY.register(Identifier.make("minecart"), BaseItem.minecart);
+		ITEM_REGISTRY.register(Identifier.make("saddle"), BaseItem.saddle);
+		ITEM_REGISTRY.register(Identifier.make("iron_door"), BaseItem.ironDoor);
+		ITEM_REGISTRY.register(Identifier.make("redstone_dust"), BaseItem.redstoneDust);
+		ITEM_REGISTRY.register(Identifier.make("snowball"), BaseItem.snowball);
+		ITEM_REGISTRY.register(Identifier.make("boat"), BaseItem.boat);
+		ITEM_REGISTRY.register(Identifier.make("leather"), BaseItem.leather);
+		ITEM_REGISTRY.register(Identifier.make("milk"), BaseItem.milk);
+		ITEM_REGISTRY.register(Identifier.make("brick"), BaseItem.brick);
+		ITEM_REGISTRY.register(Identifier.make("clay"), BaseItem.clay);
+		ITEM_REGISTRY.register(Identifier.make("sugar_canes"), BaseItem.sugarCanes);
+		ITEM_REGISTRY.register(Identifier.make("paper"), BaseItem.paper);
+		ITEM_REGISTRY.register(Identifier.make("book"), BaseItem.book);
+		ITEM_REGISTRY.register(Identifier.make("slimeball"), BaseItem.slimeball);
+		ITEM_REGISTRY.register(Identifier.make("minecart_chest"), BaseItem.minecartChest);
+		ITEM_REGISTRY.register(Identifier.make("minecart_furnace"), BaseItem.minecartFurnace);
+		ITEM_REGISTRY.register(Identifier.make("egg"), BaseItem.egg);
+		ITEM_REGISTRY.register(Identifier.make("compass"), BaseItem.compass);
+		ITEM_REGISTRY.register(Identifier.make("fishing_rod"), BaseItem.fishingRod);
+		ITEM_REGISTRY.register(Identifier.make("clock"), BaseItem.clock);
+		ITEM_REGISTRY.register(Identifier.make("glowstone_dust"), BaseItem.glowstoneDust);
+		ITEM_REGISTRY.register(Identifier.make("raw_fish"), BaseItem.rawFish);
+		ITEM_REGISTRY.register(Identifier.make("cooked_fish"), BaseItem.cookedFish);
+		ITEM_REGISTRY.register(Identifier.make("dye_powder"), BaseItem.dyePowder);
+		ITEM_REGISTRY.register(Identifier.make("bone"), BaseItem.bone);
+		ITEM_REGISTRY.register(Identifier.make("sugar"), BaseItem.sugar);
+		ITEM_REGISTRY.register(Identifier.make("cake"), BaseItem.cake);
+		ITEM_REGISTRY.register(Identifier.make("bed"), BaseItem.bed);
+		ITEM_REGISTRY.register(Identifier.make("redstone_repeater"), BaseItem.redstoneRepeater);
+		ITEM_REGISTRY.register(Identifier.make("cookie"), BaseItem.cookie);
+		ITEM_REGISTRY.register(Identifier.make("map"), BaseItem.map);
+		ITEM_REGISTRY.register(Identifier.make("shears"), BaseItem.shears);
+		ITEM_REGISTRY.register(Identifier.make("record_13"), BaseItem.record13);
+		ITEM_REGISTRY.register(Identifier.make("record_cat"), BaseItem.recordCat);
+	}
+	
+	private static void initEvents() {
 		EVENT_REGISTRY.put(BlockRegistryEvent.class, () -> new BlockRegistryEvent(BLOCK_REGISTRY));
 		EVENT_REGISTRY.put(ItemRegistryEvent.class, () -> new ItemRegistryEvent(ITEM_REGISTRY));
 	}

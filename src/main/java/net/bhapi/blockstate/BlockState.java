@@ -3,7 +3,7 @@ package net.bhapi.blockstate;
 import net.bhapi.block.BHAirBlock;
 import net.bhapi.blockstate.properties.StateProperty;
 import net.bhapi.interfaces.IDProvider;
-import net.bhapi.registry.DefaultRegistries;
+import net.bhapi.registry.CommonRegistries;
 import net.bhapi.util.Identifier;
 import net.minecraft.block.BaseBlock;
 import net.minecraft.block.BlockSounds;
@@ -49,7 +49,7 @@ public final class BlockState implements IDProvider {
 					this.properties.put(property.getName(), property);
 				});
 				BlockState[] cache = new BlockState[size];
-				DefaultRegistries.BLOCKSTATES_MAP.add(this);
+				CommonRegistries.BLOCKSTATES_MAP.add(this);
 				cache[0] = this;
 				return cache;
 			});
@@ -71,11 +71,11 @@ public final class BlockState implements IDProvider {
 			BlockState state = localCache[indAndInc[0]];
 			if (state == null) {
 				state = new BlockState(block, localCache[0].properties);
-				DefaultRegistries.BLOCKSTATES_MAP.add(state);
+				CommonRegistries.BLOCKSTATES_MAP.add(state);
 				state.propertyValues.putAll(propertyValues);
 				state.propertyValues.put(property, value);
 				localCache[indAndInc[0]] = state;
-				DefaultRegistries.BLOCKSTATES_MAP.add(state);
+				CommonRegistries.BLOCKSTATES_MAP.add(state);
 			}
 			return state;
 		}
@@ -113,7 +113,7 @@ public final class BlockState implements IDProvider {
 				BlockState state = localCache[indAndInc[0]];
 				if (state == null) {
 					state = new BlockState(block, localCache[0].properties);
-					DefaultRegistries.BLOCKSTATES_MAP.add(state);
+					CommonRegistries.BLOCKSTATES_MAP.add(state);
 					state.propertyValues.putAll(newProperties);
 					localCache[i] = state;
 				}
@@ -125,7 +125,7 @@ public final class BlockState implements IDProvider {
 	
 	@Override
 	public String toString() {
-		Identifier blockID = DefaultRegistries.BLOCK_REGISTRY.getID(block);
+		Identifier blockID = CommonRegistries.BLOCK_REGISTRY.getID(block);
 		if (blockID == null) {
 			throw new RuntimeException("Block " + block + " is not in registry!");
 		}
@@ -179,7 +179,7 @@ public final class BlockState implements IDProvider {
 	 */
 	public CompoundTag saveToNBT() {
 		CompoundTag tag = new CompoundTag();
-		tag.put("block", DefaultRegistries.BLOCK_REGISTRY.getID(block).toString());
+		tag.put("block", CommonRegistries.BLOCK_REGISTRY.getID(block).toString());
 		if (!propertyValues.isEmpty()) {
 			ListTag list = new ListTag();
 			tag.put("properties", list);
@@ -200,7 +200,7 @@ public final class BlockState implements IDProvider {
 	 */
 	public static BlockState loadFromNBT(CompoundTag tag) {
 		Identifier blockID = Identifier.make(tag.getString("block"));
-		BaseBlock block = DefaultRegistries.BLOCK_REGISTRY.get(blockID);
+		BaseBlock block = CommonRegistries.BLOCK_REGISTRY.get(blockID);
 		if (block == null) return null;
 		
 		BlockState state = getDefaultState(block);

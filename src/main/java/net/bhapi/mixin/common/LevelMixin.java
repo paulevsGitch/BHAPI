@@ -5,7 +5,7 @@ import net.bhapi.blockstate.BlockState;
 import net.bhapi.level.BlockStateProvider;
 import net.bhapi.level.LevelChunkUpdater;
 import net.bhapi.level.LevelHeightProvider;
-import net.bhapi.registry.DefaultRegistries;
+import net.bhapi.registry.CommonRegistries;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
 import net.minecraft.block.material.Material;
@@ -117,7 +117,7 @@ public abstract class LevelMixin implements LevelHeightProvider, BlockStateProvi
 	@Inject(method = "saveLevelData()V", at = @At("HEAD"))
 	private void bhapi_onLevelSave(CallbackInfo ci) {
 		CompoundTag tag = new CompoundTag();
-		boolean requireSave = DefaultRegistries.BLOCKSTATES_MAP.save(tag);
+		boolean requireSave = CommonRegistries.BLOCKSTATES_MAP.save(tag);
 		
 		if (requireSave) {
 			BHAPI.log("Saving registries");
@@ -383,12 +383,12 @@ public abstract class LevelMixin implements LevelHeightProvider, BlockStateProvi
 		}
 		
 		if (tag != null) {
-			DefaultRegistries.BLOCKSTATES_MAP.load(tag);
+			CommonRegistries.BLOCKSTATES_MAP.load(tag);
 		}
 		
 		if (tag == null) tag = new CompoundTag();
 		BHAPI.log("Saving registries");
-		DefaultRegistries.BLOCKSTATES_MAP.save(tag);
+		CommonRegistries.BLOCKSTATES_MAP.save(tag);
 		
 		try {
 			FileOutputStream stream = new FileOutputStream(file);

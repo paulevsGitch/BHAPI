@@ -1,14 +1,14 @@
 package net.bhapi;
 
-import net.bhapi.block.LegacyBlockInfo;
 import net.bhapi.config.BHConfigs;
 import net.bhapi.event.BHEvent;
 import net.bhapi.event.EventListener;
 import net.bhapi.event.EventRegistrationEvent;
 import net.bhapi.mixin.common.AbstractPackerAccessor;
 import net.bhapi.packet.BlockStatesPacket;
-import net.bhapi.registry.DefaultRegistries;
+import net.bhapi.registry.CommonRegistries;
 import net.bhapi.util.BlockUtil;
+import net.fabricmc.api.EnvType;
 import net.fabricmc.api.ModInitializer;
 import net.fabricmc.loader.api.FabricLoader;
 import net.fabricmc.tinyremapper.extension.mixin.common.data.Pair;
@@ -34,6 +34,7 @@ public class BHAPI implements ModInitializer {
 	
 	@Override
 	public void onInitialize() {
+		log("Init BHAPI");
 		instance = this;
 		
 		BHConfigs.load();
@@ -52,9 +53,7 @@ public class BHAPI implements ModInitializer {
 			);
 		}
 		
-		LegacyBlockInfo.init();
-		DefaultRegistries.initBlocks();
-		DefaultRegistries.initEvents();
+		CommonRegistries.init();
 		BlockUtil.init();
 		handleEvents();
 		
@@ -73,14 +72,19 @@ public class BHAPI implements ModInitializer {
 		LOGGER.warn(message);
 	}
 	
+	public static boolean isClient() {
+		return FabricLoader.getInstance().getEnvironmentType() == EnvType.CLIENT;
+	}
+	
 	@SuppressWarnings("unchecked")
 	private void handleEvents() {
 		Map<Class<? extends BHEvent>, List<Pair<Object, Method>>> events = new HashMap<>();
-		FabricLoader.getInstance().getEntrypointContainers("bhapi:events", Object.class).forEach(entrypointContainer -> {
+		FabricLoader.getInstance().getEntrypointContainers("bhapi:common_events", Object.class).forEach(entrypointContainer -> {
 			Object entrypoint = entrypointContainer.getEntrypoint();
 			Arrays.stream(entrypoint.getClass().getDeclaredMethods())
 				.filter(method -> method.isAnnotationPresent(EventListener.class))
 				.forEach(method -> {
+					method.setAccessible(true);
 					Class<?>[] parameters = method.getParameterTypes();
 					if (parameters.length == 1 && BHEvent.class.isAssignableFrom(parameters[0])) {
 						Class<? extends BHEvent> event = (Class<? extends BHEvent>) parameters[0];
@@ -92,7 +96,7 @@ public class BHAPI implements ModInitializer {
 		
 		List<Pair<Object, Method>> registerEvents = events.get(EventRegistrationEvent.class);
 		if (registerEvents != null && !registerEvents.isEmpty()) {
-			EventRegistrationEvent event = new EventRegistrationEvent(DefaultRegistries.EVENT_REGISTRY);
+			EventRegistrationEvent event = new EventRegistrationEvent(CommonRegistries.EVENT_REGISTRY);
 			registerEvents.forEach(pair -> {
 				Object entrypoint = pair.first();
 				Method method = pair.second();
@@ -107,7 +111,7 @@ public class BHAPI implements ModInitializer {
 		
 		events.keySet()
 			.stream()
-			.map(DefaultRegistries.EVENT_REGISTRY::get)
+			.map(CommonRegistries.EVENT_REGISTRY::get)
 			.filter(Objects::nonNull)
 			.map(Supplier::get)
 			.sorted()

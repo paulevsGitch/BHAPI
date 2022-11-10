@@ -1,7 +1,7 @@
 package net.bhapi.blockstate;
 
-import net.bhapi.block.LegacyBlockInfo;
 import net.bhapi.blockstate.properties.StateProperty;
+import net.bhapi.util.BlockUtil;
 import net.minecraft.block.BaseBlock;
 import net.minecraft.block.BlockSounds;
 import net.minecraft.entity.BaseEntity;
@@ -46,7 +46,7 @@ public interface BlockStateContainer {
 	 * @return {@code true} if state has random ticks and {@code false} if not
 	 */
 	default boolean hasRandomTicks(BlockState state) {
-		return LegacyBlockInfo.getInfo(state.getBlock()).ticksRandomly();
+		return BlockUtil.getInfo(state.getBlock()).ticksRandomly();
 	}
 	
 	/**
@@ -68,7 +68,7 @@ public interface BlockStateContainer {
 	 * @return {@code true} if state is opaque and {@code false} if not
 	 */
 	default boolean isFullOpaque(BlockState state) {
-		return LegacyBlockInfo.getInfo(state.getBlock()).fullOpaque();
+		return BlockUtil.getInfo(state.getBlock()).fullOpaque();
 	}
 	
 	/**
@@ -77,7 +77,7 @@ public interface BlockStateContainer {
 	 * @return {@code true} if state has entity and {@code false} if not
 	 */
 	default boolean hasBlockEntity(BlockState state) {
-		return LegacyBlockInfo.getInfo(state.getBlock()).hasBlockEntity();
+		return BlockUtil.getInfo(state.getBlock()).hasBlockEntity();
 	}
 	
 	/**
@@ -87,7 +87,7 @@ public interface BlockStateContainer {
 	 * @return {@code integer} value of light opacity
 	 */
 	default int getLightOpacity(BlockState state) {
-		return LegacyBlockInfo.getInfo(state.getBlock()).lightOpacity();
+		return BlockUtil.getInfo(state.getBlock()).lightOpacity();
 	}
 	
 	/**
@@ -98,7 +98,7 @@ public interface BlockStateContainer {
 	 * @return {@code true} if state allows grass growing and {@code false} if not
 	 */
 	default boolean allowsGrasUnder(BlockState state) {
-		return LegacyBlockInfo.getInfo(state.getBlock()).allowsGrassUnder();
+		return BlockUtil.getInfo(state.getBlock()).allowsGrassUnder();
 	}
 	
 	/**
@@ -107,7 +107,7 @@ public interface BlockStateContainer {
 	 * @return {@code integer} value of emittance in [0-15] range
 	 */
 	default int getEmittance(BlockState state) {
-		return LegacyBlockInfo.getInfo(state.getBlock()).emittance();
+		return BlockUtil.getInfo(state.getBlock()).emittance();
 	}
 	
 	/**

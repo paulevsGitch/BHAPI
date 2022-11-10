@@ -21,17 +21,21 @@
 	"entrypoints": {
 		"main": [
 			"net.bhapi.BHAPI"
+		],
+		"client": [
+			"net.bhapi.client.BHAPIClient"
+		],
+		"bhapi:common_events": [
+			"net.bhapi.event.TestEvent"
+		],
+		"bhapi:client_events": [
+			"net.bhapi.client.TestClientEvent"
 		]
 	},
 	"mixins": [
 		"bhapi.mixins.common.json",
 		"bhapi.mixins.client.json"
 	],
-	"entrypoints": {
-		"bhapi:events": [
-			"net.bhapi.event.TestEvent"
-		]
-	},
 
 	"depends": {
 		"minecraft": "1.0.0-beta.7.3"

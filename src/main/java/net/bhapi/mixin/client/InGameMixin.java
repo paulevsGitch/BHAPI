@@ -4,8 +4,9 @@ import net.bhapi.blockstate.BlockState;
 import net.bhapi.blockstate.properties.StateProperty;
 import net.bhapi.client.gui.DebugAllItems;
 import net.bhapi.level.BlockStateProvider;
-import net.bhapi.registry.DefaultRegistries;
+import net.bhapi.registry.CommonRegistries;
 import net.bhapi.util.BlockUtil;
+import net.bhapi.util.Identifier;
 import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.block.BaseBlock;
 import net.minecraft.block.entity.BaseBlockEntity;
@@ -14,7 +15,6 @@ import net.minecraft.client.gui.DrawableHelper;
 import net.minecraft.client.gui.InGame;
 import net.minecraft.client.render.TextRenderer;
 import net.minecraft.client.util.ScreenScaler;
-import net.minecraft.item.BaseItem;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.hit.HitResult;
 import net.minecraft.util.hit.HitType;
@@ -42,7 +42,7 @@ public abstract class InGameMixin extends DrawableHelper {
 			DebugAllItems inventory = new DebugAllItems(9 * 4);
 			ItemStack[] items = inventory.getItems();
 			int index = 0;
-			items[index++] = new ItemStack(BaseItem.seeds, 64);
+			items[index++] = new ItemStack(CommonRegistries.ITEM_REGISTRY.get(Identifier.make("testitem")), 64);
 			for (byte m = 0; m < 3; m++) items[index++] = new ItemStack(BaseBlock.SAPLING, 64, m);
 			this.minecraft.player.openChestScreen(inventory);
 		}
@@ -83,7 +83,7 @@ public abstract class InGameMixin extends DrawableHelper {
 		else text += state.getBlock().getTranslatedName();
 		drawTextWithShadow(renderer, text, px - renderer.getTextWidth(text) - 2, py += 10, 16777215);
 		
-		text = "\u00A7bID:\u00A7r " + DefaultRegistries.BLOCK_REGISTRY.getID(state.getBlock());
+		text = "\u00A7bID:\u00A7r " + CommonRegistries.BLOCK_REGISTRY.getID(state.getBlock());
 		drawTextWithShadow(renderer, text, px - renderer.getTextWidth(text) - 2, py += 10, 16777215);
 		
 		Collection<StateProperty<?>> properties = state.getProperties();

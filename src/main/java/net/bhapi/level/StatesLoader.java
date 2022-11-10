@@ -2,7 +2,7 @@ package net.bhapi.level;
 
 import net.bhapi.blockstate.BlockState;
 import net.bhapi.interfaces.NBTSerializable;
-import net.bhapi.registry.DefaultRegistries;
+import net.bhapi.registry.CommonRegistries;
 import net.bhapi.util.BlockUtil;
 import net.minecraft.util.io.CompoundTag;
 
@@ -31,7 +31,7 @@ public class StatesLoader implements NBTSerializable {
 		for (short i = 0; i < 4096; i++) {
 			state = states[i];
 			if (state == null) state = BlockUtil.AIR_STATE;
-			rawID = DefaultRegistries.BLOCKSTATES_MAP.getID(state);
+			rawID = CommonRegistries.BLOCKSTATES_MAP.getID(state);
 			if (min > rawID) min = rawID;
 			if (max < rawID) max = rawID;
 			data[i] = rawID;
@@ -47,7 +47,7 @@ public class StatesLoader implements NBTSerializable {
 	public void fillTo(BlockState[] states) {
 		for (short i = 0; i < 4096; i++) {
 			rawID = get(buffers[type]) + min;
-			states[i] = DefaultRegistries.BLOCKSTATES_MAP.get(rawID);
+			states[i] = CommonRegistries.BLOCKSTATES_MAP.get(rawID);
 		}
 	}
 	

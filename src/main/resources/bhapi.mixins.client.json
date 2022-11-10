@@ -6,8 +6,10 @@
 	"client": [
 		"AbstractClientPlayerMixin",
 		"OverworldDimensionMixin",
+		"OverlaysRendererMixin",
 		"BaseBlockEntityMixin",
 		"LevelRendererMixin",
+		"ItemRendererMixin",
 		"ClientLevelMixin",
 		"MainMenuMixin",
 		"InGameMixin",

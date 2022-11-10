@@ -1,6 +1,6 @@
 package net.bhapi.packet;
 
-import net.bhapi.registry.DefaultRegistries;
+import net.bhapi.registry.CommonRegistries;
 import net.minecraft.network.PacketHandler;
 import net.minecraft.packet.AbstractPacket;
 
@@ -9,7 +9,7 @@ import java.io.DataOutputStream;
 import java.io.IOException;
 
 public class BlockStatesPacket extends AbstractPacket {
-	private byte[] data = DefaultRegistries.BLOCKSTATES_MAP.getCompressedData();
+	private byte[] data = CommonRegistries.BLOCKSTATES_MAP.getCompressedData();
 	
 	@Override
 	public void read(DataInputStream dataInputStream) {
@@ -36,7 +36,7 @@ public class BlockStatesPacket extends AbstractPacket {
 	
 	@Override
 	public void apply(PacketHandler handler) {
-		DefaultRegistries.BLOCKSTATES_MAP.readFromData(data);
+		CommonRegistries.BLOCKSTATES_MAP.readFromData(data);
 	}
 	
 	@Override

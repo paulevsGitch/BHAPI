@@ -1,6 +1,8 @@
 package net.bhapi.level;
 
+import net.bhapi.BHAPI;
 import net.bhapi.blockstate.BlockState;
+import net.bhapi.client.BHAPIClient;
 import net.bhapi.config.BHConfigs;
 import net.bhapi.mixin.common.LevelAccessor;
 import net.bhapi.storage.ExpandableCache;
@@ -9,10 +11,7 @@ import net.bhapi.storage.Vec3I;
 import net.bhapi.util.ThreadManager;
 import net.bhapi.util.ThreadManager.RunnableThread;
 import net.bhapi.util.XorShift128;
-import net.fabricmc.api.EnvType;
-import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.block.BaseBlock;
-import net.minecraft.client.Minecraft;
 import net.minecraft.entity.LightningEntity;
 import net.minecraft.entity.player.PlayerBase;
 import net.minecraft.level.Level;
@@ -53,7 +52,7 @@ public class LevelChunkUpdater {
 		caveSoundTicks = random.getInt(12000) + 6000;
 		
 		// TODO Replace this with reading biomes from chunk cache
-		if (FabricLoader.getInstance().getEnvironmentType() == EnvType.CLIENT) {
+		if (BHAPI.isClient()) {
 			BiomeSource source = null;
 			BiomeSource levelSource = level.getBiomeSource();
 			try {
@@ -91,8 +90,8 @@ public class LevelChunkUpdater {
 	}
 	
 	private void check() {
-		if (useThreads && FabricLoader.getInstance().getEnvironmentType() == EnvType.CLIENT) {
-			boolean empty = ((Minecraft) FabricLoader.getInstance().getGameInstance()).viewEntity == null;
+		if (useThreads && BHAPI.isClient()) {
+			boolean empty = BHAPIClient.getMinecraft().viewEntity == null;
 			if (!isEmpty && empty) {
 				ThreadManager.stopThread(updatingThread);
 				updatingThread = null;

@@ -23,6 +23,8 @@
 		"LevelManagerMixin",
 		"BaseBlockMixin",
 		"BlockItemMixin",
+		"ItemStackMixin",
+		"BaseItemMixin",
 		"LevelAccessor",
 		"ChunkMixin",
 		"LevelMixin",
