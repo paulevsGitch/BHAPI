@@ -81,7 +81,8 @@ public abstract class ItemStackMixin {
 		if (this.bhapi_item == null && this.itemId < 2002) {
 			if (id < 256) {
 				BlockState state = BlockUtil.getLegacyBlock(id, damage);
-				this.bhapi_item = new BHBlockItem(state);
+				Identifier blockID = CommonRegistries.BLOCK_REGISTRY.getID(state.getBlock());
+				this.bhapi_item = CommonRegistries.ITEM_REGISTRY.get(blockID);
 			}
 			else this.bhapi_item = ItemUtil.getLegacyItem(id + 256);
 			if (this.bhapi_item == null) {
@@ -94,14 +95,14 @@ public abstract class ItemStackMixin {
 	@Inject(method = "split", at = @At("HEAD"), cancellable = true)
 	private void bhapi_split(int amount, CallbackInfoReturnable<ItemStack> info) {
 		this.count -= amount;
-		info.setReturnValue(new ItemStack(this.bhapi_item, amount, this.damage));
+		info.setReturnValue(new ItemStack(getType(), amount, this.damage));
 	}
 	
 	@Inject(method = "getType", at = @At("HEAD"), cancellable = true)
 	private void bhapi_getType(CallbackInfoReturnable<BaseItem> info) {
 		if (this.bhapi_item == null) {
 			info.setReturnValue(BaseItem.ironShovel);
-			this.count = 0;
+			//this.count = 0;
 		}
 		else info.setReturnValue(this.bhapi_item);
 	}

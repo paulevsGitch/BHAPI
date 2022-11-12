@@ -9,11 +9,9 @@ import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
 import net.minecraft.block.BaseBlock;
 import net.minecraft.block.BlockSounds;
-import net.minecraft.block.FluidBlock;
 import net.minecraft.entity.player.PlayerBase;
 import net.minecraft.item.ItemStack;
 import net.minecraft.level.Level;
-import net.minecraft.util.maths.Box;
 
 public class BHBlockItem extends BHItem {
 	private final BlockState state;
@@ -37,6 +35,8 @@ public class BHBlockItem extends BHItem {
 		
 		BlockDirection dir = BlockDirection.getFromFacing(facing);
 		Vec3I pos = dir.move(new Vec3I(x, y, z));
+		
+		System.out.println(canPlaceBlock(level, worldState, pos, facing));
 		
 		if (canPlaceBlock(level, worldState, pos, facing)) {
 			if (provider.setBlockState(pos, state)) {
@@ -70,7 +70,7 @@ public class BHBlockItem extends BHItem {
 	}
 	
 	protected boolean canPlaceBlock(Level level, BlockState baseBlock2, Vec3I pos, int facing) {
-		BlockStateProvider provider = BlockStateProvider.cast(level);
+		/*BlockStateProvider provider = BlockStateProvider.cast(level);
 		BlockState baseBlock = provider.getBlockState(pos);
 		
 		Box box = baseBlock2.getBlock().getCollisionShape(level, pos.x, pos.y, pos.z);
@@ -79,10 +79,22 @@ public class BHBlockItem extends BHItem {
 			baseBlock = null;
 		}
 		
-		return baseBlock == null && baseBlock2.getBlock().canPlaceAt(level, pos.x, pos.y, pos.z, facing);
+		return baseBlock == null && baseBlock2.getBlock().canPlaceAt(level, pos.x, pos.y, pos.z, facing);*/
+		return true;
 	}
 	
 	public BlockState getState() {
 		return state;
+	}
+	
+	@Override
+	public int hashCode() {
+		return state.hashCode();
+	}
+	
+	@Override
+	public boolean equals(Object obj) {
+		if (obj == null || !(obj instanceof BHBlockItem)) return false;
+		return ((BHBlockItem) obj).state == state;
 	}
 }

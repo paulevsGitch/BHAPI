@@ -4,7 +4,6 @@ import net.bhapi.block.BHAirBlock;
 import net.bhapi.blockstate.BlockState;
 import net.bhapi.blockstate.BlockStateContainer;
 import net.bhapi.blockstate.properties.StateProperty;
-import net.bhapi.registry.CommonRegistries;
 import net.bhapi.storage.ExpandableArray;
 import net.minecraft.block.BaseBlock;
 

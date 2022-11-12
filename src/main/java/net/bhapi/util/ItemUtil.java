@@ -1,9 +1,6 @@
 package net.bhapi.util;
 
-import net.bhapi.blockstate.BlockState;
 import net.bhapi.storage.ExpandableArray;
-import net.bhapi.util.BlockUtil.BlockInfo;
-import net.minecraft.block.BaseBlock;
 import net.minecraft.item.BaseItem;
 
 import java.util.Arrays;
