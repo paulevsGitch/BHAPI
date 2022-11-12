@@ -17,6 +17,7 @@ public class BaseItemMixin {
 	// Allows to register same block multiple times
 	@Inject(method = "<init>", at = @At("TAIL"))
 	private void bhapi_resetItem(int id, CallbackInfo info) {
+		ItemUtil.checkFrozen();
 		if (id == ItemUtil.MOD_ITEM_ID) {
 			BaseItem.byId[this.id] = null;
 		}

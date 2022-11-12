@@ -9,6 +9,7 @@ import java.util.Objects;
 public class ItemUtil {
 	private static final ExpandableArray<BaseItem> LEGACY_ITEMS = new ExpandableArray<>();
 	public static final int MOD_ITEM_ID = 31743;
+	private static boolean isFrozen;
 	
 	public static void init() {
 	
@@ -16,6 +17,16 @@ public class ItemUtil {
 	
 	public static BaseItem getLegacyItem(int id) {
 		return LEGACY_ITEMS.get(id);
+	}
+	
+	public static void setFrozen(boolean frozen) {
+		isFrozen = frozen;
+	}
+	
+	public static void checkFrozen() {
+		if (isFrozen) {
+			throw new RuntimeException("Item was initiated after registry was formed");
+		}
 	}
 	
 	static {

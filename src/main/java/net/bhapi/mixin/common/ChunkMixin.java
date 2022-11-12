@@ -166,7 +166,7 @@ public abstract class ChunkMixin implements NBTSerializable, LevelHeightProvider
 		for (x = 0; x < 16; ++x) {
 			for (z = 0; z < 16; ++z) {
 				short y;
-				for (y = getLevelHeight(); y > 0 && BaseBlock.LIGHT_OPACITY[this.getBlockId(x, y - 1, z)] == 0; --y) {} // TODO change to blockstates
+				for (y = getLevelHeight(); y > 0 && getBlockState(x, y - 1, z).getLightOpacity() == 0; --y) {}
 				bhapi_setHeight(x, z, y);
 				if (y < minHeight) {
 					minHeight = y;
@@ -174,7 +174,7 @@ public abstract class ChunkMixin implements NBTSerializable, LevelHeightProvider
 				if (this.level.dimension.noSkyLight) continue;
 				int light = 15;
 				for (short h = getLevelHeight(); h >= 0; --h) {
-					if ((light -= BaseBlock.LIGHT_OPACITY[this.getBlockId(x, h, z)]) <= 0) continue; // TODO change to blockstates
+					if ((light -= getBlockState(x, h, z).getLightOpacity()) <= 0) continue;
 					ChunkSection section = bhapi_getSection(h);
 					if (section != null) section.setLight(LightType.SKY, x, h & 15, z, light);
 				}
@@ -204,7 +204,7 @@ public abstract class ChunkMixin implements NBTSerializable, LevelHeightProvider
 			h1 = (short) y;
 		}
 		
-		while (h1 > 0 && BaseBlock.LIGHT_OPACITY[getBlockId(x, h1 - 1, z) & 0xFF] == 0) { // TODO change to blockstates
+		while (h1 > 0 && getBlockState(x, h1 - 1, z).getLightOpacity() == 0) {
 			--h1;
 		}
 		
@@ -251,7 +251,7 @@ public abstract class ChunkMixin implements NBTSerializable, LevelHeightProvider
 		h2 = h1;
 		while (h1 > 0 && h > 0) {
 			int n8;
-			if ((n8 = BaseBlock.LIGHT_OPACITY[this.getBlockId(x, --h1, z)]) == 0) {
+			if ((n8 = getBlockState(x, --h1, z).getLightOpacity()) == 0) {
 				n8 = 1;
 			}
 			if ((h -= n8) < 0) {
@@ -261,7 +261,7 @@ public abstract class ChunkMixin implements NBTSerializable, LevelHeightProvider
 			if (section != null) section.setLight(LightType.SKY, x, h1 & 15, z, h);
 		}
 		
-		while (h1 > 0 && BaseBlock.LIGHT_OPACITY[this.getBlockId(x, h1 - 1, z)] == 0) {
+		while (h1 > 0 && getBlockState(x, h1 - 1, z).getLightOpacity() == 0) {
 			--h1;
 		}
 		
@@ -438,7 +438,7 @@ public abstract class ChunkMixin implements NBTSerializable, LevelHeightProvider
 		else {
 			ChunkSection section = bhapi_getSection(y);
 			if (section == null) {
-				info.setReturnValue(type == LightType.SKY && !this.level.dimension.noSkyLight ? 15 : 0);
+				info.setReturnValue(type == LightType.SKY ? 15 : 0);
 			}
 			else {
 				info.setReturnValue(section.getLight(type, x, y & 15, z));
@@ -547,7 +547,7 @@ public abstract class ChunkMixin implements NBTSerializable, LevelHeightProvider
 		if (section == null) {
 			section = new ChunkSection();
 			bhapi_sections[sectionY] = section;
-			int offset = sectionY << 4;
+			/*int offset = sectionY << 4;
 			for (short i = 0; i < 16; i++) {
 				byte x = (byte) (i & 15);
 				byte z = (byte) (i >> 4);
@@ -557,7 +557,7 @@ public abstract class ChunkMixin implements NBTSerializable, LevelHeightProvider
 				for (byte h = (byte) height; h < 16; h++) {
 					section.setLight(LightType.SKY, x, h, z, 15);
 				}
-			}
+			}*/
 		}
 		return section;
 	}

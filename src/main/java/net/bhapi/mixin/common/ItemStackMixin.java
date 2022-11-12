@@ -55,7 +55,16 @@ public abstract class ItemStackMixin {
 			state = state.with(meta, damage);
 		}
 		bhapi_item = new BHBlockItem(state);*/
-		bhapi_processBlockItem(block);
+		//bhapi_processBlockItem(block);
+		
+		Identifier blockID = CommonRegistries.BLOCK_REGISTRY.getID(block);
+		if (blockID != null) {
+			this.bhapi_item = CommonRegistries.ITEM_REGISTRY.get(Identifier.make(
+				blockID.getModID(),
+				blockID.getName() + "_" + damage
+			));
+		}
+		if (this.bhapi_item == null) this.bhapi_item = CommonRegistries.ITEM_REGISTRY.get(blockID);
 	}
 	
 	@Inject(method = "<init>(Lnet/minecraft/item/BaseItem;)V", at = @At("TAIL"))
@@ -81,7 +90,7 @@ public abstract class ItemStackMixin {
 				Identifier blockID = CommonRegistries.BLOCK_REGISTRY.getID(state.getBlock());
 				this.bhapi_item = CommonRegistries.ITEM_REGISTRY.get(blockID);
 			}
-			else this.bhapi_item = ItemUtil.getLegacyItem(id + 256);
+			else this.bhapi_item = ItemUtil.getLegacyItem(id - 256);
 			if (this.bhapi_item == null) {
 				this.itemId = 256;
 				this.count = 0;
@@ -203,8 +212,7 @@ public abstract class ItemStackMixin {
 	
 	@Inject(method = "copy", at = @At("HEAD"), cancellable = true)
 	private void bhapi_copy(CallbackInfoReturnable<ItemStack> info) {
-		BaseItem type = this.getType();
-		info.setReturnValue(new ItemStack(type, this.count, this.damage));
+		info.setReturnValue(new ItemStack(this.getType(), this.count, this.damage));
 	}
 	
 	@Inject(method = "isStackIdentical", at = @At("HEAD"), cancellable = true)
@@ -257,8 +265,8 @@ public abstract class ItemStackMixin {
 	}
 	
 	@Inject(method = "isStackIdentical2", at = @At("HEAD"), cancellable = true)
-	private void bhapi_isStackIdentical2(ItemStack arg, CallbackInfoReturnable<Boolean> info) {
-		info.setReturnValue(this.count == arg.count && this.damage == arg.getDamage() && this.getType() == arg.getType());
+	private void bhapi_isStackIdentical2(ItemStack stack, CallbackInfoReturnable<Boolean> info) {
+		info.setReturnValue(this.count == stack.count && this.damage == stack.getDamage() && this.getType() == stack.getType());
 	}
 	
 	@Unique

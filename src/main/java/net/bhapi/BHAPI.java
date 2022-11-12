@@ -58,6 +58,7 @@ public class BHAPI implements ModInitializer {
 		BlockUtil.init();
 		ItemUtil.init();
 		handleEvents();
+		ItemUtil.setFrozen(true);
 		
 		BHConfigs.save();
 	}
