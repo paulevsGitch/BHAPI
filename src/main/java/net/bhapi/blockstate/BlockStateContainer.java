@@ -2,7 +2,6 @@ package net.bhapi.blockstate;
 
 import net.bhapi.blockstate.properties.StateProperty;
 import net.bhapi.util.BlockUtil;
-import net.minecraft.block.BaseBlock;
 import net.minecraft.block.BlockSounds;
 import net.minecraft.entity.BaseEntity;
 import net.minecraft.entity.player.PlayerBase;

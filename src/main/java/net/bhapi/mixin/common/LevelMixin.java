@@ -11,7 +11,6 @@ import net.bhapi.util.BlockUtil;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
 import net.minecraft.block.BaseBlock;
-import net.minecraft.block.FluidBlock;
 import net.minecraft.block.material.Material;
 import net.minecraft.block.technical.TimeInfo;
 import net.minecraft.entity.BaseEntity;
@@ -45,6 +44,7 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
 import java.util.Set;
@@ -92,6 +92,10 @@ public abstract class LevelMixin implements LevelHeightProvider, BlockStateProvi
 	@Shadow public abstract void callAreaEvents(int i, int j, int k, int l, int m, int n);
 	
 	@Shadow public abstract int getBlockMeta(int i, int j, int k);
+	
+	@Shadow private ArrayList collidingEntitySearchCache;
+	
+	@Shadow public abstract List getEntities(BaseEntity arg, Box arg2);
 	
 	@Unique private LevelChunkUpdater bhapi_updater;
 	
@@ -540,6 +544,44 @@ public abstract class LevelMixin implements LevelHeightProvider, BlockStateProvi
 	private void bhapi_canPlaceBlock(int id, int x, int y, int z, boolean flag, int facing, CallbackInfoReturnable<Boolean> info) {
 		BlockState state = BlockUtil.getLegacyBlock(id, 0);
 		info.setReturnValue(canPlaceState(state, x, y, z, flag, facing));
+	}
+	
+	@SuppressWarnings("all")
+	@Inject(method = "getCollidingEntities", at = @At("HEAD"), cancellable = true)
+	private void bhapi_getCollidingEntities(BaseEntity entity, Box area, CallbackInfoReturnable<List> info) {
+		this.collidingEntitySearchCache.clear();
+		
+		int x1 = MathHelper.floor(area.minX);
+		int x2 = MathHelper.floor(area.maxX + 1.0);
+		int y1 = MathHelper.floor(area.minY);
+		int y2 = MathHelper.floor(area.maxY + 1.0);
+		int z1 = MathHelper.floor(area.minZ);
+		int z2 = MathHelper.floor(area.maxZ + 1.0);
+		
+		Level level = Level.class.cast(this);
+		for (int x = x1; x < x2; ++x) {
+			for (int z = z1; z < z2; ++z) {
+				if (!this.isBlockLoaded(x, 64, z)) continue;
+				for (int y = y1 - 1; y < y2; ++y) {
+					BaseBlock baseBlock = getBlockState(x, y, z).getBlock();
+					if (!baseBlock.isCollidable()) continue;
+					baseBlock.doesBoxCollide(level, x, y, z, area, this.collidingEntitySearchCache);
+				}
+			}
+		}
+		
+		double d = 0.25;
+		List list = this.getEntities(entity, area.expandNegative(d, d, d));
+		for (int i = 0; i < list.size(); ++i) {
+			Box box = ((BaseEntity)list.get(i)).method_1381();
+			if (box != null && box.boxIntersects(area)) {
+				this.collidingEntitySearchCache.add(box);
+			}
+			if ((box = entity.getBoundingBox((BaseEntity)list.get(i))) == null || !box.boxIntersects(area)) continue;
+			this.collidingEntitySearchCache.add(box);
+		}
+		
+		info.setReturnValue(this.collidingEntitySearchCache);
 	}
 	
 	@Unique
