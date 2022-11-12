@@ -41,6 +41,9 @@ public class SerialisationMap<T> {
 		idToOBJ.put(index, obj);
 		objToID.put(obj, index);
 		requireSave = true;
+		if (obj instanceof IDProvider) {
+			((IDProvider) obj).setID(index);
+		}
 	}
 	
 	public T get(int rawID) {

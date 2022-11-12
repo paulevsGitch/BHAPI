@@ -21,6 +21,7 @@ public class StatesLoader implements NBTSerializable {
 	};
 	
 	private final int[] data = new int[4096];
+	private boolean isEmpty;
 	private int min, rawID;
 	private byte type;
 	
@@ -28,14 +29,19 @@ public class StatesLoader implements NBTSerializable {
 		BlockState state;
 		min = Integer.MAX_VALUE;
 		int max = 0;
+		int airID = CommonRegistries.BLOCKSTATES_MAP.getID(BlockUtil.AIR_STATE);
+		short countAir = 0;
 		for (short i = 0; i < 4096; i++) {
 			state = states[i];
 			if (state == null) state = BlockUtil.AIR_STATE;
 			rawID = CommonRegistries.BLOCKSTATES_MAP.getID(state);
+			if (rawID == airID) countAir++;
 			if (min > rawID) min = rawID;
 			if (max < rawID) max = rawID;
 			data[i] = rawID;
 		}
+		isEmpty = countAir == 4096;
+		if (isEmpty) return;
 		type = getBufferType(max - min);
 		buffers[type].rewind();
 		for (short i = 0; i < 4096; i++) {
@@ -45,6 +51,7 @@ public class StatesLoader implements NBTSerializable {
 	}
 	
 	public void fillTo(BlockState[] states) {
+		if (isEmpty) return;
 		for (short i = 0; i < 4096; i++) {
 			rawID = get(buffers[type]) + min;
 			states[i] = CommonRegistries.BLOCKSTATES_MAP.get(rawID);
@@ -85,6 +92,7 @@ public class StatesLoader implements NBTSerializable {
 	
 	@Override
 	public void saveToNBT(CompoundTag tag) {
+		if (isEmpty) return;
 		byte[] src = buffers[type].array();
 		byte[] res = new byte[src.length];
 		System.arraycopy(src, 0, res, 0, src.length);
@@ -95,10 +103,16 @@ public class StatesLoader implements NBTSerializable {
 	@Override
 	public void loadFromNBT(CompoundTag tag) {
 		byte[] data = tag.getByteArray("data");
+		isEmpty = data == null || data.length == 0;
+		if (isEmpty) return;
 		type = getArrayBufferType(data.length);
 		min = tag.getInt("min");
 		buffers[type].rewind();
 		buffers[type].put(data);
 		buffers[type].rewind();
+	}
+	
+	public boolean isEmpty() {
+		return isEmpty;
 	}
 }

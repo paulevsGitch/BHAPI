@@ -8,6 +8,7 @@
 		"OverworldDimensionMixin",
 		"OverlaysRendererMixin",
 		"BaseBlockEntityMixin",
+		"PlayerRendererMixin",
 		"LevelRendererMixin",
 		"ItemRendererMixin",
 		"ClientLevelMixin",

@@ -34,11 +34,7 @@ public class BlockUtil {
 				BaseBlock.EMITTANCE[id]
 			));
 		});
-		
 		LEGACY_BLOCKS.put(0, AIR_STATE);
-		CommonRegistries.BLOCK_REGISTRY.forEach(
-			block -> LEGACY_BLOCKS.put(block.id, BlockStateContainer.cast(block).getDefaultState())
-		);
 	}
 	
 	public static BlockState getLegacyBlock(int id, int meta) {
@@ -66,4 +62,10 @@ public class BlockUtil {
 		boolean allowsGrassUnder,
 		int emittance
 	) {}
+	
+	static {
+		Arrays.stream(BaseBlock.BY_ID).filter(Objects::nonNull).forEach(
+			block -> LEGACY_BLOCKS.put(block.id, BlockStateContainer.cast(block).getDefaultState())
+		);
+	}
 }

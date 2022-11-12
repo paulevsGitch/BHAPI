@@ -643,9 +643,11 @@ public abstract class ChunkMixin implements NBTSerializable, LevelHeightProvider
 		for (short i = 0; i < bhapi_sections.length; i++) {
 			if (bhapi_sections[i] == null) continue;
 			CompoundTag sectionTag = new CompoundTag();
-			sectionTag.put("y", i);
 			bhapi_sections[i].saveToNBT(sectionTag);
-			sectionList.add(sectionTag);
+			if (sectionTag.containsKey("states")) {
+				sectionTag.put("y", i);
+				sectionList.add(sectionTag);
+			}
 		}
 		
 		bhapi_updateHasEntities();

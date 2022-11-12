@@ -1,6 +1,12 @@
 package net.bhapi.mixin.common;
 
+import net.bhapi.blockstate.BlockState;
+import net.bhapi.blockstate.properties.BlockPropertyType;
+import net.bhapi.blockstate.properties.IntegerProperty;
+import net.bhapi.blockstate.properties.StateProperty;
+import net.bhapi.item.BHBlockItem;
 import net.bhapi.registry.CommonRegistries;
+import net.bhapi.util.BlockUtil;
 import net.bhapi.util.Identifier;
 import net.bhapi.util.ItemUtil;
 import net.fabricmc.api.EnvType;
@@ -36,39 +42,48 @@ public abstract class ItemStackMixin {
 	@Unique private BaseItem bhapi_item;
 	
 	@Inject(method = "<init>(Lnet/minecraft/block/BaseBlock;)V", at = @At("TAIL"))
-	private void bhapi_onItemStackInit(BaseBlock arg, CallbackInfo info) {
-	
+	private void bhapi_onItemStackInit1(BaseBlock block, CallbackInfo info) {
+		bhapi_item = new BHBlockItem(block);
 	}
 	
 	@Inject(method = "<init>(Lnet/minecraft/block/BaseBlock;I)V", at = @At("TAIL"))
-	private void bhapi_onItemStackInit(BaseBlock arg, int i, CallbackInfo info) {
-	
+	private void bhapi_onItemStackInit2(BaseBlock block, int count, CallbackInfo info) {
+		bhapi_item = new BHBlockItem(block);
 	}
 	
 	@Inject(method = "<init>(Lnet/minecraft/block/BaseBlock;II)V", at = @At("TAIL"))
-	private void bhapi_onItemStackInit(BaseBlock arg, int i, int j, CallbackInfo info) {
-	
+	private void bhapi_onItemStackInit3(BaseBlock block, int count, int damage, CallbackInfo info) {
+		BlockState state = BlockState.getDefaultState(block);
+		StateProperty<?> meta = state.getProperty("meta");
+		if (meta != null && meta.getType() == BlockPropertyType.INTEGER && ((IntegerProperty) meta).isInRange(damage)) {
+			state = state.with(meta, damage);
+		}
+		bhapi_item = new BHBlockItem(state);
 	}
 	
 	@Inject(method = "<init>(Lnet/minecraft/item/BaseItem;)V", at = @At("TAIL"))
-	private void bhapi_onItemStackInit(BaseItem item, CallbackInfo info) {
+	private void bhapi_onItemStackInit4(BaseItem item, CallbackInfo info) {
 		this.bhapi_item = item;
 	}
 	
 	@Inject(method = "<init>(Lnet/minecraft/item/BaseItem;I)V", at = @At("TAIL"))
-	private void bhapi_onItemStackInit(BaseItem item, int count, CallbackInfo info) {
+	private void bhapi_onItemStackInit5(BaseItem item, int count, CallbackInfo info) {
 		this.bhapi_item = item;
 	}
 	
 	@Inject(method = "<init>(Lnet/minecraft/item/BaseItem;II)V", at = @At("TAIL"))
-	private void bhapi_onItemStackInit(BaseItem item, int count, int damage, CallbackInfo info) {
+	private void bhapi_onItemStackInit6(BaseItem item, int count, int damage, CallbackInfo info) {
 		this.bhapi_item = item;
 	}
 	
 	@Inject(method = "<init>(III)V", at = @At("TAIL"))
-	private void bhapi_onItemStackInit(int id, int count, int damage, CallbackInfo info) {
-		if (this.bhapi_item == null && this.itemId != ItemUtil.MOD_ITEM_ID) {
-			this.bhapi_item = ItemUtil.getLegacyItem(id + 256);
+	private void bhapi_onItemStackInit7(int id, int count, int damage, CallbackInfo info) {
+		if (this.bhapi_item == null && this.itemId < 2002) {
+			if (id < 256) {
+				BlockState state = BlockUtil.getLegacyBlock(id, damage);
+				this.bhapi_item = new BHBlockItem(state);
+			}
+			else this.bhapi_item = ItemUtil.getLegacyItem(id + 256);
 			if (this.bhapi_item == null) {
 				this.itemId = 256;
 				this.count = 0;
@@ -84,7 +99,11 @@ public abstract class ItemStackMixin {
 	
 	@Inject(method = "getType", at = @At("HEAD"), cancellable = true)
 	private void bhapi_getType(CallbackInfoReturnable<BaseItem> info) {
-		info.setReturnValue(this.bhapi_item == null ? BaseItem.byId[this.itemId] : this.bhapi_item);
+		if (this.bhapi_item == null) {
+			info.setReturnValue(BaseItem.ironShovel);
+			this.count = 0;
+		}
+		else info.setReturnValue(this.bhapi_item);
 	}
 	
 	@Inject(method = "useOnBlock", at = @At("HEAD"), cancellable = true)

@@ -131,6 +131,7 @@ public class ChunkSection implements NBTSerializable {
 	public void saveToNBT(CompoundTag tag) {
 		StatesLoader loader = LOADERS.get();
 		loader.fillFrom(states);
+		if (loader.isEmpty()) return;
 		
 		CompoundTag statesTag = new CompoundTag();
 		loader.saveToNBT(statesTag);
@@ -164,6 +165,7 @@ public class ChunkSection implements NBTSerializable {
 	public void loadFromNBT(CompoundTag tag) {
 		StatesLoader loader = LOADERS.get();
 		loader.loadFromNBT(tag.getCompoundTag("states"));
+		if (loader.isEmpty()) return;
 		loader.fillTo(states);
 		
 		byte[] data = tag.getByteArray("light");
