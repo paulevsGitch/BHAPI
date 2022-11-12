@@ -135,8 +135,9 @@ public class CommonRegistries {
 		
 		// Make sure that all vanilla blocks are generated on startup
 		BLOCK_REGISTRY.forEach(block -> {
-			BlockStateContainer.cast(block).getDefaultState().getPossibleStates();
-			ITEM_REGISTRY.register(BLOCK_REGISTRY.getID(block), new BHBlockItem(block, itemIsFlat(block)));
+			BlockState state = BlockStateContainer.cast(block).getDefaultState();
+			state.getPossibleStates();
+			ITEM_REGISTRY.register(BLOCK_REGISTRY.getID(block), new BHBlockItem(state, itemIsFlat(block)));
 		});
 	}
 	

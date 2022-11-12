@@ -369,4 +369,9 @@ public final class BlockState implements IDProvider {
 	public void setID(int id) {
 		rawID = id;
 	}
+	
+	@Override
+	public int hashCode() {
+		return rawID;
+	}
 }

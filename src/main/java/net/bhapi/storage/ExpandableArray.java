@@ -21,7 +21,7 @@ public class ExpandableArray <T> {
 	}
 	
 	public T get(int index) {
-		return data[index];
+		return (index < 0 || index >= data.length) ? null : data[index];
 	}
 	
 	public void clear() {

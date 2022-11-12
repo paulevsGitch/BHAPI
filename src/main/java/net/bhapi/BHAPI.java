@@ -59,6 +59,7 @@ public class BHAPI implements ModInitializer {
 		ItemUtil.init();
 		handleEvents();
 		ItemUtil.setFrozen(true);
+		ItemUtil.postProcessStacks();
 		
 		BHConfigs.save();
 	}
@@ -118,19 +119,23 @@ public class BHAPI implements ModInitializer {
 			.filter(Objects::nonNull)
 			.map(Supplier::get)
 			.sorted()
-			.forEach(event ->
-				events.get(event.getClass()).stream().sorted(
-					Comparator.comparingInt(p -> p.second().getAnnotation(EventListener.class).priority())
-				).forEach(pair -> {
-					Object entrypoint = pair.first();
-					Method method = pair.second();
-					try {
-						method.invoke(entrypoint, event);
-					}
-					catch (IllegalAccessException | InvocationTargetException e) {
-						e.printStackTrace();
-					}
-				})
-			);
+			.forEach(event -> {
+				String name = event.getClass().getName();
+				name = name.substring(name.lastIndexOf('.') + 1);
+				log("[EVENT] " + name);
+				events.get(event.getClass())
+					  .stream()
+					  .sorted(Comparator.comparingInt(p -> p.second().getAnnotation(EventListener.class).priority()))
+					  .forEach(pair -> {
+						  Object entrypoint = pair.first();
+						  Method method = pair.second();
+						  try {
+							  method.invoke(entrypoint, event);
+						  }
+						  catch (IllegalAccessException | InvocationTargetException e) {
+							  e.printStackTrace();
+						  }
+					  });
+			});
 	}
 }

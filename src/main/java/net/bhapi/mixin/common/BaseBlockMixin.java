@@ -1,21 +1,29 @@
 package net.bhapi.mixin.common;
 
+import net.bhapi.block.CustomDropProvider;
 import net.bhapi.blockstate.BlockState;
 import net.bhapi.blockstate.BlockStateContainer;
 import net.bhapi.level.BlockStateProvider;
 import net.bhapi.util.BlockUtil;
 import net.minecraft.block.BaseBlock;
 import net.minecraft.block.material.Material;
+import net.minecraft.item.ItemStack;
 import net.minecraft.level.Level;
 import org.spongepowered.asm.mixin.Mixin;
+import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
+import java.util.ArrayList;
+import java.util.List;
+
 @Mixin(BaseBlock.class)
-public class BaseBlockMixin implements BlockStateContainer {
+public abstract class BaseBlockMixin implements BlockStateContainer {
+	@Shadow protected abstract void drop(Level arg, int i, int j, int k, ItemStack arg2);
+	
 	@Unique	private BlockState defaultState;
 	
 	// Reset block and all its values to default
@@ -50,5 +58,14 @@ public class BaseBlockMixin implements BlockStateContainer {
 	private void bhapi_canPlaceAt(Level level, int x, int y, int z, CallbackInfoReturnable<Boolean> info) {
 		BlockState state = BlockStateProvider.cast(level).getBlockState(x, y, z);
 		info.setReturnValue(state.getBlock().material.isReplaceable());
+	}
+	
+	@Inject(method = "drop(Lnet/minecraft/level/Level;IIIIF)V", at = @At("HEAD"), cancellable = true)
+	private void bhapi_drop(Level level, int x, int y, int z, int l, float f, CallbackInfo info) {
+		if (!level.isClientSide && this instanceof CustomDropProvider) {
+			List<ItemStack> drop = new ArrayList<>();
+			CustomDropProvider.cast(this).getCustomDrop(level, x, y, z, drop);
+			drop.forEach(stack -> this.drop(level, x, y, z, stack));
+		}
 	}
 }

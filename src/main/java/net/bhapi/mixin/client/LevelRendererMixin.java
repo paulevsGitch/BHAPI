@@ -3,7 +3,10 @@ package net.bhapi.mixin.client;
 import net.bhapi.blockstate.BlockState;
 import net.bhapi.level.BlockStateProvider;
 import net.bhapi.level.LevelHeightProvider;
+import net.bhapi.registry.CommonRegistries;
 import net.minecraft.block.BaseBlock;
+import net.minecraft.block.BlockSounds;
+import net.minecraft.client.Minecraft;
 import net.minecraft.client.render.LevelRenderer;
 import net.minecraft.entity.player.PlayerBase;
 import net.minecraft.item.ItemStack;
@@ -26,6 +29,8 @@ public abstract class LevelRendererMixin implements LevelHeightProvider {
 	@Shadow private Level level;
 	
 	@Shadow protected abstract void renderBox(Box arg);
+	
+	@Shadow private Minecraft client;
 	
 	@ModifyConstant(method = "method_1544(Lnet/minecraft/util/maths/Vec3f;Lnet/minecraft/class_68;F)V", constant = @Constant(intValue = 128))
 	private int bhapi_changeMaxHeight(int value) {
@@ -75,6 +80,26 @@ public abstract class LevelRendererMixin implements LevelHeightProvider {
 			GL11.glDepthMask(true);
 			GL11.glEnable(3553);
 			GL11.glDisable(3042);
+		}
+	}
+	
+	@Inject(method = "playLevelEvent", at = @At("HEAD"), cancellable = true)
+	private void bhapi_playLevelEvent(PlayerBase arg, int i, int x, int y, int z, int data, CallbackInfo info) {
+		if (i == 2001) {
+			info.cancel();
+			BlockState state = CommonRegistries.BLOCKSTATES_MAP.get(data);
+			if (state == null) return;
+			BlockSounds sounds = state.getSounds();
+			this.client.soundHelper.playSound(
+				sounds.getBreakSound(),
+				x + 0.5f,
+				y + 0.5f,
+				z + 0.5f,
+				(sounds.getVolume() + 1.0f) / 2.0f,
+				sounds.getPitch() * 0.8f
+			);
+			data = state.getBlock().texture; // TODO replace with texture handlers
+			this.client.particleManager.addBlockBreakParticles(x, y, z, data & 0xFF, data >> 8 & 0xFF);
 		}
 	}
 }

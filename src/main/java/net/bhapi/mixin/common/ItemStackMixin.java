@@ -1,6 +1,8 @@
 package net.bhapi.mixin.common;
 
 import net.bhapi.blockstate.BlockState;
+import net.bhapi.item.BHBlockItem;
+import net.bhapi.item.ItemProvider;
 import net.bhapi.registry.CommonRegistries;
 import net.bhapi.util.BlockUtil;
 import net.bhapi.util.Identifier;
@@ -25,7 +27,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 @Mixin(ItemStack.class)
-public abstract class ItemStackMixin {
+public abstract class ItemStackMixin implements ItemProvider {
 	@Shadow public int count;
 	@Shadow private int damage;
 	@Shadow public int itemId;
@@ -39,11 +41,13 @@ public abstract class ItemStackMixin {
 	
 	@Inject(method = "<init>(Lnet/minecraft/block/BaseBlock;)V", at = @At("TAIL"))
 	private void bhapi_onItemStackInit1(BaseBlock block, CallbackInfo info) {
+		if (this.bhapi_item != null) return;
 		bhapi_processBlockItem(block);
 	}
 	
 	@Inject(method = "<init>(Lnet/minecraft/block/BaseBlock;I)V", at = @At("TAIL"))
 	private void bhapi_onItemStackInit2(BaseBlock block, int count, CallbackInfo info) {
+		if (this.bhapi_item != null) return;
 		bhapi_processBlockItem(block);
 	}
 	
@@ -57,14 +61,17 @@ public abstract class ItemStackMixin {
 		bhapi_item = new BHBlockItem(state);*/
 		//bhapi_processBlockItem(block);
 		
+		if (this.bhapi_item != null) return;
 		Identifier blockID = CommonRegistries.BLOCK_REGISTRY.getID(block);
 		if (blockID != null) {
-			this.bhapi_item = CommonRegistries.ITEM_REGISTRY.get(Identifier.make(
-				blockID.getModID(),
-				blockID.getName() + "_" + damage
-			));
+			if (damage > 0) {
+				this.bhapi_item = CommonRegistries.ITEM_REGISTRY.get(Identifier.make(blockID.getModID(),
+					blockID.getName() + "_" + damage
+				));
+			}
+			if (this.bhapi_item == null) this.bhapi_item = CommonRegistries.ITEM_REGISTRY.get(blockID);
 		}
-		if (this.bhapi_item == null) this.bhapi_item = CommonRegistries.ITEM_REGISTRY.get(blockID);
+		if (this.bhapi_item == null) this.count = 0;
 	}
 	
 	@Inject(method = "<init>(Lnet/minecraft/item/BaseItem;)V", at = @At("TAIL"))
@@ -86,9 +93,12 @@ public abstract class ItemStackMixin {
 	private void bhapi_onItemStackInit7(int id, int count, int damage, CallbackInfo info) {
 		if (this.bhapi_item == null && this.itemId < 2002) {
 			if (id < 256) {
-				BlockState state = BlockUtil.getLegacyBlock(id, damage);
-				Identifier blockID = CommonRegistries.BLOCK_REGISTRY.getID(state.getBlock());
-				this.bhapi_item = CommonRegistries.ITEM_REGISTRY.get(blockID);
+				if (id == BlockUtil.MOD_BLOCK_ID) this.count = 0;
+				else {
+					BlockState state = BlockUtil.getLegacyBlock(id, damage);
+					Identifier blockID = CommonRegistries.BLOCK_REGISTRY.getID(state.getBlock());
+					this.bhapi_item = CommonRegistries.ITEM_REGISTRY.get(blockID);
+				}
 			}
 			else this.bhapi_item = ItemUtil.getLegacyItem(id - 256);
 			if (this.bhapi_item == null) {
@@ -128,6 +138,14 @@ public abstract class ItemStackMixin {
 	private void bhapi_toTag(CompoundTag tag, CallbackInfoReturnable<CompoundTag> info) {
 		BaseItem item = getType();
 		Identifier id = CommonRegistries.ITEM_REGISTRY.getID(item);
+		if (id == null) {
+			if (item instanceof BHBlockItem) {
+				id = CommonRegistries.BLOCK_REGISTRY.getID(((BHBlockItem) item).getState().getBlock());
+				item = CommonRegistries.ITEM_REGISTRY.get(id);
+				setItem(item);
+			}
+			if (id == null) count = 0;
+		}
 		if (id != null) tag.put("item", id.toString());
 		tag.put("count", (byte) this.count);
 		tag.put("damage", (short) this.damage);
@@ -272,6 +290,19 @@ public abstract class ItemStackMixin {
 	@Unique
 	private void bhapi_processBlockItem(BaseBlock block) {
 		Identifier blockID = CommonRegistries.BLOCK_REGISTRY.getID(block);
-		this.bhapi_item = CommonRegistries.ITEM_REGISTRY.get(blockID);
+		if (blockID == null) ItemUtil.addStackForPostProcessing(block, ItemStack.class.cast(this));
+		else this.bhapi_item = CommonRegistries.ITEM_REGISTRY.get(blockID);
+	}
+	
+	@Unique
+	@Override
+	public BaseItem getItem() {
+		return this.bhapi_item;
+	}
+	
+	@Unique
+	@Override
+	public void setItem(BaseItem item) {
+		this.bhapi_item = item;
 	}
 }
