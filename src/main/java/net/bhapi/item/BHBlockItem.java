@@ -3,6 +3,7 @@ package net.bhapi.item;
 import net.bhapi.blockstate.BlockState;
 import net.bhapi.level.BlockStateProvider;
 import net.bhapi.level.LevelHeightProvider;
+import net.bhapi.level.PlaceChecker;
 import net.bhapi.storage.Vec3I;
 import net.bhapi.util.BlockDirection;
 import net.fabricmc.api.EnvType;
@@ -38,9 +39,8 @@ public class BHBlockItem extends BHItem {
 		BlockDirection dir = BlockDirection.getFromFacing(facing);
 		Vec3I pos = dir.move(new Vec3I(x, y, z));
 		
-		System.out.println(canPlaceBlock(level, worldState, pos, facing));
-		
-		if (canPlaceBlock(level, worldState, pos, facing)) {
+		PlaceChecker checker = PlaceChecker.cast(level);
+		if (checker.canPlaceState(state, pos.x, pos.y, pos.z, false, facing)) {
 			if (provider.setBlockState(pos, state)) {
 				state.onBlockPlaced(level, pos.x, pos.y, pos.z);
 				state.getBlock().afterPlaced(level, pos.x, pos.y, pos.z, player);
@@ -69,20 +69,6 @@ public class BHBlockItem extends BHItem {
 	@Override
 	public String getTranslationKey() {
 		return state.getBlock().getTranslationKey();
-	}
-	
-	protected boolean canPlaceBlock(Level level, BlockState baseBlock2, Vec3I pos, int facing) {
-		/*BlockStateProvider provider = BlockStateProvider.cast(level);
-		BlockState baseBlock = provider.getBlockState(pos);
-		
-		Box box = baseBlock2.getBlock().getCollisionShape(level, pos.x, pos.y, pos.z);
-		if (box != null && !level.canSpawnEntity(box)) return false;
-		if (baseBlock.getBlock() instanceof FluidBlock || baseBlock.is(BaseBlock.FIRE) || baseBlock.is(BaseBlock.SNOW)) {
-			baseBlock = null;
-		}
-		
-		return baseBlock == null && baseBlock2.getBlock().canPlaceAt(level, pos.x, pos.y, pos.z, facing);*/
-		return true;
 	}
 	
 	public BlockState getState() {

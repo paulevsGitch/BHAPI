@@ -10,6 +10,7 @@
 		"OverworldLevelSourceMixin",
 		"LevelMonsterSpawnerMixin",
 		"ServerPacketHandlerMixin",
+		"FallingBlockEntityMixin",
 		"FurnaceBlockEntityMixin",
 		"AbstractPackerAccessor",
 		"LevelChunkLoaderMixin",

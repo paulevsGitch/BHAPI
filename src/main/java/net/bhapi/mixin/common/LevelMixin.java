@@ -5,9 +5,13 @@ import net.bhapi.blockstate.BlockState;
 import net.bhapi.level.BlockStateProvider;
 import net.bhapi.level.LevelChunkUpdater;
 import net.bhapi.level.LevelHeightProvider;
+import net.bhapi.level.PlaceChecker;
 import net.bhapi.registry.CommonRegistries;
+import net.bhapi.util.BlockUtil;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
+import net.minecraft.block.BaseBlock;
+import net.minecraft.block.FluidBlock;
 import net.minecraft.block.material.Material;
 import net.minecraft.block.technical.TimeInfo;
 import net.minecraft.entity.BaseEntity;
@@ -20,8 +24,12 @@ import net.minecraft.level.chunk.Chunk;
 import net.minecraft.level.dimension.BaseDimension;
 import net.minecraft.level.dimension.DimensionData;
 import net.minecraft.level.gen.BiomeSource;
+import net.minecraft.util.hit.HitResult;
 import net.minecraft.util.io.CompoundTag;
 import net.minecraft.util.io.NBTIO;
+import net.minecraft.util.maths.Box;
+import net.minecraft.util.maths.MathHelper;
+import net.minecraft.util.maths.Vec3f;
 import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
@@ -43,7 +51,7 @@ import java.util.Set;
 import java.util.TreeSet;
 
 @Mixin(Level.class)
-public abstract class LevelMixin implements LevelHeightProvider, BlockStateProvider {
+public abstract class LevelMixin implements LevelHeightProvider, BlockStateProvider, PlaceChecker {
 	@Shadow private Set loadedChunkPositions;
 	@Shadow public List players;
 	@Shadow private int caveSoundTicks;
@@ -82,6 +90,8 @@ public abstract class LevelMixin implements LevelHeightProvider, BlockStateProvi
 	@Shadow public abstract boolean isBlockLoaded(int i, int j, int k);
 	
 	@Shadow public abstract void callAreaEvents(int i, int j, int k, int l, int m, int n);
+	
+	@Shadow public abstract int getBlockMeta(int i, int j, int k);
 	
 	@Unique private LevelChunkUpdater bhapi_updater;
 	
@@ -369,6 +379,191 @@ public abstract class LevelMixin implements LevelHeightProvider, BlockStateProvi
 				this.callAreaEvents((cx << 4) + px1, py1, (cz << 4) + pz1, (cx << 4) + x1 + px2, py2, (cz << 4) + pz2);
 			}
 		}
+	}
+	
+	@Inject(
+		method = "getHitResult(Lnet/minecraft/util/maths/Vec3f;Lnet/minecraft/util/maths/Vec3f;ZZ)Lnet/minecraft/util/hit/HitResult;",
+		at = @At("HEAD"), cancellable = true
+	)
+	private void getHitResult(Vec3f pos, Vec3f pos2, boolean bl, boolean bl2, CallbackInfoReturnable<HitResult> info) {
+		if (Double.isNaN(pos.x) || Double.isNaN(pos.y) || Double.isNaN(pos.z)) {
+			info.setReturnValue(null);
+			return;
+		}
+		
+		if (Double.isNaN(pos2.x) || Double.isNaN(pos2.y) || Double.isNaN(pos2.z)) {
+			info.setReturnValue(null);
+			return;
+		}
+		
+		int ix = MathHelper.floor(pos2.x);
+		int iy = MathHelper.floor(pos2.y);
+		int iz = MathHelper.floor(pos2.z);
+		int x = MathHelper.floor(pos.x);
+		int y = MathHelper.floor(pos.y);
+		int z = MathHelper.floor(pos.z);
+		
+		Level level = Level.class.cast(this);
+		BlockState state = getBlockState(x, y, z);
+		BaseBlock block = state.getBlock();
+		int meta = this.getBlockMeta(x, y, z);
+		
+		HitResult hitResult;
+		if ((!bl2 || state.isAir() || block.getCollisionShape(level, x, y, z) != null) && block.isCollidable(meta, bl) && (hitResult = block.getHitResult(level, x, y, z, pos, pos2)) != null) {
+			info.setReturnValue(hitResult);
+			return;
+		}
+		
+		for (int n7 = 200; n7 >= 0; n7--) {
+			if (Double.isNaN(pos.x) || Double.isNaN(pos.y) || Double.isNaN(pos.z)) {
+				info.setReturnValue(null);
+				return;
+			}
+			
+			if (x == ix && y == iy && z == iz) {
+				info.setReturnValue(null);
+				return;
+			}
+			
+			meta = 1;
+			boolean bl3 = true;
+			boolean bl4 = true;
+			double d = 999.0;
+			double d2 = 999.0;
+			double d3 = 999.0;
+			
+			if (ix > x) {
+				d = (double) x + 1.0;
+			}
+			else if (ix < x) {
+				d = (double) x + 0.0;
+			}
+			else {
+				meta = 0;
+			}
+			
+			if (iy > y) {
+				d2 = (double) y + 1.0;
+			}
+			else if (iy < y) {
+				d2 = (double) y + 0.0;
+			}
+			else {
+				bl3 = false;
+			}
+			
+			if (iz > z) {
+				d3 = (double) z + 1.0;
+			}
+			else if (iz < z) {
+				d3 = (double) z + 0.0;
+			}
+			else {
+				bl4 = false;
+			}
+			
+			double d4 = 999.0;
+			double d5 = 999.0;
+			double d6 = 999.0;
+			double d7 = pos2.x - pos.x;
+			double d8 = pos2.y - pos.y;
+			double d9 = pos2.z - pos.z;
+			
+			if (meta != 0) {
+				d4 = (d - pos.x) / d7;
+			}
+			
+			if (bl3) {
+				d5 = (d2 - pos.y) / d8;
+			}
+			
+			if (bl4) {
+				d6 = (d3 - pos.z) / d9;
+			}
+			
+			byte side;
+			if (d4 < d5 && d4 < d6) {
+				side = ix > x ? (byte) 4 : (byte) 5;
+				pos.x = d;
+				pos.y += d8 * d4;
+				pos.z += d9 * d4;
+			}
+			else if (d5 < d6) {
+				side = iy > y ? (byte) 0 : (byte) 1;
+				pos.x += d7 * d5;
+				pos.y = d2;
+				pos.z += d9 * d5;
+			}
+			else {
+				side = iz > z ? (byte) 2 : (byte) 3;
+				pos.x += d7 * d6;
+				pos.y += d8 * d6;
+				pos.z = d3;
+			}
+			
+			Vec3f vec3f = Vec3f.getFromCacheAndSet(pos.x, pos.y, pos.z);
+			vec3f.x = MathHelper.floor(pos.x);
+			x = (int) vec3f.x;
+			if (side == 5) {
+				--x;
+				vec3f.x += 1.0;
+			}
+			
+			vec3f.y = MathHelper.floor(pos.y);
+			y = (int)vec3f.y;
+			if (side == 1) {
+				--y;
+				vec3f.y += 1.0;
+			}
+			
+			vec3f.z = MathHelper.floor(pos.z);
+			z = (int)vec3f.z;
+			if (side == 3) {
+				--z;
+				vec3f.z += 1.0;
+			}
+			
+			int meta2 = this.getBlockMeta(x, y, z);
+			
+			state = getBlockState(x, y, z);
+			block = state.getBlock();
+			if (bl2 && !state.isAir() && block.getCollisionShape(level, x, y, z) == null || !block.isCollidable(meta2, bl) || (hitResult = block.getHitResult(level, x, y, z, pos, pos2)) == null) continue;
+			
+			info.setReturnValue(hitResult);
+			return;
+		}
+		
+		info.setReturnValue(null);
+	}
+	
+	@Inject(method = "canPlaceBlock", at = @At("HEAD"), cancellable = true)
+	private void bhapi_canPlaceBlock(int id, int x, int y, int z, boolean flag, int facing, CallbackInfoReturnable<Boolean> info) {
+		BlockState state = BlockUtil.getLegacyBlock(id, 0);
+		info.setReturnValue(canPlaceState(state, x, y, z, flag, facing));
+	}
+	
+	@Unique
+	@Override
+	public boolean canPlaceState(BlockState state, int x, int y, int z, boolean flag, int facing) {
+		Level level = Level.class.cast(this);
+		//BlockState levelState = getBlockState(x, y, z);
+		
+		//BaseBlock levelBlock = levelState.getBlock();
+		BaseBlock placeBlock = state.getBlock();
+		Box collider = placeBlock.getCollisionShape(level, x, y, z);
+		
+		if (flag) {
+			collider = null;
+		}
+		
+		if (collider != null && !level.canSpawnEntity(collider)) return false;
+		
+		/*if (levelBlock instanceof FluidBlock || levelBlock == BaseBlock.FIRE || levelBlock == BaseBlock.SNOW) {
+			levelBlock = null;
+		}*/
+		
+		//return levelBlock == null || placeBlock.canPlaceAt(level, x, y, z, facing);
+		return placeBlock.canPlaceAt(level, x, y, z, facing);
 	}
 	
 	@Unique

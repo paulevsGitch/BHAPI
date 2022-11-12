@@ -164,7 +164,7 @@ public interface BlockStateContainer {
 		state.getBlock().onBlockPlaced(level, x, y, z);
 	}
 	
-	static BlockStateContainer cast(BaseBlock block) {
-		return (BlockStateContainer) block;
+	static BlockStateContainer cast(Object obj) {
+		return (BlockStateContainer) obj;
 	}
 }

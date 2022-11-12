@@ -2,14 +2,17 @@ package net.bhapi.mixin.common;
 
 import net.bhapi.blockstate.BlockState;
 import net.bhapi.blockstate.BlockStateContainer;
+import net.bhapi.level.BlockStateProvider;
 import net.bhapi.util.BlockUtil;
 import net.minecraft.block.BaseBlock;
 import net.minecraft.block.material.Material;
+import net.minecraft.level.Level;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
+import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 @Mixin(BaseBlock.class)
 public class BaseBlockMixin implements BlockStateContainer {
@@ -41,5 +44,11 @@ public class BaseBlockMixin implements BlockStateContainer {
 	@Override
 	public void setDefaultState(BlockState state) {
 		defaultState = state;
+	}
+	
+	@Inject(method = "canPlaceAt(Lnet/minecraft/level/Level;III)Z", at = @At("HEAD"), cancellable = true)
+	private void bhapi_canPlaceAt(Level level, int x, int y, int z, CallbackInfoReturnable<Boolean> info) {
+		BlockState state = BlockStateProvider.cast(level).getBlockState(x, y, z);
+		info.setReturnValue(state.getBlock().material.isReplaceable());
 	}
 }
