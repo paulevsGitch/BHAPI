@@ -1,10 +1,6 @@
 package net.bhapi.mixin.common;
 
 import net.bhapi.blockstate.BlockState;
-import net.bhapi.blockstate.properties.BlockPropertyType;
-import net.bhapi.blockstate.properties.IntegerProperty;
-import net.bhapi.blockstate.properties.StateProperty;
-import net.bhapi.item.BHBlockItem;
 import net.bhapi.registry.CommonRegistries;
 import net.bhapi.util.BlockUtil;
 import net.bhapi.util.Identifier;
@@ -43,22 +39,23 @@ public abstract class ItemStackMixin {
 	
 	@Inject(method = "<init>(Lnet/minecraft/block/BaseBlock;)V", at = @At("TAIL"))
 	private void bhapi_onItemStackInit1(BaseBlock block, CallbackInfo info) {
-		bhapi_item = new BHBlockItem(block);
+		bhapi_processBlockItem(block);
 	}
 	
 	@Inject(method = "<init>(Lnet/minecraft/block/BaseBlock;I)V", at = @At("TAIL"))
 	private void bhapi_onItemStackInit2(BaseBlock block, int count, CallbackInfo info) {
-		bhapi_item = new BHBlockItem(block);
+		bhapi_processBlockItem(block);
 	}
 	
 	@Inject(method = "<init>(Lnet/minecraft/block/BaseBlock;II)V", at = @At("TAIL"))
 	private void bhapi_onItemStackInit3(BaseBlock block, int count, int damage, CallbackInfo info) {
-		BlockState state = BlockState.getDefaultState(block);
+		/*BlockState state = BlockState.getDefaultState(block);
 		StateProperty<?> meta = state.getProperty("meta");
 		if (meta != null && meta.getType() == BlockPropertyType.INTEGER && ((IntegerProperty) meta).isInRange(damage)) {
 			state = state.with(meta, damage);
 		}
-		bhapi_item = new BHBlockItem(state);
+		bhapi_item = new BHBlockItem(state);*/
+		bhapi_processBlockItem(block);
 	}
 	
 	@Inject(method = "<init>(Lnet/minecraft/item/BaseItem;)V", at = @At("TAIL"))
@@ -262,5 +259,11 @@ public abstract class ItemStackMixin {
 	@Inject(method = "isStackIdentical2", at = @At("HEAD"), cancellable = true)
 	private void bhapi_isStackIdentical2(ItemStack arg, CallbackInfoReturnable<Boolean> info) {
 		info.setReturnValue(this.count == arg.count && this.damage == arg.getDamage() && this.getType() == arg.getType());
+	}
+	
+	@Unique
+	private void bhapi_processBlockItem(BaseBlock block) {
+		Identifier blockID = CommonRegistries.BLOCK_REGISTRY.getID(block);
+		this.bhapi_item = CommonRegistries.ITEM_REGISTRY.get(blockID);
 	}
 }

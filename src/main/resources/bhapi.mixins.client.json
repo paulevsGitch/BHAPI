@@ -11,6 +11,7 @@
 		"PlayerRendererMixin",
 		"LevelRendererMixin",
 		"ItemRendererMixin",
+		"AreaRendererMixin",
 		"ClientLevelMixin",
 		"MainMenuMixin",
 		"InGameMixin",

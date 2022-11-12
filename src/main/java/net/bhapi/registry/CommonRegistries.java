@@ -1,5 +1,6 @@
 package net.bhapi.registry;
 
+import net.bhapi.BHAPI;
 import net.bhapi.blockstate.BlockState;
 import net.bhapi.blockstate.BlockStateContainer;
 import net.bhapi.event.BHEvent;
@@ -9,6 +10,7 @@ import net.bhapi.item.BHBlockItem;
 import net.bhapi.util.BlockUtil;
 import net.bhapi.util.Identifier;
 import net.minecraft.block.BaseBlock;
+import net.minecraft.client.render.block.BlockRenderer;
 import net.minecraft.item.BaseItem;
 
 import java.util.HashMap;
@@ -134,8 +136,13 @@ public class CommonRegistries {
 		// Make sure that all vanilla blocks are generated on startup
 		BLOCK_REGISTRY.forEach(block -> {
 			BlockStateContainer.cast(block).getDefaultState().getPossibleStates();
-			ITEM_REGISTRY.register(BLOCK_REGISTRY.getID(block), new BHBlockItem(block));
+			ITEM_REGISTRY.register(BLOCK_REGISTRY.getID(block), new BHBlockItem(block, itemIsFlat(block)));
 		});
+	}
+	
+	private static boolean itemIsFlat(BaseBlock block) {
+		if (!BHAPI.isClient()) return false;
+		return BlockRenderer.isSpecificRenderType(block.getRenderType());
 	}
 	
 	private static void initItems() {

@@ -16,6 +16,8 @@ import net.minecraft.client.gui.InGame;
 import net.minecraft.client.render.TextRenderer;
 import net.minecraft.client.util.ScreenScaler;
 import net.minecraft.item.ItemStack;
+import net.minecraft.level.Level;
+import net.minecraft.level.LightType;
 import net.minecraft.util.hit.HitResult;
 import net.minecraft.util.hit.HitType;
 import net.minecraft.util.maths.MathHelper;
@@ -30,6 +32,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import org.spongepowered.asm.mixin.injection.callback.LocalCapture;
 
 import java.util.Collection;
+import java.util.Locale;
 
 @Mixin(InGame.class)
 public abstract class InGameMixin extends DrawableHelper {
@@ -54,17 +57,27 @@ public abstract class InGameMixin extends DrawableHelper {
 		at = @At(value = "INVOKE", target = "Ljava/lang/Runtime;maxMemory()J", shift = Shift.BEFORE),
 		locals = LocalCapture.CAPTURE_FAILSOFT
 	)
-	private void bhapi_renderBlockInfo(float bl, boolean i, int j, int par4, CallbackInfo info, ScreenScaler scaler, int px, int py, TextRenderer renderer) {
+	private void bhapi_renderAdditionalInfo(float bl, boolean i, int j, int par4, CallbackInfo info, ScreenScaler scaler, int px, int py, TextRenderer renderer) {
 		HitResult hit = minecraft.hitResult;
 		int offset = 22;
 		String text;
 		
-		text = "\u00A7dInside";
+		text = "\u00A7eLight";
 		drawTextWithShadow(renderer, text, px - renderer.getTextWidth(text) - 2, offset += 10, 16777215);
 		
 		int x = MathHelper.floor(minecraft.player.x);
 		int y = MathHelper.floor(minecraft.player.y - minecraft.player.standingEyeHeight);
 		int z = MathHelper.floor(minecraft.player.z);
+		Level level = minecraft.level;
+		
+		text = "\u00A76Block:\u00A7r " + String.format(Locale.ROOT, "%2d", level.getLight(LightType.BLOCK, x, y, z));
+		text += " \u00A7bSky:\u00A7r " + String.format(Locale.ROOT, "%2d", level.getLight(LightType.SKY, x, y, z));
+		drawTextWithShadow(renderer, text, px - renderer.getTextWidth(text) - 2, offset += 10, 16777215);
+		offset += 10;
+		
+		text = "\u00A7dInside";
+		drawTextWithShadow(renderer, text, px - renderer.getTextWidth(text) - 2, offset += 10, 16777215);
+		
 		offset = bhapi_blockstateInfo(x, y, z, renderer, px, offset);
 		
 		if (hit != null && hit.type == HitType.BLOCK) {

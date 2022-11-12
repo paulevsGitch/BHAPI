@@ -11,18 +11,16 @@ Documentation is not available yet, but there are javadocs in the code.
 - Custom world save format (WIP)
 - Worlds with large heights
 - Registries (WIP)
+- Blockstates
+- Events (only startup)
 
 ### Planned Things:
-- Blockstates (partially implemented)
 - Texture atlas (will use [CoreLib](https://github.com/paulevsGitch/B.1.7.3-CoreLib) implementation)
 - Custom block rendering and models (Vanilla, Modern, OBJ and procedural)
 - Dimensions API
 - Fuel API (partially implemented)
-- Items API
-- Blocks API
 - Tags (postponed)
 - Partial Minecraft code optimisations (where it is possible)
-- Events (only startup)
 
 ### Subjective Features:
 - Authentication fix (working online servers)

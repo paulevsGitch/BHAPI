@@ -15,13 +15,15 @@ import net.minecraft.level.Level;
 
 public class BHBlockItem extends BHItem {
 	private final BlockState state;
+	private final boolean isFlat;
 	
-	public BHBlockItem(BlockState state) {
+	public BHBlockItem(BlockState state, boolean isFlat) {
 		this.state = state;
+		this.isFlat = isFlat;
 	}
 	
-	public BHBlockItem(BaseBlock block) {
-		this(BlockState.getDefaultState(block));
+	public BHBlockItem(BaseBlock block, boolean isFlat) {
+		this(BlockState.getDefaultState(block), isFlat);
 	}
 	
 	@Override
@@ -96,5 +98,10 @@ public class BHBlockItem extends BHItem {
 	public boolean equals(Object obj) {
 		if (obj == null || !(obj instanceof BHBlockItem)) return false;
 		return ((BHBlockItem) obj).state == state;
+	}
+	
+	@Environment(EnvType.CLIENT)
+	public boolean isFlat() {
+		return isFlat;
 	}
 }

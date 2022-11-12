@@ -16,8 +16,11 @@ public class TestEvent {
 	}
 	
 	@EventListener // Test Items
-	public void registerBlocks(ItemRegistryEvent event) {
+	public void registerItems(ItemRegistryEvent event) {
 		event.register(Identifier.make("testitem"), new BHItem());
-		event.register(Identifier.make("testitem2"), new BHBlockItem(CommonRegistries.BLOCK_REGISTRY.get(Identifier.make("testblock"))));
+		event.register(
+			Identifier.make("testitem2"),
+			new BHBlockItem(CommonRegistries.BLOCK_REGISTRY.get(Identifier.make("testblock")), false)
+		);
 	}
 }
