@@ -3,6 +3,7 @@ package net.bhapi.mixin.client;
 import net.bhapi.blockstate.BlockState;
 import net.bhapi.blockstate.properties.StateProperty;
 import net.bhapi.client.gui.DebugAllItems;
+import net.bhapi.event.TestEvent;
 import net.bhapi.level.BlockStateProvider;
 import net.bhapi.registry.CommonRegistries;
 import net.bhapi.util.BlockUtil;
@@ -44,11 +45,12 @@ public abstract class InGameMixin extends DrawableHelper {
 		if (Keyboard.getEventKey() == Keyboard.KEY_G && this.minecraft.currentScreen == null) {
 			DebugAllItems inventory = new DebugAllItems(9 * 4);
 			ItemStack[] items = inventory.getItems();
-			int index = 0;
-			items[index++] = new ItemStack(CommonRegistries.ITEM_REGISTRY.get(Identifier.make("testitem")), 64);
-			items[index++] = new ItemStack(CommonRegistries.ITEM_REGISTRY.get(Identifier.make("testblock")), 64);
-			items[index++] = new ItemStack(CommonRegistries.ITEM_REGISTRY.get(Identifier.make("testblock2")), 64);
-			for (byte m = 0; m < 3; m++) items[index++] = new ItemStack(BaseBlock.SAPLING, 64, m);
+			final int[] index = new int[] {0};
+			TestEvent.BLOCKS.keySet().forEach(id -> {
+				ItemStack stack = new ItemStack(CommonRegistries.ITEM_REGISTRY.get(Identifier.make("testitem")), 64);
+				items[index[0]++] = stack;
+			});
+			for (byte m = 0; m < 3; m++) items[index[0]++] = new ItemStack(BaseBlock.SAPLING, 64, m);
 			this.minecraft.player.openChestScreen(inventory);
 		}
 	}

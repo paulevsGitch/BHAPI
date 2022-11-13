@@ -1,4 +1,4 @@
-package net.bhapi.mixin.common;
+package net.bhapi.mixin.common.level;
 
 import net.bhapi.BHAPI;
 import net.bhapi.blockstate.BlockState;
@@ -14,7 +14,6 @@ import net.minecraft.block.BaseBlock;
 import net.minecraft.block.material.Material;
 import net.minecraft.block.technical.TimeInfo;
 import net.minecraft.entity.BaseEntity;
-import net.minecraft.entity.player.PlayerBase;
 import net.minecraft.level.Level;
 import net.minecraft.level.LevelProperties;
 import net.minecraft.level.LightType;
@@ -22,7 +21,6 @@ import net.minecraft.level.LightUpdateArea;
 import net.minecraft.level.chunk.Chunk;
 import net.minecraft.level.dimension.BaseDimension;
 import net.minecraft.level.dimension.DimensionData;
-import net.minecraft.level.gen.BiomeSource;
 import net.minecraft.util.hit.HitResult;
 import net.minecraft.util.io.CompoundTag;
 import net.minecraft.util.io.NBTIO;
@@ -52,12 +50,7 @@ import java.util.TreeSet;
 
 @Mixin(Level.class)
 public abstract class LevelMixin implements LevelHeightProvider, BlockStateProvider, PlaceChecker {
-	@Shadow private Set loadedChunkPositions;
-	@Shadow public List players;
-	@Shadow private int caveSoundTicks;
-	@Shadow protected int randomIndex;
 	@Shadow public Random random;
-	@Shadow protected int lightingTicks;
 	@Shadow @Final public BaseDimension dimension;
 	@Shadow @Final protected DimensionData dimensionData;
 	@Shadow protected LevelProperties properties;
@@ -66,17 +59,6 @@ public abstract class LevelMixin implements LevelHeightProvider, BlockStateProvi
 	@Shadow public boolean forceBlockUpdate;
 	
 	@Shadow public abstract Chunk getChunkFromCache(int i, int j);
-	@Shadow public abstract int getLightLevel(int i, int j, int k);
-	@Shadow public abstract PlayerBase getClosestPlayer(double d, double e, double f, double g);
-	@Shadow public abstract int getLight(LightType arg, int i, int j, int k);
-	@Shadow public abstract void playSound(double d, double e, double f, String string, float g, float h);
-	@Shadow public abstract boolean isRaining();
-	@Shadow public abstract boolean isThundering();
-	@Shadow public abstract int getHeightIterating(int i, int j);
-	@Shadow public abstract boolean canRainAt(int i, int j, int k);
-	@Shadow public abstract boolean addEntity(BaseEntity arg);
-	@Shadow public abstract BiomeSource getBiomeSource();
-	@Shadow public abstract boolean setBlock(int i, int j, int k, int l);
 	@Shadow public abstract boolean isAreaLoaded(int i, int j, int k, int l, int m, int n);
 	@Shadow public abstract void updateListenersLight(int i, int j, int k);
 	@Shadow public abstract void updateAdjacentBlocks(int i, int j, int k, int l);

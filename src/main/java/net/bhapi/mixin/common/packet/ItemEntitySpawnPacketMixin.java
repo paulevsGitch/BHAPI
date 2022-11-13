@@ -1,19 +1,15 @@
-package net.bhapi.mixin.common;
+package net.bhapi.mixin.common.packet;
 
 import net.bhapi.blockstate.BlockState;
 import net.bhapi.item.BHBlockItem;
 import net.bhapi.item.ItemProvider;
 import net.bhapi.registry.CommonRegistries;
 import net.bhapi.util.Identifier;
-import net.minecraft.block.BaseBlock;
 import net.minecraft.entity.ItemEntity;
 import net.minecraft.item.BaseItem;
 import net.minecraft.item.ItemStack;
-import net.minecraft.network.PacketHandler;
 import net.minecraft.packet.AbstractPacket;
 import net.minecraft.packet.play.ItemEntitySpawn0x15S2CPacket;
-import net.minecraft.util.maths.MathHelper;
-import org.jetbrains.annotations.Nullable;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.Unique;
@@ -71,11 +67,9 @@ public abstract class ItemEntitySpawnPacketMixin extends AbstractPacket implemen
 		if (id == null && bhapi_item instanceof BHBlockItem) {
 			BlockState state = ((BHBlockItem) bhapi_item).getState();
 			id = CommonRegistries.BLOCK_REGISTRY.getID(state.getBlock());
-			System.out.println(id);
 			if (bhapi_entity != null) {
 				BaseItem item = CommonRegistries.ITEM_REGISTRY.get(id);
-				if (item == null) System.out.println("Null item " + id);
-				else bhapi_entity.stack = new ItemStack(item, bhapi_entity.stack.count);
+				if (item != null) bhapi_entity.stack = new ItemStack(item, bhapi_entity.stack.count);
 			}
 		}
 		writeString(id.toString(), stream);

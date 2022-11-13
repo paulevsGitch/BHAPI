@@ -1,4 +1,4 @@
-package net.bhapi.mixin.common;
+package net.bhapi.mixin.common.packet;
 
 import net.bhapi.registry.CommonRegistries;
 import net.bhapi.util.Identifier;
@@ -42,10 +42,7 @@ public abstract class InventoryUpdatePacketMixin extends AbstractPacket {
 			byte count = dataInputStream.readByte();
 			short damage = dataInputStream.readShort();
 			BaseItem item = CommonRegistries.ITEM_REGISTRY.get(id);
-			if (item == null) {
-				System.out.println(item + " " + id);
-				continue;
-			}
+			if (item == null) continue;
 			this.stacks[i] = new ItemStack(item, count, damage);
 		}
 	}
@@ -67,7 +64,6 @@ public abstract class InventoryUpdatePacketMixin extends AbstractPacket {
 				continue;
 			}
 			
-			System.out.println(id);
 			writeString(id.toString(), stream);
 			stream.writeByte((byte) this.stacks[i].count);
 			stream.writeShort((short) this.stacks[i].getDamage());

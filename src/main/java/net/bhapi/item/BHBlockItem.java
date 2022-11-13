@@ -14,13 +14,11 @@ import net.minecraft.entity.player.PlayerBase;
 import net.minecraft.item.ItemStack;
 import net.minecraft.level.Level;
 
-import java.util.HashSet;
-import java.util.Set;
-
 public class BHBlockItem extends BHItem {
-	private static final Set<BlockState> CREATED = new HashSet<>();
 	private final BlockState state;
 	private final boolean isFlat;
+	private static int globalID;
+	private final int id = globalID++;
 	
 	public BHBlockItem(BlockState state, boolean isFlat) {
 		this.state = state;
@@ -81,7 +79,7 @@ public class BHBlockItem extends BHItem {
 	
 	@Override
 	public int hashCode() {
-		return state.hashCode();
+		return id;//state.hashCode();
 	}
 	
 	@Override
@@ -93,5 +91,17 @@ public class BHBlockItem extends BHItem {
 	@Environment(EnvType.CLIENT)
 	public boolean isFlat() {
 		return isFlat;
+	}
+	
+	@Override
+	public String toString() {
+		StringBuilder builder = new StringBuilder("{class: ");
+		builder.append(this.getClass().getName());
+		builder.append(", hash: ");
+		builder.append(hashCode());
+		builder.append(", state: ");
+		builder.append(state);
+		builder.append("}");
+		return builder.toString();
 	}
 }

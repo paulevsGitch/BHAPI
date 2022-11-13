@@ -4,7 +4,7 @@ import net.bhapi.BHAPI;
 import net.bhapi.blockstate.BlockState;
 import net.bhapi.client.BHAPIClient;
 import net.bhapi.config.BHConfigs;
-import net.bhapi.mixin.common.LevelAccessor;
+import net.bhapi.mixin.common.level.LevelAccessor;
 import net.bhapi.storage.ExpandableCache;
 import net.bhapi.storage.Vec2I;
 import net.bhapi.storage.Vec3I;

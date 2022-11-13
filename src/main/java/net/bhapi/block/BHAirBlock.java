@@ -8,6 +8,7 @@ import net.minecraft.level.Level;
 import net.minecraft.util.maths.Box;
 
 import java.util.ArrayList;
+import java.util.List;
 
 public class BHAirBlock extends BHBaseBlock implements BlockStateContainer {
 	public BHAirBlock() {
@@ -52,4 +53,7 @@ public class BHAirBlock extends BHBaseBlock implements BlockStateContainer {
 	public boolean isFullOpaque(BlockState state) {
 		return false;
 	}
+	
+	@Override
+	public void getCustomDrop(Level level, int x, int y, int z, List<ItemStack> drop) {}
 }

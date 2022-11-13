@@ -1,4 +1,4 @@
-package net.bhapi.mixin.common;
+package net.bhapi.mixin.common.block;
 
 import net.bhapi.block.CustomDropProvider;
 import net.bhapi.blockstate.BlockState;
@@ -62,10 +62,13 @@ public abstract class BaseBlockMixin implements BlockStateContainer {
 	
 	@Inject(method = "drop(Lnet/minecraft/level/Level;IIIIF)V", at = @At("HEAD"), cancellable = true)
 	private void bhapi_drop(Level level, int x, int y, int z, int l, float f, CallbackInfo info) {
-		if (!level.isClientSide && this instanceof CustomDropProvider) {
-			List<ItemStack> drop = new ArrayList<>();
-			CustomDropProvider.cast(this).getCustomDrop(level, x, y, z, drop);
-			drop.forEach(stack -> this.drop(level, x, y, z, stack));
+		if (this instanceof CustomDropProvider) {
+			info.cancel();
+			if (!level.isClientSide) {
+				List<ItemStack> drop = new ArrayList<>();
+				CustomDropProvider.cast(this).getCustomDrop(level, x, y, z, drop);
+				drop.forEach(stack -> this.drop(level, x, y, z, stack));
+			}
 		}
 	}
 }

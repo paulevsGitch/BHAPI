@@ -4,7 +4,6 @@ import net.bhapi.level.LevelHeightProvider;
 import net.minecraft.block.entity.BaseBlockEntity;
 import net.minecraft.entity.player.PlayerBase;
 import net.minecraft.entity.player.ServerPlayer;
-import net.minecraft.item.BaseItem;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.MapBaseItem;
 import net.minecraft.level.Level;

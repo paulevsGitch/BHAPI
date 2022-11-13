@@ -1,4 +1,4 @@
-package net.bhapi.mixin.common;
+package net.bhapi.mixin.common.level;
 
 import net.minecraft.level.Level;
 import org.spongepowered.asm.mixin.Mixin;

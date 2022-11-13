@@ -1,4 +1,4 @@
-package net.bhapi.mixin.common;
+package net.bhapi.mixin.common.level;
 
 import net.bhapi.level.LevelHeightProvider;
 import net.minecraft.level.Level;

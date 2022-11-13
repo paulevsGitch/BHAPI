@@ -5,35 +5,43 @@ import net.bhapi.item.BHBlockItem;
 import net.bhapi.item.BHItem;
 import net.bhapi.registry.CommonRegistries;
 import net.bhapi.util.Identifier;
+import net.minecraft.block.BaseBlock;
+import net.minecraft.block.BlockSounds;
 import net.minecraft.block.material.Material;
-import net.minecraft.item.BaseItem;
+
+import java.util.HashMap;
+import java.util.Map;
+import java.util.function.BiConsumer;
 
 // TODO remove this
 public class TestEvent {
+	public static final Map<Identifier, BaseBlock> BLOCKS = new HashMap<>();
+	
 	@EventListener // Test Blocks
 	public void registerBlocks(BlockRegistryEvent event) {
-		event.register(Identifier.make("testblock"), new TestBlock(Material.STONE));
-		event.register(Identifier.make("testblock2"), new TestBlock(Material.DIRT));
+		registerBlock("testblock", new TestBlock(Material.WOOD, BaseBlock.WOOD_SOUNDS), event::register);
+		registerBlock("testblock2", new TestBlock(Material.DIRT, BaseBlock.GRASS_SOUNDS), event::register);
+		registerBlock("testblock3", new TestBlock(Material.GLASS, BaseBlock.GLASS_SOUNDS), event::register);
+	}
+	
+	private void registerBlock(String name, BaseBlock block, BiConsumer<Identifier, BaseBlock> register) {
+		Identifier id = Identifier.make(name);
+		register.accept(id, block);
+		BLOCKS.put(id, block);
 	}
 	
 	@EventListener // Test Items
 	public void registerItems(ItemRegistryEvent event) {
 		event.register(Identifier.make("testitem"), new BHItem());
-		event.register(
-			Identifier.make("testblock"),
-			new BHBlockItem(CommonRegistries.BLOCK_REGISTRY.get(Identifier.make("testblock")), false)
-		);
-		event.register(
-			Identifier.make("testblock2"),
-			new BHBlockItem(CommonRegistries.BLOCK_REGISTRY.get(Identifier.make("testblock2")), false)
-		);
+		BLOCKS.forEach((id, block) -> event.register(id, new BHBlockItem(block, false)));
 	}
 	
 	private class TestBlock extends BHBaseBlock {
-		public TestBlock(Material material) {
+		public TestBlock(Material material, BlockSounds sounds) {
 			super(material);
 			setHardness(0.1F);
 			setBlastResistance(0.1F);
+			setSounds(sounds);
 		}
 		
 		@Override

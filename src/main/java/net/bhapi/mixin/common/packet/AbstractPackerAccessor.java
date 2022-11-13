@@ -1,4 +1,4 @@
-package net.bhapi.mixin.common;
+package net.bhapi.mixin.common.packet;
 
 import net.minecraft.packet.AbstractPacket;
 import org.spongepowered.asm.mixin.Mixin;
