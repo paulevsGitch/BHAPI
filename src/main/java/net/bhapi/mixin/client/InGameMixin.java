@@ -7,7 +7,6 @@ import net.bhapi.event.TestEvent;
 import net.bhapi.level.BlockStateProvider;
 import net.bhapi.registry.CommonRegistries;
 import net.bhapi.util.BlockUtil;
-import net.bhapi.util.Identifier;
 import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.block.BaseBlock;
 import net.minecraft.block.entity.BaseBlockEntity;
@@ -47,7 +46,7 @@ public abstract class InGameMixin extends DrawableHelper {
 			ItemStack[] items = inventory.getItems();
 			final int[] index = new int[] {0};
 			TestEvent.BLOCKS.keySet().forEach(id -> {
-				ItemStack stack = new ItemStack(CommonRegistries.ITEM_REGISTRY.get(Identifier.make("testitem")), 64);
+				ItemStack stack = new ItemStack(CommonRegistries.ITEM_REGISTRY.get(id), 64);
 				items[index[0]++] = stack;
 			});
 			for (byte m = 0; m < 3; m++) items[index[0]++] = new ItemStack(BaseBlock.SAPLING, 64, m);

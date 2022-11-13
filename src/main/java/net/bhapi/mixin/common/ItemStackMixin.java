@@ -130,7 +130,6 @@ public abstract class ItemStackMixin implements ItemProvider {
 	private void bhapi_getType(CallbackInfoReturnable<BaseItem> info) {
 		if (this.bhapi_item == null) {
 			info.setReturnValue(BaseItem.ironShovel);
-			//this.count = 0;
 		}
 		else info.setReturnValue(this.bhapi_item);
 	}
