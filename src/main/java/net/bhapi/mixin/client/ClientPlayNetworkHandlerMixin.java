@@ -1,12 +1,17 @@
 package net.bhapi.mixin.client;
 
+import net.bhapi.blockstate.BlockState;
 import net.bhapi.item.ItemProvider;
+import net.bhapi.level.BlockStateProvider;
+import net.bhapi.level.MultiStatesProvider;
 import net.minecraft.client.level.ClientLevel;
 import net.minecraft.entity.ItemEntity;
 import net.minecraft.item.BaseItem;
 import net.minecraft.item.ItemStack;
+import net.minecraft.level.chunk.Chunk;
 import net.minecraft.network.ClientPlayNetworkHandler;
 import net.minecraft.packet.play.ItemEntitySpawn0x15S2CPacket;
+import net.minecraft.packet.play.MultiBlockChange0x34S2CPacket;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.injection.At;
@@ -18,19 +23,38 @@ public class ClientPlayNetworkHandlerMixin {
 	@Shadow private ClientLevel level;
 	
 	@Inject(method = "onItemEntitySpawn", at = @At("HEAD"), cancellable = true)
-	private void bhapi_onItemEntitySpawn(ItemEntitySpawn0x15S2CPacket arg, CallbackInfo info) {
+	private void bhapi_onItemEntitySpawn(ItemEntitySpawn0x15S2CPacket packet, CallbackInfo info) {
 		info.cancel();
-		double x = (double) arg.x / 32.0;
-		double y = (double) arg.y / 32.0;
-		double z = (double) arg.z / 32.0;
-		BaseItem item = ItemProvider.cast(arg).getItem();
-		ItemEntity itemEntity = new ItemEntity(this.level, x, y, z, new ItemStack(item, arg.count, arg.damage));
-		itemEntity.velocityX = (double) arg.velocityX / 128.0;
-		itemEntity.velocityY = (double) arg.velocityY / 128.0;
-		itemEntity.velocityZ = (double) arg.velocityZ / 128.0;
-		itemEntity.clientX = arg.x;
-		itemEntity.clientY = arg.y;
-		itemEntity.clientZ = arg.z;
-		this.level.method_1495(arg.entityId, itemEntity);
+		double x = (double) packet.x / 32.0;
+		double y = (double) packet.y / 32.0;
+		double z = (double) packet.z / 32.0;
+		BaseItem item = ItemProvider.cast(packet).getItem();
+		ItemEntity itemEntity = new ItemEntity(this.level, x, y, z, new ItemStack(item, packet.count, packet.damage));
+		itemEntity.velocityX = (double) packet.velocityX / 128.0;
+		itemEntity.velocityY = (double) packet.velocityY / 128.0;
+		itemEntity.velocityZ = (double) packet.velocityZ / 128.0;
+		itemEntity.clientX = packet.x;
+		itemEntity.clientY = packet.y;
+		itemEntity.clientZ = packet.z;
+		this.level.method_1495(packet.entityId, itemEntity);
+	}
+	
+	@Inject(method = "onMultiBlockChange", at = @At("HEAD"), cancellable = true)
+	private void bhapi_onMultiBlockChange(MultiBlockChange0x34S2CPacket packet, CallbackInfo info) {
+		info.cancel();
+		Chunk chunk = this.level.getChunkFromCache(packet.chunkX, packet.chunkZ);
+		int cx = packet.chunkX * 16;
+		int cz = packet.chunkZ * 16;
+		BlockState[] states = MultiStatesProvider.cast(packet).getStates();
+		BlockStateProvider provider = BlockStateProvider.cast(chunk);
+		for (int i = 0; i < packet.arraySize; ++i) {
+			short s = packet.coordinateArray[i];
+			int x = s >> 12 & 0xF;
+			int z = s >> 8 & 0xF;
+			int y = s & 0xFF;
+			provider.setBlockState(x, y, z, states[i]);
+			this.level.method_1498(x | cx, y, z | cz, x | cx, y, z | cz);
+			this.level.callAreaEvents(x | cx, y, z | cz, x | cx, y, z | cz);
+		}
 	}
 }

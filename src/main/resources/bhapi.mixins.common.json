@@ -28,6 +28,7 @@
 		"level.LevelAccessor",
 		"level.LevelMixin",
 		
+		"packet.MultiBlockChangePacketMixin",
 		"packet.InventoryUpdatePacketMixin",
 		"packet.ItemEntitySpawnPacketMixin",
 		"packet.ServerPacketHandlerMixin",

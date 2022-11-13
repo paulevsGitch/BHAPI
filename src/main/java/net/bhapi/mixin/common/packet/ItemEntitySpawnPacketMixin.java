@@ -36,6 +36,7 @@ public abstract class ItemEntitySpawnPacketMixin extends AbstractPacket implemen
 	
 	@Unique private BaseItem bhapi_item;
 	@Unique private ItemEntity bhapi_entity;
+	@Unique private int bhapi_size;
 	
 	@Inject(method = "<init>(Lnet/minecraft/entity/ItemEntity;)V", at = @At("TAIL"))
 	private void bhapi_onPacketInit(ItemEntity entity, CallbackInfo info) {
@@ -63,6 +64,7 @@ public abstract class ItemEntitySpawnPacketMixin extends AbstractPacket implemen
 	@Inject(method = "write", at = @At("HEAD"), cancellable = true)
 	private void bhapi_write(DataOutputStream stream, CallbackInfo info) throws IOException {
 		info.cancel();
+		bhapi_size = stream.size();
 		stream.writeInt(this.entityId);
 		Identifier id = CommonRegistries.ITEM_REGISTRY.getID(bhapi_item);
 		if (id == null && bhapi_item instanceof BHBlockItem) {
@@ -82,18 +84,21 @@ public abstract class ItemEntitySpawnPacketMixin extends AbstractPacket implemen
 		stream.writeByte(this.velocityX);
 		stream.writeByte(this.velocityY);
 		stream.writeByte(this.velocityZ);
+		bhapi_size = stream.size() - bhapi_size;
 	}
 	
 	@Inject(method = "length", at = @At("HEAD"), cancellable = true)
 	private void bhapi_length(CallbackInfoReturnable<Integer> info) {
-		info.setReturnValue(48);
+		info.setReturnValue(Math.max(48, bhapi_size));
 	}
 	
+	@Unique
 	@Override
 	public BaseItem getItem() {
 		return bhapi_item;
 	}
 	
+	@Unique
 	@Override
 	public void setItem(BaseItem item) {
 		bhapi_item = item;

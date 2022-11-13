@@ -2,7 +2,6 @@ package net.bhapi.mixin.common;
 
 import net.minecraft.entity.BaseEntity;
 import net.minecraft.entity.ItemEntity;
-import net.minecraft.entity.player.PlayerBase;
 import net.minecraft.item.ItemStack;
 import net.minecraft.level.Level;
 import org.spongepowered.asm.mixin.Mixin;

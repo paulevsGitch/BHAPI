@@ -8,6 +8,7 @@ import net.minecraft.packet.AbstractPacket;
 import net.minecraft.packet.play.InventoryUpdate0x68S2CPacket;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
+import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
@@ -21,10 +22,12 @@ import java.io.IOException;
 public abstract class InventoryUpdatePacketMixin extends AbstractPacket {
 	@Shadow public int containerId;
 	@Shadow public ItemStack[] stacks;
+	@Unique private int bhapi_size;
 	
 	@Inject(method = "read", at = @At("HEAD"), cancellable = true)
 	private void bhapi_read(DataInputStream dataInputStream, CallbackInfo info) throws IOException {
 		info.cancel();
+		System.out.println("Updating!");
 		this.containerId = dataInputStream.readByte();
 		short size = dataInputStream.readShort();
 		this.stacks = new ItemStack[size];
@@ -34,6 +37,7 @@ public abstract class InventoryUpdatePacketMixin extends AbstractPacket {
 				name = readString(dataInputStream, 256);
 			}
 			catch (Exception e) {
+				System.out.println("Name exception");
 				continue;
 			}
 			if (name.isEmpty()) continue;
@@ -44,12 +48,14 @@ public abstract class InventoryUpdatePacketMixin extends AbstractPacket {
 			BaseItem item = CommonRegistries.ITEM_REGISTRY.get(id);
 			if (item == null) continue;
 			this.stacks[i] = new ItemStack(item, count, damage);
+			System.out.println("Stack " + i + " " + item);
 		}
 	}
 	
 	@Inject(method = "write", at = @At("HEAD"), cancellable = true)
 	private void bhapi_write(DataOutputStream stream, CallbackInfo info) throws IOException {
 		info.cancel();
+		bhapi_size = stream.size();
 		stream.writeByte(this.containerId);
 		stream.writeShort(this.stacks.length);
 		for (short i = 0; i < this.stacks.length; ++i) {
@@ -68,10 +74,11 @@ public abstract class InventoryUpdatePacketMixin extends AbstractPacket {
 			stream.writeByte((byte) this.stacks[i].count);
 			stream.writeShort((short) this.stacks[i].getDamage());
 		}
+		bhapi_size = stream.size() - bhapi_size;
 	}
 	
 	@Inject(method = "length", at = @At("HEAD"), cancellable = true)
 	private void bhapi_length(CallbackInfoReturnable<Integer> info) {
-		info.setReturnValue(3 + stacks.length * 16);
+		info.setReturnValue(Math.max(bhapi_size, 3 + stacks.length * 16));
 	}
 }
