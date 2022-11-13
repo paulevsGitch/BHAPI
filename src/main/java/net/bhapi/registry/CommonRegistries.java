@@ -3,15 +3,23 @@ package net.bhapi.registry;
 import net.bhapi.BHAPI;
 import net.bhapi.blockstate.BlockState;
 import net.bhapi.blockstate.BlockStateContainer;
+import net.bhapi.command.BHCommand;
 import net.bhapi.event.BHEvent;
 import net.bhapi.event.BlockRegistryEvent;
+import net.bhapi.event.CommandRegistryEvent;
 import net.bhapi.event.ItemRegistryEvent;
 import net.bhapi.item.BHBlockItem;
 import net.bhapi.util.BlockUtil;
 import net.bhapi.util.Identifier;
+import net.fabricmc.api.EnvType;
+import net.fabricmc.api.Environment;
 import net.minecraft.block.BaseBlock;
 import net.minecraft.client.render.block.BlockRenderer;
+import net.minecraft.entity.player.ServerPlayer;
 import net.minecraft.item.BaseItem;
+import net.minecraft.item.ItemStack;
+import net.minecraft.server.ServerPlayerConnectionManager;
+import net.minecraft.server.command.CommandSource;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -21,6 +29,9 @@ public class CommonRegistries {
 	public static final Registry<BaseBlock> BLOCK_REGISTRY = new Registry<>();
 	public static final Registry<BaseItem> ITEM_REGISTRY = new Registry<>();
 	public static final Map<Class<? extends BHEvent>, Supplier<? extends BHEvent>> EVENT_REGISTRY = new HashMap<>();
+	
+	@Environment(EnvType.SERVER)
+	public static final Map<String, BHCommand> COMMAND_REGISTRY = new HashMap<>();
 	
 	public static final SerialisationMap<BlockState> BLOCKSTATES_MAP = new SerialisationMap<>(
 		"blockstates",
@@ -32,6 +43,7 @@ public class CommonRegistries {
 		initBlocks();
 		initItems();
 		initEvents();
+		if (BHAPI.isServer()) initCommands();
 	}
 	
 	private static void initBlocks() {
@@ -255,8 +267,57 @@ public class CommonRegistries {
 		ITEM_REGISTRY.register(Identifier.make("record_cat"), BaseItem.recordCat);
 	}
 	
+	@Environment(EnvType.SERVER)
+	private static void initCommands() {
+		COMMAND_REGISTRY.put("give", (command, server, args) -> {
+			ServerPlayerConnectionManager serverPlayerConnectionManager = server.serverPlayerConnectionManager;
+			CommandSource commandSource = command.source;
+			String name = commandSource.getName();
+			
+			if (args.length < 2 || args.length > 3) {
+				commandSource.sendFeedback("Wrong args, usage: /give [player] item");
+				return;
+			}
+			
+			Identifier id = Identifier.make(args[args.length - 1]);
+			BaseItem item = CommonRegistries.ITEM_REGISTRY.get(id);
+			if (item == null) {
+				commandSource.sendFeedback("No such item: " + id);
+				return;
+			}
+			
+			ItemStack stack = new ItemStack(item);
+			ServerPlayer player;
+			
+			if (args.length == 2) {
+				player = serverPlayerConnectionManager.getServerPlayer(name);
+				if (player == null) return;
+				if (!player.inventory.addStack(stack)) {
+					player.dropItem(stack);
+				}
+			}
+			else {
+				player = serverPlayerConnectionManager.getServerPlayer(args[1]);
+				if (player == null) {
+					commandSource.sendFeedback("Can't find user " + args[1]);
+					return;
+				}
+				if (!player.inventory.addStack(stack)) {
+					player.dropItem(stack);
+				}
+			}
+			
+			String log = "Giving " + player.name + " some " + id;
+			commandSource.sendFeedback(log);
+			BHAPI.log(log);
+		});
+	}
+	
 	private static void initEvents() {
 		EVENT_REGISTRY.put(BlockRegistryEvent.class, () -> new BlockRegistryEvent(BLOCK_REGISTRY));
 		EVENT_REGISTRY.put(ItemRegistryEvent.class, () -> new ItemRegistryEvent(ITEM_REGISTRY));
+		if (BHAPI.isServer()) {
+			EVENT_REGISTRY.put(CommandRegistryEvent.class, () -> new CommandRegistryEvent(COMMAND_REGISTRY));
+		}
 	}
 }

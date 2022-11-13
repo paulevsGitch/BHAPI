@@ -80,22 +80,33 @@ public class BHAPI implements ModInitializer {
 		return FabricLoader.getInstance().getEnvironmentType() == EnvType.CLIENT;
 	}
 	
+	public static boolean isServer() {
+		return FabricLoader.getInstance().getEnvironmentType() == EnvType.SERVER;
+	}
+	
 	@SuppressWarnings("unchecked")
 	private void handleEvents() {
+		processEntryPoints("bhapi:common_events");
+		if (isServer()) {
+			processEntryPoints("bhapi:server_events");
+		}
+	}
+	
+	public static void processEntryPoints(String path) {
 		Map<Class<? extends BHEvent>, List<Pair<Object, Method>>> events = new HashMap<>();
-		FabricLoader.getInstance().getEntrypointContainers("bhapi:common_events", Object.class).forEach(entrypointContainer -> {
+		FabricLoader.getInstance().getEntrypointContainers(path, Object.class).forEach(entrypointContainer -> {
 			Object entrypoint = entrypointContainer.getEntrypoint();
 			Arrays.stream(entrypoint.getClass().getDeclaredMethods())
-				.filter(method -> method.isAnnotationPresent(EventListener.class))
-				.forEach(method -> {
-					method.setAccessible(true);
-					Class<?>[] parameters = method.getParameterTypes();
-					if (parameters.length == 1 && BHEvent.class.isAssignableFrom(parameters[0])) {
-						Class<? extends BHEvent> event = (Class<? extends BHEvent>) parameters[0];
-						List<Pair<Object, Method>> pairs = events.computeIfAbsent(event, i -> new ArrayList<>());
-						pairs.add(Pair.of(entrypoint, method));
-					}
-				});
+				  .filter(method -> method.isAnnotationPresent(EventListener.class))
+				  .forEach(method -> {
+					  method.setAccessible(true);
+					  Class<?>[] parameters = method.getParameterTypes();
+					  if (parameters.length == 1 && BHEvent.class.isAssignableFrom(parameters[0])) {
+						  Class<? extends BHEvent> event = (Class<? extends BHEvent>) parameters[0];
+						  List<Pair<Object, Method>> pairs = events.computeIfAbsent(event, i -> new ArrayList<>());
+						  pairs.add(Pair.of(entrypoint, method));
+					  }
+				  });
 		});
 		
 		List<Pair<Object, Method>> registerEvents = events.get(EventRegistrationEvent.class);
@@ -114,28 +125,28 @@ public class BHAPI implements ModInitializer {
 		}
 		
 		events.keySet()
-			.stream()
-			.map(CommonRegistries.EVENT_REGISTRY::get)
-			.filter(Objects::nonNull)
-			.map(Supplier::get)
-			.sorted()
-			.forEach(event -> {
-				String name = event.getClass().getName();
-				name = name.substring(name.lastIndexOf('.') + 1);
-				log("[EVENT] " + name);
-				events.get(event.getClass())
-					  .stream()
-					  .sorted(Comparator.comparingInt(p -> p.second().getAnnotation(EventListener.class).priority()))
-					  .forEach(pair -> {
-						  Object entrypoint = pair.first();
-						  Method method = pair.second();
-						  try {
-							  method.invoke(entrypoint, event);
-						  }
-						  catch (IllegalAccessException | InvocationTargetException e) {
-							  e.printStackTrace();
-						  }
-					  });
-			});
+			  .stream()
+			  .map(CommonRegistries.EVENT_REGISTRY::get)
+			  .filter(Objects::nonNull)
+			  .map(Supplier::get)
+			  .sorted()
+			  .forEach(event -> {
+				  String name = event.getClass().getName();
+				  name = name.substring(name.lastIndexOf('.') + 1);
+				  log("[EVENT] " + name);
+				  events.get(event.getClass())
+						.stream()
+						.sorted(Comparator.comparingInt(p -> p.second().getAnnotation(EventListener.class).priority()))
+						.forEach(pair -> {
+							Object entrypoint = pair.first();
+							Method method = pair.second();
+							try {
+								method.invoke(entrypoint, event);
+							}
+							catch (IllegalAccessException | InvocationTargetException e) {
+								e.printStackTrace();
+							}
+						});
+			  });
 	}
 }

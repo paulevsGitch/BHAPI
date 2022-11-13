@@ -1,4 +1,4 @@
-package net.bhapi.mixin.common;
+package net.bhapi.mixin.common.packet;
 
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
@@ -26,7 +26,7 @@ public class MapChunkPacketMixin {
 		target = "Ljava/util/zip/Deflater;deflate([B)I",
 		shift = Shift.BEFORE
 	))
-	private void bhapi_onPacketInit(int x1, int y1, int z1, int dx, int dy, int dz, Level leve, CallbackInfo info) {
+	private void bhapi_onPacketInit(int x1, int y1, int z1, int dx, int dy, int dz, Level level, CallbackInfo info) {
 		this.chunkData = new byte[dx * dy * dz * 5];
 	}
 	

@@ -12,7 +12,6 @@
 		"LightUpdateAreaMixin",
 		"NetherDimensionMixin",
 		"PlayerInventoryMixin",
-		"MapChunkPacketMixin",
 		"BaseDimensionMixin",
 		"ContainerBaseMixin",
 		"ItemEntityMixin",
@@ -35,6 +34,7 @@
 		"packet.AbstractPackerAccessor",
 		"packet.BlockChangePacketMixin",
 		"packet.SlotUpdatePacketMixin",
+		"packet.MapChunkPacketMixin",
 		
 		"block.RedstoneRepeaterBlockMixin",
 		"block.PressurePlateBlockMixin",

@@ -30,6 +30,9 @@
 		],
 		"bhapi:client_events": [
 			"net.bhapi.client.TestClientEvent"
+		],
+		"bhapi:server_events": [
+			"net.bhapi.event.TestServerEvent"
 		]
 	},
 	"mixins": [
