@@ -18,8 +18,13 @@ public abstract class ItemEntityMixin extends BaseEntity {
 		super(arg);
 	}
 	
+	@Inject(method = "<init>(Lnet/minecraft/level/Level;DDDLnet/minecraft/item/ItemStack;)V", at = @At("TAIL"))
+	private void bhapi_onItemEntityInit(Level arg, double x, double y, double z, ItemStack arg2, CallbackInfo info) {
+		System.out.println("Init: " + stack + " " + arg2 + " " + arg + " " + x + " " + y + " " + z);
+	}
+	
 	@Inject(method = "tick", at = @At("HEAD"), cancellable = true)
-	public void tick(CallbackInfo info) {
+	private void bhapi_tick(CallbackInfo info) {
 		// Remove invalid entities
 		if (stack.count <= 0) {
 			this.destroy();

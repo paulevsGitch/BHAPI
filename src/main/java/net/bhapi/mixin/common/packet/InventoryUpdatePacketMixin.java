@@ -44,8 +44,6 @@ public abstract class InventoryUpdatePacketMixin extends AbstractPacket {
 			BaseItem item = CommonRegistries.ITEM_REGISTRY.get(id);
 			if (item == null) continue;
 			this.stacks[i] = new ItemStack(item, count, damage);
-			System.out.println("1 " + item);
-			System.out.println("2 " + this.stacks[i].getType());
 		}
 	}
 	
