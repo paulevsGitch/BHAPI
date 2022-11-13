@@ -4,14 +4,14 @@ import net.bhapi.registry.Registry;
 import net.bhapi.util.Identifier;
 import net.minecraft.block.BaseBlock;
 
-public class BlockRegistryEvent extends RegistryEvent<BaseBlock> {
+public class BlockRegistryEvent extends RegistryEvent<Identifier, BaseBlock> {
 	public BlockRegistryEvent(Registry<BaseBlock> registry) {
-		super(registry);
+		super(registry::register);
 	}
 	
 	@Override
 	public int getPriority() {
-		return 0;
+		return EventPriorities.BLOCK_REGISTRY;
 	}
 	
 	@Override

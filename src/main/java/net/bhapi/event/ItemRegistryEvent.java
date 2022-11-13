@@ -1,15 +1,16 @@
 package net.bhapi.event;
 
 import net.bhapi.registry.Registry;
+import net.bhapi.util.Identifier;
 import net.minecraft.item.BaseItem;
 
-public class ItemRegistryEvent extends RegistryEvent<BaseItem> {
+public class ItemRegistryEvent extends RegistryEvent<Identifier, BaseItem> {
 	public ItemRegistryEvent(Registry<BaseItem> registry) {
-		super(registry);
+		super(registry::register);
 	}
 	
 	@Override
 	public int getPriority() {
-		return 1;
+		return EventPriorities.ITEM_REGISTRY;
 	}
 }

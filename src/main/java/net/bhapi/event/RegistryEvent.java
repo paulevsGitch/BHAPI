@@ -1,20 +1,15 @@
 package net.bhapi.event;
 
-import net.bhapi.registry.Registry;
-import net.bhapi.util.Identifier;
+import java.util.function.BiConsumer;
 
-public abstract class RegistryEvent <T> implements BHEvent {
-	private final Registry<T> registry;
+public abstract class RegistryEvent <I, T> implements BHEvent {
+	private final BiConsumer<I, T> registry;
 	
-	public RegistryEvent(Registry<T> registry) {
+	public RegistryEvent(BiConsumer<I, T> registry) {
 		this.registry = registry;
 	}
 	
-	public Registry<T> getRegistry() {
-		return registry;
-	}
-	
-	public void register(Identifier id, T value) {
-		registry.register(id, value);
+	public void register(I id, T value) {
+		registry.accept(id, value);
 	}
 }
