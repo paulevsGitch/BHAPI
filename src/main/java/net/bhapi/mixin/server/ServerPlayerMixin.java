@@ -8,8 +8,8 @@ import net.minecraft.item.ItemStack;
 import net.minecraft.item.MapBaseItem;
 import net.minecraft.level.Level;
 import net.minecraft.packet.AbstractPacket;
-import net.minecraft.packet.play.MapChunk0x33S2CPacket;
-import net.minecraft.packet.play.UpdatePlayerHealth0x8S2CPacket;
+import net.minecraft.packet.play.MapChunkPacket;
+import net.minecraft.packet.play.UpdatePlayerHealthPacket;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.network.ServerPlayerPacketHandler;
@@ -65,7 +65,7 @@ public abstract class ServerPlayerMixin extends PlayerBase {
 				object = this.server.getLevel(this.dimensionId);
 				this.field_264.remove(pos);
 				short height = LevelHeightProvider.cast(this.server.getLevel(this.dimensionId)).getLevelHeight();
-				this.packetHandler.send(new MapChunk0x33S2CPacket(pos.x << 4, 0, pos.z << 4, 16, height, 16, (Level)object));
+				this.packetHandler.send(new MapChunkPacket(pos.x << 4, 0, pos.z << 4, 16, height, 16, (Level)object));
 				List<?> entities = ((ServerLevel) object).method_330(pos.x << 4, 0, pos.z << 4, (pos.x << 4) + 16, height, (pos.z << 4) + 16);
 				for (int i = 0; i < entities.size(); ++i) {
 					this.sendBlockEntity((BaseBlockEntity) entities.get(i));
@@ -104,7 +104,7 @@ public abstract class ServerPlayerMixin extends PlayerBase {
 			--this.field_511;
 		}
 		if (this.health != this.field_257) {
-			this.packetHandler.send(new UpdatePlayerHealth0x8S2CPacket(this.health));
+			this.packetHandler.send(new UpdatePlayerHealthPacket(this.health));
 			this.field_257 = this.health;
 		}
 	}

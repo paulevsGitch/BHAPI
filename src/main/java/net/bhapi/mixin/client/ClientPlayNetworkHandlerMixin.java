@@ -11,9 +11,9 @@ import net.minecraft.item.BaseItem;
 import net.minecraft.item.ItemStack;
 import net.minecraft.level.chunk.Chunk;
 import net.minecraft.network.ClientPlayNetworkHandler;
-import net.minecraft.packet.play.BlockChange0x35S2CPacket;
-import net.minecraft.packet.play.ItemEntitySpawn0x15S2CPacket;
-import net.minecraft.packet.play.MultiBlockChange0x34S2CPacket;
+import net.minecraft.packet.play.BlockChangePacket;
+import net.minecraft.packet.play.ItemEntitySpawnPacket;
+import net.minecraft.packet.play.MultiBlockChangePacket;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.injection.At;
@@ -25,7 +25,7 @@ public class ClientPlayNetworkHandlerMixin {
 	@Shadow private ClientLevel level;
 	
 	@Inject(method = "onItemEntitySpawn", at = @At("HEAD"), cancellable = true)
-	private void bhapi_onItemEntitySpawn(ItemEntitySpawn0x15S2CPacket packet, CallbackInfo info) {
+	private void bhapi_onItemEntitySpawn(ItemEntitySpawnPacket packet, CallbackInfo info) {
 		info.cancel();
 		double x = (double) packet.x / 32.0;
 		double y = (double) packet.y / 32.0;
@@ -42,7 +42,7 @@ public class ClientPlayNetworkHandlerMixin {
 	}
 	
 	@Inject(method = "onMultiBlockChange", at = @At("HEAD"), cancellable = true)
-	private void bhapi_onMultiBlockChange(MultiBlockChange0x34S2CPacket packet, CallbackInfo info) {
+	private void bhapi_onMultiBlockChange(MultiBlockChangePacket packet, CallbackInfo info) {
 		info.cancel();
 		Chunk chunk = this.level.getChunkFromCache(packet.chunkX, packet.chunkZ);
 		int cx = packet.chunkX * 16;
@@ -61,7 +61,7 @@ public class ClientPlayNetworkHandlerMixin {
 	}
 	
 	@Inject(method = "onBlockChange", at = @At("HEAD"), cancellable = true)
-	private void bhapi_onBlockChange(BlockChange0x35S2CPacket packet, CallbackInfo info) {
+	private void bhapi_onBlockChange(BlockChangePacket packet, CallbackInfo info) {
 		info.cancel();
 		BlockState state = CommonRegistries.BLOCKSTATES_MAP.get(packet.blockId);
 		BlockStateProvider.cast(this.level).setBlockState(packet.x, packet.y, packet.z, state);

@@ -5,7 +5,7 @@ import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
 import net.minecraft.level.Level;
 import net.minecraft.packet.AbstractPacket;
-import net.minecraft.packet.play.BlockChange0x35S2CPacket;
+import net.minecraft.packet.play.BlockChangePacket;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.injection.At;
@@ -17,7 +17,7 @@ import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
 
-@Mixin(BlockChange0x35S2CPacket.class)
+@Mixin(BlockChangePacket.class)
 public abstract class BlockChangePacketMixin extends AbstractPacket {
 	@Shadow public int x;
 	@Shadow public int y;

@@ -5,7 +5,7 @@ import net.bhapi.util.Identifier;
 import net.minecraft.item.BaseItem;
 import net.minecraft.item.ItemStack;
 import net.minecraft.packet.AbstractPacket;
-import net.minecraft.packet.play.SlotUpdate0x67S2CPacket;
+import net.minecraft.packet.play.SlotUpdatePacket;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.Unique;
@@ -18,7 +18,7 @@ import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
 
-@Mixin(SlotUpdate0x67S2CPacket.class)
+@Mixin(SlotUpdatePacket.class)
 public abstract class SlotUpdatePacketMixin extends AbstractPacket {
 	@Shadow public int containerId;
 	@Shadow public int slotIndex;

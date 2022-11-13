@@ -9,7 +9,7 @@ import net.minecraft.entity.ItemEntity;
 import net.minecraft.item.BaseItem;
 import net.minecraft.item.ItemStack;
 import net.minecraft.packet.AbstractPacket;
-import net.minecraft.packet.play.ItemEntitySpawn0x15S2CPacket;
+import net.minecraft.packet.play.ItemEntitySpawnPacket;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.Unique;
@@ -22,7 +22,7 @@ import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
 
-@Mixin(ItemEntitySpawn0x15S2CPacket.class)
+@Mixin(ItemEntitySpawnPacket.class)
 public abstract class ItemEntitySpawnPacketMixin extends AbstractPacket implements ItemProvider {
 	@Shadow public int entityId;
 	@Shadow public int count;

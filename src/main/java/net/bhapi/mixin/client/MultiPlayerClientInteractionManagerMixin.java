@@ -8,7 +8,7 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.MultiPlayerClientInteractionManager;
 import net.minecraft.item.ItemStack;
 import net.minecraft.network.ClientPlayNetworkHandler;
-import net.minecraft.packet.play.PlayerDigging0xEC2SPacket;
+import net.minecraft.packet.play.PlayerDiggingPacket;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.injection.At;
@@ -19,24 +19,16 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 @Mixin(MultiPlayerClientInteractionManager.class)
 public abstract class MultiPlayerClientInteractionManagerMixin extends BaseClientInteractionManager {
 	@Shadow private int posX;
-	
 	@Shadow private int posY;
-	
 	@Shadow private int posZ;
-	
 	@Shadow private boolean canBreakBlock;
-	
 	@Shadow private ClientPlayNetworkHandler networkHandler;
-	
 	@Shadow private float hardness;
-	
 	@Shadow private float oldHardness;
-	
 	@Shadow private float field_2613;
+	@Shadow private int field_2614;
 	
 	@Shadow protected abstract void updateHotbarSlot();
-	
-	@Shadow private int field_2614;
 	
 	public MultiPlayerClientInteractionManagerMixin(Minecraft minecraft) {
 		super(minecraft);
@@ -61,7 +53,7 @@ public abstract class MultiPlayerClientInteractionManagerMixin extends BaseClien
 	private void bhapi_playerDigBlock(int x, int y, int z, int l, CallbackInfo info) {
 		info.cancel();
 		if (!this.canBreakBlock || x != this.posX || y != this.posY || z != this.posZ) {
-			this.networkHandler.sendPacket(new PlayerDigging0xEC2SPacket(0, x, y, z, l));
+			this.networkHandler.sendPacket(new PlayerDiggingPacket(0, x, y, z, l));
 			BlockState state = BlockStateProvider.cast(this.minecraft.level).getBlockState(x, y, z);
 			
 			if (!state.isAir() && this.hardness == 0.0f) {
@@ -121,7 +113,7 @@ public abstract class MultiPlayerClientInteractionManagerMixin extends BaseClien
 			this.field_2613 += 1.0f;
 			if (this.hardness >= 1.0f) {
 				this.canBreakBlock = false;
-				this.networkHandler.sendPacket(new PlayerDigging0xEC2SPacket(2, x, y, z, l));
+				this.networkHandler.sendPacket(new PlayerDiggingPacket(2, x, y, z, l));
 				this.activateBlock(x, y, z, l);
 				this.hardness = 0.0f;
 				this.oldHardness = 0.0f;

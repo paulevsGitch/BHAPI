@@ -1,7 +1,7 @@
 package net.bhapi.event;
 
 import net.minecraft.entity.player.ServerPlayer;
-import net.minecraft.packet.play.MapChunk0x33S2CPacket;
+import net.minecraft.packet.play.MapChunkPacket;
 import net.minecraft.util.maths.MathHelper;
 
 // TODO remove this
@@ -20,7 +20,7 @@ public class TestServerEvent {
 			int y1 = MathHelper.floor(player.y - radius);
 			int z1 = MathHelper.floor(player.z - radius);
 			int delta = radius * 2 + 1;
-			player.packetHandler.send(new MapChunk0x33S2CPacket(x1, y1, z1, delta, delta, delta, player.level));
+			player.packetHandler.send(new MapChunkPacket(x1, y1, z1, delta, delta, delta, player.level));
 		});
 	}
 }

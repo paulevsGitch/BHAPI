@@ -9,7 +9,7 @@ import net.fabricmc.api.Environment;
 import net.minecraft.level.Level;
 import net.minecraft.level.chunk.Chunk;
 import net.minecraft.packet.AbstractPacket;
-import net.minecraft.packet.play.MultiBlockChange0x34S2CPacket;
+import net.minecraft.packet.play.MultiBlockChangePacket;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.Unique;
@@ -23,7 +23,7 @@ import java.io.DataOutputStream;
 import java.io.IOException;
 import java.util.Arrays;
 
-@Mixin(MultiBlockChange0x34S2CPacket.class)
+@Mixin(MultiBlockChangePacket.class)
 public abstract class MultiBlockChangePacketMixin extends AbstractPacket implements MultiStatesProvider {
 	@Shadow public int chunkX;
 	@Shadow public int chunkZ;

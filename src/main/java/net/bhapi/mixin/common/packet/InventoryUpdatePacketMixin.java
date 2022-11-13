@@ -5,7 +5,7 @@ import net.bhapi.util.Identifier;
 import net.minecraft.item.BaseItem;
 import net.minecraft.item.ItemStack;
 import net.minecraft.packet.AbstractPacket;
-import net.minecraft.packet.play.InventoryUpdate0x68S2CPacket;
+import net.minecraft.packet.play.InventoryUpdatePacket;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.Unique;
@@ -18,7 +18,7 @@ import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
 
-@Mixin(InventoryUpdate0x68S2CPacket.class)
+@Mixin(InventoryUpdatePacket.class)
 public abstract class InventoryUpdatePacketMixin extends AbstractPacket {
 	@Shadow public int containerId;
 	@Shadow public ItemStack[] stacks;

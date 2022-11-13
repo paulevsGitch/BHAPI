@@ -7,7 +7,7 @@ import net.minecraft.entity.player.PlayerBase;
 import net.minecraft.entity.player.ServerPlayer;
 import net.minecraft.item.ItemStack;
 import net.minecraft.level.Level;
-import net.minecraft.packet.play.BlockChange0x35S2CPacket;
+import net.minecraft.packet.play.BlockChangePacket;
 import net.minecraft.server.ServerPlayerInterractionManager;
 import net.minecraft.server.level.ServerLevel;
 import org.spongepowered.asm.mixin.Mixin;
@@ -123,7 +123,7 @@ public abstract class ServerPlayerInterractionManagerMixin {
 		
 		if (result && this.player.canRemoveBlock(state.getBlock())) {
 			state.getBlock().afterBreak(this.level, this.player, x, y, z, meta);
-			((ServerPlayer) this.player).packetHandler.send(new BlockChange0x35S2CPacket(x, y, z, this.level));
+			((ServerPlayer) this.player).packetHandler.send(new BlockChangePacket(x, y, z, this.level));
 		}
 		
 		info.setReturnValue(result);
