@@ -23,10 +23,13 @@ import net.minecraft.level.gen.FixedBiomeSource;
 import net.minecraft.util.maths.MathHelper;
 
 import java.lang.reflect.InvocationTargetException;
+import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 public class LevelChunkUpdater {
+	private final List<PlayerBase> playersList = new ArrayList<>();
 	private final ExpandableCache<Vec3I> cache3D = new ExpandableCache<>(Vec3I::new);
 	private final ExpandableCache<Vec2I> cache2D = new ExpandableCache<>(Vec2I::new);
 	private final Set<Vec3I> loadedSections = new HashSet<>();
@@ -77,6 +80,10 @@ public class LevelChunkUpdater {
 	}
 	
 	public void process() {
+		synchronized (playersList) {
+			playersList.clear();
+			playersList.addAll(level.players);
+		}
 		if (useThreads) {
 			if (updatingThread == null) {
 				updatingThread = ThreadManager.makeThread("chunk_updater_" + level.dimension.id, this::processChunks);
@@ -122,26 +129,27 @@ public class LevelChunkUpdater {
 		loadedSections.clear();
 		loadedChunks.clear();
 		
-		level.players.forEach(obj -> {
-			PlayerBase player = (PlayerBase) obj;
-			int chunkX = MathHelper.floor(player.x / 16.0);
-			int chunkZ = MathHelper.floor(player.z / 16.0);
-			int sectionY = MathHelper.floor(player.y / 16.0);
-			int minY = sectionY - updatesVertical;
-			int maxY = sectionY + updatesVertical;
-			if (minY < 0) minY = 0;
-			if (maxY > height) maxY = height;
-			for (int dx = -updatesHorizontal; dx <= updatesHorizontal; ++dx) {
-				int px = chunkX + dx;
-				for (int dz = -updatesHorizontal; dz <= updatesHorizontal; ++dz) {
-					int pz = chunkZ + dz;
-					loadedChunks.add(cache2D.get().set(px, pz));
-					for (int py = minY; py < maxY; ++py) {
-						loadedSections.add(cache3D.get().set(px, py, pz));
+		synchronized (playersList) {
+			playersList.forEach(player -> {
+				int chunkX = MathHelper.floor(player.x / 16.0);
+				int chunkZ = MathHelper.floor(player.z / 16.0);
+				int sectionY = MathHelper.floor(player.y / 16.0);
+				int minY = sectionY - updatesVertical;
+				int maxY = sectionY + updatesVertical;
+				if (minY < 0) minY = 0;
+				if (maxY > height) maxY = height;
+				for (int dx = -updatesHorizontal; dx <= updatesHorizontal; ++dx) {
+					int px = chunkX + dx;
+					for (int dz = -updatesHorizontal; dz <= updatesHorizontal; ++dz) {
+						int pz = chunkZ + dz;
+						loadedChunks.add(cache2D.get().set(px, pz));
+						for (int py = minY; py < maxY; ++py) {
+							loadedSections.add(cache3D.get().set(px, py, pz));
+						}
 					}
 				}
-			}
-		});
+			});
+		}
 		
 		final BlockStateProvider levelProvider = BlockStateProvider.cast(level);
 		

@@ -1,6 +1,8 @@
 package net.bhapi.mixin.common;
 
 import net.bhapi.blockstate.BlockState;
+import net.bhapi.blockstate.properties.BlockPropertyType;
+import net.bhapi.blockstate.properties.StateProperty;
 import net.bhapi.item.BHBlockItem;
 import net.bhapi.item.ItemProvider;
 import net.bhapi.registry.CommonRegistries;
@@ -41,13 +43,11 @@ public abstract class ItemStackMixin implements ItemProvider {
 	
 	@Inject(method = "<init>(Lnet/minecraft/block/BaseBlock;)V", at = @At("TAIL"))
 	private void bhapi_onItemStackInit1(BaseBlock block, CallbackInfo info) {
-		if (this.bhapi_item != null) return;
 		bhapi_processBlockItem(block);
 	}
 	
 	@Inject(method = "<init>(Lnet/minecraft/block/BaseBlock;I)V", at = @At("TAIL"))
 	private void bhapi_onItemStackInit2(BaseBlock block, int count, CallbackInfo info) {
-		if (this.bhapi_item != null) return;
 		bhapi_processBlockItem(block);
 	}
 	
@@ -71,7 +71,14 @@ public abstract class ItemStackMixin implements ItemProvider {
 			}
 			if (this.bhapi_item == null) this.bhapi_item = CommonRegistries.ITEM_REGISTRY.get(blockID);
 		}
-		if (this.bhapi_item == null) this.count = 0;
+		if (this.bhapi_item == null) {
+			BlockState state = BlockState.getDefaultState(block);
+			if (damage > 0) {
+				StateProperty<?> meta = state.getProperty("meta");
+				if (meta != null && meta.getType() == BlockPropertyType.INTEGER) state = state.with(meta, damage);
+			}
+			ItemUtil.addStackForPostProcessing(state, ItemStack.class.cast(this));
+		}
 	}
 	
 	@Inject(method = "<init>(Lnet/minecraft/item/BaseItem;)V", at = @At("TAIL"))
@@ -98,10 +105,15 @@ public abstract class ItemStackMixin implements ItemProvider {
 					BlockState state = BlockUtil.getLegacyBlock(id, damage);
 					Identifier blockID = CommonRegistries.BLOCK_REGISTRY.getID(state.getBlock());
 					this.bhapi_item = CommonRegistries.ITEM_REGISTRY.get(blockID);
+					if (this.bhapi_item == null) {
+						ItemUtil.addStackForPostProcessing(state, ItemStack.class.cast(this));
+						return;
+					}
 				}
 			}
-			else this.bhapi_item = ItemUtil.getLegacyItem(id - 256);
+			else this.bhapi_item = BaseItem.byId[id];//ItemUtil.getLegacyItem(id);
 			if (this.bhapi_item == null) {
+				System.out.println("Null item! " + id);
 				this.itemId = 256;
 				this.count = 0;
 			}
@@ -289,9 +301,12 @@ public abstract class ItemStackMixin implements ItemProvider {
 	
 	@Unique
 	private void bhapi_processBlockItem(BaseBlock block) {
+		if (this.bhapi_item != null) return;
 		Identifier blockID = CommonRegistries.BLOCK_REGISTRY.getID(block);
-		if (blockID == null) ItemUtil.addStackForPostProcessing(block, ItemStack.class.cast(this));
-		else this.bhapi_item = CommonRegistries.ITEM_REGISTRY.get(blockID);
+		if (blockID == null) this.bhapi_item = CommonRegistries.ITEM_REGISTRY.get(blockID);
+		if (this.bhapi_item == null) {
+			ItemUtil.addStackForPostProcessing(BlockState.getDefaultState(block), ItemStack.class.cast(this));
+		}
 	}
 	
 	@Unique

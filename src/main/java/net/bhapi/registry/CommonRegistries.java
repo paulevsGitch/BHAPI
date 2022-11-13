@@ -137,6 +137,7 @@ public class CommonRegistries {
 		BLOCK_REGISTRY.forEach(block -> {
 			BlockState state = BlockStateContainer.cast(block).getDefaultState();
 			state.getPossibleStates();
+			System.out.println("Adding " + state + " as " + BLOCK_REGISTRY.getID(block));
 			ITEM_REGISTRY.register(BLOCK_REGISTRY.getID(block), new BHBlockItem(state, itemIsFlat(block)));
 		});
 	}

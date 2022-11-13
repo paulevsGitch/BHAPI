@@ -14,7 +14,11 @@ import net.minecraft.entity.player.PlayerBase;
 import net.minecraft.item.ItemStack;
 import net.minecraft.level.Level;
 
+import java.util.HashSet;
+import java.util.Set;
+
 public class BHBlockItem extends BHItem {
+	private static final Set<BlockState> CREATED = new HashSet<>();
 	private final BlockState state;
 	private final boolean isFlat;
 	

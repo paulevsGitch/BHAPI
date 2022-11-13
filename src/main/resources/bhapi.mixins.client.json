@@ -7,6 +7,7 @@
 		"SinglePlayerClientInteractionManagerMixin",
 		"MultiPlayerClientInteractionManagerMixin",
 		"BaseClientInteractionManagerMixin",
+		"ClientPlayNetworkHandlerMixin",
 		"AbstractClientPlayerMixin",
 		"OverworldDimensionMixin",
 		"OverlaysRendererMixin",

@@ -13,22 +13,25 @@ public class Identifier implements Comparable<Identifier> {
 	private final String name;
 	private final int hash;
 	
-	private Identifier(String modID, String name) {
+	private Identifier(@NotNull String modID, @NotNull String name) {
 		this.modID = modID;
 		this.name = name;
 		this.complete = modID + ":" + name;
 		this.hash = this.complete.hashCode();
 	}
 	
+	@NotNull
 	public String getModID() {
 		return modID;
 	}
 	
+	@NotNull
 	public String getName() {
 		return name;
 	}
 	
 	@Override
+	@NotNull
 	public String toString() {
 		return this.complete;
 	}

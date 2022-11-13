@@ -4,7 +4,8 @@
 	"package": "net.bhapi.mixin.server",
 	"compatibilityLevel": "JAVA_17",
 	"server": [
-		"ServerPlayerInterractionManagerMixin"
+		"ServerPlayerInterractionManagerMixin",
+		"ServerPlayerMixin"
 	],
 	"injectors": {
 		"defaultRequire": 1

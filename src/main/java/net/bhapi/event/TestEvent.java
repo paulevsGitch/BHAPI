@@ -27,17 +27,6 @@ public class TestEvent {
 			Identifier.make("testblock2"),
 			new BHBlockItem(CommonRegistries.BLOCK_REGISTRY.get(Identifier.make("testblock2")), false)
 		);
-		
-		BaseItem item = event.getRegistry().get(Identifier.make("testblock"));
-		System.out.println(item);
-		System.out.println(event.getRegistry().getID(item));
-		
-		item = event.getRegistry().get(Identifier.make("testblock2"));
-		System.out.println(item);
-		System.out.println(event.getRegistry().getID(item));
-		
-		//event.getRegistry().values().stream().map(event.getRegistry()::getID).forEach(System.out::println);
-		System.out.println(event.getRegistry().get(Identifier.make("sapling")));
 	}
 	
 	private class TestBlock extends BHBaseBlock {

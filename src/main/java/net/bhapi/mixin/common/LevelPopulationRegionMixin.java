@@ -23,13 +23,11 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 @Mixin(LevelPopulationRegion.class)
 public abstract class LevelPopulationRegionMixin implements BlockStateProvider, LevelHeightProvider {
 	@Shadow private Level level;
-	
 	@Shadow private int field_166;
-	
 	@Shadow private int field_167;
-	
 	@Shadow private Chunk[][] chunks;
 	
+	@Environment(value=EnvType.CLIENT)
 	@Shadow public abstract int method_142(int i, int j, int k, boolean bl);
 	
 	@ModifyConstant(method = {
