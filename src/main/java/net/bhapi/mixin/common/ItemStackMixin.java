@@ -169,6 +169,7 @@ public abstract class ItemStackMixin implements ItemProvider {
 		this.bhapi_item = CommonRegistries.ITEM_REGISTRY.get(Identifier.make(arg.getString("item")));
 		this.count = arg.getByte("count");
 		this.damage = arg.getShort("damage");
+		if (this.bhapi_item == null) count = 0;
 	}
 	
 	@Inject(method = "hasDurability", at = @At("HEAD"), cancellable = true)

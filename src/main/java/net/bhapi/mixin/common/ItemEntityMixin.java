@@ -2,6 +2,7 @@ package net.bhapi.mixin.common;
 
 import net.minecraft.entity.BaseEntity;
 import net.minecraft.entity.ItemEntity;
+import net.minecraft.entity.player.PlayerBase;
 import net.minecraft.item.ItemStack;
 import net.minecraft.level.Level;
 import org.spongepowered.asm.mixin.Mixin;
@@ -19,8 +20,8 @@ public abstract class ItemEntityMixin extends BaseEntity {
 	}
 	
 	@Inject(method = "<init>(Lnet/minecraft/level/Level;DDDLnet/minecraft/item/ItemStack;)V", at = @At("TAIL"))
-	private void bhapi_onItemEntityInit(Level arg, double x, double y, double z, ItemStack arg2, CallbackInfo info) {
-		System.out.println("Init: " + stack + " " + arg2 + " " + arg + " " + x + " " + y + " " + z);
+	private void bhapi_ItemEntity(Level arg, double d, double e, double f, ItemStack arg2, CallbackInfo info) {
+		System.out.println(arg2 + " " + stack);
 	}
 	
 	@Inject(method = "tick", at = @At("HEAD"), cancellable = true)

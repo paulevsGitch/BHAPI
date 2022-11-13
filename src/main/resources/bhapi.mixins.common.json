@@ -15,6 +15,7 @@
 		"MapChunkPacketMixin",
 		"BaseDimensionMixin",
 		"ContainerBaseMixin",
+		"ItemEntityMixin",
 		"BlockItemMixin",
 		"ItemStackMixin",
 		"BaseItemMixin",
@@ -66,9 +67,7 @@
 		"block.BedBlockMixin",
 		"block.LogBlockMixin",
 		
-		"structure.BirchTreeMixin",
-		
-		"ItemEntityMixin"
+		"structure.BirchTreeMixin"
 	],
 	"injectors": {
 		"defaultRequire": 1

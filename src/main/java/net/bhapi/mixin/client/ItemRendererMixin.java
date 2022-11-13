@@ -99,7 +99,6 @@ public abstract class ItemRendererMixin extends EntityRenderer {
 		GL11.glTranslatef((float) x, (float) y + offset, (float) z);
 		GL11.glEnable(32826);
 		BaseItem item = entity.stack.getType();
-		//System.out.println(item);
 		if (item instanceof BHBlockItem /*entity.stack.itemId < 256 && BlockRenderer.isSpecificRenderType(BaseBlock.BY_ID[entity.stack.itemId].getRenderType())*/) {
 			GL11.glRotatef(f3, 0.0f, 1.0f, 0.0f);
 			this.bindTexture("/terrain.png");

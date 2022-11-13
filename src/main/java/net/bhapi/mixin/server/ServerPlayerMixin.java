@@ -64,8 +64,9 @@ public abstract class ServerPlayerMixin extends PlayerBase {
 			if (bl2) {
 				object = this.server.getLevel(this.dimensionId);
 				this.field_264.remove(pos);
-				this.packetHandler.send(new MapChunk0x33S2CPacket(pos.x << 4, 0, pos.z << 4, 16, 128, 16, (Level)object));
-				List<?> entities = ((ServerLevel) object).method_330(pos.x << 4, 0, pos.z << 4, (pos.x << 4) + 16, 128, (pos.z << 4) + 16);
+				short height = LevelHeightProvider.cast(this.server.getLevel(this.dimensionId)).getLevelHeight();
+				this.packetHandler.send(new MapChunk0x33S2CPacket(pos.x << 4, 0, pos.z << 4, 16, height, 16, (Level)object));
+				List<?> entities = ((ServerLevel) object).method_330(pos.x << 4, 0, pos.z << 4, (pos.x << 4) + 16, height, (pos.z << 4) + 16);
 				for (int i = 0; i < entities.size(); ++i) {
 					this.sendBlockEntity((BaseBlockEntity) entities.get(i));
 				}

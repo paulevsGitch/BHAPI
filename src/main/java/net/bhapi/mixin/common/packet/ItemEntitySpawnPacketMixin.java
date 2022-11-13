@@ -48,6 +48,7 @@ public abstract class ItemEntitySpawnPacketMixin extends AbstractPacket implemen
 		info.cancel();
 		this.entityId = stream.readInt();
 		String name = readString(stream, 256);
+		System.out.println(name);
 		this.count = stream.readByte();
 		this.damage = stream.readShort();
 		this.x = stream.readInt();
@@ -85,7 +86,7 @@ public abstract class ItemEntitySpawnPacketMixin extends AbstractPacket implemen
 	
 	@Inject(method = "length", at = @At("HEAD"), cancellable = true)
 	private void bhapi_length(CallbackInfoReturnable<Integer> info) {
-		info.setReturnValue(32);
+		info.setReturnValue(48);
 	}
 	
 	@Override
