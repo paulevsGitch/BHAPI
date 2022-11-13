@@ -4,10 +4,12 @@ import net.bhapi.BHAPI;
 import net.bhapi.blockstate.BlockState;
 import net.bhapi.blockstate.BlockStateContainer;
 import net.bhapi.command.BHCommand;
+import net.bhapi.event.AfterBlockAndItemsEvent;
 import net.bhapi.event.BHEvent;
 import net.bhapi.event.BlockRegistryEvent;
 import net.bhapi.event.CommandRegistryEvent;
 import net.bhapi.event.ItemRegistryEvent;
+import net.bhapi.event.StartupEvent;
 import net.bhapi.item.BHBlockItem;
 import net.bhapi.util.BlockUtil;
 import net.bhapi.util.Identifier;
@@ -314,8 +316,10 @@ public class CommonRegistries {
 	}
 	
 	private static void initEvents() {
+		EVENT_REGISTRY.put(StartupEvent.class, StartupEvent::new);
 		EVENT_REGISTRY.put(BlockRegistryEvent.class, () -> new BlockRegistryEvent(BLOCK_REGISTRY));
 		EVENT_REGISTRY.put(ItemRegistryEvent.class, () -> new ItemRegistryEvent(ITEM_REGISTRY));
+		EVENT_REGISTRY.put(AfterBlockAndItemsEvent.class, AfterBlockAndItemsEvent::new);
 		if (BHAPI.isServer()) {
 			EVENT_REGISTRY.put(CommandRegistryEvent.class, () -> new CommandRegistryEvent(COMMAND_REGISTRY));
 		}
