@@ -33,6 +33,7 @@
 		"packet.ItemEntitySpawnPacketMixin",
 		"packet.ServerPacketHandlerMixin",
 		"packet.AbstractPackerAccessor",
+		"packet.BlockChangePacketMixin",
 		"packet.SlotUpdatePacketMixin",
 		
 		"block.RedstoneRepeaterBlockMixin",

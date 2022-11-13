@@ -27,7 +27,6 @@ public abstract class InventoryUpdatePacketMixin extends AbstractPacket {
 	@Inject(method = "read", at = @At("HEAD"), cancellable = true)
 	private void bhapi_read(DataInputStream dataInputStream, CallbackInfo info) throws IOException {
 		info.cancel();
-		System.out.println("Updating!");
 		this.containerId = dataInputStream.readByte();
 		short size = dataInputStream.readShort();
 		this.stacks = new ItemStack[size];
@@ -37,7 +36,6 @@ public abstract class InventoryUpdatePacketMixin extends AbstractPacket {
 				name = readString(dataInputStream, 256);
 			}
 			catch (Exception e) {
-				System.out.println("Name exception");
 				continue;
 			}
 			if (name.isEmpty()) continue;
@@ -48,7 +46,6 @@ public abstract class InventoryUpdatePacketMixin extends AbstractPacket {
 			BaseItem item = CommonRegistries.ITEM_REGISTRY.get(id);
 			if (item == null) continue;
 			this.stacks[i] = new ItemStack(item, count, damage);
-			System.out.println("Stack " + i + " " + item);
 		}
 	}
 	

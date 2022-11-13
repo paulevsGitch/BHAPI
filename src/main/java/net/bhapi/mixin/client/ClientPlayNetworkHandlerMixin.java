@@ -4,12 +4,14 @@ import net.bhapi.blockstate.BlockState;
 import net.bhapi.item.ItemProvider;
 import net.bhapi.level.BlockStateProvider;
 import net.bhapi.level.MultiStatesProvider;
+import net.bhapi.registry.CommonRegistries;
 import net.minecraft.client.level.ClientLevel;
 import net.minecraft.entity.ItemEntity;
 import net.minecraft.item.BaseItem;
 import net.minecraft.item.ItemStack;
 import net.minecraft.level.chunk.Chunk;
 import net.minecraft.network.ClientPlayNetworkHandler;
+import net.minecraft.packet.play.BlockChange0x35S2CPacket;
 import net.minecraft.packet.play.ItemEntitySpawn0x15S2CPacket;
 import net.minecraft.packet.play.MultiBlockChange0x34S2CPacket;
 import org.spongepowered.asm.mixin.Mixin;
@@ -56,5 +58,12 @@ public class ClientPlayNetworkHandlerMixin {
 			this.level.method_1498(x | cx, y, z | cz, x | cx, y, z | cz);
 			this.level.callAreaEvents(x | cx, y, z | cz, x | cx, y, z | cz);
 		}
+	}
+	
+	@Inject(method = "onBlockChange", at = @At("HEAD"), cancellable = true)
+	private void bhapi_onBlockChange(BlockChange0x35S2CPacket packet, CallbackInfo info) {
+		info.cancel();
+		BlockState state = CommonRegistries.BLOCKSTATES_MAP.get(packet.blockId);
+		BlockStateProvider.cast(this.level).setBlockState(packet.x, packet.y, packet.z, state);
 	}
 }

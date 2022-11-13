@@ -49,7 +49,6 @@ public abstract class ItemEntitySpawnPacketMixin extends AbstractPacket implemen
 		info.cancel();
 		this.entityId = stream.readInt();
 		String name = readString(stream, 256);
-		System.out.println(name);
 		this.count = stream.readByte();
 		this.damage = stream.readShort();
 		this.x = stream.readInt();
