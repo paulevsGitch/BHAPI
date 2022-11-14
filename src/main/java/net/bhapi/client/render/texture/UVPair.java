@@ -1,4 +1,4 @@
-package net.bhapi.client.render;
+package net.bhapi.client.render.texture;
 
 import net.bhapi.storage.Vec2F;
 import net.bhapi.util.MathUtil;
@@ -16,7 +16,15 @@ public class UVPair {
 	}
 	
 	public void getUV(float u, float v, Vec2F out) {
-		out.x = MathUtil.lerp(uv1.x, uv2.x, u);
-		out.y = MathUtil.lerp(uv1.y, uv2.y, v);
+		out.x = getU(u);
+		out.y = getV(v);
+	}
+	
+	public float getU(float delta) {
+		return MathUtil.lerp(uv1.x, uv2.x, delta);
+	}
+	
+	public float getV(float delta) {
+		return MathUtil.lerp(uv1.y, uv2.y, delta);
 	}
 }

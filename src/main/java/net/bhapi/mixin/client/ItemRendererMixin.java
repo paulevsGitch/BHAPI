@@ -1,6 +1,7 @@
 package net.bhapi.mixin.client;
 
 import net.bhapi.client.ItemRenderInfo;
+import net.bhapi.client.render.texture.Textures;
 import net.bhapi.item.BHBlockItem;
 import net.minecraft.block.BaseBlock;
 import net.minecraft.client.render.Tessellator;
@@ -36,7 +37,8 @@ public abstract class ItemRendererMixin extends EntityRenderer {
 		BaseItem item = ItemRenderInfo.getRenderingItem();
 		if (item == null) return;
 		if (item instanceof BHBlockItem /*id < 256 && BlockRenderer.isSpecificRenderType(BaseBlock.BY_ID[id].getRenderType())*/) {
-			manager.bindTexture(manager.getTextureId("/terrain.png"));
+			//manager.bindTexture(manager.getTextureId("/terrain.png"));
+			Textures.bindAtlas();
 			BaseBlock block = ((BHBlockItem) item).getState().getBlock();
 			GL11.glPushMatrix();
 			GL11.glTranslatef(l - 2, m + 3, -3.0f);
@@ -64,8 +66,9 @@ public abstract class ItemRendererMixin extends EntityRenderer {
 				manager.bindTexture(manager.getTextureId("/terrain.png"));
 			}
 			else {*/
-				manager.bindTexture(manager.getTextureId("/gui/items.png"));
+				//manager.bindTexture(manager.getTextureId("/gui/items.png"));
 			//}
+			Textures.bindAtlas();
 			if (this.coloriseItem) {
 				int color = item.getColorMultiplier(j);
 				float r = (float) (color >> 16 & 0xFF) / 255.0F;
@@ -101,7 +104,8 @@ public abstract class ItemRendererMixin extends EntityRenderer {
 		BaseItem item = entity.stack.getType();
 		if (item instanceof BHBlockItem /*entity.stack.itemId < 256 && BlockRenderer.isSpecificRenderType(BaseBlock.BY_ID[entity.stack.itemId].getRenderType())*/) {
 			GL11.glRotatef(f3, 0.0f, 1.0f, 0.0f);
-			this.bindTexture("/terrain.png");
+			//this.bindTexture("/terrain.png");
+			Textures.bindAtlas();
 			float scale = 0.25f;
 			BaseBlock block = ((BHBlockItem) item).getState().getBlock();
 			if (!block.isFullCube() && block.id != BaseBlock.STONE_SLAB.id && block.getRenderType() != 16) {

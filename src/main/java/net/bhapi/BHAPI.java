@@ -103,6 +103,7 @@ public class BHAPI implements ModInitializer {
 					  Class<?>[] parameters = method.getParameterTypes();
 					  if (parameters.length == 1 && BHEvent.class.isAssignableFrom(parameters[0])) {
 						  Class<? extends BHEvent> event = (Class<? extends BHEvent>) parameters[0];
+						  if (!eventRegistry.containsKey(event)) return;
 						  List<Pair<Object, Method>> pairs = events.computeIfAbsent(event, i -> new ArrayList<>());
 						  pairs.add(Pair.of(entrypoint, method));
 					  }

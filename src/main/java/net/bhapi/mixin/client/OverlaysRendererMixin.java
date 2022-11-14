@@ -1,5 +1,6 @@
 package net.bhapi.mixin.client;
 
+import net.bhapi.client.render.texture.Textures;
 import net.bhapi.item.BHBlockItem;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.render.OverlaysRenderer;
@@ -196,7 +197,8 @@ public abstract class OverlaysRendererMixin {
 		GL11.glPushMatrix();
 		BaseItem item = stack.getType();
 		if (item instanceof BHBlockItem) {
-			GL11.glBindTexture(3553, this.minecraft.textureManager.getTextureId("/terrain.png"));
+			//GL11.glBindTexture(3553, this.minecraft.textureManager.getTextureId("/terrain.png"));
+			Textures.bindAtlas();
 			this.blockRenderer.renderBlockItem(((BHBlockItem) item).getState().getBlock(), stack.getDamage(), entity.getBrightnessAtEyes(1.0f));
 		}
 		/*else if (stack.itemId < 256 && BlockRenderer.isSpecificRenderType(BaseBlock.BY_ID[stack.itemId].getRenderType())) {
@@ -208,11 +210,12 @@ public abstract class OverlaysRendererMixin {
 			float f2;
 			float f3;
 			int n;
-			if (stack.itemId < 256) {
+			/*if (stack.itemId < 256) {
 				GL11.glBindTexture(3553, this.minecraft.textureManager.getTextureId("/terrain.png"));
 			} else {
 				GL11.glBindTexture(3553, this.minecraft.textureManager.getTextureId("/gui/items.png"));
-			}
+			}*/
+			Textures.bindAtlas();
 			Tessellator tessellator = Tessellator.INSTANCE;
 			int n2 = entity.getTexture(stack);
 			float f4 = ((float)(n2 % 16 * 16) + 0.0f) / 256.0f;

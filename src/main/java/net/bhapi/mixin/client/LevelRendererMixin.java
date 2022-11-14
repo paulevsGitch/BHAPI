@@ -98,8 +98,7 @@ public abstract class LevelRendererMixin implements LevelHeightProvider {
 				(sounds.getVolume() + 1.0f) / 2.0f,
 				sounds.getPitch() * 0.8f
 			);
-			data = state.getBlock().texture; // TODO replace with texture handlers
-			this.client.particleManager.addBlockBreakParticles(x, y, z, data & 0xFF, data >> 8 & 0xFF);
+			this.client.particleManager.addBlockBreakParticles(x, y, z, state.getID(), 0);
 		}
 	}
 }

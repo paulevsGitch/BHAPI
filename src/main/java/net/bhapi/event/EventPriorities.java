@@ -9,4 +9,8 @@ public class EventPriorities {
 	
 	// SERVER
 	public static final int COMMAND_REGISTRY = 4;
+	
+	// CLIENT
+	public static final int TEXTURE_LOADING = 0;
+	public static final int AFTER_TEXTURE_LOADED = 0;
 }

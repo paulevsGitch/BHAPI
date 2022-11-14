@@ -1,20 +1,35 @@
-package net.bhapi.client.render;
+package net.bhapi.client.render.texture;
 
 import net.bhapi.BHAPI;
 import net.bhapi.client.BHAPIClient;
+import net.bhapi.mixin.client.BaseItemAccessor;
+import net.bhapi.mixin.client.TextureManagerAccessor;
 import net.bhapi.util.BufferUtil;
 import net.bhapi.util.Identifier;
 import net.bhapi.util.ImageUtil;
 import net.bhapi.util.ImageUtil.FormatConvert;
+import net.minecraft.block.BaseBlock;
+import net.minecraft.client.render.TextureBinder;
+import net.minecraft.item.BaseItem;
 import org.lwjgl.opengl.GL11;
 
 import java.awt.image.BufferedImage;
 import java.nio.IntBuffer;
+import java.util.Arrays;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Objects;
 
 public class Textures {
+	private static final int[] EXCLUDE_TERRAIN = new int[] {
+		206, 207, // Water first row
+		222, 223, // Water second row
+		238, 239, // Lava first row
+		254, 255, // Lava second row
+		240, 241, 242, 243, 244, 245, 246, 247, 248, 249 // Block breaking
+	};
 	private static TextureAtlas atlas;
 	
 	public static void init() {
@@ -22,13 +37,41 @@ public class Textures {
 		
 		Map<Identifier, BufferedImage> textures = new HashMap<>();
 		addTextures("terrain", loadTexture("/terrain.png"), 16, textures);
-		addTextures("items", loadTexture("/gui/items.png"), 16, textures);
-		addTextures("particles", loadTexture("/particles.png"), 16, textures);
+		excludeTextures("terrain", textures, EXCLUDE_TERRAIN);
+		addTextures("item", loadTexture("/gui/items.png"), 16, textures);
+		addTextures("particle", loadTexture("/particles.png"), 16, textures);
 		
-		TextureAtlas atlas = new TextureAtlas(textures);
-		System.out.println("Stone: " + atlas.getTextureIndex(Identifier.make("terrain_1")));
-		System.out.println("Dirt: " + atlas.getTextureIndex(Identifier.make("terrain_2")));
-		System.out.println("Item: " + atlas.getTextureIndex(Identifier.make("items_0")));
+		atlas = new TextureAtlas(textures);
+		
+		Arrays.stream(BaseBlock.BY_ID).filter(Objects::nonNull).forEach(block -> {
+			Identifier id = Identifier.make("terrain_" + block.texture);
+			block.texture = atlas.getTextureIndex(id);
+		});
+		
+		List<?> binders = ((TextureManagerAccessor) BHAPIClient.getMinecraft().textureManager).getTextureBinders();
+		binders.forEach(obj -> {
+			TextureBinder binder = (TextureBinder) obj;
+			Identifier id = Identifier.make("terrain_" + binder.index);
+			binder.index = atlas.getTextureIndex(id);
+		});
+		
+		Arrays.stream(BaseItem.byId, 0, 2002).filter(Objects::nonNull).forEach(item -> {
+			BaseItemAccessor accessor = (BaseItemAccessor) item;
+			int texture = accessor.bhapi_getTexturePosition();
+			Identifier id = Identifier.make((item.id < 256 ? "block_" : "item_") + texture);
+			texture = atlas.getTextureIndex(id, true);
+			if (texture != -1) {
+				accessor.bhapi_setTexturePosition(texture);
+			}
+		});
+	}
+	
+	public static void bindAtlas() {
+		atlas.bind();
+	}
+	
+	public static TextureAtlas getAtlas() {
+		return atlas;
 	}
 	
 	private static BufferedImage loadTexture(String name) {
@@ -71,5 +114,12 @@ public class Textures {
 			if (argb == 0XFFD67FFF || argb == 0XFF6B3F7F) countPurple++;
 		}
 		return countAlpha == data.length || countPurple == data.length;
+	}
+	
+	private static void excludeTextures(String prefix, Map<Identifier, BufferedImage> textures, int[] ids) {
+		Arrays.stream(ids).forEach(id -> {
+			String name = String.format(Locale.ROOT, "%s_%d", prefix, id);
+			textures.remove(Identifier.make(name));
+		});
 	}
 }

@@ -1,6 +1,7 @@
 package net.bhapi.mixin.client;
 
 import net.bhapi.blockstate.BlockState;
+import net.bhapi.client.render.block.CustomBlockRenderer;
 import net.bhapi.level.BlockStateProvider;
 import net.minecraft.block.BaseBlock;
 import net.minecraft.block.entity.BaseBlockEntity;
@@ -71,19 +72,20 @@ public abstract class AreaRendererMixin {
 		LevelPopulationRegion region = new LevelPopulationRegion(this.level, x1 - 1, y1 - 1, z1 - 1, x2 + 1, y2 + 1, z2 + 1);
 		BlockStateProvider provider = BlockStateProvider.cast(region);
 		BlockRenderer renderer = new BlockRenderer(region);
+		CustomBlockRenderer.setRenderer(region, renderer);
 		
 		for (byte pass = 0; pass < 2; ++pass) {
-			boolean bl = false;
-			boolean bl2 = false;
-			boolean bl3 = false;
+			boolean anotherPass = false;
+			boolean layerHasData = false;
+			boolean renderStarted = false;
 			for (int py = y1; py < y2; ++py) {
 				for (int pz = z1; pz < z2; ++pz) {
 					for (int px = x1; px < x2; ++px) {
 						BaseBlockEntity baseBlockEntity;
 						BlockState state = provider.getBlockState(px, py, pz);
-						if (state.isAir()) continue; //TODO enhance that to skip any block without renderer
-						if (!bl3) {
-							bl3 = true;
+						
+						if (!renderStarted) {
+							renderStarted = true;
 							GL11.glNewList(this.glListID + pass, 4864);
 							GL11.glPushMatrix();
 							this.offset();
@@ -101,30 +103,31 @@ public abstract class AreaRendererMixin {
 						
 						BaseBlock baseBlock = state.getBlock();
 						if (baseBlock.getRenderPass() != pass) {
-							bl = true;
+							anotherPass = true;
 							continue;
 						}
 						
-						bl2 |= renderer.render(baseBlock, px, py, pz);
+						//bl2 |= renderer.render(baseBlock, px, py, pz);
+						layerHasData |= CustomBlockRenderer.render(state, px, py, pz);
 					}
 				}
 			}
 			
-			if (bl3) {
+			if (renderStarted) {
 				tesselator.draw();
 				GL11.glPopMatrix();
 				GL11.glEndList();
 				tesselator.setOffset(0.0, 0.0, 0.0);
 			}
 			else {
-				bl2 = false;
+				layerHasData = false;
 			}
 			
-			if (bl2) {
+			if (layerHasData) {
 				this.layerIsEmpty[pass] = false;
 			}
 			
-			if (!bl) break;
+			if (!anotherPass) break;
 		}
 		
 		HashSet<BaseBlockEntity> skipEntities = new HashSet<>();

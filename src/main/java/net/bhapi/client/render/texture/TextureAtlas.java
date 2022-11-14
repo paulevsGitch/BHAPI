@@ -1,6 +1,7 @@
-package net.bhapi.client.render;
+package net.bhapi.client.render.texture;
 
 import net.bhapi.BHAPI;
+import net.bhapi.client.BHAPIClient;
 import net.bhapi.storage.Vec2F;
 import net.bhapi.storage.Vec2I;
 import net.bhapi.util.Identifier;
@@ -8,9 +9,14 @@ import net.bhapi.util.ImageUtil;
 import net.bhapi.util.MathUtil;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
+import net.fabricmc.loader.api.FabricLoader;
+import org.lwjgl.opengl.GL11;
 
+import javax.imageio.ImageIO;
 import java.awt.Graphics;
 import java.awt.image.BufferedImage;
+import java.io.File;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -22,6 +28,7 @@ public class TextureAtlas {
 	private static final Identifier EMPTY_ID = Identifier.make("empty");
 	private final Map<Identifier, Integer> textures = new HashMap<>();
 	private final UVPair[] uvs;
+	private final int glTarget;
 	
 	public TextureAtlas(Map<Identifier, BufferedImage> images) {
 		if (!images.containsKey(EMPTY_ID)) images.put(EMPTY_ID, ImageUtil.EMPTY);
@@ -43,6 +50,15 @@ public class TextureAtlas {
 			throw new RuntimeException("Can't create texture atlas! Size is larger than 16384 pixels");
 		}
 		
+		if (FabricLoader.getInstance().isDevelopmentEnvironment()) {
+			try {
+				ImageIO.write(atlasImage, "png", new File("./debug_atlas.png"));
+			}
+			catch (IOException e) {
+				e.printStackTrace();
+			}
+		}
+		
 		uvs = new UVPair[info.size()];
 		int[] data = new int[] {0, atlasImage.getWidth()};
 		Map<BufferedImage, Identifier> inverted = MathUtil.invertMap(images);
@@ -57,12 +73,18 @@ public class TextureAtlas {
 			uvs[uvID] = new UVPair(uv1, uv2);
 			textures.put(id, uvID);
 		}));
+		
+		glTarget = BHAPIClient.getMinecraft().textureManager.bindImage(atlasImage);
 	}
 	
 	public int getTextureIndex(Identifier id) {
+		return getTextureIndex(id, false);
+	}
+	
+	public int getTextureIndex(Identifier id, boolean silent) {
 		Integer i = textures.get(id);
 		if (i == null) {
-			BHAPI.warn("No texture " + id + " in atlas");
+			if (!silent) BHAPI.warn("No texture " + id + " in atlas");
 			return getTextureIndex(EMPTY_ID);
 		}
 		return i;
@@ -70,6 +92,18 @@ public class TextureAtlas {
 	
 	public UVPair getUV(int index) {
 		return uvs[index];
+	}
+	
+	public TextureSample getSample(Identifier id) {
+		return new TextureSample(this, getTextureIndex(id));
+	}
+	
+	public void bind() {
+		GL11.glBindTexture(GL11.GL_TEXTURE_2D, glTarget);
+	}
+	
+	public int getGlTarget() {
+		return glTarget;
 	}
 	
 	private BufferedImage pack(List<ImageInfo> info, final short side, List<Layer> layers) {
