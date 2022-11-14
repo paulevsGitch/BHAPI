@@ -10,16 +10,10 @@ public class BHAPIClient implements ClientModInitializer {
 	public void onInitializeClient() {
 		BHAPI.log("Init Client");
 		ClientRegistries.init();
-		handleEvents();
 	}
 	
 	@SuppressWarnings("deprecation")
 	public static Minecraft getMinecraft() {
 		return (Minecraft) FabricLoader.getInstance().getGameInstance();
-	}
-	
-	@SuppressWarnings("unchecked")
-	private void handleEvents() {
-		BHAPI.processEntryPoints("bhapi:client_events");
 	}
 }

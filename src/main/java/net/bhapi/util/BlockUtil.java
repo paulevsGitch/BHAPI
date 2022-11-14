@@ -14,7 +14,7 @@ import java.util.Objects;
 
 public class BlockUtil {
 	private static final Map<BaseBlock, BlockInfo> INFO_MAP = new HashMap<>();
-	private static final BlockInfo DEFAULT = new BlockInfo(false, true, false, 0, false, 0);
+	private static final BlockInfo DEFAULT = new BlockInfo(false, true, false, 255, false, 0);
 	
 	private static final ExpandableArray<BlockState> LEGACY_BLOCKS = new ExpandableArray<>();
 	public static final BHAirBlock AIR_BLOCK = new BHAirBlock();

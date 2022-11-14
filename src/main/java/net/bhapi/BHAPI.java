@@ -84,15 +84,15 @@ public class BHAPI implements ModInitializer {
 		return FabricLoader.getInstance().getEnvironmentType() == EnvType.SERVER;
 	}
 	
-	@SuppressWarnings("unchecked")
 	private void handleEvents() {
-		processEntryPoints("bhapi:common_events");
+		processEntryPoints("bhapi:common_events", CommonRegistries.EVENT_REGISTRY);
 		if (isServer()) {
-			processEntryPoints("bhapi:server_events");
+			processEntryPoints("bhapi:server_events", CommonRegistries.EVENT_REGISTRY);
 		}
 	}
 	
-	public static void processEntryPoints(String path) {
+	@SuppressWarnings("unchecked")
+	public static void processEntryPoints(String path, Map<Class<? extends BHEvent>, Supplier<? extends BHEvent>> eventRegistry) {
 		Map<Class<? extends BHEvent>, List<Pair<Object, Method>>> events = new HashMap<>();
 		FabricLoader.getInstance().getEntrypointContainers(path, Object.class).forEach(entrypointContainer -> {
 			Object entrypoint = entrypointContainer.getEntrypoint();
@@ -111,7 +111,7 @@ public class BHAPI implements ModInitializer {
 		
 		List<Pair<Object, Method>> registerEvents = events.get(EventRegistrationEvent.class);
 		if (registerEvents != null && !registerEvents.isEmpty()) {
-			EventRegistrationEvent event = new EventRegistrationEvent(CommonRegistries.EVENT_REGISTRY);
+			EventRegistrationEvent event = new EventRegistrationEvent(eventRegistry);
 			registerEvents.forEach(pair -> {
 				Object entrypoint = pair.first();
 				Method method = pair.second();
@@ -126,7 +126,7 @@ public class BHAPI implements ModInitializer {
 		
 		events.keySet()
 			  .stream()
-			  .map(CommonRegistries.EVENT_REGISTRY::get)
+			  .map(eventRegistry::get)
 			  .filter(Objects::nonNull)
 			  .map(Supplier::get)
 			  .sorted()
