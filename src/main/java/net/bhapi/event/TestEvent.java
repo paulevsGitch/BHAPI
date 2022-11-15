@@ -42,6 +42,9 @@ public class TestEvent {
 	}
 	
 	private class TestBlock extends BHBaseBlock implements CustomBlockRender {
+		private static int textureID = 0;
+		private final int texID = textureID++;
+		
 		public TestBlock(Material material, BlockSounds sounds) {
 			super(material);
 			setHardness(0.1F);
@@ -56,7 +59,7 @@ public class TestEvent {
 		
 		@Override
 		public TextureSample getTextureForIndex(BlockView view, int x, int y, int z, BlockState state, int index) {
-			return TestClientEvent.testblock;
+			return TestClientEvent.samples[texID];
 		}
 	}
 }
