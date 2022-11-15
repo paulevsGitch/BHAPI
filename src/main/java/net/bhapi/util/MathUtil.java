@@ -82,4 +82,18 @@ public class MathUtil {
 		map.forEach((b, a) -> result.put(a, b));
 		return result;
 	}
+	
+	public static <T> boolean contains(T[] array, T value) {
+		for (int i = 0; i < array.length; i++) {
+			if (array[i] == value) return true;
+		}
+		return false;
+	}
+	
+	public static <T> boolean contains(int[] array, int value) {
+		for (int i = 0; i < array.length; i++) {
+			if (array[i] == value) return true;
+		}
+		return false;
+	}
 }

@@ -8,6 +8,7 @@ import net.bhapi.util.BufferUtil;
 import net.bhapi.util.Identifier;
 import net.bhapi.util.ImageUtil;
 import net.bhapi.util.ImageUtil.FormatConvert;
+import net.bhapi.util.MathUtil;
 import net.minecraft.block.BaseBlock;
 import net.minecraft.client.render.TextureBinder;
 import net.minecraft.item.BaseItem;
@@ -21,6 +22,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
+import java.util.stream.IntStream;
 
 public class Textures {
 	private static final int[] EXCLUDE_TERRAIN = new int[] {
@@ -30,7 +32,9 @@ public class Textures {
 		254, 255, // Lava second row
 		240, 241, 242, 243, 244, 245, 246, 247, 248, 249 // Block breaking
 	};
+	private static final TextureSample[] VANILLA_BLOCKS = new TextureSample[256];
 	private static TextureAtlas atlas;
+	private static TextureSample empty;
 	
 	public static void init() {
 		BHAPI.log("Making texture atlas");
@@ -42,10 +46,16 @@ public class Textures {
 		addTextures("particle", loadTexture("/particles.png"), 16, textures);
 		
 		atlas = new TextureAtlas(textures);
+		empty = atlas.getSample(Identifier.make("empty"));
 		
-		Arrays.stream(BaseBlock.BY_ID).filter(Objects::nonNull).forEach(block -> {
+		/*Arrays.stream(BaseBlock.BY_ID).filter(Objects::nonNull).forEach(block -> {
 			Identifier id = Identifier.make("terrain_" + block.texture);
 			block.texture = atlas.getTextureIndex(id);
+		});*/
+		
+		IntStream.range(0, 256).forEach(index -> {
+			Identifier id = Identifier.make("terrain_" + index);
+			VANILLA_BLOCKS[index] = atlas.getSample(id);
 		});
 		
 		List<?> binders = ((TextureManagerAccessor) BHAPIClient.getMinecraft().textureManager).getTextureBinders();
@@ -72,6 +82,11 @@ public class Textures {
 	
 	public static TextureAtlas getAtlas() {
 		return atlas;
+	}
+	
+	public static TextureSample getVanillaBlockSample(int texture) {
+		if (texture < 0 || texture > 255) return empty;
+		return VANILLA_BLOCKS[texture];
 	}
 	
 	private static BufferedImage loadTexture(String name) {

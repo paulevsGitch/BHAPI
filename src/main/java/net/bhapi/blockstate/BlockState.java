@@ -2,14 +2,20 @@ package net.bhapi.blockstate;
 
 import net.bhapi.block.BHAirBlock;
 import net.bhapi.blockstate.properties.StateProperty;
+import net.bhapi.client.render.block.CustomBlockRender;
+import net.bhapi.client.render.texture.TextureSample;
+import net.bhapi.client.render.texture.Textures;
 import net.bhapi.interfaces.IDProvider;
 import net.bhapi.registry.CommonRegistries;
 import net.bhapi.util.Identifier;
+import net.fabricmc.api.EnvType;
+import net.fabricmc.api.Environment;
 import net.minecraft.block.BaseBlock;
 import net.minecraft.block.BlockSounds;
 import net.minecraft.block.material.Material;
 import net.minecraft.entity.BaseEntity;
 import net.minecraft.entity.player.PlayerBase;
+import net.minecraft.level.BlockView;
 import net.minecraft.level.Level;
 import net.minecraft.util.io.CompoundTag;
 import net.minecraft.util.io.ListTag;
@@ -373,5 +379,15 @@ public final class BlockState implements IDProvider {
 	@Override
 	public int hashCode() {
 		return rawID;
+	}
+	
+	@Environment(EnvType.CLIENT)
+	public byte getRenderType(BlockView view, int x, int y, int z) {
+		return CustomBlockRender.cast(getBlock()).getRenderType(view, x, y, z, this);
+	}
+	
+	@Environment(EnvType.CLIENT)
+	public TextureSample getTextureForIndex(BlockView view, int x, int y, int z, int index) {
+		return CustomBlockRender.cast(getBlock()).getTextureForIndex(view, x, y, z, this, index);
 	}
 }
