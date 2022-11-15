@@ -1,6 +1,10 @@
 package net.bhapi.event;
 
 import net.bhapi.block.BHBaseBlock;
+import net.bhapi.blockstate.BlockState;
+import net.bhapi.client.TestClientEvent;
+import net.bhapi.client.render.block.CustomBlockRender;
+import net.bhapi.client.render.texture.TextureSample;
 import net.bhapi.item.BHBlockItem;
 import net.bhapi.item.BHItem;
 import net.bhapi.registry.CommonRegistries;
@@ -8,6 +12,7 @@ import net.bhapi.util.Identifier;
 import net.minecraft.block.BaseBlock;
 import net.minecraft.block.BlockSounds;
 import net.minecraft.block.material.Material;
+import net.minecraft.level.BlockView;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -36,7 +41,7 @@ public class TestEvent {
 		BLOCKS.forEach((id, block) -> event.register(id, new BHBlockItem(block, false)));
 	}
 	
-	private class TestBlock extends BHBaseBlock {
+	private class TestBlock extends BHBaseBlock implements CustomBlockRender {
 		public TestBlock(Material material, BlockSounds sounds) {
 			super(material);
 			setHardness(0.1F);
@@ -47,6 +52,11 @@ public class TestEvent {
 		@Override
 		public int getTextureForSide(int i) {
 			return (CommonRegistries.BLOCK_REGISTRY.getID(this).hashCode() + i) & 3;
+		}
+		
+		@Override
+		public TextureSample getTextureForIndex(BlockView view, int x, int y, int z, BlockState state, int index) {
+			return TestClientEvent.testblock;
 		}
 	}
 }

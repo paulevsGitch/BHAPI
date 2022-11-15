@@ -4,7 +4,6 @@ import net.bhapi.block.BHAirBlock;
 import net.bhapi.blockstate.properties.StateProperty;
 import net.bhapi.client.render.block.CustomBlockRender;
 import net.bhapi.client.render.texture.TextureSample;
-import net.bhapi.client.render.texture.Textures;
 import net.bhapi.interfaces.IDProvider;
 import net.bhapi.registry.CommonRegistries;
 import net.bhapi.util.Identifier;

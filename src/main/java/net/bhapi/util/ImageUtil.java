@@ -1,6 +1,8 @@
 package net.bhapi.util;
 
 import net.bhapi.BHAPI;
+import net.bhapi.client.BHAPIClient;
+import net.minecraft.client.resource.TexturePack;
 
 import javax.imageio.ImageIO;
 import java.awt.Color;
@@ -26,9 +28,10 @@ public class ImageUtil {
 	}
 	
 	public static BufferedImage load(String path) {
+		TexturePack pack = BHAPIClient.getMinecraft().texturePackManager.texturePack;
 		BufferedImage img = EMPTY;
 		try {
-			InputStream stream = BufferedImage.class.getResourceAsStream(path);
+			InputStream stream = pack.getResourceAsStream(path);
 			if (stream != null) {
 				img = ImageIO.read(stream);
 				stream.close();

@@ -8,8 +8,6 @@ import net.bhapi.util.BufferUtil;
 import net.bhapi.util.Identifier;
 import net.bhapi.util.ImageUtil;
 import net.bhapi.util.ImageUtil.FormatConvert;
-import net.bhapi.util.MathUtil;
-import net.minecraft.block.BaseBlock;
 import net.minecraft.client.render.TextureBinder;
 import net.minecraft.item.BaseItem;
 import org.lwjgl.opengl.GL11;
@@ -36,16 +34,17 @@ public class Textures {
 	private static TextureAtlas atlas;
 	private static TextureSample empty;
 	
+	public static final Map<Identifier, BufferedImage> LOADED_TEXTURES = new HashMap<>();
+	
 	public static void init() {
 		BHAPI.log("Making texture atlas");
 		
-		Map<Identifier, BufferedImage> textures = new HashMap<>();
-		addTextures("terrain", loadTexture("/terrain.png"), 16, textures);
-		excludeTextures("terrain", textures, EXCLUDE_TERRAIN);
-		addTextures("item", loadTexture("/gui/items.png"), 16, textures);
-		addTextures("particle", loadTexture("/particles.png"), 16, textures);
+		addTextures("terrain", loadTexture("/terrain.png"), 16, LOADED_TEXTURES);
+		excludeTextures("terrain", LOADED_TEXTURES, EXCLUDE_TERRAIN);
+		addTextures("item", loadTexture("/gui/items.png"), 16, LOADED_TEXTURES);
+		addTextures("particle", loadTexture("/particles.png"), 16, LOADED_TEXTURES);
 		
-		atlas = new TextureAtlas(textures);
+		atlas = new TextureAtlas(LOADED_TEXTURES);
 		empty = atlas.getSample(Identifier.make("empty"));
 		
 		/*Arrays.stream(BaseBlock.BY_ID).filter(Objects::nonNull).forEach(block -> {
@@ -53,9 +52,9 @@ public class Textures {
 			block.texture = atlas.getTextureIndex(id);
 		});*/
 		
-		IntStream.range(0, 256).forEach(index -> {
+		IntStream.range(0, 255).forEach(index -> {
 			Identifier id = Identifier.make("terrain_" + index);
-			VANILLA_BLOCKS[index] = atlas.getSample(id);
+			VANILLA_BLOCKS[index] = atlas.getSample(id, true);
 		});
 		
 		List<?> binders = ((TextureManagerAccessor) BHAPIClient.getMinecraft().textureManager).getTextureBinders();

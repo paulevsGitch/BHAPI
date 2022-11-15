@@ -2,6 +2,7 @@ package net.bhapi.client;
 
 import net.bhapi.client.event.AfterTextureLoadedEvent;
 import net.bhapi.client.event.TextureLoadingEvent;
+import net.bhapi.client.render.texture.Textures;
 import net.bhapi.event.BHEvent;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
@@ -20,7 +21,7 @@ public class ClientRegistries {
 	}
 	
 	private static void initEvents() {
-		EVENT_REGISTRY_PRE.put(TextureLoadingEvent.class, TextureLoadingEvent::new);
+		EVENT_REGISTRY_PRE.put(TextureLoadingEvent.class, () -> new TextureLoadingEvent(Textures.LOADED_TEXTURES));
 		EVENT_REGISTRY_POST.put(AfterTextureLoadedEvent.class, AfterTextureLoadedEvent::new);
 	}
 }

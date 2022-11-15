@@ -284,8 +284,7 @@ public class CustomBlockRenderer {
 			colorGreen10 *= f5;
 			colorBlue10 *= f5;
 			renderEastFace(block, x, y, z, state.getTextureForIndex(view, x, y, z, 2));
-			n = block.getTextureForSide(view, x, y, z, 2);
-			if (fancyGraphics && n == 3 && textureOverride < 0) {
+			if (fancyGraphics && block == BaseBlock.GRASS && textureOverride < 0) {
 				colorRed00 *= f;
 				colorRed01 *= f;
 				colurRed11 *= f;
@@ -339,8 +338,7 @@ public class CustomBlockRenderer {
 			colorGreen10 *= f5;
 			colorBlue10 *= f5;
 			renderWestFace(block, x, y, z, state.getTextureForIndex(view, x, y, z, 3));
-			n = block.getTextureForSide(view, x, y, z, 3);
-			if (fancyGraphics && n == 3 && textureOverride < 0) {
+			if (fancyGraphics && block == BaseBlock.GRASS && textureOverride < 0) {
 				colorRed00 *= f;
 				colorRed01 *= f;
 				colurRed11 *= f;
@@ -394,8 +392,7 @@ public class CustomBlockRenderer {
 			colorGreen10 *= f5;
 			colorBlue10 *= f5;
 			renderNorthFace(block, x, y, z, state.getTextureForIndex(view, x, y, z, 4));
-			n = block.getTextureForSide(view, x, y, z, 4);
-			if (fancyGraphics && n == 3 && textureOverride < 0) {
+			if (fancyGraphics && block == BaseBlock.GRASS && textureOverride < 0) {
 				colorRed00 *= f;
 				colorRed01 *= f;
 				colurRed11 *= f;
@@ -449,8 +446,7 @@ public class CustomBlockRenderer {
 			colorGreen10 *= f5;
 			colorBlue10 *= f5;
 			renderSouthFace(block, x, y, z, state.getTextureForIndex(view, x, y, z, 5));
-			n = block.getTextureForSide(view, x, y, z, 5);
-			if (fancyGraphics && n == 3 && textureOverride < 0) {
+			if (fancyGraphics && block == BaseBlock.GRASS && textureOverride < 0) {
 				colorRed00 *= f;
 				colorRed01 *= f;
 				colurRed11 *= f;
@@ -532,8 +528,7 @@ public class CustomBlockRenderer {
 			}
 			tessellator.color(f11 * light, f14 * light, f17 * light);
 			renderEastFace(block, x, y, z,  state.getTextureForIndex(view, x, y, z, 2));
-			n = block.getTextureForSide(view, x, y, z, 2);
-			if (fancyGraphics && n == 3 && textureOverride < 0) {
+			if (fancyGraphics && block == BaseBlock.GRASS && textureOverride < 0) {
 				tessellator.color(f11 * light * f, f14 * light * g, f17 * light * h);
 				renderEastFace(block, x, y, z, Textures.getVanillaBlockSample(38));
 			}
@@ -547,10 +542,9 @@ public class CustomBlockRenderer {
 			}
 			
 			tessellator.color(f11 * light, f14 * light, f17 * light);
-			n = block.getTextureForSide(view, x, y, z, 3);
 			renderWestFace(block, x, y, z, state.getTextureForIndex(view, x, y, z, 3));
 			
-			if (fancyGraphics && n == 3 && textureOverride < 0) {
+			if (fancyGraphics && block == BaseBlock.GRASS && textureOverride < 0) {
 				tessellator.color(f11 * light * f, f14 * light * g, f17 * light * h);
 				renderWestFace(block, x, y, z, Textures.getVanillaBlockSample(38));
 			}
@@ -565,8 +559,7 @@ public class CustomBlockRenderer {
 			}
 			tessellator.color(f12 * light, f15 * light, f18 * light);
 			renderNorthFace(block, x, y, z, state.getTextureForIndex(view, x, y, z, 4));
-			n = block.getTextureForSide(view, x, y, z, 4);
-			if (fancyGraphics && n == 3 && textureOverride < 0) {
+			if (fancyGraphics && block == BaseBlock.GRASS && textureOverride < 0) {
 				tessellator.color(f12 * light * f, f15 * light * g, f18 * light * h);
 				renderNorthFace(block, x, y, z, Textures.getVanillaBlockSample(38));
 			}
@@ -580,8 +573,7 @@ public class CustomBlockRenderer {
 			}
 			tessellator.color(f12 * light, f15 * light, f18 * light);
 			renderSouthFace(block, x, y, z, state.getTextureForIndex(view, x, y, z, 5));
-			n = block.getTextureForSide(view, x, y, z, 5);
-			if (fancyGraphics && n == 3 && textureOverride < 0) {
+			if (fancyGraphics && block == BaseBlock.GRASS && textureOverride < 0) {
 				tessellator.color(f12 * light * f, f15 * light * g, f18 * light * h);
 				renderSouthFace(block, x, y, z, Textures.getVanillaBlockSample(38));
 			}
@@ -591,87 +583,82 @@ public class CustomBlockRenderer {
 		return result;
 	}
 	
-	private static void renderBottomFace(BaseBlock arg, double d, double e, double f, TextureSample sample) {
-		/*Tessellator tessellator = Tessellator.INSTANCE;
-		if (textureOverride >= 0) {
-			i = textureOverride;
-		}
-		int n = (i & 0xF) << 4;
-		int n2 = i & 0xF0;
+	private static void renderBottomFace(BaseBlock block, double x, double y, double z, TextureSample sample) {
+		Tessellator tessellator = Tessellator.INSTANCE;
 		
-		double d2 = ((double)n + arg.minX * 16.0) / 256.0;
-		double d3 = ((double)n + arg.maxX * 16.0 - 0.01) / 256.0;
-		double d4 = ((double)n2 + arg.minZ * 16.0) / 256.0;
-		double d5 = ((double)n2 + arg.maxZ * 16.0 - 0.01) / 256.0;
+		UVPair uv = sample.getUV();
 		
-		if (arg.minX < 0.0 || arg.maxX > 1.0) {
-			d2 = ((float)n + 0.0f) / 256.0f;
-			d3 = ((float)n + 15.99f) / 256.0f;
+		double u11 = uv.getU(MathUtil.clamp((float) block.minX, 0, 1));
+		double u12 = uv.getU(MathUtil.clamp((float) block.maxX, 0, 1));
+		double v11 = uv.getV(MathUtil.clamp((float) block.maxZ, 0, 1));
+		double v12 = uv.getV(MathUtil.clamp((float) block.minZ, 0, 1));
+		
+		double u22 = u12;
+		double u21 = u11;
+		double v21 = v11;
+		double v22 = v12;
+		
+		/*if (bottomFaceRotation == 2) {
+			u11 = ((double)n + arg.minZ * 16.0) / 256.0;
+			v11 = ((double)(n2 + 16) - arg.maxX * 16.0) / 256.0;
+			u12 = ((double)n + arg.maxZ * 16.0) / 256.0;
+			v12 = ((double)(n2 + 16) - arg.minX * 16.0) / 256.0;
+			u22 = u12;
+			u21 = u11;
+			v21 = v11;
+			v22 = v12;
+			u22 = u11;
+			u21 = u12;
+			v11 = v12;
+			v12 = v21;
 		}
-		if (arg.minZ < 0.0 || arg.maxZ > 1.0) {
-			d4 = ((float)n2 + 0.0f) / 256.0f;
-			d5 = ((float)n2 + 15.99f) / 256.0f;
+		else if (bottomFaceRotation == 1) {
+			u11 = ((double)(n + 16) - arg.maxZ * 16.0) / 256.0;
+			v11 = ((double)n2 + arg.minX * 16.0) / 256.0;
+			u12 = ((double)(n + 16) - arg.minZ * 16.0) / 256.0;
+			v12 = ((double)n2 + arg.maxX * 16.0) / 256.0;
+			u22 = u12;
+			u21 = u11;
+			v21 = v11;
+			v22 = v12;
+			u11 = u22;
+			u12 = u21;
+			v21 = v12;
+			v22 = v11;
 		}
-		double d6 = d3;
-		double d7 = d2;
-		double d8 = d4;
-		double d9 = d5;
-		if (bottomFaceRotation == 2) {
-			d2 = ((double)n + arg.minZ * 16.0) / 256.0;
-			d4 = ((double)(n2 + 16) - arg.maxX * 16.0) / 256.0;
-			d3 = ((double)n + arg.maxZ * 16.0) / 256.0;
-			d5 = ((double)(n2 + 16) - arg.minX * 16.0) / 256.0;
-			d6 = d3;
-			d7 = d2;
-			d8 = d4;
-			d9 = d5;
-			d6 = d2;
-			d7 = d3;
-			d4 = d5;
-			d5 = d8;
-		} else if (bottomFaceRotation == 1) {
-			d2 = ((double)(n + 16) - arg.maxZ * 16.0) / 256.0;
-			d4 = ((double)n2 + arg.minX * 16.0) / 256.0;
-			d3 = ((double)(n + 16) - arg.minZ * 16.0) / 256.0;
-			d5 = ((double)n2 + arg.maxX * 16.0) / 256.0;
-			d6 = d3;
-			d7 = d2;
-			d8 = d4;
-			d9 = d5;
-			d2 = d6;
-			d3 = d7;
-			d8 = d5;
-			d9 = d4;
-		} else if (bottomFaceRotation == 3) {
-			d2 = ((double)(n + 16) - arg.minX * 16.0) / 256.0;
-			d3 = ((double)(n + 16) - arg.maxX * 16.0 - 0.01) / 256.0;
-			d4 = ((double)(n2 + 16) - arg.minZ * 16.0) / 256.0;
-			d5 = ((double)(n2 + 16) - arg.maxZ * 16.0 - 0.01) / 256.0;
-			d6 = d3;
-			d7 = d2;
-			d8 = d4;
-			d9 = d5;
-		}
-		double d10 = d + arg.minX;
-		double d11 = d + arg.maxX;
-		double d12 = e + arg.minY;
-		double d13 = f + arg.minZ;
-		double d14 = f + arg.maxZ;
+		else if (bottomFaceRotatioblock == BaseBlock.GRASS) {
+			u11 = ((double)(n + 16) - arg.minX * 16.0) / 256.0;
+			u12 = ((double)(n + 16) - arg.maxX * 16.0 - 0.01) / 256.0;
+			v11 = ((double)(n2 + 16) - arg.minZ * 16.0) / 256.0;
+			v12 = ((double)(n2 + 16) - arg.maxZ * 16.0 - 0.01) / 256.0;
+			u22 = u12;
+			u21 = u11;
+			v21 = v11;
+			v22 = v12;
+		}*/
+		
+		double x1 = x + block.minX;
+		double x2 = x + block.maxX;
+		double y1 = y + block.minY;
+		double z1 = z + block.minZ;
+		double z2 = z + block.maxZ;
+		
 		if (shadeTopFace) {
 			tessellator.color(colorRed00, colorGreen00, colorBlue00);
-			tessellator.vertex(d10, d12, d14, d7, d9);
+			tessellator.vertex(x1, y1, z2, u21, v22);
 			tessellator.color(colorRed01, colorGreen01, colorBlue01);
-			tessellator.vertex(d10, d12, d13, d2, d4);
+			tessellator.vertex(x1, y1, z1, u11, v11);
 			tessellator.color(colurRed11, colorGreen11, colorBlue11);
-			tessellator.vertex(d11, d12, d13, d6, d8);
+			tessellator.vertex(x2, y1, z1, u22, v21);
 			tessellator.color(colorRed10, colorGreen10, colorBlue10);
-			tessellator.vertex(d11, d12, d14, d3, d5);
-		} else {
-			tessellator.vertex(d10, d12, d14, d7, d9);
-			tessellator.vertex(d10, d12, d13, d2, d4);
-			tessellator.vertex(d11, d12, d13, d6, d8);
-			tessellator.vertex(d11, d12, d14, d3, d5);
-		}*/
+			tessellator.vertex(x2, y1, z2, u12, v12);
+		}
+		else {
+			tessellator.vertex(x1, y1, z2, u21, v22);
+			tessellator.vertex(x1, y1, z1, u11, v11);
+			tessellator.vertex(x2, y1, z1, u22, v21);
+			tessellator.vertex(x2, y1, z2, u12, v12);
+		}
 	}
 	
 	private static void renderTopFace(BaseBlock block, double x, double y, double z, TextureSample sample) {
@@ -720,7 +707,7 @@ public class CustomBlockRenderer {
 			v21 = v12;
 			v22 = v11;
 		}
-		else if (topFaceRotation == 3) {
+		else if (topFaceRotatioblock == BaseBlock.GRASS) {
 			u11 = ((double)(n + 16) - block.minX * 16.0) / 256.0;
 			u12 = ((double)(n + 16) - block.maxX * 16.0 - 0.01) / 256.0;
 			v11 = ((double)(n2 + 16) - block.minZ * 16.0) / 256.0;
@@ -757,11 +744,8 @@ public class CustomBlockRenderer {
 	
 	private static void renderEastFace(BaseBlock block, double x, double y, double z, TextureSample sample) {
 		Tessellator tessellator = Tessellator.INSTANCE;
-		/*if (textureOverride >= 0) {
-			texture = textureOverride;
-		}*/
 		
-		UVPair uv = sample.getUV();//Textures.getAtlas().getUV(texture);
+		UVPair uv = sample.getUV();
 		
 		double u11 = uv.getU(MathUtil.clamp((float) block.minX, 0, 1));
 		double u12 = uv.getU(MathUtil.clamp((float) block.maxX, 0, 1));
@@ -805,7 +789,7 @@ public class CustomBlockRenderer {
 			u12 = U21;
 			V21 = v12;
 			V22 = v11;
-		} else if (eastFaceRotation == 3) {
+		} else if (eastFaceRotatioblock == BaseBlock.GRASS) {
 			u11 = ((double)(n + 16) - block.minX * 16.0) / 256.0;
 			u12 = ((double)(n + 16) - block.maxX * 16.0 - 0.01) / 256.0;
 			v11 = ((double)n2 + block.maxY * 16.0) / 256.0;
@@ -840,264 +824,263 @@ public class CustomBlockRenderer {
 		}
 	}
 	
-	private static void renderWestFace(BaseBlock arg, double d, double e, double f, TextureSample sample) {
-		/*double d2;
+	private static void renderWestFace(BaseBlock block, double x, double y, double z, TextureSample sample) {
 		Tessellator tessellator = Tessellator.INSTANCE;
-		if (textureOverride >= 0) {
-			i = textureOverride;
-		}
-		int n = (i & 0xF) << 4;
-		int n2 = i & 0xF0;
-		double d3 = ((double)n + arg.minX * 16.0) / 256.0;
-		double d4 = ((double)n + arg.maxX * 16.0 - 0.01) / 256.0;
-		double d5 = ((double)(n2 + 16) - arg.maxY * 16.0) / 256.0;
-		double d6 = ((double)(n2 + 16) - arg.minY * 16.0 - 0.01) / 256.0;
+		
+		UVPair uv = sample.getUV();
+		
+		double u11 = uv.getU(MathUtil.clamp((float) block.minX, 0, 1));
+		double u12 = uv.getU(MathUtil.clamp((float) block.maxX, 0, 1));
+		double v11 = uv.getV(MathUtil.clamp((float) block.maxY, 0, 1));
+		double v12 = uv.getV(MathUtil.clamp((float) block.minY, 0, 1));
+		
+		double u22 = u12;
+		double u21 = u11;
+		double v21 = v11;
+		double v22 = v12;
+		
 		if (mirrorTexture) {
-			d2 = d3;
-			d3 = d4;
-			d4 = d2;
+			u21 = u11;
+			u11 = u12;
+			u12 = u21;
 		}
-		if (arg.minX < 0.0 || arg.maxX > 1.0) {
-			d3 = ((float)n + 0.0f) / 256.0f;
-			d4 = ((float)n + 15.99f) / 256.0f;
+		
+		u21 = u12;
+		double d7 = u11;
+		double d8 = v12;
+		double d9 = v11;
+		
+		/*if (westFaceRotation == 1) {
+			u11 = ((double)n + block.minY * 16.0) / 256.0;
+			v11 = ((double)(n2 + 16) - block.minX * 16.0) / 256.0;
+			u12 = ((double)n + block.maxY * 16.0) / 256.0;
+			v12 = ((double)(n2 + 16) - block.maxX * 16.0) / 256.0;
+			u21 = u12;
+			d7 = u11;
+			d8 = v12;
+			d9 = v11;
+			u21 = u11;
+			d7 = u12;
+			v12 = v11;
+			v11 = d8;
 		}
-		if (arg.minY < 0.0 || arg.maxY > 1.0) {
-			d5 = ((float)n2 + 0.0f) / 256.0f;
-			d6 = ((float)n2 + 15.99f) / 256.0f;
+		else if (westFaceRotation == 2) {
+			u11 = ((double)(n + 16) - block.maxY * 16.0) / 256.0;
+			v12 = ((double)n2 + block.minX * 16.0) / 256.0;
+			u12 = ((double)(n + 16) - block.minY * 16.0) / 256.0;
+			v11 = ((double)n2 + block.maxX * 16.0) / 256.0;
+			u21 = u12;
+			d7 = u11;
+			d8 = v12;
+			d9 = v11;
+			u11 = u21;
+			u12 = d7;
+			d8 = v11;
+			d9 = v12;
 		}
-		d2 = d4;
-		double d7 = d3;
-		double d8 = d5;
-		double d9 = d6;
-		if (westFaceRotation == 1) {
-			d3 = ((double)n + arg.minY * 16.0) / 256.0;
-			d6 = ((double)(n2 + 16) - arg.minX * 16.0) / 256.0;
-			d4 = ((double)n + arg.maxY * 16.0) / 256.0;
-			d5 = ((double)(n2 + 16) - arg.maxX * 16.0) / 256.0;
-			d2 = d4;
-			d7 = d3;
-			d8 = d5;
-			d9 = d6;
-			d2 = d3;
-			d7 = d4;
-			d5 = d6;
-			d6 = d8;
-		} else if (westFaceRotation == 2) {
-			d3 = ((double)(n + 16) - arg.maxY * 16.0) / 256.0;
-			d5 = ((double)n2 + arg.minX * 16.0) / 256.0;
-			d4 = ((double)(n + 16) - arg.minY * 16.0) / 256.0;
-			d6 = ((double)n2 + arg.maxX * 16.0) / 256.0;
-			d2 = d4;
-			d7 = d3;
-			d8 = d5;
-			d9 = d6;
-			d3 = d2;
-			d4 = d7;
-			d8 = d6;
-			d9 = d5;
-		} else if (westFaceRotation == 3) {
-			d3 = ((double)(n + 16) - arg.minX * 16.0) / 256.0;
-			d4 = ((double)(n + 16) - arg.maxX * 16.0 - 0.01) / 256.0;
-			d5 = ((double)n2 + arg.maxY * 16.0) / 256.0;
-			d6 = ((double)n2 + arg.minY * 16.0 - 0.01) / 256.0;
-			d2 = d4;
-			d7 = d3;
-			d8 = d5;
-			d9 = d6;
-		}
-		double d10 = d + arg.minX;
-		double d11 = d + arg.maxX;
-		double d12 = e + arg.minY;
-		double d13 = e + arg.maxY;
-		double d14 = f + arg.maxZ;
+		else if (westFaceRotatioblock == BaseBlock.GRASS) {
+			u11 = ((double)(n + 16) - block.minX * 16.0) / 256.0;
+			u12 = ((double)(n + 16) - block.maxX * 16.0 - 0.01) / 256.0;
+			v12 = ((double)n2 + block.maxY * 16.0) / 256.0;
+			v11 = ((double)n2 + block.minY * 16.0 - 0.01) / 256.0;
+			u21 = u12;
+			d7 = u11;
+			d8 = v12;
+			d9 = v11;
+		}*/
+		
+		double x1 = x + block.minX;
+		double x2 = x + block.maxX;
+		double y1 = y + block.minY;
+		double y2 = y + block.maxY;
+		double z2 = z + block.maxZ;
+		
 		if (shadeTopFace) {
 			tessellator.color(colorRed00, colorGreen00, colorBlue00);
-			tessellator.vertex(d10, d13, d14, d3, d5);
+			tessellator.vertex(x1, y2, z2, u11, v12);
 			tessellator.color(colorRed01, colorGreen01, colorBlue01);
-			tessellator.vertex(d10, d12, d14, d7, d9);
+			tessellator.vertex(x1, y1, z2, d7, d9);
 			tessellator.color(colurRed11, colorGreen11, colorBlue11);
-			tessellator.vertex(d11, d12, d14, d4, d6);
+			tessellator.vertex(x2, y1, z2, u12, v11);
 			tessellator.color(colorRed10, colorGreen10, colorBlue10);
-			tessellator.vertex(d11, d13, d14, d2, d8);
-		} else {
-			tessellator.vertex(d10, d13, d14, d3, d5);
-			tessellator.vertex(d10, d12, d14, d7, d9);
-			tessellator.vertex(d11, d12, d14, d4, d6);
-			tessellator.vertex(d11, d13, d14, d2, d8);
-		}*/
+			tessellator.vertex(x2, y2, z2, u21, d8);
+		}
+		else {
+			tessellator.vertex(x1, y2, z2, u11, v12);
+			tessellator.vertex(x1, y1, z2, d7, d9);
+			tessellator.vertex(x2, y1, z2, u12, v11);
+			tessellator.vertex(x2, y2, z2, u21, d8);
+		}
 	}
 	
-	private static void renderNorthFace(BaseBlock arg, double d, double e, double f, TextureSample sample) {
-		/*double d2;
+	// TODO change to SOUTH name
+	private static void renderNorthFace(BaseBlock block, double x, double y, double z, TextureSample sample) {
 		Tessellator tessellator = Tessellator.INSTANCE;
-		if (textureOverride >= 0) {
-			i = textureOverride;
-		}
-		int n = (i & 0xF) << 4;
-		int n2 = i & 0xF0;
-		double d3 = ((double)n + arg.minZ * 16.0) / 256.0;
-		double d4 = ((double)n + arg.maxZ * 16.0 - 0.01) / 256.0;
-		double d5 = ((double)(n2 + 16) - arg.maxY * 16.0) / 256.0;
-		double d6 = ((double)(n2 + 16) - arg.minY * 16.0 - 0.01) / 256.0;
+		
+		UVPair uv = sample.getUV();
+		
+		double u11 = uv.getU(MathUtil.clamp((float) block.minX, 0, 1));
+		double u12 = uv.getU(MathUtil.clamp((float) block.maxX, 0, 1));
+		double v11 = uv.getV(MathUtil.clamp((float) block.maxY, 0, 1));
+		double v12 = uv.getV(MathUtil.clamp((float) block.minY, 0, 1));
+		
+		double u22 = u12;
+		double u21 = u11;
+		double v21 = v11;
+		double v22 = v12;
+		
 		if (mirrorTexture) {
-			d2 = d3;
-			d3 = d4;
-			d4 = d2;
+			u22 = u11;
+			u11 = u12;
+			u12 = u22;
 		}
-		if (arg.minZ < 0.0 || arg.maxZ > 1.0) {
-			d3 = ((float)n + 0.0f) / 256.0f;
-			d4 = ((float)n + 15.99f) / 256.0f;
+		
+		/*if (northFaceRotation == 1) {
+			u11 = ((double)n + block.minY * 16.0) / 256.0;
+			v12 = ((double)(n2 + 16) - block.maxZ * 16.0) / 256.0;
+			u12 = ((double)n + block.maxY * 16.0) / 256.0;
+			v11 = ((double)(n2 + 16) - block.minZ * 16.0) / 256.0;
+			u22 = u12;
+			u21 = u11;
+			v22 = v12;
+			v21 = v11;
+			u22 = u11;
+			u21 = u12;
+			v12 = v11;
+			v11 = v22;
 		}
-		if (arg.minY < 0.0 || arg.maxY > 1.0) {
-			d5 = ((float)n2 + 0.0f) / 256.0f;
-			d6 = ((float)n2 + 15.99f) / 256.0f;
+		else if (northFaceRotation == 2) {
+			u11 = ((double)(n + 16) - block.maxY * 16.0) / 256.0;
+			v12 = ((double)n2 + block.minZ * 16.0) / 256.0;
+			u12 = ((double)(n + 16) - block.minY * 16.0) / 256.0;
+			v11 = ((double)n2 + block.maxZ * 16.0) / 256.0;
+			u22 = u12;
+			u21 = u11;
+			v22 = v12;
+			v21 = v11;
+			u11 = u22;
+			u12 = u21;
+			v22 = v11;
+			v21 = v12;
 		}
-		d2 = d4;
-		double d7 = d3;
-		double d8 = d5;
-		double d9 = d6;
-		if (northFaceRotation == 1) {
-			d3 = ((double)n + arg.minY * 16.0) / 256.0;
-			d5 = ((double)(n2 + 16) - arg.maxZ * 16.0) / 256.0;
-			d4 = ((double)n + arg.maxY * 16.0) / 256.0;
-			d6 = ((double)(n2 + 16) - arg.minZ * 16.0) / 256.0;
-			d2 = d4;
-			d7 = d3;
-			d8 = d5;
-			d9 = d6;
-			d2 = d3;
-			d7 = d4;
-			d5 = d6;
-			d6 = d8;
-		} else if (northFaceRotation == 2) {
-			d3 = ((double)(n + 16) - arg.maxY * 16.0) / 256.0;
-			d5 = ((double)n2 + arg.minZ * 16.0) / 256.0;
-			d4 = ((double)(n + 16) - arg.minY * 16.0) / 256.0;
-			d6 = ((double)n2 + arg.maxZ * 16.0) / 256.0;
-			d2 = d4;
-			d7 = d3;
-			d8 = d5;
-			d9 = d6;
-			d3 = d2;
-			d4 = d7;
-			d8 = d6;
-			d9 = d5;
-		} else if (northFaceRotation == 3) {
-			d3 = ((double)(n + 16) - arg.minZ * 16.0) / 256.0;
-			d4 = ((double)(n + 16) - arg.maxZ * 16.0 - 0.01) / 256.0;
-			d5 = ((double)n2 + arg.maxY * 16.0) / 256.0;
-			d6 = ((double)n2 + arg.minY * 16.0 - 0.01) / 256.0;
-			d2 = d4;
-			d7 = d3;
-			d8 = d5;
-			d9 = d6;
-		}
-		double d10 = d + arg.minX;
-		double d11 = e + arg.minY;
-		double d12 = e + arg.maxY;
-		double d13 = f + arg.minZ;
-		double d14 = f + arg.maxZ;
+		else if (northFaceRotatioblock == BaseBlock.GRASS) {
+			u11 = ((double)(n + 16) - block.minZ * 16.0) / 256.0;
+			u12 = ((double)(n + 16) - block.maxZ * 16.0 - 0.01) / 256.0;
+			v12 = ((double)n2 + block.maxY * 16.0) / 256.0;
+			v11 = ((double)n2 + block.minY * 16.0 - 0.01) / 256.0;
+			u22 = u12;
+			u21 = u11;
+			v22 = v12;
+			v21 = v11;
+		}*/
+		
+		double x1 = x + block.minX;
+		double y1 = y + block.minY;
+		double y2 = y + block.maxY;
+		double z1 = z + block.minZ;
+		double z2 = z + block.maxZ;
+		
 		if (shadeTopFace) {
 			tessellator.color(colorRed00, colorGreen00, colorBlue00);
-			tessellator.vertex(d10, d12, d14, d2, d8);
+			tessellator.vertex(x1, y2, z2, u22, v22);
 			tessellator.color(colorRed01, colorGreen01, colorBlue01);
-			tessellator.vertex(d10, d12, d13, d3, d5);
+			tessellator.vertex(x1, y2, z1, u11, v12);
 			tessellator.color(colurRed11, colorGreen11, colorBlue11);
-			tessellator.vertex(d10, d11, d13, d7, d9);
+			tessellator.vertex(x1, y1, z1, u21, v21);
 			tessellator.color(colorRed10, colorGreen10, colorBlue10);
-			tessellator.vertex(d10, d11, d14, d4, d6);
-		} else {
-			tessellator.vertex(d10, d12, d14, d2, d8);
-			tessellator.vertex(d10, d12, d13, d3, d5);
-			tessellator.vertex(d10, d11, d13, d7, d9);
-			tessellator.vertex(d10, d11, d14, d4, d6);
-		}*/
+			tessellator.vertex(x1, y1, z2, u12, v11);
+		}
+		else {
+			tessellator.vertex(x1, y2, z2, u22, v22);
+			tessellator.vertex(x1, y2, z1, u11, v12);
+			tessellator.vertex(x1, y1, z1, u21, v21);
+			tessellator.vertex(x1, y1, z2, u12, v11);
+		}
 	}
 	
-	private static void renderSouthFace(BaseBlock arg, double d, double e, double f, TextureSample sample) {
-		/*double d2;
+	
+	// TODO change to NORTH
+	private static void renderSouthFace(BaseBlock block, double x, double y, double z, TextureSample sample) {
 		Tessellator tessellator = Tessellator.INSTANCE;
-		if (textureOverride >= 0) {
-			i = textureOverride;
-		}
-		int n = (i & 0xF) << 4;
-		int n2 = i & 0xF0;
-		double d3 = ((double)n + arg.minZ * 16.0) / 256.0;
-		double d4 = ((double)n + arg.maxZ * 16.0 - 0.01) / 256.0;
-		double d5 = ((double)(n2 + 16) - arg.maxY * 16.0) / 256.0;
-		double d6 = ((double)(n2 + 16) - arg.minY * 16.0 - 0.01) / 256.0;
+		
+		UVPair uv = sample.getUV();
+		
+		double u11 = uv.getU(MathUtil.clamp((float) block.minZ, 0, 1));
+		double u12 = uv.getU(MathUtil.clamp((float) block.maxZ, 0, 1));
+		double v11 = uv.getV(MathUtil.clamp((float) block.maxY, 0, 1));
+		double v12 = uv.getV(MathUtil.clamp((float) block.minY, 0, 1));
+		
+		double u22 = u12;
+		double u21 = u11;
+		double v21 = v11;
+		double v22 = v12;
+		
 		if (mirrorTexture) {
-			d2 = d3;
-			d3 = d4;
-			d4 = d2;
+			u22 = u11;
+			u11 = u12;
+			u12 = u22;
 		}
-		if (arg.minZ < 0.0 || arg.maxZ > 1.0) {
-			d3 = ((float)n + 0.0f) / 256.0f;
-			d4 = ((float)n + 15.99f) / 256.0f;
+		
+		/*if (southFaceRotation == 2) {
+			u11 = ((double)n + block.minY * 16.0) / 256.0;
+			v12 = ((double)(n2 + 16) - block.minZ * 16.0) / 256.0;
+			u12 = ((double)n + block.maxY * 16.0) / 256.0;
+			v11 = ((double)(n2 + 16) - block.maxZ * 16.0) / 256.0;
+			u22 = u12;
+			u21 = u11;
+			v22 = v12;
+			v21 = v11;
+			u22 = u11;
+			u21 = u12;
+			v12 = v11;
+			v11 = v22;
 		}
-		if (arg.minY < 0.0 || arg.maxY > 1.0) {
-			d5 = ((float)n2 + 0.0f) / 256.0f;
-			d6 = ((float)n2 + 15.99f) / 256.0f;
+		else if (southFaceRotation == 1) {
+			u11 = ((double)(n + 16) - block.maxY * 16.0) / 256.0;
+			v12 = ((double)n2 + block.maxZ * 16.0) / 256.0;
+			u12 = ((double)(n + 16) - block.minY * 16.0) / 256.0;
+			v11 = ((double)n2 + block.minZ * 16.0) / 256.0;
+			u22 = u12;
+			u21 = u11;
+			v22 = v12;
+			v21 = v11;
+			u11 = u22;
+			u12 = u21;
+			v22 = v11;
+			v21 = v12;
 		}
-		d2 = d4;
-		double d7 = d3;
-		double d8 = d5;
-		double d9 = d6;
-		if (southFaceRotation == 2) {
-			d3 = ((double)n + arg.minY * 16.0) / 256.0;
-			d5 = ((double)(n2 + 16) - arg.minZ * 16.0) / 256.0;
-			d4 = ((double)n + arg.maxY * 16.0) / 256.0;
-			d6 = ((double)(n2 + 16) - arg.maxZ * 16.0) / 256.0;
-			d2 = d4;
-			d7 = d3;
-			d8 = d5;
-			d9 = d6;
-			d2 = d3;
-			d7 = d4;
-			d5 = d6;
-			d6 = d8;
-		} else if (southFaceRotation == 1) {
-			d3 = ((double)(n + 16) - arg.maxY * 16.0) / 256.0;
-			d5 = ((double)n2 + arg.maxZ * 16.0) / 256.0;
-			d4 = ((double)(n + 16) - arg.minY * 16.0) / 256.0;
-			d6 = ((double)n2 + arg.minZ * 16.0) / 256.0;
-			d2 = d4;
-			d7 = d3;
-			d8 = d5;
-			d9 = d6;
-			d3 = d2;
-			d4 = d7;
-			d8 = d6;
-			d9 = d5;
-		} else if (southFaceRotation == 3) {
-			d3 = ((double)(n + 16) - arg.minZ * 16.0) / 256.0;
-			d4 = ((double)(n + 16) - arg.maxZ * 16.0 - 0.01) / 256.0;
-			d5 = ((double)n2 + arg.maxY * 16.0) / 256.0;
-			d6 = ((double)n2 + arg.minY * 16.0 - 0.01) / 256.0;
-			d2 = d4;
-			d7 = d3;
-			d8 = d5;
-			d9 = d6;
-		}
-		double d10 = d + arg.maxX;
-		double d11 = e + arg.minY;
-		double d12 = e + arg.maxY;
-		double d13 = f + arg.minZ;
-		double d14 = f + arg.maxZ;
+		else if (southFaceRotatioblock == BaseBlock.GRASS) {
+			u11 = ((double)(n + 16) - block.minZ * 16.0) / 256.0;
+			u12 = ((double)(n + 16) - block.maxZ * 16.0 - 0.01) / 256.0;
+			v12 = ((double)n2 + block.maxY * 16.0) / 256.0;
+			v11 = ((double)n2 + block.minY * 16.0 - 0.01) / 256.0;
+			u22 = u12;
+			u21 = u11;
+			v22 = v12;
+			v21 = v11;
+		}*/
+		
+		double d10 = x + block.maxX;
+		double d11 = y + block.minY;
+		double d12 = y + block.maxY;
+		double d13 = z + block.minZ;
+		double d14 = z + block.maxZ;
+		
 		if (shadeTopFace) {
 			tessellator.color(colorRed00, colorGreen00, colorBlue00);
-			tessellator.vertex(d10, d11, d14, d7, d9);
+			tessellator.vertex(d10, d11, d14, u21, v21);
 			tessellator.color(colorRed01, colorGreen01, colorBlue01);
-			tessellator.vertex(d10, d11, d13, d4, d6);
+			tessellator.vertex(d10, d11, d13, u12, v11);
 			tessellator.color(colurRed11, colorGreen11, colorBlue11);
-			tessellator.vertex(d10, d12, d13, d2, d8);
+			tessellator.vertex(d10, d12, d13, u22, v22);
 			tessellator.color(colorRed10, colorGreen10, colorBlue10);
-			tessellator.vertex(d10, d12, d14, d3, d5);
-		} else {
-			tessellator.vertex(d10, d11, d14, d7, d9);
-			tessellator.vertex(d10, d11, d13, d4, d6);
-			tessellator.vertex(d10, d12, d13, d2, d8);
-			tessellator.vertex(d10, d12, d14, d3, d5);
-		}*/
+			tessellator.vertex(d10, d12, d14, u11, v12);
+		}
+		else {
+			tessellator.vertex(d10, d11, d14, u21, v21);
+			tessellator.vertex(d10, d11, d13, u12, v11);
+			tessellator.vertex(d10, d12, d13, u22, v22);
+			tessellator.vertex(d10, d12, d14, u11, v12);
+		}
 	}
 }

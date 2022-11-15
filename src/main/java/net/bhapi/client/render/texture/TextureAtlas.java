@@ -31,7 +31,15 @@ public class TextureAtlas {
 	private final int glTarget;
 	
 	public TextureAtlas(Map<Identifier, BufferedImage> images) {
-		if (!images.containsKey(EMPTY_ID)) images.put(EMPTY_ID, ImageUtil.EMPTY);
+		Map<BufferedImage, Identifier> inverted = MathUtil.invertMap(images);
+		List<BufferedImage> list = inverted.keySet().stream().filter(img -> img == ImageUtil.EMPTY).toList();
+		list.forEach(img -> {
+			Identifier id = inverted.get(img);
+			inverted.remove(img);
+			images.remove(id);
+		});
+		inverted.put(ImageUtil.EMPTY, EMPTY_ID);
+		images.put(EMPTY_ID, ImageUtil.EMPTY);
 		
 		List<ImageInfo> info = images.values().stream().map(img -> new ImageInfo(
 			img,
@@ -61,16 +69,17 @@ public class TextureAtlas {
 		
 		uvs = new UVPair[info.size()];
 		int[] data = new int[] {0, atlasImage.getWidth()};
-		Map<BufferedImage, Identifier> inverted = MathUtil.invertMap(images);
 		layers.forEach(layer -> layer.images.forEach((pos, imgInfo) -> {
 			int px = pos.x << layer.index;
 			int py = pos.y << layer.index;
 			BufferedImage img = imgInfo.img();
 			Identifier id = inverted.get(img);
+			Vec2I tpos = new Vec2I(px, py);
+			Vec2I size = new Vec2I(img.getWidth(), img.getHeight());
 			Vec2F uv1 = new Vec2F(px, py).divide(data[1]);
 			Vec2F uv2 = new Vec2F(img.getWidth(), img.getHeight()).divide(data[1]).add(uv1);
 			int uvID = data[0]++;
-			uvs[uvID] = new UVPair(uv1, uv2);
+			uvs[uvID] = new UVPair(tpos, size, uv1, uv2);
 			textures.put(id, uvID);
 		}));
 		
@@ -95,7 +104,11 @@ public class TextureAtlas {
 	}
 	
 	public TextureSample getSample(Identifier id) {
-		return new TextureSample(this, getTextureIndex(id));
+		return getSample(id, false);
+	}
+	
+	public TextureSample getSample(Identifier id, boolean silent) {
+		return new TextureSample(this, getTextureIndex(id, silent));
 	}
 	
 	public void bind() {
