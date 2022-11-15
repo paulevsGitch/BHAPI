@@ -1,12 +1,12 @@
 package net.bhapi.mixin.client;
 
 import net.bhapi.blockstate.BlockState;
-import net.bhapi.client.ItemRenderInfo;
 import net.bhapi.client.render.block.BHBlockRenderer;
 import net.bhapi.client.render.block.BlockItemView;
 import net.bhapi.client.render.texture.Textures;
 import net.bhapi.client.render.texture.UVPair;
 import net.bhapi.item.BHBlockItem;
+import net.bhapi.item.BHItemRender;
 import net.minecraft.block.BaseBlock;
 import net.minecraft.client.render.Tessellator;
 import net.minecraft.client.render.TextRenderer;
@@ -37,12 +37,15 @@ public abstract class ItemRendererMixin extends EntityRenderer {
 	@Shadow public abstract void renderRectangle(int i, int j, int k, int l, int m, int n);
 	
 	@Unique private BlockItemView bhapi_itemView = new BlockItemView();
+	@Unique private ItemStack bhapi_renderingStack;
 	
 	@Inject(method = "renderItemInGUI", at = @At("HEAD"), cancellable = true)
 	private void bhapi_renderItemInGUI(TextRenderer textRenderer, TextureManager manager, int id, int j, int texture, int x, int y, CallbackInfo info) {
 		info.cancel();
-		BaseItem item = ItemRenderInfo.getRenderingItem();
+		if (bhapi_renderingStack == null) return;
+		BaseItem item = bhapi_renderingStack.getType();
 		if (item == null) return;
+		
 		if (item instanceof BHBlockItem) {
 			Textures.getAtlas().bind();
 			BlockState state = ((BHBlockItem) item).getState();
@@ -89,7 +92,10 @@ public abstract class ItemRendererMixin extends EntityRenderer {
 				GL11.glColor4f(r, g, b, 1.0F);
 			}
 			
-			UVPair uv = Textures.getAtlas().getUV(texture);
+			UVPair uv;
+			if (item instanceof BHItemRender) uv = BHItemRender.cast(item).getTextureForIndex(bhapi_renderingStack).getUV();
+			else uv = Textures.getAtlas().getUV(texture);
+			
 			bhapi_renderRectangle(x, y, uv);
 			GL11.glEnable(2896);
 		}
@@ -198,7 +204,7 @@ public abstract class ItemRendererMixin extends EntityRenderer {
 	
 	@Inject(method = "renderStackInGUI", at = @At("HEAD"))
 	public void bhapi_renderStackInGUI(TextRenderer textRenderer, TextureManager manager, ItemStack stack, int x, int y, CallbackInfo info) {
-		if (stack != null) ItemRenderInfo.setItem(stack.getType());
+		if (stack != null) bhapi_renderingStack = stack;
 	}
 	
 	@Unique

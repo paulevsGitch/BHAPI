@@ -5,8 +5,8 @@ import net.bhapi.blockstate.BlockState;
 import net.bhapi.client.TestClientEvent;
 import net.bhapi.client.render.block.BHBlockRender;
 import net.bhapi.client.render.texture.TextureSample;
+import net.bhapi.item.BHBasicItem;
 import net.bhapi.item.BHBlockItem;
-import net.bhapi.item.BHItem;
 import net.bhapi.registry.CommonRegistries;
 import net.bhapi.util.Identifier;
 import net.minecraft.block.BaseBlock;
@@ -37,7 +37,7 @@ public class TestEvent {
 	
 	@EventListener // Test Items
 	public void registerItems(ItemRegistryEvent event) {
-		event.register(Identifier.make("testitem"), new BHItem());
+		event.register(Identifier.make("testitem"), new BHBasicItem(Identifier.make("terrain_1")));
 		BLOCKS.forEach((id, block) -> event.register(id, new BHBlockItem(block, false)));
 	}
 	

@@ -47,6 +47,7 @@ public abstract class InGameMixin extends DrawableHelper {
 			DebugAllItems inventory = new DebugAllItems(9 * 4);
 			ItemStack[] items = inventory.getItems();
 			final int[] index = new int[] {0};
+			items[index[0]++] = ItemUtil.makeStack(Identifier.make("testitem"));
 			items[index[0]++] = ItemUtil.makeStack(Identifier.make("iron_pickaxe"));
 			items[index[0]++] = ItemUtil.makeStack(Identifier.make("iron_shovel"));
 			items[index[0]++] = ItemUtil.makeStack(Identifier.make("iron_axe"));

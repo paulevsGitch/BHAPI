@@ -1,6 +1,7 @@
 package net.bhapi.item;
 
 import net.bhapi.blockstate.BlockState;
+import net.bhapi.client.render.texture.TextureSample;
 import net.bhapi.level.BlockStateProvider;
 import net.bhapi.level.LevelHeightProvider;
 import net.bhapi.level.PlaceChecker;
@@ -103,5 +104,11 @@ public class BHBlockItem extends BHItem {
 		builder.append(state);
 		builder.append("}");
 		return builder.toString();
+	}
+	
+	@Override // TODO return sample if item is 2D
+	@Environment(EnvType.CLIENT)
+	public TextureSample getTextureForIndex(ItemStack stack) {
+		return null;
 	}
 }
