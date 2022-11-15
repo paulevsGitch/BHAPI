@@ -4,6 +4,7 @@ import net.bhapi.blockstate.BlockState;
 import net.bhapi.client.render.texture.TextureSample;
 import net.bhapi.client.render.texture.Textures;
 import net.bhapi.client.render.texture.UVPair;
+import net.bhapi.level.BlockStateProvider;
 import net.bhapi.util.MathUtil;
 import net.minecraft.block.BaseBlock;
 import net.minecraft.client.Minecraft;
@@ -79,6 +80,7 @@ public class BHBlockRenderer {
 	private static boolean allowsGrassUnderBottomWest;
 	private static boolean fancyGraphics = true;
 	private static boolean breaking = false;
+	private static boolean item = false;
 	
 	public static void setRenderer(BlockView view, BlockRenderer renderer) {
 		BHBlockRenderer.renderer = renderer;
@@ -91,8 +93,20 @@ public class BHBlockRenderer {
 		breaking = false;
 	}
 	
+	public static void renderAllSides(BlockState state, int x, int y, int z) {
+		renderAllSides = true;
+		render(state, x, y, z);
+		renderAllSides = false;
+	}
+	
+	public static void renderItem(BlockState state, int x, int y, int z) {
+		item = true;
+		renderAllSides(state, x, y, z);
+		item = false;
+	}
+	
 	public static boolean render(BlockState state, int x, int y, int z) {
-		byte type = BHBlockRender.cast(state.getBlock()).getRenderType(view, x, y, z, state);
+		byte type = state.getRenderType(view, x, y, z);
 		if (type == BlockRenderTypes.EMPTY) return true;
 		if (type == BlockRenderTypes.FULL_CUBE) return renderFullCube(state, x, y, z);
 		if (type == BlockRenderTypes.CUSTOM) return true; // TODO make custom rendering
@@ -108,7 +122,7 @@ public class BHBlockRenderer {
 		float g = (float) (color >> 8 & 0xFF) / 255.0f;
 		float b = (float) (color & 0xFF) / 255.0f;
 		
-		if (GameRenderer.anaglyph3d) {
+		if (!item && GameRenderer.anaglyph3d) {
 			float nr = (r * 30.0f + g * 59.0f + b * 11.0f) / 100.0f;
 			float ng = (r * 30.0f + g * 70.0f) / 100.0f;
 			float nb = (r * 30.0f + b * 70.0f) / 100.0f;
@@ -117,7 +131,7 @@ public class BHBlockRenderer {
 			b = nb;
 		}
 		
-		if (Minecraft.isSmoothLightingEnabled()) {
+		if (!item && Minecraft.isSmoothLightingEnabled()) {
 			return renderSmooth(state, x, y, z, r, g, b);
 		}
 		
@@ -144,18 +158,22 @@ public class BHBlockRenderer {
 		brightnessSouth = block.getBrightness(view, x + 1, y, z);
 		brightnessTop = block.getBrightness(view, x, y + 1, z);
 		brightnessWest = block.getBrightness(view, x, y, z + 1);
-		allowsGrassUnderTopSouth = BaseBlock.ALLOWS_GRASS_UNDER[view.getBlockId(x + 1, y + 1, z)];
-		allowsGrassUnderBottomSouth = BaseBlock.ALLOWS_GRASS_UNDER[view.getBlockId(x + 1, y - 1, z)];
-		allowsGrassUnderSouthWest = BaseBlock.ALLOWS_GRASS_UNDER[view.getBlockId(x + 1, y, z + 1)];
-		allowsGrassUnderSouthEast = BaseBlock.ALLOWS_GRASS_UNDER[view.getBlockId(x + 1, y, z - 1)];
-		allowsGrassUnderTopNorth = BaseBlock.ALLOWS_GRASS_UNDER[view.getBlockId(x - 1, y + 1, z)];
-		allowsGrassUnderBottomNorth = BaseBlock.ALLOWS_GRASS_UNDER[view.getBlockId(x - 1, y - 1, z)];
-		allowsGrassUnderNorthEast = BaseBlock.ALLOWS_GRASS_UNDER[view.getBlockId(x - 1, y, z - 1)];
-		allowsGrassUnderNorthWest = BaseBlock.ALLOWS_GRASS_UNDER[view.getBlockId(x - 1, y, z + 1)];
-		allowsGrassUnderTopWest = BaseBlock.ALLOWS_GRASS_UNDER[view.getBlockId(x, y + 1, z + 1)];
-		allowsGrassUnderTopEast = BaseBlock.ALLOWS_GRASS_UNDER[view.getBlockId(x, y + 1, z - 1)];
-		allowsGrassUnderBottomWest = BaseBlock.ALLOWS_GRASS_UNDER[view.getBlockId(x, y - 1, z + 1)];
-		allowsGrassUnderBottomEast = BaseBlock.ALLOWS_GRASS_UNDER[view.getBlockId(x, y - 1, z - 1)];
+		
+		if (view instanceof BlockStateProvider) {
+			BlockStateProvider provider = BlockStateProvider.cast(view);
+			allowsGrassUnderTopSouth = provider.getBlockState(x + 1, y + 1, z).allowsGrasUnder();
+			allowsGrassUnderBottomSouth = provider.getBlockState(x + 1, y - 1, z).allowsGrasUnder();
+			allowsGrassUnderSouthWest = provider.getBlockState(x + 1, y, z + 1).allowsGrasUnder();
+			allowsGrassUnderSouthEast = provider.getBlockState(x + 1, y, z - 1).allowsGrasUnder();
+			allowsGrassUnderTopNorth = provider.getBlockState(x - 1, y + 1, z).allowsGrasUnder();
+			allowsGrassUnderBottomNorth = provider.getBlockState(x - 1, y - 1, z).allowsGrasUnder();
+			allowsGrassUnderNorthEast = provider.getBlockState(x - 1, y, z - 1).allowsGrasUnder();
+			allowsGrassUnderNorthWest = provider.getBlockState(x - 1, y, z + 1).allowsGrasUnder();
+			allowsGrassUnderTopWest = provider.getBlockState(x, y + 1, z + 1).allowsGrasUnder();
+			allowsGrassUnderTopEast = provider.getBlockState(x, y + 1, z - 1).allowsGrasUnder();
+			allowsGrassUnderBottomWest = provider.getBlockState(x, y - 1, z + 1).allowsGrasUnder();
+			allowsGrassUnderBottomEast = provider.getBlockState(x, y - 1, z - 1).allowsGrasUnder();
+		}
 		
 		if (block.texture == 3) {
 			bl7 = false;

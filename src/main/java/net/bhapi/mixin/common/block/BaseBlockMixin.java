@@ -6,9 +6,12 @@ import net.bhapi.blockstate.BlockStateContainer;
 import net.bhapi.client.render.block.BHBlockRender;
 import net.bhapi.level.BlockStateProvider;
 import net.bhapi.util.BlockUtil;
+import net.fabricmc.api.EnvType;
+import net.fabricmc.api.Environment;
 import net.minecraft.block.BaseBlock;
 import net.minecraft.block.material.Material;
 import net.minecraft.item.ItemStack;
+import net.minecraft.level.BlockView;
 import net.minecraft.level.Level;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
@@ -38,6 +41,12 @@ public abstract class BaseBlockMixin implements BlockStateContainer, BHBlockRend
 			BaseBlock.ALLOWS_GRASS_UNDER[id] = BaseBlock.ALLOWS_GRASS_UNDER[0];
 			BaseBlock.HAS_TILE_ENTITY[id] = BaseBlock.HAS_TILE_ENTITY[0];
 		}
+	}
+	
+	@Environment(value= EnvType.CLIENT)
+	@Inject(method = "getBrightness", at = @At("HEAD"), cancellable = true)
+	private void bhapi_getBrightness(BlockView arg, int i, int j, int k, CallbackInfoReturnable<Float> info) {
+		if (arg == null) info.setReturnValue(1F);
 	}
 	
 	@Unique

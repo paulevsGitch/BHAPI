@@ -1,6 +1,10 @@
 package net.bhapi.mixin.client;
 
+import net.bhapi.block.BHBaseBlock;
+import net.bhapi.blockstate.BlockState;
 import net.bhapi.client.ItemRenderInfo;
+import net.bhapi.client.render.block.BHBlockRenderer;
+import net.bhapi.client.render.block.BlockItemView;
 import net.bhapi.client.render.texture.Textures;
 import net.bhapi.item.BHBlockItem;
 import net.minecraft.block.BaseBlock;
@@ -17,6 +21,7 @@ import net.minecraft.util.maths.MathHelper;
 import org.lwjgl.opengl.GL11;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
+import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
@@ -27,9 +32,11 @@ import java.util.Random;
 public abstract class ItemRendererMixin extends EntityRenderer {
 	@Shadow public boolean coloriseItem;
 	@Shadow private BlockRenderer internalBlockRenderer;
+	@Shadow private Random rand;
+	
 	@Shadow public abstract void renderRectangle(int i, int j, int k, int l, int m, int n);
 	
-	@Shadow private Random rand;
+	@Unique private BlockItemView bhapi_itemView = new BlockItemView();
 	
 	@Inject(method = "renderItemInGUI", at = @At("HEAD"), cancellable = true)
 	private void bhapi_renderItemInGUI(TextRenderer textRenderer, TextureManager manager, int id, int j, int k, int l, int m, CallbackInfo info) {
@@ -39,7 +46,8 @@ public abstract class ItemRendererMixin extends EntityRenderer {
 		if (item instanceof BHBlockItem /*id < 256 && BlockRenderer.isSpecificRenderType(BaseBlock.BY_ID[id].getRenderType())*/) {
 			//manager.bindTexture(manager.getTextureId("/terrain.png"));
 			Textures.bindAtlas();
-			BaseBlock block = ((BHBlockItem) item).getState().getBlock();
+			//BaseBlock block = ((BHBlockItem) item).getState().getBlock();
+			BlockState state = ((BHBlockItem) item).getState();
 			GL11.glPushMatrix();
 			GL11.glTranslatef(l - 2, m + 3, -3.0f);
 			GL11.glScalef(10.0f, 10.0f, 10.0f);
@@ -55,9 +63,24 @@ public abstract class ItemRendererMixin extends EntityRenderer {
 				GL11.glColor4f(r, g, b, 1.0F);
 			}
 			GL11.glRotatef(-90.0f, 0.0f, 1.0f, 0.0f);
-			this.internalBlockRenderer.itemColorEnabled = this.coloriseItem;
+			/*this.internalBlockRenderer.itemColorEnabled = this.coloriseItem;
 			this.internalBlockRenderer.renderBlockItem(block, j, 1.0f);
-			this.internalBlockRenderer.itemColorEnabled = true;
+			this.internalBlockRenderer.itemColorEnabled = true;*/
+			
+			if (state.getBlock() instanceof BHBaseBlock) {
+				GL11.glTranslatef(0.0F, -0.1F, 0.0F);
+				Tessellator.INSTANCE.start();
+				bhapi_itemView.setBlockState(state);
+				BHBlockRenderer.setRenderer(bhapi_itemView, this.internalBlockRenderer);
+				BHBlockRenderer.renderItem(state, 0, 0, 0);
+				Tessellator.INSTANCE.draw();
+			}
+			else {
+				this.internalBlockRenderer.itemColorEnabled = this.coloriseItem;
+				this.internalBlockRenderer.renderBlockItem(state.getBlock(), j, 1.0f);
+				this.internalBlockRenderer.itemColorEnabled = true;
+			}
+			
 			GL11.glPopMatrix();
 		}
 		else if (k >= 0) {
