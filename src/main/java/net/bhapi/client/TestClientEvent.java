@@ -14,14 +14,11 @@ import net.fabricmc.api.Environment;
 // TODO remove this
 @Environment(EnvType.CLIENT)
 public class TestClientEvent {
-	public static TextureSample stone;
 	public static TextureSample[] samples;
 	
 	@EventListener
 	public void testClientEvent(AfterTextureLoadedEvent event) {
 		BHAPI.log("Make Sample");
-		stone = Textures.getAtlas().getSample(Identifier.make("terrain_1"));
-		System.out.println(stone.getUV());
 		samples = new TextureSample[] {
 			Textures.getAtlas().getSample(Identifier.make("testblock")),
 			Textures.getAtlas().getSample(Identifier.make("testblock2")),

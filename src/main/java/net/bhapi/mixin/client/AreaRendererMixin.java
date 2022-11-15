@@ -1,7 +1,7 @@
 package net.bhapi.mixin.client;
 
 import net.bhapi.blockstate.BlockState;
-import net.bhapi.client.render.block.CustomBlockRenderer;
+import net.bhapi.client.render.block.BHBlockRenderer;
 import net.bhapi.level.BlockStateProvider;
 import net.minecraft.block.BaseBlock;
 import net.minecraft.block.entity.BaseBlockEntity;
@@ -72,7 +72,7 @@ public abstract class AreaRendererMixin {
 		LevelPopulationRegion region = new LevelPopulationRegion(this.level, x1 - 1, y1 - 1, z1 - 1, x2 + 1, y2 + 1, z2 + 1);
 		BlockStateProvider provider = BlockStateProvider.cast(region);
 		BlockRenderer renderer = new BlockRenderer(region);
-		CustomBlockRenderer.setRenderer(region, renderer);
+		BHBlockRenderer.setRenderer(region, renderer);
 		
 		for (byte pass = 0; pass < 2; ++pass) {
 			boolean anotherPass = false;
@@ -108,7 +108,7 @@ public abstract class AreaRendererMixin {
 						}
 						
 						//bl2 |= renderer.render(baseBlock, px, py, pz);
-						layerHasData |= CustomBlockRenderer.render(state, px, py, pz);
+						layerHasData |= BHBlockRenderer.render(state, px, py, pz);
 					}
 				}
 			}

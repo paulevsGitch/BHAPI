@@ -3,7 +3,7 @@ package net.bhapi.event;
 import net.bhapi.block.BHBaseBlock;
 import net.bhapi.blockstate.BlockState;
 import net.bhapi.client.TestClientEvent;
-import net.bhapi.client.render.block.CustomBlockRender;
+import net.bhapi.client.render.block.BHBlockRender;
 import net.bhapi.client.render.texture.TextureSample;
 import net.bhapi.item.BHBlockItem;
 import net.bhapi.item.BHItem;
@@ -41,7 +41,7 @@ public class TestEvent {
 		BLOCKS.forEach((id, block) -> event.register(id, new BHBlockItem(block, false)));
 	}
 	
-	private class TestBlock extends BHBaseBlock implements CustomBlockRender {
+	private class TestBlock extends BHBaseBlock implements BHBlockRender {
 		private static int textureID = 0;
 		private final int texID = textureID++;
 		

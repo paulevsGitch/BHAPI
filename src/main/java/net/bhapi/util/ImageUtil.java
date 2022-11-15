@@ -46,6 +46,11 @@ public class ImageUtil {
 		return img;
 	}
 	
+	public static BufferedImage load(Identifier id) {
+		String path = "/assets/" + id.getModID() + "/" + id.getName() + ".png";
+		return load(path);
+	}
+	
 	public static int[] getPixelData(BufferedImage image) {
 		DataBuffer buffer = image.getRaster().getDataBuffer();
 		return buffer instanceof DataBufferInt ? ((DataBufferInt) buffer).getData() : null;

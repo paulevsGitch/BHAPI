@@ -1,6 +1,8 @@
 package net.bhapi.mixin.client;
 
 import net.bhapi.blockstate.BlockState;
+import net.bhapi.client.render.block.BHBlockRenderer;
+import net.bhapi.client.render.texture.Textures;
 import net.bhapi.level.BlockStateProvider;
 import net.bhapi.level.LevelHeightProvider;
 import net.bhapi.registry.CommonRegistries;
@@ -8,12 +10,15 @@ import net.minecraft.block.BaseBlock;
 import net.minecraft.block.BlockSounds;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.render.LevelRenderer;
+import net.minecraft.client.render.Tessellator;
+import net.minecraft.client.render.block.BlockRenderer;
 import net.minecraft.entity.player.PlayerBase;
 import net.minecraft.item.ItemStack;
 import net.minecraft.level.Level;
 import net.minecraft.util.hit.HitResult;
 import net.minecraft.util.hit.HitType;
 import net.minecraft.util.maths.Box;
+import net.minecraft.util.maths.MathHelper;
 import org.lwjgl.opengl.GL11;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
@@ -31,6 +36,10 @@ public abstract class LevelRendererMixin implements LevelHeightProvider {
 	@Shadow protected abstract void renderBox(Box arg);
 	
 	@Shadow private Minecraft client;
+	
+	@Shadow public float blockBreakDelta;
+	
+	@Shadow private BlockRenderer tileRenderer;
 	
 	@ModifyConstant(method = "method_1544(Lnet/minecraft/util/maths/Vec3f;Lnet/minecraft/class_68;F)V", constant = @Constant(intValue = 128))
 	private int bhapi_changeMaxHeight(int value) {
@@ -57,8 +66,8 @@ public abstract class LevelRendererMixin implements LevelHeightProvider {
 	private void bhapi_renderBlockOutline(PlayerBase player, HitResult hit, int flag, ItemStack stack, float delta, CallbackInfo info) {
 		info.cancel();
 		if (flag == 0 && hit.type == HitType.BLOCK) {
-			GL11.glEnable(3042);
-			GL11.glBlendFunc(770, 771);
+			GL11.glEnable(GL11.GL_BLEND);
+			GL11.glBlendFunc(GL11.GL_SRC_ALPHA, 771);
 			GL11.glColor4f(0.0f, 0.0f, 0.0f, 0.4f);
 			GL11.glLineWidth(2.0f);
 			GL11.glDisable(3553);
@@ -79,7 +88,7 @@ public abstract class LevelRendererMixin implements LevelHeightProvider {
 			}
 			GL11.glDepthMask(true);
 			GL11.glEnable(3553);
-			GL11.glDisable(3042);
+			GL11.glDisable(GL11.GL_BLEND);
 		}
 	}
 	
@@ -100,5 +109,59 @@ public abstract class LevelRendererMixin implements LevelHeightProvider {
 			);
 			this.client.particleManager.addBlockBreakParticles(x, y, z, state.getID(), 0);
 		}
+	}
+	
+	@Inject(method = "renderBlockBreak", at = @At("HEAD"), cancellable = true)
+	public void renderBlockBreak(PlayerBase player, HitResult hit, int flag, ItemStack stack, float delta, CallbackInfo info) {
+		info.cancel();
+		
+		Tessellator tessellator = Tessellator.INSTANCE;
+		GL11.glEnable(GL11.GL_BLEND);
+		GL11.glEnable(GL11.GL_ALPHA_TEST);
+		GL11.glBlendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE);
+		GL11.glColor4f(1.0f, 1.0f, 1.0f, (MathHelper.sin((float) System.currentTimeMillis() / 100.0f) * 0.2f + 0.4f) * 0.5f);
+		
+		if (this.blockBreakDelta > 0.0f) {
+			GL11.glBlendFunc(774, 768);
+			
+			int stage = (int) (this.blockBreakDelta * 10.0F);
+			int texture = Textures.getBlockBreaking(stage);
+			GL11.glBindTexture(GL11.GL_TEXTURE_2D, texture);
+			
+			GL11.glColor4f(1.0f, 1.0f, 1.0f, 0.5f);
+			GL11.glPushMatrix();
+			
+			BlockState state = BlockStateProvider.cast(level).getBlockState(hit.x, hit.y, hit.z);
+			
+			GL11.glDisable(GL11.GL_ALPHA_TEST);
+			GL11.glPolygonOffset(-3.0f, -3.0f);
+			GL11.glEnable(GL11.GL_POLYGON_OFFSET_FILL);
+			
+			double dx = player.prevRenderX + (player.x - player.prevRenderX) * delta;
+			double dy = player.prevRenderY + (player.y - player.prevRenderY) * delta;
+			double dz = player.prevRenderZ + (player.z - player.prevRenderZ) * delta;
+			
+			GL11.glEnable(GL11.GL_ALPHA_TEST);
+			tessellator.start();
+			tessellator.setOffset(-dx, -dy, -dz);
+			tessellator.disableColor();
+			
+			BHBlockRenderer.setRenderer(level, tileRenderer);
+			BHBlockRenderer.renderBlockBreak(state, hit.x, hit.y, hit.z);
+			
+			tessellator.draw();
+			tessellator.setOffset(0.0, 0.0, 0.0);
+			
+			GL11.glDisable(GL11.GL_ALPHA_TEST);
+			GL11.glPolygonOffset(0.0f, 0.0f);
+			GL11.glDisable(GL11.GL_POLYGON_OFFSET_FILL);
+			GL11.glEnable(GL11.GL_ALPHA_TEST);
+			
+			GL11.glDepthMask(true);
+			GL11.glPopMatrix();
+		}
+		
+		GL11.glDisable(GL11.GL_BLEND);
+		GL11.glDisable(GL11.GL_ALPHA_TEST);
 	}
 }

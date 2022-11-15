@@ -2,7 +2,7 @@ package net.bhapi.blockstate;
 
 import net.bhapi.block.BHAirBlock;
 import net.bhapi.blockstate.properties.StateProperty;
-import net.bhapi.client.render.block.CustomBlockRender;
+import net.bhapi.client.render.block.BHBlockRender;
 import net.bhapi.client.render.texture.TextureSample;
 import net.bhapi.interfaces.IDProvider;
 import net.bhapi.registry.CommonRegistries;
@@ -382,11 +382,11 @@ public final class BlockState implements IDProvider {
 	
 	@Environment(EnvType.CLIENT)
 	public byte getRenderType(BlockView view, int x, int y, int z) {
-		return CustomBlockRender.cast(getBlock()).getRenderType(view, x, y, z, this);
+		return BHBlockRender.cast(getBlock()).getRenderType(view, x, y, z, this);
 	}
 	
 	@Environment(EnvType.CLIENT)
 	public TextureSample getTextureForIndex(BlockView view, int x, int y, int z, int index) {
-		return CustomBlockRender.cast(getBlock()).getTextureForIndex(view, x, y, z, this, index);
+		return BHBlockRender.cast(getBlock()).getTextureForIndex(view, x, y, z, this, index);
 	}
 }

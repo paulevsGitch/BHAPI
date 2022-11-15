@@ -12,11 +12,10 @@ import net.minecraft.client.render.Tessellator;
 import net.minecraft.client.render.block.BlockRenderer;
 import net.minecraft.level.BlockView;
 
-public class CustomBlockRenderer {
+public class BHBlockRenderer {
 	private static BlockRenderer renderer;
 	private static BlockView view;
 	
-	private static int textureOverride = -1;
 	private static boolean mirrorTexture = false;
 	private static boolean renderAllSides = false;
 	public static boolean itemColorEnabled = true;
@@ -79,14 +78,21 @@ public class CustomBlockRenderer {
 	private static boolean allowsGrassUnderBottomNorth;
 	private static boolean allowsGrassUnderBottomWest;
 	private static boolean fancyGraphics = true;
+	private static boolean breaking = false;
 	
 	public static void setRenderer(BlockView view, BlockRenderer renderer) {
-		CustomBlockRenderer.renderer = renderer;
-		CustomBlockRenderer.view = view;
+		BHBlockRenderer.renderer = renderer;
+		BHBlockRenderer.view = view;
+	}
+	
+	public static void renderBlockBreak(BlockState state, int x, int y, int z) {
+		breaking = true;
+		render(state, x, y, z);
+		breaking = false;
 	}
 	
 	public static boolean render(BlockState state, int x, int y, int z) {
-		byte type = CustomBlockRender.cast(state.getBlock()).getRenderType(view, x, y, z, state);
+		byte type = BHBlockRender.cast(state.getBlock()).getRenderType(view, x, y, z, state);
 		if (type == BlockRenderTypes.EMPTY) return true;
 		if (type == BlockRenderTypes.FULL_CUBE) return renderFullCube(state, x, y, z);
 		if (type == BlockRenderTypes.CUSTOM) return true; // TODO make custom rendering
@@ -159,7 +165,7 @@ public class CustomBlockRenderer {
 			bl2 = false;
 		}
 		
-		if (textureOverride >= 0) {
+		if (breaking) {
 			bl7 = false;
 			bl6 = false;
 			bl5 = false;
@@ -284,7 +290,7 @@ public class CustomBlockRenderer {
 			colorGreen10 *= f5;
 			colorBlue10 *= f5;
 			renderEastFace(block, x, y, z, state.getTextureForIndex(view, x, y, z, 2));
-			if (fancyGraphics && block == BaseBlock.GRASS && textureOverride < 0) {
+			if (fancyGraphics && block == BaseBlock.GRASS && !breaking) {
 				colorRed00 *= f;
 				colorRed01 *= f;
 				colurRed11 *= f;
@@ -338,7 +344,7 @@ public class CustomBlockRenderer {
 			colorGreen10 *= f5;
 			colorBlue10 *= f5;
 			renderWestFace(block, x, y, z, state.getTextureForIndex(view, x, y, z, 3));
-			if (fancyGraphics && block == BaseBlock.GRASS && textureOverride < 0) {
+			if (fancyGraphics && block == BaseBlock.GRASS && !breaking) {
 				colorRed00 *= f;
 				colorRed01 *= f;
 				colurRed11 *= f;
@@ -392,7 +398,7 @@ public class CustomBlockRenderer {
 			colorGreen10 *= f5;
 			colorBlue10 *= f5;
 			renderNorthFace(block, x, y, z, state.getTextureForIndex(view, x, y, z, 4));
-			if (fancyGraphics && block == BaseBlock.GRASS && textureOverride < 0) {
+			if (fancyGraphics && block == BaseBlock.GRASS && !breaking) {
 				colorRed00 *= f;
 				colorRed01 *= f;
 				colurRed11 *= f;
@@ -446,7 +452,7 @@ public class CustomBlockRenderer {
 			colorGreen10 *= f5;
 			colorBlue10 *= f5;
 			renderSouthFace(block, x, y, z, state.getTextureForIndex(view, x, y, z, 5));
-			if (fancyGraphics && block == BaseBlock.GRASS && textureOverride < 0) {
+			if (fancyGraphics && block == BaseBlock.GRASS && !breaking) {
 				colorRed00 *= f;
 				colorRed01 *= f;
 				colurRed11 *= f;
@@ -528,7 +534,7 @@ public class CustomBlockRenderer {
 			}
 			tessellator.color(f11 * light, f14 * light, f17 * light);
 			renderEastFace(block, x, y, z,  state.getTextureForIndex(view, x, y, z, 2));
-			if (fancyGraphics && block == BaseBlock.GRASS && textureOverride < 0) {
+			if (fancyGraphics && block == BaseBlock.GRASS && !breaking) {
 				tessellator.color(f11 * light * f, f14 * light * g, f17 * light * h);
 				renderEastFace(block, x, y, z, Textures.getVanillaBlockSample(38));
 			}
@@ -544,7 +550,7 @@ public class CustomBlockRenderer {
 			tessellator.color(f11 * light, f14 * light, f17 * light);
 			renderWestFace(block, x, y, z, state.getTextureForIndex(view, x, y, z, 3));
 			
-			if (fancyGraphics && block == BaseBlock.GRASS && textureOverride < 0) {
+			if (fancyGraphics && block == BaseBlock.GRASS && !breaking) {
 				tessellator.color(f11 * light * f, f14 * light * g, f17 * light * h);
 				renderWestFace(block, x, y, z, Textures.getVanillaBlockSample(38));
 			}
@@ -559,7 +565,7 @@ public class CustomBlockRenderer {
 			}
 			tessellator.color(f12 * light, f15 * light, f18 * light);
 			renderNorthFace(block, x, y, z, state.getTextureForIndex(view, x, y, z, 4));
-			if (fancyGraphics && block == BaseBlock.GRASS && textureOverride < 0) {
+			if (fancyGraphics && block == BaseBlock.GRASS && !breaking) {
 				tessellator.color(f12 * light * f, f15 * light * g, f18 * light * h);
 				renderNorthFace(block, x, y, z, Textures.getVanillaBlockSample(38));
 			}
@@ -573,7 +579,7 @@ public class CustomBlockRenderer {
 			}
 			tessellator.color(f12 * light, f15 * light, f18 * light);
 			renderSouthFace(block, x, y, z, state.getTextureForIndex(view, x, y, z, 5));
-			if (fancyGraphics && block == BaseBlock.GRASS && textureOverride < 0) {
+			if (fancyGraphics && block == BaseBlock.GRASS && !breaking) {
 				tessellator.color(f12 * light * f, f15 * light * g, f18 * light * h);
 				renderSouthFace(block, x, y, z, Textures.getVanillaBlockSample(38));
 			}
@@ -597,6 +603,28 @@ public class CustomBlockRenderer {
 		double u21 = u11;
 		double v21 = v11;
 		double v22 = v12;
+		
+		if (breaking) {
+			u11 = block.minX;
+			u12 = block.maxX;
+			v11 = block.maxZ;
+			v12 = block.minZ;
+			u22 = u12;
+			u21 = u11;
+			v21 = v11;
+			v22 = v12;
+		}
+		
+		if (breaking) {
+			u11 = block.minX;
+			u12 = block.maxX;
+			v11 = block.maxZ;
+			v12 = block.minZ;
+			u22 = u12;
+			u21 = u11;
+			v21 = v11;
+			v22 = v12;
+		}
 		
 		/*if (bottomFaceRotation == 2) {
 			u11 = ((double)n + arg.minZ * 16.0) / 256.0;
@@ -667,6 +695,10 @@ public class CustomBlockRenderer {
 			texture = textureOverride;
 		}*/
 		
+		/*if (textureOverride >= 240 && textureOverride < 250) {
+			sample = Textures.getBlockBreaking(textureOverride - 240);
+		}*/
+		
 		UVPair uv = sample.getUV();
 		
 		double u11 = uv.getU(MathUtil.clamp((float) block.minX, 0, 1));
@@ -678,6 +710,17 @@ public class CustomBlockRenderer {
 		double u21 = u11;
 		double v21 = v11;
 		double v22 = v12;
+		
+		if (breaking) {
+			u11 = block.minX;
+			u12 = block.maxX;
+			v11 = block.minZ;
+			v12 = block.maxZ;
+			u22 = u12;
+			u21 = u11;
+			v21 = v11;
+			v22 = v12;
+		}
 		
 		/*if (topFaceRotation == 1) {
 			u11 = ((double) n + block.minZ * 16.0) / 256.0;
@@ -756,6 +799,17 @@ public class CustomBlockRenderer {
 		double u21 = u11;
 		double v21 = v11;
 		double v22 = v12;
+		
+		if (breaking) {
+			u11 = block.minX;
+			u12 = block.maxX;
+			v11 = block.minY;
+			v12 = block.maxY;
+			u22 = u12;
+			u21 = u11;
+			v21 = v11;
+			v22 = v12;
+		}
 		
 		if (mirrorTexture) {
 			u22 = u11;
@@ -838,6 +892,17 @@ public class CustomBlockRenderer {
 		double u21 = u11;
 		double v21 = v11;
 		double v22 = v12;
+		
+		if (breaking) {
+			u11 = block.minX;
+			u12 = block.maxX;
+			v11 = block.maxY;
+			v12 = block.minY;
+			u22 = u12;
+			u21 = u11;
+			v21 = v11;
+			v22 = v12;
+		}
 		
 		if (mirrorTexture) {
 			u21 = u11;
@@ -929,6 +994,17 @@ public class CustomBlockRenderer {
 		double v21 = v11;
 		double v22 = v12;
 		
+		if (breaking) {
+			u11 = block.minX;
+			u12 = block.maxX;
+			v11 = block.maxY;
+			v12 = block.minY;
+			u22 = u12;
+			u21 = u11;
+			v21 = v11;
+			v22 = v12;
+		}
+		
 		if (mirrorTexture) {
 			u22 = u11;
 			u11 = u12;
@@ -1014,6 +1090,17 @@ public class CustomBlockRenderer {
 		double u21 = u11;
 		double v21 = v11;
 		double v22 = v12;
+		
+		if (breaking) {
+			u11 = block.minZ;
+			u12 = block.maxZ;
+			v11 = block.maxY;
+			v12 = block.minY;
+			u22 = u12;
+			u21 = u11;
+			v21 = v11;
+			v22 = v12;
+		}
 		
 		if (mirrorTexture) {
 			u22 = u11;

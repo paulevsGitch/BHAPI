@@ -24,13 +24,15 @@ import java.util.stream.IntStream;
 
 public class Textures {
 	private static final int[] EXCLUDE_TERRAIN = new int[] {
-		206, 207, // Water first row
+		207, // Water first row
 		222, 223, // Water second row
-		238, 239, // Lava first row
+		239, // Lava first row
 		254, 255, // Lava second row
 		240, 241, 242, 243, 244, 245, 246, 247, 248, 249 // Block breaking
 	};
+	
 	private static final TextureSample[] VANILLA_BLOCKS = new TextureSample[256];
+	private static final int[] BREAKING = new int[10];
 	private static TextureAtlas atlas;
 	private static TextureSample empty;
 	
@@ -44,13 +46,17 @@ public class Textures {
 		addTextures("item", loadTexture("/gui/items.png"), 16, LOADED_TEXTURES);
 		addTextures("particle", loadTexture("/particles.png"), 16, LOADED_TEXTURES);
 		
+		IntStream.range(0, 10).forEach(index -> {
+			Identifier id = Identifier.make("bhapi", "textures/block/destroy_stage_" + index);
+			BufferedImage img = ImageUtil.load(id);
+			BREAKING[index] = BHAPIClient.getMinecraft().textureManager.bindImage(img);
+			GL11.glBindTexture(GL11.GL_TEXTURE_2D, BREAKING[index]);
+			GL11.glTexParameterf(GL11.GL_TEXTURE_2D, GL11.GL_TEXTURE_WRAP_S, GL11.GL_REPEAT);
+			GL11.glTexParameterf(GL11.GL_TEXTURE_2D, GL11.GL_TEXTURE_WRAP_T, GL11.GL_REPEAT);
+		});
+		
 		atlas = new TextureAtlas(LOADED_TEXTURES);
 		empty = atlas.getSample(Identifier.make("empty"));
-		
-		/*Arrays.stream(BaseBlock.BY_ID).filter(Objects::nonNull).forEach(block -> {
-			Identifier id = Identifier.make("terrain_" + block.texture);
-			block.texture = atlas.getTextureIndex(id);
-		});*/
 		
 		IntStream.range(0, 255).forEach(index -> {
 			Identifier id = Identifier.make("terrain_" + index);
@@ -60,7 +66,7 @@ public class Textures {
 		List<?> binders = ((TextureManagerAccessor) BHAPIClient.getMinecraft().textureManager).getTextureBinders();
 		binders.forEach(obj -> {
 			TextureBinder binder = (TextureBinder) obj;
-			Identifier id = Identifier.make("terrain_" + binder.index);
+			Identifier id = Identifier.make((binder.renderMode == 0 ? "terrain_" : "item_") + binder.index);
 			binder.index = atlas.getTextureIndex(id);
 		});
 		
@@ -86,6 +92,10 @@ public class Textures {
 	public static TextureSample getVanillaBlockSample(int texture) {
 		if (texture < 0 || texture > 255) return empty;
 		return VANILLA_BLOCKS[texture];
+	}
+	
+	public static int getBlockBreaking(int stage) {
+		return BREAKING[stage];
 	}
 	
 	private static BufferedImage loadTexture(String name) {

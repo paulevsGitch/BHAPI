@@ -8,7 +8,7 @@ import net.fabricmc.api.Environment;
 import net.minecraft.block.BaseBlock;
 import net.minecraft.level.BlockView;
 
-public interface CustomBlockRender {
+public interface BHBlockRender {
 	@Environment(EnvType.CLIENT)
 	default byte getRenderType(BlockView view, int x, int y, int z, BlockState state) {
 		return (byte) state.getBlock().getRenderType();
@@ -21,7 +21,7 @@ public interface CustomBlockRender {
 		return Textures.getVanillaBlockSample(texture);
 	}
 	
-	static CustomBlockRender cast(Object obj) {
-		return (CustomBlockRender) obj;
+	static BHBlockRender cast(Object obj) {
+		return (BHBlockRender) obj;
 	}
 }

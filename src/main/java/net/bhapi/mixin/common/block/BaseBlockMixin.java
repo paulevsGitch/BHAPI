@@ -3,7 +3,7 @@ package net.bhapi.mixin.common.block;
 import net.bhapi.block.CustomDropProvider;
 import net.bhapi.blockstate.BlockState;
 import net.bhapi.blockstate.BlockStateContainer;
-import net.bhapi.client.render.block.CustomBlockRender;
+import net.bhapi.client.render.block.BHBlockRender;
 import net.bhapi.level.BlockStateProvider;
 import net.bhapi.util.BlockUtil;
 import net.minecraft.block.BaseBlock;
@@ -22,7 +22,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 @Mixin(BaseBlock.class)
-public abstract class BaseBlockMixin implements BlockStateContainer, CustomBlockRender {
+public abstract class BaseBlockMixin implements BlockStateContainer, BHBlockRender {
 	@Shadow protected abstract void drop(Level arg, int i, int j, int k, ItemStack arg2);
 	
 	@Unique	private BlockState defaultState;

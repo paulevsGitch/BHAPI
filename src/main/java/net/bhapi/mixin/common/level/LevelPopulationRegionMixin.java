@@ -51,22 +51,24 @@ public abstract class LevelPopulationRegionMixin implements BlockStateProvider, 
 			BlockState state = getBlockState(x, y, z);
 			if (state.is(BaseBlock.STONE_SLAB) || state.is(BaseBlock.FARMLAND) || state.getBlock() instanceof StairsBlock) {
 				int light = this.method_142(x, y + 1, z, false);
-				int n3 = this.method_142(x + 1, y, z, false);
-				int n4 = this.method_142(x - 1, y, z, false);
-				int n5 = this.method_142(x, y, z + 1, false);
-				int n6 = this.method_142(x, y, z - 1, false);
-				if (n3 > light) {
-					light = n3;
+				int lx1 = this.method_142(x + 1, y, z, false);
+				int lx2 = this.method_142(x - 1, y, z, false);
+				int lz1 = this.method_142(x, y, z + 1, false);
+				int lz2 = this.method_142(x, y, z - 1, false);
+				
+				if (lx1 > light) {
+					light = lx1;
 				}
-				if (n4 > light) {
-					light = n4;
+				if (lx2 > light) {
+					light = lx2;
 				}
-				if (n5 > light) {
-					light = n5;
+				if (lz1 > light) {
+					light = lz1;
 				}
-				if (n6 > light) {
-					light = n6;
+				if (lz2 > light) {
+					light = lz2;
 				}
+				
 				info.setReturnValue(light);
 				return;
 			}
@@ -88,7 +90,8 @@ public abstract class LevelPopulationRegionMixin implements BlockStateProvider, 
 		
 		int cx = (x >> 4) - this.field_166;
 		int cz = (z >> 4) - this.field_167;
-		info.setReturnValue(this.chunks[cx][cz].getLight(x & 0xF, y, z & 0xF, this.level.correctLightValue));
+		
+		info.setReturnValue(this.chunks[cx][cz].getLight(x & 15, y, z & 15, this.level.correctLightValue));
 	}
 	
 	@Unique
