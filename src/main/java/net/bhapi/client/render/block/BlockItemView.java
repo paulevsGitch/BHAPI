@@ -2,7 +2,6 @@ package net.bhapi.client.render.block;
 
 import net.bhapi.blockstate.BlockState;
 import net.bhapi.client.BHAPIClient;
-import net.bhapi.util.BlockUtil;
 import net.minecraft.block.entity.BaseBlockEntity;
 import net.minecraft.block.material.Material;
 import net.minecraft.level.BlockView;
@@ -27,12 +26,12 @@ public class BlockItemView implements BlockView {
 	
 	@Override
 	public float getLight(int i, int j, int k, int l) {
-		return 1;
+		return 1.0F;
 	}
 	
 	@Override
 	public float getBrightness(int i, int j, int k) {
-		return 2;
+		return 1.0F;
 	}
 	
 	@Override

@@ -1,5 +1,6 @@
 package net.bhapi.util;
 
+import net.bhapi.BHAPI;
 import net.bhapi.blockstate.BlockState;
 import net.bhapi.blockstate.properties.BlockPropertyType;
 import net.bhapi.blockstate.properties.StateProperty;
@@ -51,5 +52,22 @@ public class ItemUtil {
 			if (item == null && id != null) item = CommonRegistries.ITEM_REGISTRY.get(id);
 			if (item != null) ItemProvider.cast(stack).setItem(item);
 		});
+	}
+	
+	public static ItemStack makeStack(Identifier id) {
+		return makeStack(id, 1, 0);
+	}
+	
+	public static ItemStack makeStack(Identifier id, int count) {
+		return makeStack(id, count, 0);
+	}
+	
+	public static ItemStack makeStack(Identifier id, int count, int damage) {
+		BaseItem item = CommonRegistries.ITEM_REGISTRY.get(id);
+		if (item == null) {
+			BHAPI.warn("No item " + id + " in registry");
+			return null;
+		}
+		return new ItemStack(item, count, damage);
 	}
 }

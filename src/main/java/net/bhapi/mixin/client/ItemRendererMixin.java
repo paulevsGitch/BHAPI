@@ -1,11 +1,11 @@
 package net.bhapi.mixin.client;
 
-import net.bhapi.block.BHBaseBlock;
 import net.bhapi.blockstate.BlockState;
 import net.bhapi.client.ItemRenderInfo;
 import net.bhapi.client.render.block.BHBlockRenderer;
 import net.bhapi.client.render.block.BlockItemView;
 import net.bhapi.client.render.texture.Textures;
+import net.bhapi.client.render.texture.UVPair;
 import net.bhapi.item.BHBlockItem;
 import net.minecraft.block.BaseBlock;
 import net.minecraft.client.render.Tessellator;
@@ -39,17 +39,15 @@ public abstract class ItemRendererMixin extends EntityRenderer {
 	@Unique private BlockItemView bhapi_itemView = new BlockItemView();
 	
 	@Inject(method = "renderItemInGUI", at = @At("HEAD"), cancellable = true)
-	private void bhapi_renderItemInGUI(TextRenderer textRenderer, TextureManager manager, int id, int j, int k, int l, int m, CallbackInfo info) {
+	private void bhapi_renderItemInGUI(TextRenderer textRenderer, TextureManager manager, int id, int j, int texture, int x, int y, CallbackInfo info) {
 		info.cancel();
 		BaseItem item = ItemRenderInfo.getRenderingItem();
 		if (item == null) return;
-		if (item instanceof BHBlockItem /*id < 256 && BlockRenderer.isSpecificRenderType(BaseBlock.BY_ID[id].getRenderType())*/) {
-			//manager.bindTexture(manager.getTextureId("/terrain.png"));
+		if (item instanceof BHBlockItem) {
 			Textures.bindAtlas();
-			//BaseBlock block = ((BHBlockItem) item).getState().getBlock();
 			BlockState state = ((BHBlockItem) item).getState();
 			GL11.glPushMatrix();
-			GL11.glTranslatef(l - 2, m + 3, -3.0f);
+			GL11.glTranslatef(x - 2, y + 3, -3.0f);
 			GL11.glScalef(10.0f, 10.0f, 10.0f);
 			GL11.glTranslatef(1.0f, 0.5f, 1.0f);
 			GL11.glScalef(1.0f, 1.0f, -1.0f);
@@ -63,17 +61,13 @@ public abstract class ItemRendererMixin extends EntityRenderer {
 				GL11.glColor4f(r, g, b, 1.0F);
 			}
 			GL11.glRotatef(-90.0f, 0.0f, 1.0f, 0.0f);
-			/*this.internalBlockRenderer.itemColorEnabled = this.coloriseItem;
-			this.internalBlockRenderer.renderBlockItem(block, j, 1.0f);
-			this.internalBlockRenderer.itemColorEnabled = true;*/
 			
-			if (state.getBlock() instanceof BHBaseBlock) {
+			// TODO save only first after all render implementation
+			if (BHBlockRenderer.isImplemented(state.getRenderType(bhapi_itemView, 0, 0, 0))) {
 				GL11.glTranslatef(0.0F, -0.1F, 0.0F);
-				Tessellator.INSTANCE.start();
 				bhapi_itemView.setBlockState(state);
 				BHBlockRenderer.setRenderer(bhapi_itemView, this.internalBlockRenderer);
-				BHBlockRenderer.renderItem(state, 0, 0, 0);
-				Tessellator.INSTANCE.draw();
+				BHBlockRenderer.renderItem(state, this.coloriseItem, 1.0f);
 			}
 			else {
 				this.internalBlockRenderer.itemColorEnabled = this.coloriseItem;
@@ -83,15 +77,10 @@ public abstract class ItemRendererMixin extends EntityRenderer {
 			
 			GL11.glPopMatrix();
 		}
-		else if (k >= 0) {
+		else if (texture >= 0) {
 			GL11.glDisable(2896);
-			/*if (id < 256) {
-				manager.bindTexture(manager.getTextureId("/terrain.png"));
-			}
-			else {*/
-				//manager.bindTexture(manager.getTextureId("/gui/items.png"));
-			//}
 			Textures.bindAtlas();
+			
 			if (this.coloriseItem) {
 				int color = item.getColorMultiplier(j);
 				float r = (float) (color >> 16 & 0xFF) / 255.0F;
@@ -99,19 +88,21 @@ public abstract class ItemRendererMixin extends EntityRenderer {
 				float b = (float) (color & 0xFF) / 255.0F;
 				GL11.glColor4f(r, g, b, 1.0F);
 			}
-			this.renderRectangle(l, m, k % 16 * 16, k / 16 * 16, 16, 16);
+			
+			UVPair uv = Textures.getAtlas().getUV(texture);
+			bhapi_renderRectangle(x, y, uv);
 			GL11.glEnable(2896);
 		}
 		GL11.glEnable(2884);
 	}
 	
 	@Inject(method = "render(Lnet/minecraft/entity/ItemEntity;DDDFF)V", at = @At("HEAD"), cancellable = true)
-	public void render(ItemEntity entity, double x, double y, double z, float u1, float delta, CallbackInfo info) {
+	public void bhapi_renderItemEntity(ItemEntity entity, double x, double y, double z, float unused, float delta, CallbackInfo info) {
 		info.cancel();
 		this.rand.setSeed(187L);
 		GL11.glPushMatrix();
 		float offset = MathHelper.sin(((float) entity.age + delta) / 10.0f + entity.rotation) * 0.1f + 0.1f;
-		float f3 = (((float) entity.age + delta) / 20.0f + entity.rotation) * 57.295776f;
+		float angle = (((float) entity.age + delta) / 20.0f + entity.rotation) * 57.295776f;
 		int count = 1;
 		if (entity.stack.count > 1) {
 			count = 2;
@@ -124,16 +115,18 @@ public abstract class ItemRendererMixin extends EntityRenderer {
 		}
 		GL11.glTranslatef((float) x, (float) y + offset, (float) z);
 		GL11.glEnable(32826);
+		
 		BaseItem item = entity.stack.getType();
-		if (item instanceof BHBlockItem /*entity.stack.itemId < 256 && BlockRenderer.isSpecificRenderType(BaseBlock.BY_ID[entity.stack.itemId].getRenderType())*/) {
-			GL11.glRotatef(f3, 0.0f, 1.0f, 0.0f);
-			//this.bindTexture("/terrain.png");
+		if (item instanceof BHBlockItem) {
+			GL11.glRotatef(angle, 0.0f, 1.0f, 0.0f);
 			Textures.bindAtlas();
 			float scale = 0.25f;
-			BaseBlock block = ((BHBlockItem) item).getState().getBlock();
-			if (!block.isFullCube() && block.id != BaseBlock.STONE_SLAB.id && block.getRenderType() != 16) {
+			
+			BlockState state = ((BHBlockItem) item).getState();
+			if (!state.getBlock().isFullCube() && !state.is(BaseBlock.STONE_SLAB)) {
 				scale = 0.5f;
 			}
+			
 			GL11.glScalef(scale, scale, scale);
 			for (int i = 0; i < count; ++i) {
 				GL11.glPushMatrix();
@@ -143,40 +136,46 @@ public abstract class ItemRendererMixin extends EntityRenderer {
 					float dz = (this.rand.nextFloat() * 2.0f - 1.0f) * 0.2f / scale;
 					GL11.glTranslatef(dx, dy, dz);
 				}
-				this.internalBlockRenderer.renderBlockItem(block, entity.stack.getDamage(), entity.getBrightnessAtEyes(delta));
+				
+				// TODO save only first after all render implementation
+				if (BHBlockRenderer.isImplemented(state.getRenderType(bhapi_itemView, 0, 0, 0))) {
+					GL11.glTranslatef(-0.5F, -0.5F, -0.5F);
+					BHBlockRenderer.setRenderer(bhapi_itemView, this.internalBlockRenderer);
+					BHBlockRenderer.renderItem(state, this.coloriseItem, entity.getBrightnessAtEyes(delta));
+				}
+				else {
+					this.internalBlockRenderer.renderBlockItem(state.getBlock(), entity.stack.getDamage(), entity.getBrightnessAtEyes(delta));
+				}
+				
 				GL11.glPopMatrix();
 			}
 		}
 		else {
 			float b, g, r;
-			int n2;
+			int color;
 			GL11.glScalef(0.5f, 0.5f, 0.5f);
 			int texture = entity.stack.getTexturePosition();
-			/*if (entity.stack.itemId < 256) {
-				this.bindTexture("/terrain.png");
-			}
-			else {*/
-				this.bindTexture("/gui/items.png");
-			//}
+			Textures.getAtlas().bind();
+			UVPair uv = Textures.getAtlas().getUV(texture);
 			Tessellator tessellator = Tessellator.INSTANCE;
-			float f11 = (float) (texture % 16 * 16) / 256.0f;
-			float f12 = (float) (texture % 16 * 16 + 16) / 256.0f;
-			float f13 = (float) (texture / 16 * 16) / 256.0f;
-			float f14 = (float) (texture / 16 * 16 + 16) / 256.0f;
-			float f15 = 1.0f;
-			float f16 = 0.5f;
-			float f17 = 0.25f;
+			
+			float u1 = uv.getU(0);
+			float u2 = uv.getU(1);
+			float v1 = uv.getV(0);
+			float v2 = uv.getV(1);
+			
 			if (this.coloriseItem) {
-				n2 = item.getColorMultiplier(entity.stack.getDamage());
-				r = (float) (n2 >> 16 & 0xFF) / 255.0f;
-				g = (float) (n2 >> 8 & 0xFF) / 255.0f;
-				b = (float) (n2 & 0xFF) / 255.0f;
+				color = item.getColorMultiplier(entity.stack.getDamage());
+				r = (float) (color >> 16 & 0xFF) / 255.0f;
+				g = (float) (color >> 8 & 0xFF) / 255.0f;
+				b = (float) (color & 0xFF) / 255.0f;
 				float light = entity.getBrightnessAtEyes(delta);
 				GL11.glColor4f(r * light, g * light, b * light, 1.0f);
 			}
-			for (n2 = 0; n2 < count; ++n2) {
+			
+			for (color = 0; color < count; ++color) {
 				GL11.glPushMatrix();
-				if (n2 > 0) {
+				if (color > 0) {
 					r = (this.rand.nextFloat() * 2.0f - 1.0f) * 0.3f;
 					g = (this.rand.nextFloat() * 2.0f - 1.0f) * 0.3f;
 					b = (this.rand.nextFloat() * 2.0f - 1.0f) * 0.3f;
@@ -184,11 +183,11 @@ public abstract class ItemRendererMixin extends EntityRenderer {
 				}
 				GL11.glRotatef(180.0f - this.dispatcher.angle, 0.0f, 1.0f, 0.0f);
 				tessellator.start();
-				tessellator.setNormal(0.0f, 1.0f, 0.0f);
-				tessellator.vertex(0.0f - f16, 0.0f - f17, 0.0, f11, f14);
-				tessellator.vertex(f15 - f16, 0.0f - f17, 0.0, f12, f14);
-				tessellator.vertex(f15 - f16, 1.0f - f17, 0.0, f12, f13);
-				tessellator.vertex(0.0f - f16, 1.0f - f17, 0.0, f11, f13);
+				tessellator.setNormal(0.0F, 1.0F, 0.0F);
+				tessellator.vertex(-0.5F, -0.25F, 0.0, u1, v2);
+				tessellator.vertex(0.5F, -0.25F, 0.0, u2, v2);
+				tessellator.vertex(0.5F, 0.75F, 0.0, u2, v1);
+				tessellator.vertex(-0.5F, 0.75F, 0.0, u1, v1);
 				tessellator.draw();
 				GL11.glPopMatrix();
 			}
@@ -200,5 +199,20 @@ public abstract class ItemRendererMixin extends EntityRenderer {
 	@Inject(method = "renderStackInGUI", at = @At("HEAD"))
 	public void bhapi_renderStackInGUI(TextRenderer textRenderer, TextureManager manager, ItemStack stack, int x, int y, CallbackInfo info) {
 		if (stack != null) ItemRenderInfo.setItem(stack.getType());
+	}
+	
+	@Unique
+	public void bhapi_renderRectangle(int x, int y, UVPair pair) {
+		Tessellator tessellator = Tessellator.INSTANCE;
+		tessellator.start();
+		float u1 = pair.getU(0);
+		float u2 = pair.getU(1);
+		float v1 = pair.getV(0);
+		float v2 = pair.getV(1);
+		tessellator.vertex(x, y + 16, 0, u1, v2);
+		tessellator.vertex(x + 16, y + 16, 0, u2, v2);
+		tessellator.vertex(x + 16, y, 0, u2, v1);
+		tessellator.vertex(x, y, 0, u1, v1);
+		tessellator.draw();
 	}
 }
