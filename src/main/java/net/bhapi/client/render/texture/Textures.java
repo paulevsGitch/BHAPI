@@ -35,10 +35,12 @@ public class Textures {
 	private static final int[] BREAKING = new int[10];
 	private static TextureAtlas atlas;
 	private static TextureSample empty;
+	private static boolean building;
 	
 	public static final Map<Identifier, BufferedImage> LOADED_TEXTURES = new HashMap<>();
 	
 	public static void init() {
+		building = true;
 		BHAPI.log("Making texture atlas");
 		
 		addTextures("terrain", loadTexture("/terrain.png"), 16, LOADED_TEXTURES);
@@ -79,10 +81,31 @@ public class Textures {
 				accessor.bhapi_setTexturePosition(texture);
 			}
 		});
+		building = false;
 	}
 	
-	public static void bindAtlas() {
-		atlas.bind();
+	public static void reload() {
+		building = true;
+		addTextures("terrain", loadTexture("/terrain.png"), 16, LOADED_TEXTURES);
+		excludeTextures("terrain", LOADED_TEXTURES, EXCLUDE_TERRAIN);
+		addTextures("item", loadTexture("/gui/items.png"), 16, LOADED_TEXTURES);
+		addTextures("particle", loadTexture("/particles.png"), 16, LOADED_TEXTURES);
+		
+		IntStream.range(0, 10).forEach(index -> {
+			Identifier id = Identifier.make("bhapi", "textures/block/destroy_stage_" + index);
+			BufferedImage img = ImageUtil.load(id);
+			BHAPIClient.getMinecraft().textureManager.bindImage(img, BREAKING[index]);
+			GL11.glBindTexture(GL11.GL_TEXTURE_2D, BREAKING[index]);
+			GL11.glTexParameterf(GL11.GL_TEXTURE_2D, GL11.GL_TEXTURE_WRAP_S, GL11.GL_REPEAT);
+			GL11.glTexParameterf(GL11.GL_TEXTURE_2D, GL11.GL_TEXTURE_WRAP_T, GL11.GL_REPEAT);
+		});
+		
+		atlas.rebuild(LOADED_TEXTURES);
+		building = false;
+	}
+	
+	public static boolean isBuilding() {
+		return building;
 	}
 	
 	public static TextureAtlas getAtlas() {

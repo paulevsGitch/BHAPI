@@ -44,7 +44,7 @@ public abstract class ItemRendererMixin extends EntityRenderer {
 		BaseItem item = ItemRenderInfo.getRenderingItem();
 		if (item == null) return;
 		if (item instanceof BHBlockItem) {
-			Textures.bindAtlas();
+			Textures.getAtlas().bind();
 			BlockState state = ((BHBlockItem) item).getState();
 			GL11.glPushMatrix();
 			GL11.glTranslatef(x - 2, y + 3, -3.0f);
@@ -79,7 +79,7 @@ public abstract class ItemRendererMixin extends EntityRenderer {
 		}
 		else if (texture >= 0) {
 			GL11.glDisable(2896);
-			Textures.bindAtlas();
+			Textures.getAtlas().bind();
 			
 			if (this.coloriseItem) {
 				int color = item.getColorMultiplier(j);
@@ -119,7 +119,7 @@ public abstract class ItemRendererMixin extends EntityRenderer {
 		BaseItem item = entity.stack.getType();
 		if (item instanceof BHBlockItem) {
 			GL11.glRotatef(angle, 0.0f, 1.0f, 0.0f);
-			Textures.bindAtlas();
+			Textures.getAtlas().bind();
 			float scale = 0.25f;
 			
 			BlockState state = ((BHBlockItem) item).getState();

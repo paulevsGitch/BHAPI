@@ -86,6 +86,64 @@ public class TextureAtlas {
 		glTarget = BHAPIClient.getMinecraft().textureManager.bindImage(atlasImage);
 	}
 	
+	public void rebuild(Map<Identifier, BufferedImage> images) {
+		List<Identifier> keys = images.keySet().stream().filter(i -> !textures.containsKey(i)).toList();
+		keys.forEach(images::remove);
+		
+		Map<BufferedImage, Identifier> inverted = MathUtil.invertMap(images);
+		List<BufferedImage> list = inverted.keySet().stream().filter(img -> img == ImageUtil.EMPTY).toList();
+		list.forEach(img -> {
+			Identifier id = inverted.get(img);
+			inverted.remove(img);
+			images.remove(id);
+		});
+		inverted.put(ImageUtil.EMPTY, EMPTY_ID);
+		images.put(EMPTY_ID, ImageUtil.EMPTY);
+		
+		List<ImageInfo> info = images.values().stream().map(img -> new ImageInfo(
+			img,
+			img.getWidth() * img.getHeight(),
+			MathUtil.getCeilBitIndex(Math.max(img.getWidth(), img.getHeight()))
+		)).sorted().toList();
+		
+		int totalArea = 0;
+		for (ImageInfo imageInfo: info) totalArea += imageInfo.area;
+		
+		BufferedImage atlasImage = null;
+		short start = (short) MathUtil.getClosestPowerOfTwo((int) Math.sqrt(totalArea));
+		List<Layer> layers = new ArrayList<>(8);
+		for (short side = start; side <= 16384 && (atlasImage = pack(info, side, layers)) == null; side <<= 1);
+		if (atlasImage == null) {
+			throw new RuntimeException("Can't create texture atlas! Size is larger than 16384 pixels");
+		}
+		
+		if (FabricLoader.getInstance().isDevelopmentEnvironment()) {
+			try {
+				ImageIO.write(atlasImage, "png", new File("./debug_atlas.png"));
+			}
+			catch (IOException e) {
+				e.printStackTrace();
+			}
+		}
+		
+		int[] data = new int[] {0, atlasImage.getWidth()};
+		layers.forEach(layer -> layer.images.forEach((pos, imgInfo) -> {
+			int px = pos.x << layer.index;
+			int py = pos.y << layer.index;
+			BufferedImage img = imgInfo.img();
+			Identifier id = inverted.get(img);
+			int uvID = textures.get(id);
+			Vec2I tpos = new Vec2I(px, py);
+			Vec2I size = new Vec2I(img.getWidth(), img.getHeight());
+			Vec2F uv1 = new Vec2F(px, py).divide(data[1]);
+			Vec2F uv2 = new Vec2F(img.getWidth(), img.getHeight()).divide(data[1]).add(uv1);
+			uvs[uvID] = new UVPair(tpos, size, uv1, uv2);
+			textures.put(id, uvID);
+		}));
+		
+		BHAPIClient.getMinecraft().textureManager.bindImage(atlasImage, glTarget);
+	}
+	
 	public int getTextureIndex(Identifier id) {
 		return getTextureIndex(id, false);
 	}
