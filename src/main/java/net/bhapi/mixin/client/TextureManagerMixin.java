@@ -17,6 +17,7 @@ import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
+import java.awt.image.BufferedImage;
 import java.nio.ByteBuffer;
 import java.util.List;
 
@@ -65,6 +66,10 @@ public abstract class TextureManagerMixin {
 			binder.render3d = this.gameOptions.anaglyph3d;
 			binder.update();
 			
+			if (currentImageBuffer.capacity() < binder.grid.length) {
+				currentImageBuffer = BufferUtil.createByteBuffer(binder.grid.length);
+			}
+			
 			this.currentImageBuffer.clear();
 			this.currentImageBuffer.put(binder.grid);
 			this.currentImageBuffer.position(0);
@@ -99,5 +104,13 @@ public abstract class TextureManagerMixin {
 	@Inject(method = "reloadTexturesFromTexturePack", at = @At("RETURN"))
 	private void bhapi_reloadTexturesFromTexturePack(CallbackInfo info) {
 		Textures.reload();
+	}
+	
+	@Inject(method = "bindImage(Ljava/awt/image/BufferedImage;I)V", at = @At("HEAD"))
+	private void bhapi_bindImage(BufferedImage image, int target, CallbackInfo info) {
+		int capacity = image.getWidth() * image.getHeight() * 4;
+		if (currentImageBuffer.capacity() < capacity) {
+			currentImageBuffer = BufferUtil.createByteBuffer(capacity);
+		}
 	}
 }

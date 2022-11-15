@@ -43,15 +43,19 @@ public class Textures {
 		building = true;
 		BHAPI.log("Making texture atlas");
 		
-		addTextures("terrain", loadTexture("/terrain.png"), 16, LOADED_TEXTURES);
+		BufferedImage terrain = loadTexture("/terrain.png");
+		addTextures("terrain", terrain, 16, LOADED_TEXTURES);
 		excludeTextures("terrain", LOADED_TEXTURES, EXCLUDE_TERRAIN);
 		addTextures("item", loadTexture("/gui/items.png"), 16, LOADED_TEXTURES);
 		addTextures("particle", loadTexture("/particles.png"), 16, LOADED_TEXTURES);
 		
 		IntStream.range(0, 10).forEach(index -> {
-			Identifier id = Identifier.make("bhapi", "textures/block/destroy_stage_" + index);
-			BufferedImage img = ImageUtil.load(id);
-			BREAKING[index] = BHAPIClient.getMinecraft().textureManager.bindImage(img);
+			int width = terrain.getWidth() / 16;
+			int height = terrain.getHeight() / 16;
+			int x = ((240 + index) & 15) * width;
+			int y = ((240 + index) / 16) * height;
+			BufferedImage sub = terrain.getSubimage(x, y, width, height);
+			BREAKING[index] = BHAPIClient.getMinecraft().textureManager.bindImage(sub);
 			GL11.glBindTexture(GL11.GL_TEXTURE_2D, BREAKING[index]);
 			GL11.glTexParameterf(GL11.GL_TEXTURE_2D, GL11.GL_TEXTURE_WRAP_S, GL11.GL_REPEAT);
 			GL11.glTexParameterf(GL11.GL_TEXTURE_2D, GL11.GL_TEXTURE_WRAP_T, GL11.GL_REPEAT);
@@ -86,15 +90,19 @@ public class Textures {
 	
 	public static void reload() {
 		building = true;
-		addTextures("terrain", loadTexture("/terrain.png"), 16, LOADED_TEXTURES);
+		BufferedImage terrain = loadTexture("/terrain.png");
+		addTextures("terrain", terrain, 16, LOADED_TEXTURES);
 		excludeTextures("terrain", LOADED_TEXTURES, EXCLUDE_TERRAIN);
 		addTextures("item", loadTexture("/gui/items.png"), 16, LOADED_TEXTURES);
 		addTextures("particle", loadTexture("/particles.png"), 16, LOADED_TEXTURES);
 		
 		IntStream.range(0, 10).forEach(index -> {
-			Identifier id = Identifier.make("bhapi", "textures/block/destroy_stage_" + index);
-			BufferedImage img = ImageUtil.load(id);
-			BHAPIClient.getMinecraft().textureManager.bindImage(img, BREAKING[index]);
+			int width = terrain.getWidth() / 16;
+			int height = terrain.getHeight() / 16;
+			int x = ((240 + index) & 15) * width;
+			int y = ((240 + index) / 16) * height;
+			BufferedImage sub = terrain.getSubimage(x, y, width, height);
+			BHAPIClient.getMinecraft().textureManager.bindImage(sub, BREAKING[index]);
 			GL11.glBindTexture(GL11.GL_TEXTURE_2D, BREAKING[index]);
 			GL11.glTexParameterf(GL11.GL_TEXTURE_2D, GL11.GL_TEXTURE_WRAP_S, GL11.GL_REPEAT);
 			GL11.glTexParameterf(GL11.GL_TEXTURE_2D, GL11.GL_TEXTURE_WRAP_T, GL11.GL_REPEAT);

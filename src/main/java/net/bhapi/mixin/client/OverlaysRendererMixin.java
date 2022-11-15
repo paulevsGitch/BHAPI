@@ -222,17 +222,15 @@ public abstract class OverlaysRendererMixin {
 			float f;
 			float u22;
 			float delta;
-			int n;
+			int count;
 			
 			int n2 = entity.getTexture(stack);
 			UVPair uv = atlas.getUV(n2);
 			
-			Tessellator tessellator = Tessellator.INSTANCE;
-			
-			float u1 = uv.getU(0);//((float)(n2 % 16 * 16) + 0.0f) / 256.0f;
-			float u2 = uv.getU(1);//((float)(n2 % 16 * 16) + 15.99f) / 256.0f;
-			float v1 = uv.getV(0);//((float)(n2 / 16 * 16) + 0.0f) / 256.0f;
-			float v2 = uv.getV(1);//((float)(n2 / 16 * 16) + 15.99f) / 256.0f;
+			float u1 = uv.getU(0);
+			float u2 = uv.getU(1);
+			float v1 = uv.getV(0);
+			float v2 = uv.getV(1);
 			
 			float f8 = 1.0f;
 			float f9 = 0.0f;
@@ -244,7 +242,8 @@ public abstract class OverlaysRendererMixin {
 			GL11.glRotatef(50.0f, 0.0f, 1.0f, 0.0f);
 			GL11.glRotatef(335.0f, 0.0f, 0.0f, 1.0f);
 			GL11.glTranslatef(-0.9375f, -0.0625f, 0.0f);
-			float f12 = 0.0625f;
+			
+			Tessellator tessellator = Tessellator.INSTANCE;
 			
 			tessellator.start();
 			tessellator.setNormal(0.0f, 0.0f, 1.0f);
@@ -252,65 +251,35 @@ public abstract class OverlaysRendererMixin {
 			tessellator.vertex(f8, 0.0, 0.0, u1, v2);
 			tessellator.vertex(f8, 1.0, 0.0, u1, v1);
 			tessellator.vertex(0.0, 1.0, 0.0, u2, v1);
-			tessellator.draw();
-			
-			tessellator.start();
-			tessellator.setNormal(0.0f, 0.0f, -1.0f);
-			tessellator.vertex(0.0, 1.0, 0.0f - f12, u2, v1);
-			tessellator.vertex(f8, 1.0, 0.0f - f12, u1, v1);
-			tessellator.vertex(f8, 0.0, 0.0f - f12, u1, v2);
-			tessellator.vertex(0.0, 0.0, 0.0f - f12, u2, v2);
 			//tessellator.draw();
 			
 			//tessellator.start();
+			tessellator.setNormal(0.0f, 0.0f, -1.0f);
+			tessellator.vertex(0.0, 1.0, 0.0f - 0.0625f, u2, v1);
+			tessellator.vertex(f8, 1.0, 0.0f - 0.0625f, u1, v1);
+			tessellator.vertex(f8, 0.0, 0.0f - 0.0625f, u1, v2);
+			tessellator.vertex(0.0, 0.0, 0.0f - 0.0625f, u2, v2);
+			
 			tessellator.setNormal(-1.0f, 0.0f, 0.0f);
-			for (n = 0; n < 16; ++n) {
-				delta = (float) n / 16.0f;
+			for (count = 0; count < uv.getWidth(); ++count) {
+				delta = (float) count / uv.getWidth();
 				u22 = uv.getU(0.999F - delta);
 				f = f8 * delta;
-				tessellator.vertex(f, 0.0, 0.0f - f12, u22, v2);
+				tessellator.vertex(f, 0.0, 0.0f - 0.0625f, u22, v2);
 				tessellator.vertex(f, 0.0, 0.0, u22, v2);
 				tessellator.vertex(f, 1.0, 0.0, u22, v1);
-				tessellator.vertex(f, 1.0, 0.0f - f12, u22, v1);
+				tessellator.vertex(f, 1.0, 0.0f - 0.0625f, u22, v1);
 			}
-			//tessellator.draw();
 			
-			/*tessellator.start();
-			tessellator.setNormal(1.0f, 0.0f, 0.0f);
-			for (n = 0; n < 16; ++n) {
-				delta = (float) n / 16.0f;
-				u22 = uv.getU(1 - delta);
-				f = f8 * delta + 0.0625f;
-				tessellator.vertex(f, 1.0, 0.0f - f12, u22, v1);
-				tessellator.vertex(f, 1.0, 0.0, u22, v1);
-				tessellator.vertex(f, 0.0, 0.0, u22, v2);
-				tessellator.vertex(f, 0.0, 0.0f - f12, u22, v2);
-			}
-			tessellator.draw();*/
-			
-			/*tessellator.start();
-			tessellator.setNormal(0.0f, 1.0f, 0.0f);
-			for (n = 0; n < 16; ++n) {
-				delta = (float) n / 16.0f;
-				u22 = uv.getV(1 - delta);
-				f = f8 * delta + 0.0625f;
-				tessellator.vertex(0.0, f, 0.0, u2, u22);
-				tessellator.vertex(f8, f, 0.0, u1, u22);
-				tessellator.vertex(f8, f, 0.0f - f12, u1, u22);
-				tessellator.vertex(0.0, f, 0.0f - f12, u2, u22);
-			}
-			tessellator.draw();*/
-			
-			//tessellator.start();
 			tessellator.setNormal(0.0f, -1.0f, 0.0f);
-			for (n = 0; n < 16; ++n) {
-				delta = (float) n / 16.0f;
+			for (count = 0; count < uv.getHeight(); ++count) {
+				delta = (float) count / uv.getHeight();
 				u22 = uv.getV(0.999F - delta);
 				f = f8 * delta;
 				tessellator.vertex(f8, f, 0.0, u1, u22);
 				tessellator.vertex(0.0, f, 0.0, u2, u22);
-				tessellator.vertex(0.0, f, 0.0f - f12, u2, u22);
-				tessellator.vertex(f8, f, 0.0f - f12, u1, u22);
+				tessellator.vertex(0.0, f, 0.0f - 0.0625f, u2, u22);
+				tessellator.vertex(f8, f, 0.0f - 0.0625f, u1, u22);
 			}
 			tessellator.draw();
 			
