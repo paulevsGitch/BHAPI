@@ -1,6 +1,7 @@
 package net.bhapi.mixin.client;
 
 import net.bhapi.blockstate.BlockState;
+import net.bhapi.interfaces.SimpleBlockStateContainer;
 import net.bhapi.registry.CommonRegistries;
 import net.minecraft.client.particle.ParticleManager;
 import net.minecraft.client.render.particle.DiggingParticle;
@@ -33,7 +34,7 @@ public abstract class ParticleManagerMixin {
 					double py = y + (dy + 0.5) / 4.0;
 					double pz = z + (dz + 0.5) / 4.0;
 					int side = this.rand.nextInt(6);
-					this.addParticle(new DiggingParticle(
+					DiggingParticle particle = new DiggingParticle(
 						this.level,
 						px, py, pz,
 						px - x - 0.5,
@@ -41,7 +42,9 @@ public abstract class ParticleManagerMixin {
 						pz - z - 0.5,
 						state.getBlock(),
 						side, meta
-					).applyColor(x, y, z));
+					).applyColor(x, y, z);
+					SimpleBlockStateContainer.cast(particle).setBlockState(state);
+					this.addParticle(particle);
 				}
 			}
 		}

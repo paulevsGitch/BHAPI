@@ -642,38 +642,25 @@ public class BHBlockRenderer {
 		Tessellator tessellator = Tessellator.INSTANCE;
 		
 		UVPair uv = sample.getUV();
-		
-		double u11 = uv.getU(MathUtil.clamp((float) block.minX, 0, 1));
-		double u12 = uv.getU(MathUtil.clamp((float) block.maxX, 0, 1));
-		double v11 = uv.getV(MathUtil.clamp((float) block.maxZ, 0, 1));
-		double v12 = uv.getV(MathUtil.clamp((float) block.minZ, 0, 1));
-		
-		double u22 = u12;
-		double u21 = u11;
-		double v21 = v11;
-		double v22 = v12;
+		float u11, u12, v11, v12;
 		
 		if (breaking) {
-			u11 = block.minX;
-			u12 = block.maxX;
-			v11 = block.maxZ;
-			v12 = block.minZ;
-			u22 = u12;
-			u21 = u11;
-			v21 = v11;
-			v22 = v12;
+			u11 = (float) block.minX;
+			u12 = (float) block.maxX;
+			v11 = (float) block.maxZ;
+			v12 = (float) block.minZ;
+		}
+		else {
+			u11 = uv.getU(MathUtil.clamp((float) block.minX, 0, 1));
+			u12 = uv.getU(MathUtil.clamp((float) block.maxX, 0, 1));
+			v11 = uv.getV(MathUtil.clamp((float) block.maxZ, 0, 1));
+			v12 = uv.getV(MathUtil.clamp((float) block.minZ, 0, 1));
 		}
 		
-		if (breaking) {
-			u11 = block.minX;
-			u12 = block.maxX;
-			v11 = block.maxZ;
-			v12 = block.minZ;
-			u22 = u12;
-			u21 = u11;
-			v21 = v11;
-			v22 = v12;
-		}
+		float u22 = u12;
+		float u21 = u11;
+		float v21 = v11;
+		float v22 = v12;
 		
 		/*if (bottomFaceRotation == 2) {
 			u11 = ((double)n + arg.minZ * 16.0) / 256.0;
@@ -740,36 +727,27 @@ public class BHBlockRenderer {
 	
 	private static void renderTopFace(BaseBlock block, double x, double y, double z, TextureSample sample) {
 		Tessellator tessellator = Tessellator.INSTANCE;
-		/*if (textureOverride >= 0) {
-			texture = textureOverride;
-		}*/
-		
-		/*if (textureOverride >= 240 && textureOverride < 250) {
-			sample = Textures.getBlockBreaking(textureOverride - 240);
-		}*/
 		
 		UVPair uv = sample.getUV();
-		
-		double u11 = uv.getU(MathUtil.clamp((float) block.minX, 0, 1));
-		double u12 = uv.getU(MathUtil.clamp((float) block.maxX, 0, 1));
-		double v11 = uv.getV(MathUtil.clamp((float) block.minZ, 0, 1));
-		double v12 = uv.getV(MathUtil.clamp((float) block.maxZ, 0, 1));
-		
-		double u22 = u12;
-		double u21 = u11;
-		double v21 = v11;
-		double v22 = v12;
+		float u11, u12, v11, v12;
 		
 		if (breaking) {
-			u11 = block.minX;
-			u12 = block.maxX;
-			v11 = block.minZ;
-			v12 = block.maxZ;
-			u22 = u12;
-			u21 = u11;
-			v21 = v11;
-			v22 = v12;
+			u11 = (float) block.minX;
+			u12 = (float) block.maxX;
+			v11 = (float) block.minZ;
+			v12 = (float) block.maxZ;
 		}
+		else {
+			u11 = uv.getU(MathUtil.clamp((float) block.minX, 0, 1));
+			u12 = uv.getU(MathUtil.clamp((float) block.maxX, 0, 1));
+			v11 = uv.getV(MathUtil.clamp((float) block.minZ, 0, 1));
+			v12 = uv.getV(MathUtil.clamp((float) block.maxZ, 0, 1));
+		}
+		
+		float u22 = u12;
+		float u21 = u11;
+		float v21 = v11;
+		float v22 = v12;
 		
 		/*if (topFaceRotation == 1) {
 			u11 = ((double) n + block.minZ * 16.0) / 256.0;
@@ -838,27 +816,25 @@ public class BHBlockRenderer {
 		Tessellator tessellator = Tessellator.INSTANCE;
 		
 		UVPair uv = sample.getUV();
-		
-		double u11 = uv.getU(MathUtil.clamp((float) block.minX, 0, 1));
-		double u12 = uv.getU(MathUtil.clamp((float) block.maxX, 0, 1));
-		double v11 = uv.getV(MathUtil.clamp((float) block.minY, 0, 1));
-		double v12 = uv.getV(MathUtil.clamp((float) block.maxY, 0, 1));
-		
-		double u22 = u12;
-		double u21 = u11;
-		double v21 = v11;
-		double v22 = v12;
+		float u11, u12, v11, v12;
 		
 		if (breaking) {
-			u11 = block.minX;
-			u12 = block.maxX;
-			v11 = block.minY;
-			v12 = block.maxY;
-			u22 = u12;
-			u21 = u11;
-			v21 = v11;
-			v22 = v12;
+			u11 = (float) block.minX;
+			u12 = (float) block.maxX;
+			v11 = (float) block.minY;
+			v12 = (float) block.maxY;
 		}
+		else {
+			u11 = uv.getU(MathUtil.clamp((float) block.minX, 0, 1));
+			u12 = uv.getU(MathUtil.clamp((float) block.maxX, 0, 1));
+			v11 = uv.getV(MathUtil.clamp((float) block.minY, 0, 1));
+			v12 = uv.getV(MathUtil.clamp((float) block.maxY, 0, 1));
+		}
+		
+		float u22 = u12;
+		float u21 = u11;
+		float v21 = v11;
+		float v22 = v12;
 		
 		if (mirrorTexture) {
 			u22 = u11;
@@ -931,27 +907,25 @@ public class BHBlockRenderer {
 		Tessellator tessellator = Tessellator.INSTANCE;
 		
 		UVPair uv = sample.getUV();
-		
-		double u11 = uv.getU(MathUtil.clamp((float) block.minX, 0, 1));
-		double u12 = uv.getU(MathUtil.clamp((float) block.maxX, 0, 1));
-		double v11 = uv.getV(MathUtil.clamp((float) block.maxY, 0, 1));
-		double v12 = uv.getV(MathUtil.clamp((float) block.minY, 0, 1));
-		
-		double u22 = u12;
-		double u21 = u11;
-		double v21 = v11;
-		double v22 = v12;
+		float u11, u12, v11, v12;
 		
 		if (breaking) {
-			u11 = block.minX;
-			u12 = block.maxX;
-			v11 = block.maxY;
-			v12 = block.minY;
-			u22 = u12;
-			u21 = u11;
-			v21 = v11;
-			v22 = v12;
+			u11 = (float) block.minX;
+			u12 = (float) block.maxX;
+			v11 = (float) block.maxY;
+			v12 = (float) block.minY;
 		}
+		else {
+			u11 = uv.getU(MathUtil.clamp((float) block.minX, 0, 1));
+			u12 = uv.getU(MathUtil.clamp((float) block.maxX, 0, 1));
+			v11 = uv.getV(MathUtil.clamp((float) block.maxY, 0, 1));
+			v12 = uv.getV(MathUtil.clamp((float) block.minY, 0, 1));
+		}
+		
+		float u22 = u12;
+		float u21 = u11;
+		float v21 = v11;
+		float v22 = v12;
 		
 		if (mirrorTexture) {
 			u21 = u11;
@@ -1032,27 +1006,25 @@ public class BHBlockRenderer {
 		Tessellator tessellator = Tessellator.INSTANCE;
 		
 		UVPair uv = sample.getUV();
-		
-		double u11 = uv.getU(MathUtil.clamp((float) block.minX, 0, 1));
-		double u12 = uv.getU(MathUtil.clamp((float) block.maxX, 0, 1));
-		double v11 = uv.getV(MathUtil.clamp((float) block.maxY, 0, 1));
-		double v12 = uv.getV(MathUtil.clamp((float) block.minY, 0, 1));
-		
-		double u22 = u12;
-		double u21 = u11;
-		double v21 = v11;
-		double v22 = v12;
+		float u11, u12, v11, v12;
 		
 		if (breaking) {
-			u11 = block.minX;
-			u12 = block.maxX;
-			v11 = block.maxY;
-			v12 = block.minY;
-			u22 = u12;
-			u21 = u11;
-			v21 = v11;
-			v22 = v12;
+			u11 = (float) block.minX;
+			u12 = (float) block.maxX;
+			v11 = (float) block.maxY;
+			v12 = (float) block.minY;
 		}
+		else {
+			u11 = uv.getU(MathUtil.clamp((float) block.minX, 0, 1));
+			u12 = uv.getU(MathUtil.clamp((float) block.maxX, 0, 1));
+			v11 = uv.getV(MathUtil.clamp((float) block.maxY, 0, 1));
+			v12 = uv.getV(MathUtil.clamp((float) block.minY, 0, 1));
+		}
+		
+		float u22 = u12;
+		float u21 = u11;
+		float v21 = v11;
+		float v22 = v12;
 		
 		if (mirrorTexture) {
 			u22 = u11;
@@ -1129,27 +1101,25 @@ public class BHBlockRenderer {
 		Tessellator tessellator = Tessellator.INSTANCE;
 		
 		UVPair uv = sample.getUV();
-		
-		double u11 = uv.getU(MathUtil.clamp((float) block.minZ, 0, 1));
-		double u12 = uv.getU(MathUtil.clamp((float) block.maxZ, 0, 1));
-		double v11 = uv.getV(MathUtil.clamp((float) block.maxY, 0, 1));
-		double v12 = uv.getV(MathUtil.clamp((float) block.minY, 0, 1));
-		
-		double u22 = u12;
-		double u21 = u11;
-		double v21 = v11;
-		double v22 = v12;
+		float u11, u12, v11, v12;
 		
 		if (breaking) {
-			u11 = block.minZ;
-			u12 = block.maxZ;
-			v11 = block.maxY;
-			v12 = block.minY;
-			u22 = u12;
-			u21 = u11;
-			v21 = v11;
-			v22 = v12;
+			u11 = (float) block.minZ;
+			u12 = (float) block.maxZ;
+			v11 = (float) block.maxY;
+			v12 = (float) block.minY;
 		}
+		else {
+			u11 = uv.getU(MathUtil.clamp((float) block.minZ, 0, 1));
+			u12 = uv.getU(MathUtil.clamp((float) block.maxZ, 0, 1));
+			v11 = uv.getV(MathUtil.clamp((float) block.maxY, 0, 1));
+			v12 = uv.getV(MathUtil.clamp((float) block.minY, 0, 1));
+		}
+		
+		float u22 = u12;
+		float u21 = u11;
+		float v21 = v11;
+		float v22 = v12;
 		
 		if (mirrorTexture) {
 			u22 = u11;
