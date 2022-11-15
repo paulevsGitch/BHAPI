@@ -3,6 +3,8 @@ package net.bhapi.mixin.client;
 import net.bhapi.client.render.texture.TextureAtlas;
 import net.bhapi.client.render.texture.Textures;
 import net.bhapi.client.render.texture.UVPair;
+import net.bhapi.util.BufferUtil;
+import net.minecraft.client.TexturePackManager;
 import net.minecraft.client.options.GameOptions;
 import net.minecraft.client.render.TextureBinder;
 import net.minecraft.client.texture.TextureManager;
@@ -33,6 +35,11 @@ public abstract class TextureManagerMixin {
 		"/particles.png",
 	};
 	
+	@Inject(method = "<init>", at = @At("TAIL"))
+	private void bhapi_onTextureManagerInit(TexturePackManager manager, GameOptions options, CallbackInfo info) {
+		currentImageBuffer = BufferUtil.createByteBuffer(4096 * 4096 * 4); // 4k texture
+	}
+	
 	@Inject(method = "getTextureId", at = @At("HEAD"), cancellable = true)
 	private void bhapi_getTextureId(String name, CallbackInfoReturnable<Integer> info) {
 		TextureAtlas atlas = Textures.getAtlas();
@@ -46,7 +53,7 @@ public abstract class TextureManagerMixin {
 	}
 	
 	@Inject(method = "tick", at = @At("HEAD"), cancellable = true)
-	public void tick(CallbackInfo info) {
+	public void bhapi_tick(CallbackInfo info) {
 		info.cancel();
 		
 		int n, n2, n3, py, px, side, preSide, level, y, x, index;
@@ -62,7 +69,7 @@ public abstract class TextureManagerMixin {
 			
 			this.currentImageBuffer.clear();
 			this.currentImageBuffer.put(binder.grid);
-			this.currentImageBuffer.position(0).limit(binder.grid.length);
+			this.currentImageBuffer.position(0);//.limit(binder.grid.length);
 			
 			for (x = 0; x < binder.textureSize; ++x) {
 				for (y = 0; y < binder.textureSize; ++y) {
