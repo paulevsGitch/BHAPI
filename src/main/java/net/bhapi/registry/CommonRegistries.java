@@ -9,8 +9,10 @@ import net.bhapi.event.BHEvent;
 import net.bhapi.event.BlockRegistryEvent;
 import net.bhapi.event.CommandRegistryEvent;
 import net.bhapi.event.ItemRegistryEvent;
+import net.bhapi.event.RecipeRegistryEvent;
 import net.bhapi.event.StartupEvent;
 import net.bhapi.item.BHBlockItem;
+import net.bhapi.mixin.common.RecipeRegistryAccessor;
 import net.bhapi.util.BlockUtil;
 import net.bhapi.util.Identifier;
 import net.fabricmc.api.EnvType;
@@ -20,6 +22,14 @@ import net.minecraft.client.render.block.BlockRenderer;
 import net.minecraft.entity.player.ServerPlayer;
 import net.minecraft.item.BaseItem;
 import net.minecraft.item.ItemStack;
+import net.minecraft.recipe.ArmourRecipes;
+import net.minecraft.recipe.DyeRecipes;
+import net.minecraft.recipe.MaterialBlockRecipes;
+import net.minecraft.recipe.RecipeRegistry;
+import net.minecraft.recipe.StewAndCookieRecipes;
+import net.minecraft.recipe.ToolRecipes;
+import net.minecraft.recipe.UtilitiesAndSandstoneRecipes;
+import net.minecraft.recipe.WeaponRecipes;
 import net.minecraft.server.ServerPlayerConnectionManager;
 import net.minecraft.server.command.CommandSource;
 
@@ -45,6 +55,7 @@ public class CommonRegistries {
 		initBlocks();
 		initItems();
 		initEvents();
+		initRecipes();
 		if (BHAPI.isServer()) initCommands();
 	}
 	
@@ -315,11 +326,81 @@ public class CommonRegistries {
 		});
 	}
 	
+	private static void initRecipes() {
+		RecipeRegistry registry = RecipeRegistry.getInstance();
+		RecipeRegistryAccessor accessor = (RecipeRegistryAccessor) registry;
+		new ToolRecipes().register(registry);
+		new WeaponRecipes().register(registry);
+		new MaterialBlockRecipes().register(registry);
+		new StewAndCookieRecipes().register(registry);
+		new UtilitiesAndSandstoneRecipes().register(registry);
+		new ArmourRecipes().register(registry);
+		new DyeRecipes().register(registry);
+		accessor.callAddShapedRecipe(new ItemStack(BaseItem.paper, 3), "###", '#', BaseItem.sugarCanes);
+		accessor.callAddShapedRecipe(new ItemStack(BaseItem.book, 1), "#", "#", "#", '#', BaseItem.paper);
+		accessor.callAddShapedRecipe(new ItemStack(BaseBlock.FENCE, 2), "###", "###", '#', BaseItem.stick);
+		accessor.callAddShapedRecipe(new ItemStack(BaseBlock.JUKEBOX, 1), "###", "#X#", "###", '#', BaseBlock.WOOD, 'X', BaseItem.diamond);
+		accessor.callAddShapedRecipe(new ItemStack(BaseBlock.NOTEBLOCK, 1), "###", "#X#", "###", '#', BaseBlock.WOOD, 'X', BaseItem.redstoneDust);
+		accessor.callAddShapedRecipe(new ItemStack(BaseBlock.BOOKSHELF, 1), "###", "XXX", "###", '#', BaseBlock.WOOD, 'X', BaseItem.book);
+		accessor.callAddShapedRecipe(new ItemStack(BaseBlock.SNOW_BLOCK, 1), "##", "##", '#', BaseItem.snowball);
+		accessor.callAddShapedRecipe(new ItemStack(BaseBlock.CLAY, 1), "##", "##", '#', BaseItem.clay);
+		accessor.callAddShapedRecipe(new ItemStack(BaseBlock.BRICKS, 1), "##", "##", '#', BaseItem.brick);
+		accessor.callAddShapedRecipe(new ItemStack(BaseBlock.GLOWSTONE, 1), "##", "##", '#', BaseItem.glowstoneDust);
+		accessor.callAddShapedRecipe(new ItemStack(BaseBlock.WOOL, 1), "##", "##", '#', BaseItem.string);
+		accessor.callAddShapedRecipe(new ItemStack(BaseBlock.TNT, 1), "X#X", "#X#", "X#X", 'X', BaseItem.gunpowder, '#', BaseBlock.SAND);
+		accessor.callAddShapedRecipe(new ItemStack(BaseBlock.STONE_SLAB, 3, 3), "###", '#', BaseBlock.COBBLESTONE);
+		accessor.callAddShapedRecipe(new ItemStack(BaseBlock.STONE_SLAB, 3, 0), "###", '#', BaseBlock.STONE);
+		accessor.callAddShapedRecipe(new ItemStack(BaseBlock.STONE_SLAB, 3, 1), "###", '#', BaseBlock.SANDSTONE);
+		accessor.callAddShapedRecipe(new ItemStack(BaseBlock.STONE_SLAB, 3, 2), "###", '#', BaseBlock.WOOD);
+		accessor.callAddShapedRecipe(new ItemStack(BaseBlock.LADDER, 2), "# #", "###", "# #", '#', BaseItem.stick);
+		accessor.callAddShapedRecipe(new ItemStack(BaseItem.woodDoor, 1), "##", "##", "##", '#', BaseBlock.WOOD);
+		accessor.callAddShapedRecipe(new ItemStack(BaseBlock.TRAPDOOR, 2), "###", "###", '#', BaseBlock.WOOD);
+		accessor.callAddShapedRecipe(new ItemStack(BaseItem.ironDoor, 1), "##", "##", "##", '#', BaseItem.ironIngot);
+		accessor.callAddShapedRecipe(new ItemStack(BaseItem.sign, 1), "###", "###", " X ", '#', BaseBlock.WOOD, 'X', BaseItem.stick);
+		accessor.callAddShapedRecipe(new ItemStack(BaseItem.cake, 1), "AAA", "BEB", "CCC", 'A', BaseItem.milk, 'B', BaseItem.sugar, 'C', BaseItem.wheat, 'E', BaseItem.egg);
+		accessor.callAddShapedRecipe(new ItemStack(BaseItem.sugar, 1), "#", '#', BaseItem.sugarCanes);
+		accessor.callAddShapedRecipe(new ItemStack(BaseBlock.WOOD, 4), "#", '#', BaseBlock.LOG);
+		accessor.callAddShapedRecipe(new ItemStack(BaseItem.stick, 4), "#", "#", '#', BaseBlock.WOOD);
+		accessor.callAddShapedRecipe(new ItemStack(BaseBlock.TORCH, 4), "X", "#", 'X', BaseItem.coal, '#', BaseItem.stick);
+		accessor.callAddShapedRecipe(new ItemStack(BaseBlock.TORCH, 4), "X", "#", 'X', new ItemStack(BaseItem.coal, 1, 1), '#', BaseItem.stick);
+		accessor.callAddShapedRecipe(new ItemStack(BaseItem.bowl, 4), "# #", " # ", '#', BaseBlock.WOOD);
+		accessor.callAddShapedRecipe(new ItemStack(BaseBlock.RAIL, 16), "X X", "X#X", "X X", 'X', BaseItem.ironIngot, '#', BaseItem.stick);
+		accessor.callAddShapedRecipe(new ItemStack(BaseBlock.GOLDEN_RAIL, 6), "X X", "X#X", "XRX", 'X', BaseItem.goldIngot, 'R', BaseItem.redstoneDust, '#', BaseItem.stick);
+		accessor.callAddShapedRecipe(new ItemStack(BaseBlock.DETECTOR_RAIL, 6), "X X", "X#X", "XRX", 'X', BaseItem.ironIngot, 'R', BaseItem.redstoneDust, '#', BaseBlock.WOODEN_PRESSURE_PLATE);
+		accessor.callAddShapedRecipe(new ItemStack(BaseItem.minecart, 1), "# #", "###", '#', BaseItem.ironIngot);
+		accessor.callAddShapedRecipe(new ItemStack(BaseBlock.JACK_O_LANTERN, 1), "A", "B", 'A', BaseBlock.PUMPKIN, 'B', BaseBlock.TORCH);
+		accessor.callAddShapedRecipe(new ItemStack(BaseItem.minecartChest, 1), "A", "B", 'A', BaseBlock.CHEST, 'B', BaseItem.minecart);
+		accessor.callAddShapedRecipe(new ItemStack(BaseItem.minecartFurnace, 1), "A", "B", 'A', BaseBlock.FURNACE, 'B', BaseItem.minecart);
+		accessor.callAddShapedRecipe(new ItemStack(BaseItem.boat, 1), "# #", "###", '#', BaseBlock.WOOD);
+		accessor.callAddShapedRecipe(new ItemStack(BaseItem.bucket, 1), "# #", " # ", '#', BaseItem.ironIngot);
+		accessor.callAddShapedRecipe(new ItemStack(BaseItem.flintAndSteel, 1), "A ", " B", 'A', BaseItem.ironIngot, 'B', BaseItem.flint);
+		accessor.callAddShapedRecipe(new ItemStack(BaseItem.bread, 1), "###", '#', BaseItem.wheat);
+		accessor.callAddShapedRecipe(new ItemStack(BaseBlock.WOOD_STAIRS, 4), "#  ", "## ", "###", '#', BaseBlock.WOOD);
+		accessor.callAddShapedRecipe(new ItemStack(BaseItem.fishingRod, 1), "  #", " #X", "# X", '#', BaseItem.stick, 'X', BaseItem.string);
+		accessor.callAddShapedRecipe(new ItemStack(BaseBlock.COBBLESTONE_STAIRS, 4), "#  ", "## ", "###", '#', BaseBlock.COBBLESTONE);
+		accessor.callAddShapedRecipe(new ItemStack(BaseItem.painting, 1), "###", "#X#", "###", '#', BaseItem.stick, 'X', BaseBlock.WOOL);
+		accessor.callAddShapedRecipe(new ItemStack(BaseItem.goldenApple, 1), "###", "#X#", "###", '#', BaseBlock.GOLD_BLOCK, 'X', BaseItem.apple);
+		accessor.callAddShapedRecipe(new ItemStack(BaseBlock.LEVER, 1), "X", "#", '#', BaseBlock.COBBLESTONE, 'X', BaseItem.stick);
+		accessor.callAddShapedRecipe(new ItemStack(BaseBlock.REDSTONE_TORCH_LIT, 1), "X", "#", '#', BaseItem.stick, 'X', BaseItem.redstoneDust);
+		accessor.callAddShapedRecipe(new ItemStack(BaseItem.redstoneRepeater, 1), "#X#", "III", '#', BaseBlock.REDSTONE_TORCH_LIT, 'X', BaseItem.redstoneDust, 'I', BaseBlock.STONE);
+		accessor.callAddShapedRecipe(new ItemStack(BaseItem.clock, 1), " # ", "#X#", " # ", '#', BaseItem.goldIngot, 'X', BaseItem.redstoneDust);
+		accessor.callAddShapedRecipe(new ItemStack(BaseItem.compass, 1), " # ", "#X#", " # ", '#', BaseItem.ironIngot, 'X', BaseItem.redstoneDust);
+		accessor.callAddShapedRecipe(new ItemStack(BaseItem.map, 1), "###", "#X#", "###", '#', BaseItem.paper, 'X', BaseItem.compass);
+		accessor.callAddShapedRecipe(new ItemStack(BaseBlock.BUTTON, 1), "#", "#", '#', BaseBlock.STONE);
+		accessor.callAddShapedRecipe(new ItemStack(BaseBlock.WOODEN_PRESSURE_PLATE, 1), "##", '#', BaseBlock.STONE);
+		accessor.callAddShapedRecipe(new ItemStack(BaseBlock.STONE_PRESSURE_PLATE, 1), "##", '#', BaseBlock.WOOD);
+		accessor.callAddShapedRecipe(new ItemStack(BaseBlock.DISPENSER, 1), "###", "#X#", "#R#", '#', BaseBlock.COBBLESTONE, 'X', BaseItem.bow, 'R', BaseItem.redstoneDust);
+		accessor.callAddShapedRecipe(new ItemStack(BaseBlock.PISTON, 1), "TTT", "#X#", "#R#", '#', BaseBlock.COBBLESTONE, 'X', BaseItem.ironIngot, 'R', BaseItem.redstoneDust, 'T', BaseBlock.WOOD);
+		accessor.callAddShapedRecipe(new ItemStack(BaseBlock.STICKY_PISTON, 1), "S", "P", 'S', BaseItem.slimeball, 'P', BaseBlock.PISTON);
+		accessor.callAddShapedRecipe(new ItemStack(BaseItem.bed, 1), "###", "XXX", '#', BaseBlock.WOOL, 'X', BaseBlock.WOOD);
+	}
+	
 	private static void initEvents() {
 		EVENT_REGISTRY.put(StartupEvent.class, StartupEvent::new);
 		EVENT_REGISTRY.put(BlockRegistryEvent.class, () -> new BlockRegistryEvent(BLOCK_REGISTRY));
 		EVENT_REGISTRY.put(ItemRegistryEvent.class, () -> new ItemRegistryEvent(ITEM_REGISTRY));
 		EVENT_REGISTRY.put(AfterBlockAndItemsEvent.class, AfterBlockAndItemsEvent::new);
+		EVENT_REGISTRY.put(RecipeRegistryEvent.class, () -> new RecipeRegistryEvent(RecipeRegistry.getInstance()));
 		if (BHAPI.isServer()) {
 			EVENT_REGISTRY.put(CommandRegistryEvent.class, () -> new CommandRegistryEvent(COMMAND_REGISTRY));
 		}

@@ -7,6 +7,7 @@ import net.bhapi.client.render.texture.TextureAtlas;
 import net.bhapi.client.render.texture.Textures;
 import net.bhapi.client.render.texture.UVPair;
 import net.bhapi.item.BHBlockItem;
+import net.bhapi.item.BHItemRender;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.render.OverlaysRenderer;
 import net.minecraft.client.render.RenderHelper;
@@ -224,8 +225,9 @@ public abstract class OverlaysRendererMixin {
 			float delta;
 			int count;
 			
-			int n2 = entity.getTexture(stack);
-			UVPair uv = atlas.getUV(n2);
+			UVPair uv;
+			if (item instanceof BHItemRender) uv = BHItemRender.cast(item).getTextureForIndex(stack).getUV();
+			else uv = atlas.getUV(entity.getTexture(stack));
 			
 			float u1 = uv.getU(0);
 			float u2 = uv.getU(1);

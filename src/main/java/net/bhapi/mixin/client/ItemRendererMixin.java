@@ -34,8 +34,6 @@ public abstract class ItemRendererMixin extends EntityRenderer {
 	@Shadow private BlockRenderer internalBlockRenderer;
 	@Shadow private Random rand;
 	
-	@Shadow public abstract void renderRectangle(int i, int j, int k, int l, int m, int n);
-	
 	@Unique private BlockItemView bhapi_itemView = new BlockItemView();
 	@Unique private ItemStack bhapi_renderingStack;
 	
@@ -162,8 +160,10 @@ public abstract class ItemRendererMixin extends EntityRenderer {
 			GL11.glScalef(0.5f, 0.5f, 0.5f);
 			int texture = entity.stack.getTexturePosition();
 			Textures.getAtlas().bind();
-			UVPair uv = Textures.getAtlas().getUV(texture);
-			Tessellator tessellator = Tessellator.INSTANCE;
+			
+			UVPair uv;
+			if (item instanceof BHItemRender) uv = BHItemRender.cast(item).getTextureForIndex(entity.stack).getUV();
+			else uv = Textures.getAtlas().getUV(texture);
 			
 			float u1 = uv.getU(0);
 			float u2 = uv.getU(1);
@@ -188,6 +188,8 @@ public abstract class ItemRendererMixin extends EntityRenderer {
 					GL11.glTranslatef(r, g, b);
 				}
 				GL11.glRotatef(180.0f - this.dispatcher.angle, 0.0f, 1.0f, 0.0f);
+				
+				Tessellator tessellator = Tessellator.INSTANCE;
 				tessellator.start();
 				tessellator.setNormal(0.0F, 1.0F, 0.0F);
 				tessellator.vertex(-0.5F, -0.25F, 0.0, u1, v2);
@@ -195,6 +197,7 @@ public abstract class ItemRendererMixin extends EntityRenderer {
 				tessellator.vertex(0.5F, 0.75F, 0.0, u2, v1);
 				tessellator.vertex(-0.5F, 0.75F, 0.0, u1, v1);
 				tessellator.draw();
+				
 				GL11.glPopMatrix();
 			}
 		}

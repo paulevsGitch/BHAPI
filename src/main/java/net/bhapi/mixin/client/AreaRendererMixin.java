@@ -107,7 +107,6 @@ public abstract class AreaRendererMixin {
 							continue;
 						}
 						
-						//bl2 |= renderer.render(baseBlock, px, py, pz);
 						layerHasData |= BHBlockRenderer.render(state, px, py, pz);
 					}
 				}

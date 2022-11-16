@@ -125,7 +125,7 @@ public class BHBlockRenderer {
 	
 	public static boolean render(BlockState state, int x, int y, int z) {
 		byte type = state.getRenderType(view, x, y, z);
-		if (type == BlockRenderTypes.EMPTY) return true;
+		if (type == BlockRenderTypes.EMPTY) return false;
 		if (type == BlockRenderTypes.FULL_CUBE) return renderFullCube(state, x, y, z);
 		if (type == BlockRenderTypes.CUSTOM) return true; // TODO make custom rendering
 		else if (BlockRenderTypes.isVanilla(type)) {
@@ -164,7 +164,7 @@ public class BHBlockRenderer {
 	
 	private static boolean renderSmooth(BlockState state, int x, int y, int z, float f, float g, float h) {
 		BaseBlock block = state.getBlock();
-		int n;
+		
 		shadeTopFace = true;
 		boolean result = false;
 		float f2, f3, f4, f5;

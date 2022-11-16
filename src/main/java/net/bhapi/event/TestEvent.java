@@ -1,5 +1,6 @@
 package net.bhapi.event;
 
+import net.bhapi.BHAPI;
 import net.bhapi.block.BHBaseBlock;
 import net.bhapi.blockstate.BlockState;
 import net.bhapi.client.TestClientEvent;
@@ -7,8 +8,10 @@ import net.bhapi.client.render.block.BHBlockRender;
 import net.bhapi.client.render.texture.TextureSample;
 import net.bhapi.item.BHBasicItem;
 import net.bhapi.item.BHBlockItem;
+import net.bhapi.recipe.RecipeBuilder;
 import net.bhapi.registry.CommonRegistries;
 import net.bhapi.util.Identifier;
+import net.bhapi.util.ItemUtil;
 import net.minecraft.block.BaseBlock;
 import net.minecraft.block.BlockSounds;
 import net.minecraft.block.material.Material;
@@ -37,8 +40,18 @@ public class TestEvent {
 	
 	@EventListener // Test Items
 	public void registerItems(ItemRegistryEvent event) {
+		BHAPI.log("Adding items");
 		event.register(Identifier.make("testitem"), new BHBasicItem(Identifier.make("terrain_1")));
 		BLOCKS.forEach((id, block) -> event.register(id, new BHBlockItem(block, false)));
+	}
+	
+	@EventListener // Test Items
+	public void registerRecipes(RecipeRegistryEvent event) {
+		BHAPI.log("Adding recipes");
+		RecipeBuilder.start(ItemUtil.makeStack(Identifier.make("testblock")))
+			.setShape("##", "##")
+			.addIngredient('#', ItemUtil.makeStack(Identifier.make("dirt")))
+			.build(event.getRegistry());
 	}
 	
 	private class TestBlock extends BHBaseBlock implements BHBlockRender {
