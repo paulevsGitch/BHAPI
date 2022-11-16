@@ -105,7 +105,8 @@ public class BHBlockRenderer {
 	}
 	
 	public static void renderItem(BlockState state, boolean colorizeItem, float light) {
-		Tessellator.INSTANCE.start();
+		Tessellator tessellator = Tessellator.INSTANCE;
+		tessellator.start();
 		item = true;
 		
 		if (colorizeItem) {
@@ -120,7 +121,7 @@ public class BHBlockRenderer {
 		renderAllSides(state, 0, 0, 0);
 		
 		item = false;
-		Tessellator.INSTANCE.draw();
+		tessellator.draw();
 	}
 	
 	public static boolean render(BlockState state, int x, int y, int z) {
@@ -185,18 +186,18 @@ public class BHBlockRenderer {
 		
 		if (view instanceof BlockStateProvider) {
 			BlockStateProvider provider = BlockStateProvider.cast(view);
-			allowsGrassUnderTopSouth = provider.getBlockState(x + 1, y + 1, z).allowsGrasUnder();
-			allowsGrassUnderBottomSouth = provider.getBlockState(x + 1, y - 1, z).allowsGrasUnder();
-			allowsGrassUnderSouthWest = provider.getBlockState(x + 1, y, z + 1).allowsGrasUnder();
-			allowsGrassUnderSouthEast = provider.getBlockState(x + 1, y, z - 1).allowsGrasUnder();
-			allowsGrassUnderTopNorth = provider.getBlockState(x - 1, y + 1, z).allowsGrasUnder();
-			allowsGrassUnderBottomNorth = provider.getBlockState(x - 1, y - 1, z).allowsGrasUnder();
-			allowsGrassUnderNorthEast = provider.getBlockState(x - 1, y, z - 1).allowsGrasUnder();
-			allowsGrassUnderNorthWest = provider.getBlockState(x - 1, y, z + 1).allowsGrasUnder();
-			allowsGrassUnderTopWest = provider.getBlockState(x, y + 1, z + 1).allowsGrasUnder();
-			allowsGrassUnderTopEast = provider.getBlockState(x, y + 1, z - 1).allowsGrasUnder();
-			allowsGrassUnderBottomWest = provider.getBlockState(x, y - 1, z + 1).allowsGrasUnder();
-			allowsGrassUnderBottomEast = provider.getBlockState(x, y - 1, z - 1).allowsGrasUnder();
+			allowsGrassUnderTopSouth = provider.getBlockState(x + 1, y + 1, z).isAir();
+			allowsGrassUnderBottomSouth = provider.getBlockState(x + 1, y - 1, z).isAir();
+			allowsGrassUnderSouthWest = provider.getBlockState(x + 1, y, z + 1).isAir();
+			allowsGrassUnderSouthEast = provider.getBlockState(x + 1, y, z - 1).isAir();
+			allowsGrassUnderTopNorth = provider.getBlockState(x - 1, y + 1, z).isAir();
+			allowsGrassUnderBottomNorth = provider.getBlockState(x - 1, y - 1, z).isAir();
+			allowsGrassUnderNorthEast = provider.getBlockState(x - 1, y, z - 1).isAir();
+			allowsGrassUnderNorthWest = provider.getBlockState(x - 1, y, z + 1).isAir();
+			allowsGrassUnderTopWest = provider.getBlockState(x, y + 1, z + 1).isAir();
+			allowsGrassUnderTopEast = provider.getBlockState(x, y + 1, z - 1).isAir();
+			allowsGrassUnderBottomWest = provider.getBlockState(x, y - 1, z + 1).isAir();
+			allowsGrassUnderBottomEast = provider.getBlockState(x, y - 1, z - 1).isAir();
 		}
 		
 		if (block.texture == 3) {

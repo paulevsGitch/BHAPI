@@ -45,12 +45,18 @@ public class TestEvent {
 		BLOCKS.forEach((id, block) -> event.register(id, new BHBlockItem(block, false)));
 	}
 	
-	@EventListener // Test Items
+	@EventListener // Test Recipes
 	public void registerRecipes(RecipeRegistryEvent event) {
-		BHAPI.log("Adding recipes");
+		BHAPI.log("Adding shaped recipe");
 		RecipeBuilder.start(ItemUtil.makeStack(Identifier.make("testblock")))
 			.setShape("##", "##")
 			.addIngredient('#', ItemUtil.makeStack(Identifier.make("dirt")))
+			.build(event.getRegistry());
+		
+		BHAPI.log("Adding shapeless recipe");
+		RecipeBuilder.start(ItemUtil.makeStack(Identifier.make("testblock3")))
+			.addIngredient(ItemUtil.makeStack(Identifier.make("testblock")))
+			.addIngredient(ItemUtil.makeStack(Identifier.make("testblock2")))
 			.build(event.getRegistry());
 	}
 	

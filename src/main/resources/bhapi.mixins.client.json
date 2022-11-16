@@ -19,6 +19,8 @@
 		"PlayerRendererMixin",
 		"BlockRendererMixin",
 		"LevelRendererMixin",
+		"TesselatorAccessor",
+		"BaseParticleMixin",
 		"ItemRendererMixin",
 		"AreaRendererMixin",
 		"BaseItemAccessor",

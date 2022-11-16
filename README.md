@@ -12,12 +12,14 @@ Documentation is not available yet, but there are javadocs in the code.
 - Worlds with large heights
 - Registries
 - Blockstates
-- Custom Blocks
-- Custom Items
-- Custom Commands
+- Custom blocks
+- Custom items
+- Custom commands
+- Custom recipes
 - Events (only startup, 3 types)
 - Configs
 - Multithreading (Configurable)
+- Texture atlas (for blocks, items and particles)
 
 ### Fixes:
 - Custom proxy ([Betacraft](https://betacraft.uk/)), should fix missing sounds (Configurable)
@@ -25,7 +27,6 @@ Documentation is not available yet, but there are javadocs in the code.
 - Fixed startup errors related to outdated controllers code and missing library path
 
 ### Planned Things:
-- Texture atlas (will use [CoreLib](https://github.com/paulevsGitch/B.1.7.3-CoreLib) implementation)
 - Custom block rendering and models (Vanilla, Modern, OBJ and procedural)
 - Dimensions API
 - Fuel API (partially implemented)
