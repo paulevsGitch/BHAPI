@@ -8,6 +8,7 @@ import net.bhapi.level.BlockStateProvider;
 import net.bhapi.level.ChunkSection;
 import net.bhapi.level.ChunkSectionProvider;
 import net.bhapi.level.LevelHeightProvider;
+import net.bhapi.storage.Vec3I;
 import net.bhapi.util.BlockUtil;
 import net.bhapi.util.MathUtil;
 import net.fabricmc.api.EnvType;
@@ -22,7 +23,6 @@ import net.minecraft.level.chunk.Chunk;
 import net.minecraft.level.storage.NibbleArray;
 import net.minecraft.util.io.CompoundTag;
 import net.minecraft.util.io.ListTag;
-import net.minecraft.util.maths.BlockPos;
 import net.minecraft.util.maths.Box;
 import net.minecraft.util.maths.MathHelper;
 import org.spongepowered.asm.mixin.Final;
@@ -373,16 +373,15 @@ public abstract class ChunkMixin implements NBTSerializable, LevelHeightProvider
 			return;
 		}
 		
-		BlockPos pos = new BlockPos(x, y & 15, z);
+		Vec3I pos = new Vec3I(x, y & 15, z);
 		BaseBlockEntity entity = section.getBlockEntity(pos);
 		if (entity == null) {
-			int blockID = this.getBlockId(x, y, z);
-			if (!BaseBlock.HAS_TILE_ENTITY[blockID]) {
+			BlockState state = getBlockState(x, y, z);
+			if (!state.hasBlockEntity() || !(state.getBlock() instanceof BlockWithEntity block)) {
 				info.setReturnValue(null);
 				return;
 			}
-			BlockWithEntity blockWithEntity = (BlockWithEntity) BaseBlock.BY_ID[blockID];
-			blockWithEntity.onBlockPlaced(this.level, this.x << 4 | x, y, this.z << 4 | z);
+			block.onBlockPlaced(this.level, this.x << 4 | x, y, this.z << 4 | z);
 			entity = section.getBlockEntity(pos);
 		}
 		
@@ -404,15 +403,19 @@ public abstract class ChunkMixin implements NBTSerializable, LevelHeightProvider
 			return;
 		}
 		
-		BlockPos pos = new BlockPos(x, y & 15, z);
+		Vec3I pos = new Vec3I(x, y & 15, z);
 		entity.level = this.level;
 		entity.x = this.x << 4 | x;
 		entity.y = y;
 		entity.z = this.z << 4 | z;
-		if (this.getBlockId(x, y, z) == 0 || !(BaseBlock.BY_ID[this.getBlockId(x, y, z)] instanceof BlockWithEntity)) {
+		
+		BlockState state = getBlockState(x, y, z);
+		
+		if (!state.hasBlockEntity() || !(state.getBlock() instanceof BlockWithEntity)) {
 			BHAPI.log("Attempted to place a tile entity where there was no entity tile!");
 			return;
 		}
+		
 		entity.validate();
 		section.setBlockEntity(pos, entity);
 	}
@@ -426,7 +429,7 @@ public abstract class ChunkMixin implements NBTSerializable, LevelHeightProvider
 			return;
 		}
 		
-		BlockPos pos = new BlockPos(x, y & 15, z);
+		Vec3I pos = new Vec3I(x, y & 15, z);
 		BaseBlockEntity entity = section.getBlockEntity(pos);
 		if (entity != null) entity.invalidate();
 		section.removeBlockEntity(pos);

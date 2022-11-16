@@ -16,7 +16,7 @@ public class BlockItemView implements BlockView {
 	
 	@Override
 	public int getBlockId(int i, int j, int k) {
-		return state.getBlock().id;
+		return state == null ? 0 : state.getBlock().id;
 	}
 	
 	@Override
@@ -41,17 +41,17 @@ public class BlockItemView implements BlockView {
 	
 	@Override
 	public Material getMaterial(int i, int j, int k) {
-		return state.getMaterial();
+		return state == null ? Material.AIR : state.getMaterial();
 	}
 	
 	@Override
 	public boolean isFullOpaque(int i, int j, int k) {
-		return state.isFullOpaque();
+		return state != null && state.isFullOpaque();
 	}
 	
 	@Override
 	public boolean canSuffocate(int i, int j, int k) {
-		return state.isFullOpaque();
+		return false;
 	}
 	
 	@Override

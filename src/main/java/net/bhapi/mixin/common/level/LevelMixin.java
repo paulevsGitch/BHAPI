@@ -648,6 +648,24 @@ public abstract class LevelMixin implements LevelHeightProvider, BlockStateProvi
 		info.setReturnValue(-1);
 	}
 	
+	@Inject(method = "getMaterial(III)Lnet/minecraft/block/material/Material;", at = @At("HEAD"), cancellable = true)
+	private void bhapi_getMaterial(int x, int y, int z, CallbackInfoReturnable<Material> info) {
+		BlockState state = getBlockState(x, y, z);
+		info.setReturnValue(state.getMaterial());
+	}
+	
+	@Inject(method = "isFullOpaque", at = @At("HEAD"), cancellable = true)
+	private void bhapi_isFullOpaque(int x, int y, int z, CallbackInfoReturnable<Boolean> info) {
+		BlockState state = getBlockState(x, y, z);
+		info.setReturnValue(state.isFullOpaque());
+	}
+	
+	@Inject(method = "canSuffocate", at = @At("HEAD"), cancellable = true)
+	private void bhapi_canSuffocate(int x, int y, int z, CallbackInfoReturnable<Boolean> info) {
+		BlockState state = getBlockState(x, y, z);
+		info.setReturnValue(state.getMaterial().hasNoSuffocation() && state.getBlock().isFullCube());
+	}
+	
 	@ModifyConstant(method = {
 		"getBlockId(III)I",
 		"isBlockLoaded(III)Z",

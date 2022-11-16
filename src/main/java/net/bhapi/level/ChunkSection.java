@@ -7,6 +7,7 @@ import net.bhapi.blockstate.properties.StateProperty;
 import net.bhapi.interfaces.NBTSerializable;
 import net.bhapi.registry.CommonRegistries;
 import net.bhapi.storage.MultiThreadStorage;
+import net.bhapi.storage.Vec3I;
 import net.bhapi.util.BlockUtil;
 import net.bhapi.util.MathUtil;
 import net.minecraft.block.entity.BaseBlockEntity;
@@ -16,18 +17,17 @@ import net.minecraft.level.Level;
 import net.minecraft.level.LightType;
 import net.minecraft.util.io.CompoundTag;
 import net.minecraft.util.io.ListTag;
-import net.minecraft.util.maths.BlockPos;
 
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 public class ChunkSection implements NBTSerializable {
 	public static final ChunkSection EMPTY = new ChunkSection();
 	private static final MultiThreadStorage<StatesLoader> LOADERS = new MultiThreadStorage<>(StatesLoader::new);
-	private final Map<BlockPos, BaseBlockEntity> blockEntities = new HashMap();
+	private final Map<Vec3I, BaseBlockEntity> blockEntities = new ConcurrentHashMap<>();
 	private final BlockState[] states = new BlockState[4096];
 	private final byte[] light = new byte[4096];
 	
@@ -63,15 +63,15 @@ public class ChunkSection implements NBTSerializable {
 		}
 	}
 	
-	public BaseBlockEntity getBlockEntity(BlockPos pos) {
+	public BaseBlockEntity getBlockEntity(Vec3I pos) {
 		return blockEntities.get(pos);
 	}
 	
-	public void setBlockEntity(BlockPos pos, BaseBlockEntity entity) {
+	public void setBlockEntity(Vec3I pos, BaseBlockEntity entity) {
 		blockEntities.put(pos, entity);
 	}
 	
-	public void removeBlockEntity(BlockPos pos) {
+	public void removeBlockEntity(Vec3I pos) {
 		blockEntities.remove(pos);
 	}
 	
@@ -181,7 +181,7 @@ public class ChunkSection implements NBTSerializable {
 				CompoundTag entityTag = (CompoundTag) listTag.get(i);
 				BaseBlockEntity blockEntity = BaseBlockEntity.tileEntityFromNBT(entityTag);
 				if (blockEntity == null) continue;
-				BlockPos pos = new BlockPos(blockEntity.x, blockEntity.y, blockEntity.z);
+				Vec3I pos = new Vec3I(blockEntity.x & 15, blockEntity.y & 15, blockEntity.z & 15);
 				blockEntity.level = level;
 				blockEntities.put(pos, blockEntity);
 			}

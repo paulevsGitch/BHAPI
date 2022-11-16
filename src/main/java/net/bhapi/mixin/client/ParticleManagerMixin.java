@@ -21,6 +21,7 @@ import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
+import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -175,7 +176,8 @@ public abstract class ParticleManagerMixin {
 		this.addParticle(particle);
 	}
 	
-	public String asString() {
-		return "" + (this.renderLayers[0].size() + this.renderLayers[1].size() + this.renderLayers[2].size());
+	@Inject(method = "asString", at = @At("HEAD"), cancellable = true)
+	private void bhapi_asString(CallbackInfoReturnable<String> info) {
+		info.setReturnValue(bhapi_particles.size() + " " + bhapi_items.size());
 	}
 }
