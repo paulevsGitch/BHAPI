@@ -15,13 +15,11 @@
 		"TextureManagerAccessor",
 		"OverlaysRendererMixin",
 		"BaseBlockEntityMixin",
-		"DiggingParticleMixin",
 		"ParticleManagerMixin",
 		"TextureManagerMixin",
 		"PlayerRendererMixin",
 		"BlockRendererMixin",
 		"LevelRendererMixin",
-		"BaseParticleMixin",
 		"ItemRendererMixin",
 		"AreaRendererMixin",
 		"BaseItemAccessor",
@@ -29,7 +27,11 @@
 		"MinecraftMixin",
 		"MainMenuMixin",
 		"InGameMixin",
-		"LevelMixin"
+		"LevelMixin",
+		
+		"particle.DiggingParticleMixin",
+		"particle.BubbleParticleMixin",
+		"particle.BaseParticleMixin"
 	],
 	"injectors": {
 		"defaultRequire": 1

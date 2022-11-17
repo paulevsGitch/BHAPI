@@ -1,5 +1,6 @@
 package net.bhapi.block;
 
+import net.bhapi.blockstate.BlockStateContainer;
 import net.bhapi.util.BlockUtil;
 import net.minecraft.block.BaseBlock;
 import net.minecraft.block.material.Material;
@@ -8,7 +9,7 @@ import net.minecraft.level.Level;
 
 import java.util.List;
 
-public class BHBaseBlock extends BaseBlock implements CustomDropProvider {
+public class BHBaseBlock extends BaseBlock implements CustomDropProvider, BlockStateContainer {
 	public BHBaseBlock(Material material) {
 		super(BlockUtil.MOD_BLOCK_ID, material);
 	}

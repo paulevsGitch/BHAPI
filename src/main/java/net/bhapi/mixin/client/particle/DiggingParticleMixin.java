@@ -1,4 +1,4 @@
-package net.bhapi.mixin.client;
+package net.bhapi.mixin.client.particle;
 
 import net.bhapi.client.render.texture.TextureSample;
 import net.bhapi.client.render.texture.TextureSampleProvider;

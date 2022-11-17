@@ -15,6 +15,7 @@ import net.minecraft.entity.BaseEntity;
 import net.minecraft.entity.BaseParticle;
 import net.minecraft.level.Level;
 import net.minecraft.util.maths.MathHelper;
+import org.lwjgl.opengl.GL11;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.Unique;
@@ -38,6 +39,7 @@ public abstract class ParticleManagerMixin {
 	
 	@Unique private final List<BaseParticle> bhapi_particles = new ArrayList<>(4096);
 	@Unique private final List<BaseParticle> bhapi_items = new ArrayList<>(16);
+	@Unique private byte bhapi_sortTicks;
 	
 	@Inject(method = "<init>", at = @At("TAIL"))
 	private void bhapi_onParticleManagerInit(Level level, TextureManager manager, CallbackInfo info) {
@@ -98,9 +100,19 @@ public abstract class ParticleManagerMixin {
 		BaseParticle.posZ = entity.prevRenderZ + (entity.z - entity.prevRenderZ) * delta;
 		Textures.getAtlas().bind();
 		Tessellator tessellator = Tessellator.INSTANCE;
+		GL11.glEnable(GL11.GL_BLEND);
 		tessellator.start();
+		if (bhapi_sortTicks++ > 4) {
+			bhapi_sortTicks = 0;
+			bhapi_particles.sort((p1, p2) -> {
+				double d1 = p1.getDistanceSqr(entity);
+				double d2 = p2.getDistanceSqr(entity);
+				return Double.compare(d2, d1);
+			});
+		}
 		bhapi_particles.forEach(p -> p.render(tessellator, delta, dx, dy, dz, width, height));
 		tessellator.draw();
+		GL11.glDisable(GL11.GL_BLEND);
 	}
 	
 	@Inject(method = "render", at = @At("HEAD"), cancellable = true)
