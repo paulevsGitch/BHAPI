@@ -89,19 +89,18 @@ public abstract class ParticleManagerMixin {
 	private void bhapi_renderAll(BaseEntity entity, float delta, CallbackInfo info) {
 		info.cancel();
 		if (bhapi_particles.isEmpty()) return;
+		
 		float coef = (float) Math.PI / 180.0F;
 		float dx = MathHelper.cos(entity.yaw * coef);
 		float dz = MathHelper.sin(entity.yaw * coef);
 		float width = -dz * MathHelper.sin(entity.pitch * coef);
 		float height = dx * MathHelper.sin(entity.pitch *coef);
 		float dy = MathHelper.cos(entity.pitch * coef);
+		
 		BaseParticle.posX = entity.prevRenderX + (entity.x - entity.prevRenderX) * delta;
 		BaseParticle.posY = entity.prevRenderY + (entity.y - entity.prevRenderY) * delta;
 		BaseParticle.posZ = entity.prevRenderZ + (entity.z - entity.prevRenderZ) * delta;
-		Textures.getAtlas().bind();
-		Tessellator tessellator = Tessellator.INSTANCE;
-		GL11.glEnable(GL11.GL_BLEND);
-		tessellator.start();
+		
 		if (bhapi_sortTicks++ > 4) {
 			bhapi_sortTicks = 0;
 			bhapi_particles.sort((p1, p2) -> {
@@ -110,6 +109,13 @@ public abstract class ParticleManagerMixin {
 				return Double.compare(d2, d1);
 			});
 		}
+		
+		Textures.getAtlas().bind();
+		Tessellator tessellator = Tessellator.INSTANCE;
+		GL11.glEnable(GL11.GL_BLEND);
+		GL11.glEnable(GL11.GL_ALPHA_TEST);
+		GL11.glBlendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE_MINUS_SRC_ALPHA);
+		tessellator.start();
 		bhapi_particles.forEach(p -> p.render(tessellator, delta, dx, dy, dz, width, height));
 		tessellator.draw();
 		GL11.glDisable(GL11.GL_BLEND);
