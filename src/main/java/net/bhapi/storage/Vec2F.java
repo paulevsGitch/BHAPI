@@ -34,6 +34,10 @@ public class Vec2F {
 		return add(vector.x, vector.y);
 	}
 	
+	public Vec2F set(float value) {
+		return set(value, value);
+	}
+	
 	public Vec2F set(float x, float y) {
 		this.x = x;
 		this.y = y;

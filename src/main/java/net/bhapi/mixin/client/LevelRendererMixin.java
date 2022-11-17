@@ -2,6 +2,7 @@ package net.bhapi.mixin.client;
 
 import net.bhapi.blockstate.BlockState;
 import net.bhapi.client.render.block.BHBlockRenderer;
+import net.bhapi.client.render.block.BreakInfo;
 import net.bhapi.client.render.texture.Textures;
 import net.bhapi.level.BlockStateProvider;
 import net.bhapi.level.LevelHeightProvider;
@@ -127,6 +128,8 @@ public abstract class LevelRendererMixin implements LevelHeightProvider {
 			int stage = (int) (this.blockBreakDelta * 10.0F);
 			int texture = Textures.getBlockBreaking(stage);
 			GL11.glBindTexture(GL11.GL_TEXTURE_2D, texture);
+			BreakInfo.stage = stage;
+			BreakInfo.POS.set(hit.x, hit.y, hit.z);
 			
 			GL11.glColor4f(1.0f, 1.0f, 1.0f, 0.5f);
 			GL11.glPushMatrix();
@@ -159,6 +162,9 @@ public abstract class LevelRendererMixin implements LevelHeightProvider {
 			
 			GL11.glDepthMask(true);
 			GL11.glPopMatrix();
+		}
+		else {
+			BreakInfo.stage = -1;
 		}
 		
 		GL11.glDisable(GL11.GL_BLEND);

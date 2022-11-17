@@ -56,4 +56,9 @@ public class BHAirBlock extends BHBaseBlock implements BlockStateContainer {
 	
 	@Override
 	public void getCustomDrop(Level level, int x, int y, int z, List<ItemStack> drop) {}
+	
+	@Override
+	public int getLightOpacity(BlockState state) {
+		return 0;
+	}
 }

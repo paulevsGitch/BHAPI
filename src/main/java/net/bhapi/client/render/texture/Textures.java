@@ -12,6 +12,7 @@ import net.minecraft.client.render.TextureBinder;
 import net.minecraft.item.BaseItem;
 import org.lwjgl.opengl.GL11;
 
+import java.awt.Graphics;
 import java.awt.image.BufferedImage;
 import java.nio.IntBuffer;
 import java.util.Arrays;
@@ -32,6 +33,9 @@ public class Textures {
 	};
 	
 	private static final TextureSample[] VANILLA_BLOCKS = new TextureSample[256];
+	private static final Map<Byte, boolean[]> BREAKING_EXIST = new HashMap<>();
+	private static final Map<Byte, int[]> BREAKING_SCALED = new HashMap<>();
+	private static final BufferedImage[] BREAKING_CACHE = new BufferedImage[10];
 	private static final int[] BREAKING = new int[10];
 	private static TextureAtlas atlas;
 	private static TextureSample empty;
@@ -54,8 +58,8 @@ public class Textures {
 			int height = terrain.getHeight() / 16;
 			int x = ((240 + index) & 15) * width;
 			int y = ((240 + index) / 16) * height;
-			BufferedImage sub = terrain.getSubimage(x, y, width, height);
-			BREAKING[index] = BHAPIClient.getMinecraft().textureManager.bindImage(sub);
+			BREAKING_CACHE[index] = terrain.getSubimage(x, y, width, height);
+			BREAKING[index] = BHAPIClient.getMinecraft().textureManager.bindImage(BREAKING_CACHE[index]);
 			GL11.glBindTexture(GL11.GL_TEXTURE_2D, BREAKING[index]);
 			GL11.glTexParameterf(GL11.GL_TEXTURE_2D, GL11.GL_TEXTURE_WRAP_S, GL11.GL_REPEAT);
 			GL11.glTexParameterf(GL11.GL_TEXTURE_2D, GL11.GL_TEXTURE_WRAP_T, GL11.GL_REPEAT);
@@ -101,14 +105,15 @@ public class Textures {
 			int height = terrain.getHeight() / 16;
 			int x = ((240 + index) & 15) * width;
 			int y = ((240 + index) / 16) * height;
-			BufferedImage sub = terrain.getSubimage(x, y, width, height);
-			BHAPIClient.getMinecraft().textureManager.bindImage(sub, BREAKING[index]);
+			BREAKING_CACHE[index] = terrain.getSubimage(x, y, width, height);
+			BHAPIClient.getMinecraft().textureManager.bindImage(BREAKING_CACHE[index], BREAKING[index]);
 			GL11.glBindTexture(GL11.GL_TEXTURE_2D, BREAKING[index]);
 			GL11.glTexParameterf(GL11.GL_TEXTURE_2D, GL11.GL_TEXTURE_WRAP_S, GL11.GL_REPEAT);
 			GL11.glTexParameterf(GL11.GL_TEXTURE_2D, GL11.GL_TEXTURE_WRAP_T, GL11.GL_REPEAT);
 		});
 		
 		atlas.rebuild(LOADED_TEXTURES);
+		BREAKING_EXIST.clear();
 		building = false;
 	}
 	
@@ -127,6 +132,28 @@ public class Textures {
 	
 	public static int getBlockBreaking(int stage) {
 		return BREAKING[stage];
+	}
+	
+	public static int getBlockBreaking(int stage, int width, int height) {
+		byte index = (byte) (width << 4 | height);
+		int[] textures = BREAKING_SCALED.computeIfAbsent(index, i -> new int[10]);
+		boolean[] exist = BREAKING_EXIST.computeIfAbsent(index, i -> new boolean[10]);
+		if (textures[stage] == 0 || !exist[stage]) {
+			BufferedImage cache = BREAKING_CACHE[stage];
+			BufferedImage breaking = ImageUtil.makeImage(width * cache.getWidth(), height * cache.getHeight());
+			Graphics g = breaking.getGraphics();
+			for (int x = 0; x < breaking.getWidth(); x += cache.getWidth()) {
+				for (int y = 0; y < breaking.getHeight(); y += cache.getHeight()) {
+					g.drawImage(cache, x, y, null);
+				}
+			}
+			if (textures[stage] > 0) {
+				BHAPIClient.getMinecraft().textureManager.bindImage(breaking, textures[stage]);
+			}
+			else textures[stage] = BHAPIClient.getMinecraft().textureManager.bindImage(breaking);
+			exist[stage] = true;
+		}
+		return textures[stage];
 	}
 	
 	private static BufferedImage loadTexture(String name) {

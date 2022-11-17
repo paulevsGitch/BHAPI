@@ -5,6 +5,7 @@ import net.bhapi.client.render.texture.TextureSample;
 import net.bhapi.client.render.texture.Textures;
 import net.bhapi.client.render.texture.UVPair;
 import net.bhapi.level.BlockStateProvider;
+import net.bhapi.storage.Vec3F;
 import net.bhapi.util.MathUtil;
 import net.minecraft.block.BaseBlock;
 import net.minecraft.client.Minecraft;
@@ -12,7 +13,6 @@ import net.minecraft.client.render.GameRenderer;
 import net.minecraft.client.render.Tessellator;
 import net.minecraft.client.render.block.BlockRenderer;
 import net.minecraft.level.BlockView;
-import org.lwjgl.opengl.GL11;
 
 public class BHBlockRenderer {
 	private static BlockRenderer renderer;
@@ -83,6 +83,8 @@ public class BHBlockRenderer {
 	private static boolean breaking = false;
 	private static boolean item = false;
 	
+	private static Vec3F itemColor = new Vec3F();
+	
 	public static boolean isImplemented(int renderType) {
 		return renderType == 0;
 	}
@@ -109,12 +111,14 @@ public class BHBlockRenderer {
 		tessellator.start();
 		item = true;
 		
+		itemColor.set(light);
 		if (colorizeItem) {
 			int color = state.getBlock().getBaseColor(0);
 			float r = (float) (color >> 16 & 0xFF) / 255.0F;
 			float g = (float) (color >> 8 & 0xFF) / 255.0F;
 			float b = (float) (color & 0xFF) / 255.0F;
-			GL11.glColor4f(r * light, g * light, b * light, 1.0f);
+			//GL11.glColor4f(r * light, g * light, b * light, 1.0f);
+			itemColor.multiply(r, g, b);
 		}
 		
 		state.getBlock().updateRenderBounds();
@@ -138,7 +142,8 @@ public class BHBlockRenderer {
 	private static boolean renderFullCube(BlockState state, int x, int y, int z) {
 		float r, g, b;
 		if (item) {
-			r = 1.0F; g = 1.0F; b = 1.0F;
+			//r = 1.0F; g = 1.0F; b = 1.0F;
+			r = itemColor.x; g = itemColor.y; b = itemColor.z;
 		}
 		else {
 			int color = state.getBlock().getColorMultiplier(view, x, y, z);

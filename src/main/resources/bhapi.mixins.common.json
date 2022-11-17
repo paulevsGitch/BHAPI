@@ -17,6 +17,7 @@
 		"RecipeRegistryMixin",
 		"BaseDimensionMixin",
 		"ContainerBaseMixin",
+		"RegionLoaderMixin",
 		"ShapedRecipeMixin",
 		"ItemEntityMixin",
 		"BlockItemMixin",
