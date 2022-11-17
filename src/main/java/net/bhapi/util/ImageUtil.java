@@ -2,6 +2,7 @@ package net.bhapi.util;
 
 import net.bhapi.BHAPI;
 import net.bhapi.client.BHAPIClient;
+import net.bhapi.client.event.TextureLoadingEvent;
 import net.minecraft.client.resource.TexturePack;
 
 import javax.imageio.ImageIO;
@@ -9,14 +10,18 @@ import java.awt.Color;
 import java.awt.image.BufferedImage;
 import java.awt.image.DataBuffer;
 import java.awt.image.DataBufferInt;
+import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.util.ArrayList;
+import java.util.List;
 
 public class ImageUtil {
 	public static final BufferedImage EMPTY = new BufferedImage(2, 2, BufferedImage.TYPE_INT_ARGB);
 	
-	public static BufferedImage load(File file) {
+	public static BufferedImage loadFromFile(File file) {
 		BufferedImage img = EMPTY;
 		try {
 			img = ImageIO.read(file);
@@ -27,7 +32,7 @@ public class ImageUtil {
 		return img;
 	}
 	
-	public static BufferedImage load(String path) {
+	public static BufferedImage loadFromSource(String path) {
 		TexturePack pack = BHAPIClient.getMinecraft().texturePackManager.texturePack;
 		BufferedImage img = EMPTY;
 		try {
@@ -46,9 +51,39 @@ public class ImageUtil {
 		return img;
 	}
 	
-	public static BufferedImage load(Identifier id) {
+	public static BufferedImage loadFromSource(Identifier id) {
 		String path = "/assets/" + id.getModID() + "/" + id.getName() + ".png";
-		return load(path);
+		return loadFromSource(path);
+	}
+	
+	public static void loadTexturesFromPathDir(TextureLoadingEvent event, Identifier folder) {
+		String path = "/assets/" + folder.getModID() + "/" + folder.getName();
+		getResources(path).forEach(p -> {
+			BufferedImage img = ImageUtil.loadFromSource(p);
+			String name = p.substring(p.lastIndexOf('/') + 1, p.lastIndexOf('.'));
+			String fName = folder.getName();
+			Identifier id = Identifier.make(folder.getModID(), fName.isEmpty() ? name : fName + "/" + name);
+			event.register(id, img);
+		});
+	}
+	
+	private static List<String> getResources(String path) {
+		List<String> resources = new ArrayList<>();
+		TexturePack pack = BHAPIClient.getMinecraft().texturePackManager.texturePack;
+		String resource;
+		try {
+			InputStream stream = pack.getResourceAsStream(path);
+			BufferedReader reader = new BufferedReader(new InputStreamReader(stream));
+			while ((resource = reader.readLine()) != null) {
+				if (resource.endsWith(".png")) resources.add(path + resource);
+			}
+			reader.close();
+			stream.close();
+		}
+		catch (IOException e) {
+			e.printStackTrace();
+		}
+		return resources;
 	}
 	
 	public static int[] getPixelData(BufferedImage image) {

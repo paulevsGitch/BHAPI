@@ -8,13 +8,13 @@ import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
 import net.minecraft.item.ItemStack;
 
-public class BHBasicItem extends BHItem implements ClientPostInit {
+public class BHSimpleItem extends BHItem implements ClientPostInit {
 	private final Identifier textureID;
 	
 	@Environment(EnvType.CLIENT)
 	private TextureSample sample;
 	
-	public BHBasicItem(Identifier textureID) {
+	public BHSimpleItem(Identifier textureID) {
 		this.textureID = textureID;
 	}
 	
