@@ -29,8 +29,11 @@
 		"InGameMixin",
 		"LevelMixin",
 		
+		"particle.RedstoneParticleMixin",
 		"particle.DiggingParticleMixin",
 		"particle.BubbleParticleMixin",
+		"particle.SmokeParticleMixin",
+		"particle.HeartParticleMixin",
 		"particle.BaseParticleMixin"
 	],
 	"injectors": {

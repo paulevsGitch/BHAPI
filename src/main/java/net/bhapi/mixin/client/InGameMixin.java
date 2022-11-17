@@ -51,6 +51,8 @@ public abstract class InGameMixin extends DrawableHelper {
 			items[index[0]++] = ItemUtil.makeStack(Identifier.make("iron_pickaxe"));
 			items[index[0]++] = ItemUtil.makeStack(Identifier.make("iron_shovel"));
 			items[index[0]++] = ItemUtil.makeStack(Identifier.make("iron_axe"));
+			items[index[0]++] = ItemUtil.makeStack(Identifier.make("redstone_dust"));
+			items[index[0]++] = ItemUtil.makeStack(Identifier.make("redstone_torch"));
 			TestEvent.BLOCKS.keySet().forEach(id -> {
 				ItemStack stack = new ItemStack(CommonRegistries.ITEM_REGISTRY.get(id), 64);
 				items[index[0]++] = stack;

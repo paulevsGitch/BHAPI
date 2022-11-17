@@ -92,7 +92,7 @@ public class TestEvent {
 		public void randomDisplayTick(Level level, int x, int y, int z, Random random) {
 			super.randomDisplayTick(level, x, y, z, random);
 			level.addParticle(
-				"bubble",
+				"smoke",
 				x + random.nextFloat() * 1.2F - 0.1F,
 				y + random.nextFloat() * 1.2F - 0.1F,
 				z + random.nextFloat() * 1.2F - 0.1F,
