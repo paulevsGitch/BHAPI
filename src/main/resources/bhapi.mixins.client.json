@@ -29,12 +29,20 @@
 		"InGameMixin",
 		"LevelMixin",
 		
+		"particle.ExplosionParticleMixin",
 		"particle.RedstoneParticleMixin",
 		"particle.DiggingParticleMixin",
+		"particle.PortalParticleMixin",
 		"particle.BubbleParticleMixin",
 		"particle.SmokeParticleMixin",
 		"particle.HeartParticleMixin",
-		"particle.BaseParticleMixin"
+		"particle.WaterParticleMixin",
+		"particle.BaseParticleMixin",
+		"particle.FireParticleMixin",
+		"particle.LavaParticleMixin",
+		"particle.NoteParticleMixin",
+		"particle.PoofParticleMixin",
+		"particle.RainParticleMixin"
 	],
 	"injectors": {
 		"defaultRequire": 1

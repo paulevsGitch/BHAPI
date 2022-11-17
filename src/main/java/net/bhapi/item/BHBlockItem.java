@@ -108,7 +108,7 @@ public class BHBlockItem extends BHItem {
 	
 	@Override // TODO return sample if item is 2D
 	@Environment(EnvType.CLIENT)
-	public TextureSample getTextureForIndex(ItemStack stack) {
+	public TextureSample getTexture(ItemStack stack) {
 		return null;
 	}
 }

@@ -361,7 +361,7 @@ public class Textures {
 		ID_ITEM.put(11, Identifier.make("item_11"));
 		ID_ITEM.put(12, Identifier.make("item_12"));
 		ID_ITEM.put(13, Identifier.make("item_13"));
-		ID_ITEM.put(14, Identifier.make("item_14"));
+		ID_ITEM.put(14, Identifier.make("item/snowball"));
 		ID_ITEM.put(15, Identifier.make("item_15"));
 		ID_ITEM.put(16, Identifier.make("item_16"));
 		ID_ITEM.put(17, Identifier.make("item_17"));

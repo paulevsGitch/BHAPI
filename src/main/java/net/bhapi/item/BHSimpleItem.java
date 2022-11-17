@@ -20,7 +20,7 @@ public class BHSimpleItem extends BHItem implements ClientPostInit {
 	
 	@Override
 	@Environment(EnvType.CLIENT)
-	public TextureSample getTextureForIndex(ItemStack stack) {
+	public TextureSample getTexture(ItemStack stack) {
 		return sample;
 	}
 	

@@ -91,7 +91,7 @@ public abstract class ItemRendererMixin extends EntityRenderer {
 			}
 			
 			UVPair uv;
-			if (item instanceof BHItemRender) uv = BHItemRender.cast(item).getTextureForIndex(bhapi_renderingStack).getUV();
+			if (item instanceof BHItemRender) uv = BHItemRender.cast(item).getTexture(bhapi_renderingStack).getUV();
 			else uv = Textures.getAtlas().getUV(texture);
 			
 			bhapi_renderRectangle(x, y, uv);
@@ -162,7 +162,7 @@ public abstract class ItemRendererMixin extends EntityRenderer {
 			Textures.getAtlas().bind();
 			
 			UVPair uv;
-			if (item instanceof BHItemRender) uv = BHItemRender.cast(item).getTextureForIndex(entity.stack).getUV();
+			if (item instanceof BHItemRender) uv = BHItemRender.cast(item).getTexture(entity.stack).getUV();
 			else uv = Textures.getAtlas().getUV(texture);
 			
 			float u1 = uv.getU(0);

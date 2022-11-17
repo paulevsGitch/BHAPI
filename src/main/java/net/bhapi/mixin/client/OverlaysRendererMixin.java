@@ -226,7 +226,7 @@ public abstract class OverlaysRendererMixin {
 			int count;
 			
 			UVPair uv;
-			if (item instanceof BHItemRender) uv = BHItemRender.cast(item).getTextureForIndex(stack).getUV();
+			if (item instanceof BHItemRender) uv = BHItemRender.cast(item).getTexture(stack).getUV();
 			else uv = atlas.getUV(entity.getTexture(stack));
 			
 			float u1 = uv.getU(0);
