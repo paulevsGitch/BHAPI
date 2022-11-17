@@ -2,7 +2,6 @@ package net.bhapi.util;
 
 import net.bhapi.BHAPI;
 import net.bhapi.client.BHAPIClient;
-import net.bhapi.client.event.TextureLoadingEvent;
 import net.minecraft.client.resource.TexturePack;
 
 import javax.imageio.ImageIO;
@@ -16,7 +15,9 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 public class ImageUtil {
 	public static final BufferedImage EMPTY = new BufferedImage(2, 2, BufferedImage.TYPE_INT_ARGB);
@@ -56,15 +57,30 @@ public class ImageUtil {
 		return loadFromSource(path);
 	}
 	
-	public static void loadTexturesFromPathDir(TextureLoadingEvent event, Identifier folder) {
-		String path = "/assets/" + folder.getModID() + "/" + folder.getName();
+	public static Map<Identifier, BufferedImage> loadTexturesFromPathDir(Identifier folder) {
+		String path = "/assets/" + folder.getModID() + "/textures/" + folder.getName();
+		if (!path.endsWith("/")) path += "/";
+		TexturePack pack = BHAPIClient.getMinecraft().texturePackManager.texturePack;
+		Map<Identifier, BufferedImage> result = new HashMap<>();
 		getResources(path).forEach(p -> {
-			BufferedImage img = ImageUtil.loadFromSource(p);
-			String name = p.substring(p.lastIndexOf('/') + 1, p.lastIndexOf('.'));
-			String fName = folder.getName();
-			Identifier id = Identifier.make(folder.getModID(), fName.isEmpty() ? name : fName + "/" + name);
-			event.register(id, img);
+			InputStream stream = pack.getResourceAsStream(p + ".mcmeta");
+			if (stream == null) {
+				BufferedImage img = ImageUtil.loadFromSource(p);
+				String name = p.substring(p.lastIndexOf('/') + 1, p.lastIndexOf('.'));
+				String fName = folder.getName();
+				Identifier id = Identifier.make(folder.getModID(), fName.isEmpty() ? name : fName + "/" + name);
+				result.put(id, img);
+			}
+			else {
+				try {
+					stream.close();
+				}
+				catch (IOException e) {
+					e.printStackTrace();
+				}
+			}
 		});
+		return result;
 	}
 	
 	private static List<String> getResources(String path) {
@@ -73,12 +89,14 @@ public class ImageUtil {
 		String resource;
 		try {
 			InputStream stream = pack.getResourceAsStream(path);
-			BufferedReader reader = new BufferedReader(new InputStreamReader(stream));
-			while ((resource = reader.readLine()) != null) {
-				if (resource.endsWith(".png")) resources.add(path + resource);
+			if (stream != null) {
+				BufferedReader reader = new BufferedReader(new InputStreamReader(stream));
+				while ((resource = reader.readLine()) != null) {
+					if (resource.endsWith(".png")) resources.add(path + resource);
+				}
+				reader.close();
+				stream.close();
 			}
-			reader.close();
-			stream.close();
 		}
 		catch (IOException e) {
 			e.printStackTrace();

@@ -39,10 +39,8 @@ public class Textures {
 	
 	public static final Map<Identifier, BufferedImage> LOADED_TEXTURES = new HashMap<>();
 	
-	public static void init() {
+	public static void preInit() {
 		building = true;
-		BHAPI.log("Making texture atlas");
-		
 		BufferedImage terrain = loadTexture("/terrain.png");
 		addTextures(terrain, ID_BLOCK, LOADED_TEXTURES);
 		addTextures(loadTexture("/gui/items.png"), ID_ITEM, LOADED_TEXTURES);
@@ -59,6 +57,10 @@ public class Textures {
 			GL11.glTexParameterf(GL11.GL_TEXTURE_2D, GL11.GL_TEXTURE_WRAP_S, GL11.GL_REPEAT);
 			GL11.glTexParameterf(GL11.GL_TEXTURE_2D, GL11.GL_TEXTURE_WRAP_T, GL11.GL_REPEAT);
 		});
+	}
+	
+	public static void init() {
+		BHAPI.log("Making texture atlas");
 		
 		atlas = new TextureAtlas(LOADED_TEXTURES);
 		empty = atlas.getSample(Identifier.make("empty"));
@@ -84,7 +86,7 @@ public class Textures {
 		building = false;
 	}
 	
-	public static void reload() {
+	public static void preReload() {
 		building = true;
 		BufferedImage terrain = loadTexture("/terrain.png");
 		addTextures(terrain, ID_BLOCK, LOADED_TEXTURES);
@@ -102,7 +104,9 @@ public class Textures {
 			GL11.glTexParameterf(GL11.GL_TEXTURE_2D, GL11.GL_TEXTURE_WRAP_S, GL11.GL_REPEAT);
 			GL11.glTexParameterf(GL11.GL_TEXTURE_2D, GL11.GL_TEXTURE_WRAP_T, GL11.GL_REPEAT);
 		});
-		
+	}
+	
+	public static void reload() {
 		atlas.rebuild(LOADED_TEXTURES);
 		BREAKING_EXIST.clear();
 		building = false;

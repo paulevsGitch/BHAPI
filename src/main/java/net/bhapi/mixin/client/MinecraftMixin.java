@@ -16,6 +16,7 @@ public class MinecraftMixin {
 	@Inject(method = "init()V", at = @At("TAIL"))
 	private void bhapi_onMinecraftInit(CallbackInfo info) {
 		BHAPI.log("Process client events (pre)");
+		Textures.preInit();
 		BHAPI.processEntryPoints("bhapi:client_events", ClientRegistries.EVENT_REGISTRY_PRE);
 		Textures.init();
 	}

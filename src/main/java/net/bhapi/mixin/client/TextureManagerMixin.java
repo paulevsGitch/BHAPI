@@ -1,5 +1,7 @@
 package net.bhapi.mixin.client;
 
+import net.bhapi.BHAPI;
+import net.bhapi.client.ClientRegistries;
 import net.bhapi.client.render.texture.TextureAtlas;
 import net.bhapi.client.render.texture.Textures;
 import net.bhapi.client.render.texture.UVPair;
@@ -103,6 +105,8 @@ public abstract class TextureManagerMixin {
 	
 	@Inject(method = "reloadTexturesFromTexturePack", at = @At("RETURN"))
 	private void bhapi_reloadTexturesFromTexturePack(CallbackInfo info) {
+		Textures.preReload();
+		BHAPI.processEntryPoints("bhapi:client_events", ClientRegistries.EVENT_REGISTRY_RELOAD);
 		Textures.reload();
 	}
 	

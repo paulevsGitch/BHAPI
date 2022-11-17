@@ -16,7 +16,7 @@ Documentation is not available yet, but there are javadocs in the code.
 - Custom items
 - Custom commands
 - Custom recipes
-- Events (only startup, 3 types)
+- Events (only startup and on resource reloading)
 - Configs
 - Multithreading (Configurable)
 - Texture atlas (for blocks, items and particles)
