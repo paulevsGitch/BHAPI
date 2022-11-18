@@ -6,6 +6,7 @@ Simple API for Minecraft Beta 1.7.3 build on top of Babric (Fabric fork for Beta
 API uses [BH BIN Mappings](https://github.com/paulevsGitch/BIN-Mappings-BH).
 
 Documentation is not available yet, but there are javadocs in the code.
+
 **[Basic Mod Template](https://github.com/paulevsGitch/BHAPI-Mod-Template)**
 
 ### Features:
