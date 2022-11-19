@@ -67,7 +67,7 @@ public abstract class ItemEntitySpawnPacketMixin extends AbstractPacket implemen
 		stream.writeInt(this.entityId);
 		Identifier id = CommonRegistries.ITEM_REGISTRY.getID(bhapi_item);
 		if (id == null && bhapi_item instanceof BHBlockItem) {
-			BlockState state = ((BHBlockItem) bhapi_item).getState();
+			BlockState state = BHBlockItem.cast(bhapi_item).getState();
 			id = CommonRegistries.BLOCK_REGISTRY.getID(state.getBlock());
 			if (bhapi_entity != null) {
 				BaseItem item = CommonRegistries.ITEM_REGISTRY.get(id);

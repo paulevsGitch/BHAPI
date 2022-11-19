@@ -7,10 +7,7 @@ import net.bhapi.event.TestEvent;
 import net.bhapi.level.BlockStateProvider;
 import net.bhapi.registry.CommonRegistries;
 import net.bhapi.util.BlockUtil;
-import net.bhapi.util.Identifier;
-import net.bhapi.util.ItemUtil;
 import net.fabricmc.loader.api.FabricLoader;
-import net.minecraft.block.BaseBlock;
 import net.minecraft.block.entity.BaseBlockEntity;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.DrawableHelper;
@@ -47,18 +44,9 @@ public abstract class InGameMixin extends DrawableHelper {
 			DebugAllItems inventory = new DebugAllItems(9 * 4);
 			ItemStack[] items = inventory.getItems();
 			final int[] index = new int[] {0};
-			items[index[0]++] = ItemUtil.makeStack(Identifier.make("testitem"));
-			items[index[0]++] = ItemUtil.makeStack(Identifier.make("iron_pickaxe"));
-			items[index[0]++] = ItemUtil.makeStack(Identifier.make("iron_shovel"));
-			items[index[0]++] = ItemUtil.makeStack(Identifier.make("iron_axe"));
-			items[index[0]++] = ItemUtil.makeStack(Identifier.make("redstone"));
-			items[index[0]++] = ItemUtil.makeStack(Identifier.make("redstone_torch"));
 			TestEvent.BLOCKS.values().forEach(block -> {
 				items[index[0]++] = new ItemStack(block, 64);
 			});
-			for (byte m = 0; m < 3; m++) items[index[0]++] = new ItemStack(BaseBlock.SAPLING, 64, m);
-			for (byte m = 0; m < 3; m++) items[index[0]++] = new ItemStack(BaseBlock.LOG, 64, m);
-			for (byte m = 0; m < 16; m++) items[index[0]++] = new ItemStack(BaseBlock.WOOL, 64, m);
 			this.minecraft.player.openChestScreen(inventory);
 		}
 	}

@@ -2,6 +2,7 @@ package net.bhapi.item;
 
 import net.bhapi.BHAPI;
 import net.bhapi.blockstate.BlockState;
+import net.bhapi.client.render.block.BlockItemView;
 import net.bhapi.client.render.texture.TextureSample;
 import net.bhapi.level.BlockStateProvider;
 import net.bhapi.level.LevelHeightProvider;
@@ -21,6 +22,9 @@ import java.util.Map;
 
 public class BHBlockItem extends BHItem {
 	private static final Map<BlockState, BHBlockItem> ITEMS = new HashMap<>();
+	
+	@Environment(EnvType.CLIENT)
+	private static final BlockItemView VIEW = new BlockItemView();
 	
 	private final BlockState state;
 	private final boolean isFlat;
@@ -93,7 +97,7 @@ public class BHBlockItem extends BHItem {
 	@Override
 	public boolean equals(Object obj) {
 		if (obj == null || !(obj instanceof BHBlockItem)) return false;
-		return ((BHBlockItem) obj).state == state;
+		return BHBlockItem.cast(obj).state == state;
 	}
 	
 	@Environment(EnvType.CLIENT)
@@ -113,10 +117,17 @@ public class BHBlockItem extends BHItem {
 		return builder.toString();
 	}
 	
-	@Override // TODO return sample if item is 2D
+	@Override
 	@Environment(EnvType.CLIENT)
 	public TextureSample getTexture(ItemStack stack) {
-		return null;
+		VIEW.setBlockState(state);
+		return state.getTextureForIndex(VIEW, 0, 0, 0, 0);
+	}
+	
+	@Override
+	@Environment(value=EnvType.CLIENT)
+	public int getColorMultiplier(int damage) {
+		return state.getBlock().getColorMultiplier(VIEW, 0, 0, 0);
 	}
 	
 	public static BHBlockItem get(BlockState state) {
@@ -126,5 +137,9 @@ public class BHBlockItem extends BHItem {
 			item = ITEMS.get(BlockState.getDefaultState(state.getBlock()));
 		}
 		return item;
+	}
+	
+	public static BHBlockItem cast(Object obj) {
+		return (BHBlockItem) obj;
 	}
 }

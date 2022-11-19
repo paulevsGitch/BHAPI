@@ -41,7 +41,8 @@ public class XorShift128 {
 	}
 	
 	public float getFloat() {
-		return (float) (xorshift128() & MASK) / DIVIDER;
+		//return (float) (xorshift128() & MASK) / DIVIDER;
+		return (float) (xorshift128() % 271) / 271.0F;
 	}
 	
 	private int wrap(int x, int val) {

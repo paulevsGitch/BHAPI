@@ -7,6 +7,7 @@ import net.bhapi.client.render.texture.UVPair;
 import net.bhapi.level.BlockStateProvider;
 import net.bhapi.storage.Vec3F;
 import net.bhapi.util.MathUtil;
+import net.bhapi.util.XorShift128;
 import net.minecraft.block.BaseBlock;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.render.GameRenderer;
@@ -16,8 +17,9 @@ import net.minecraft.level.BlockView;
 import org.lwjgl.opengl.GL11;
 
 public class BHBlockRenderer {
+	private static XorShift128 xorShift = new XorShift128();
 	private static BlockRenderer renderer;
-	private static BlockView view;
+	private static BlockView blockView;
 	
 	private static boolean mirrorTexture = false;
 	private static boolean renderAllSides = false;
@@ -87,12 +89,12 @@ public class BHBlockRenderer {
 	private static Vec3F itemColor = new Vec3F();
 	
 	public static boolean isImplemented(int renderType) {
-		return renderType == 0;
+		return renderType > -1 && renderType < 2;
 	}
 	
 	public static void setRenderer(BlockView view, BlockRenderer renderer) {
 		BHBlockRenderer.renderer = renderer;
-		BHBlockRenderer.view = view;
+		BHBlockRenderer.blockView = view;
 	}
 	
 	public static void renderBlockBreak(BlockState state, int x, int y, int z) {
@@ -132,9 +134,10 @@ public class BHBlockRenderer {
 	}
 	
 	public static boolean render(BlockState state, int x, int y, int z) {
-		byte type = state.getRenderType(view, x, y, z);
+		byte type = state.getRenderType(blockView, x, y, z);
 		if (type == BlockRenderTypes.EMPTY) return false;
 		if (type == BlockRenderTypes.FULL_CUBE) return renderFullCube(state, x, y, z);
+		if (type == BlockRenderTypes.CROSS) return renderCross(state, x, y, z);
 		if (type == BlockRenderTypes.CUSTOM) return true; // TODO make custom rendering
 		else if (BlockRenderTypes.isVanilla(type)) {
 			return renderer.render(state.getBlock(), x, y, z);
@@ -142,14 +145,17 @@ public class BHBlockRenderer {
 		return false;
 	}
 	
+	private static float getBrightness(BaseBlock block, int x, int y, int z) {
+		return item ? 1.0F : block.getBrightness(blockView, x, y, z);
+	}
+	
 	private static boolean renderFullCube(BlockState state, int x, int y, int z) {
 		float r, g, b;
 		if (item) {
-			//r = 1.0F; g = 1.0F; b = 1.0F;
 			r = itemColor.x; g = itemColor.y; b = itemColor.z;
 		}
 		else {
-			int color = state.getBlock().getColorMultiplier(view, x, y, z);
+			int color = state.getBlock().getColorMultiplier(blockView, x, y, z);
 			r = (float) (color >> 16 & 0xFF) / 255.0F;
 			g = (float) (color >> 8 & 0xFF) / 255.0F;
 			b = (float) (color & 0xFF) / 255.0F;
@@ -165,13 +171,13 @@ public class BHBlockRenderer {
 		}
 		
 		if (!item && Minecraft.isSmoothLightingEnabled()) {
-			return renderSmooth(state, x, y, z, r, g, b);
+			return renderCubeSmooth(state, x, y, z, r, g, b);
 		}
 		
-		return renderFast(state, x, y, z, r, g, b);
+		return renderCubeFast(state, x, y, z, r, g, b);
 	}
 	
-	private static boolean renderSmooth(BlockState state, int x, int y, int z, float f, float g, float h) {
+	private static boolean renderCubeSmooth(BlockState state, int x, int y, int z, float f, float g, float h) {
 		BaseBlock block = state.getBlock();
 		
 		shadeTopFace = true;
@@ -184,16 +190,16 @@ public class BHBlockRenderer {
 		boolean bl6 = true;
 		boolean bl7 = true;
 		
-		brightnessMiddle = block.getBrightness(view, x, y, z);
-		brightnessNorth = block.getBrightness(view, x - 1, y, z);
-		brightnessBottom = block.getBrightness(view, x, y - 1, z);
-		brightnessEast = block.getBrightness(view, x, y, z - 1);
-		brightnessSouth = block.getBrightness(view, x + 1, y, z);
-		brightnessTop = block.getBrightness(view, x, y + 1, z);
-		brightnessWest = block.getBrightness(view, x, y, z + 1);
+		brightnessMiddle = getBrightness(block, x, y, z);
+		brightnessNorth = getBrightness(block, x - 1, y, z);
+		brightnessBottom = getBrightness(block, x, y - 1, z);
+		brightnessEast = getBrightness(block, x, y, z - 1);
+		brightnessSouth = getBrightness(block, x + 1, y, z);
+		brightnessTop = getBrightness(block, x, y + 1, z);
+		brightnessWest = getBrightness(block, x, y, z + 1);
 		
-		if (view instanceof BlockStateProvider) {
-			BlockStateProvider provider = BlockStateProvider.cast(view);
+		if (blockView instanceof BlockStateProvider) {
+			BlockStateProvider provider = BlockStateProvider.cast(blockView);
 			allowsGrassUnderTopSouth = provider.getBlockState(x + 1, y + 1, z).isAir();
 			allowsGrassUnderBottomSouth = provider.getBlockState(x + 1, y - 1, z).isAir();
 			allowsGrassUnderSouthWest = provider.getBlockState(x + 1, y, z + 1).isAir();
@@ -224,15 +230,15 @@ public class BHBlockRenderer {
 			bl2 = false;
 		}
 		
-		if (renderAllSides || block.isSideRendered(view, x, y - 1, z, 0)) {
-			brightnessBottomNorth = block.getBrightness(view, x - 1, --y, z);
-			brightnessBottomEast = block.getBrightness(view, x, y, z - 1);
-			brightnessBottomWest = block.getBrightness(view, x, y, z + 1);
-			brightnessBottomSouth = block.getBrightness(view, x + 1, y, z);
-			brightnessBottomNorthEast = allowsGrassUnderBottomEast || allowsGrassUnderBottomNorth ? block.getBrightness(view, x - 1, y, z - 1) : brightnessBottomNorth;
-			brightnessBottomNorthWest = allowsGrassUnderBottomWest || allowsGrassUnderBottomNorth ? block.getBrightness(view, x - 1, y, z + 1) : brightnessBottomNorth;
-			brightnessBottomSouthEast = allowsGrassUnderBottomEast || allowsGrassUnderBottomSouth ? block.getBrightness(view, x + 1, y, z - 1) : brightnessBottomSouth;
-			brightnessBottomSouthWest = allowsGrassUnderBottomWest || allowsGrassUnderBottomSouth ? block.getBrightness(view, x + 1, y, z + 1) : brightnessBottomSouth;
+		if (renderAllSides || block.isSideRendered(blockView, x, y - 1, z, 0)) {
+			brightnessBottomNorth = getBrightness(block, x - 1, --y, z);
+			brightnessBottomEast = getBrightness(block, x, y, z - 1);
+			brightnessBottomWest = getBrightness(block, x, y, z + 1);
+			brightnessBottomSouth = getBrightness(block, x + 1, y, z);
+			brightnessBottomNorthEast = allowsGrassUnderBottomEast || allowsGrassUnderBottomNorth ? getBrightness(block, x - 1, y, z - 1) : brightnessBottomNorth;
+			brightnessBottomNorthWest = allowsGrassUnderBottomWest || allowsGrassUnderBottomNorth ? getBrightness(block, x - 1, y, z + 1) : brightnessBottomNorth;
+			brightnessBottomSouthEast = allowsGrassUnderBottomEast || allowsGrassUnderBottomSouth ? getBrightness(block, x + 1, y, z - 1) : brightnessBottomSouth;
+			brightnessBottomSouthWest = allowsGrassUnderBottomWest || allowsGrassUnderBottomSouth ? getBrightness(block, x + 1, y, z + 1) : brightnessBottomSouth;
 			++y;
 			f2 = (brightnessBottomNorthWest + brightnessBottomNorth + brightnessBottomWest + brightnessBottom) / 4.0F;
 			f5 = (brightnessBottomWest + brightnessBottom + brightnessBottomSouthWest + brightnessBottomSouth) / 4.0F;
@@ -259,19 +265,19 @@ public class BHBlockRenderer {
 			colorRed10 *= f5;
 			colorGreen10 *= f5;
 			colorBlue10 *= f5;
-			renderBottomFace(block, x, y, z, state.getTextureForIndex(view, x, y, z, 0));
+			renderBottomFace(block, x, y, z, state.getTextureForIndex(blockView, x, y, z, 0));
 			result = true;
 		}
 		
-		if (renderAllSides || block.isSideRendered(view, x, y + 1, z, 1)) {
-			brightnessTopNorth = block.getBrightness(view, x - 1, ++y, z);
-			brightnessTopSouth = block.getBrightness(view, x + 1, y, z);
-			brightnessTopEast = block.getBrightness(view, x, y, z - 1);
-			brightnessTopWest = block.getBrightness(view, x, y, z + 1);
-			brightnessTopNorthEast = allowsGrassUnderTopEast || allowsGrassUnderTopNorth ? block.getBrightness(view, x - 1, y, z - 1) : brightnessTopNorth;
-			brightnessTopSouthEast = allowsGrassUnderTopEast || allowsGrassUnderTopSouth ? block.getBrightness(view, x + 1, y, z - 1) : brightnessTopSouth;
-			brightnessTopNorthWest = allowsGrassUnderTopWest || allowsGrassUnderTopNorth ? block.getBrightness(view, x - 1, y, z + 1) : brightnessTopNorth;
-			brightnessTopSouthWest = allowsGrassUnderTopWest || allowsGrassUnderTopSouth ? block.getBrightness(view, x + 1, y, z + 1) : brightnessTopSouth;
+		if (renderAllSides || block.isSideRendered(blockView, x, y + 1, z, 1)) {
+			brightnessTopNorth = getBrightness(block, x - 1, ++y, z);
+			brightnessTopSouth = getBrightness(block, x + 1, y, z);
+			brightnessTopEast = getBrightness(block, x, y, z - 1);
+			brightnessTopWest = getBrightness(block, x, y, z + 1);
+			brightnessTopNorthEast = allowsGrassUnderTopEast || allowsGrassUnderTopNorth ? getBrightness(block, x - 1, y, z - 1) : brightnessTopNorth;
+			brightnessTopSouthEast = allowsGrassUnderTopEast || allowsGrassUnderTopSouth ? getBrightness(block, x + 1, y, z - 1) : brightnessTopSouth;
+			brightnessTopNorthWest = allowsGrassUnderTopWest || allowsGrassUnderTopNorth ? getBrightness(block, x - 1, y, z + 1) : brightnessTopNorth;
+			brightnessTopSouthWest = allowsGrassUnderTopWest || allowsGrassUnderTopSouth ? getBrightness(block, x + 1, y, z + 1) : brightnessTopSouth;
 			--y;
 			f5 = (brightnessTopNorthWest + brightnessTopNorth + brightnessTopWest + brightnessTop) / 4.0F;
 			f2 = (brightnessTopWest + brightnessTop + brightnessTopSouthWest + brightnessTopSouth) / 4.0F;
@@ -301,19 +307,23 @@ public class BHBlockRenderer {
 			colorRed10 *= f5;
 			colorGreen10 *= f5;
 			colorBlue10 *= f5;
-			renderTopFace(block, x, y, z, state.getTextureForIndex(view, x, y, z, 1));
+			renderTopFace(block, x, y, z, state.getTextureForIndex(blockView, x, y, z, 1));
 			result = true;
 		}
 		
-		if (renderAllSides || block.isSideRendered(view, x, y, z - 1, 2)) {
-			brightnessNorthEast = block.getBrightness(view, x - 1, y, --z);
-			brightnessBottomEast = block.getBrightness(view, x, y - 1, z);
-			brightnessTopEast = block.getBrightness(view, x, y + 1, z);
-			brightnessSouthEast = block.getBrightness(view, x + 1, y, z);
-			brightnessBottomNorthEast = allowsGrassUnderNorthEast || allowsGrassUnderBottomEast ? block.getBrightness(view, x - 1, y - 1, z) : brightnessNorthEast;
-			brightnessTopNorthEast = allowsGrassUnderNorthEast || allowsGrassUnderTopEast ? block.getBrightness(view, x - 1, y + 1, z) : brightnessNorthEast;
-			brightnessBottomSouthEast = allowsGrassUnderSouthEast || allowsGrassUnderBottomEast ? block.getBrightness(view, x + 1, y - 1, z) : brightnessSouthEast;
-			brightnessTopSouthEast = allowsGrassUnderSouthEast || allowsGrassUnderTopEast ? block.getBrightness(view, x + 1, y + 1, z) : brightnessSouthEast;
+		if (renderAllSides || block.isSideRendered(blockView, x, y, z - 1, 2)) {
+			brightnessNorthEast = getBrightness(block, x - 1, y, --z);
+			brightnessBottomEast = getBrightness(block, x, y - 1, z);
+			brightnessTopEast = getBrightness(block, x, y + 1, z);
+			brightnessSouthEast = getBrightness(block, x + 1, y, z);
+			brightnessBottomNorthEast = allowsGrassUnderNorthEast || allowsGrassUnderBottomEast ? block.getBrightness(
+				blockView, x - 1, y - 1, z) : brightnessNorthEast;
+			brightnessTopNorthEast = allowsGrassUnderNorthEast || allowsGrassUnderTopEast ? block.getBrightness(
+				blockView, x - 1, y + 1, z) : brightnessNorthEast;
+			brightnessBottomSouthEast = allowsGrassUnderSouthEast || allowsGrassUnderBottomEast ? block.getBrightness(
+				blockView, x + 1, y - 1, z) : brightnessSouthEast;
+			brightnessTopSouthEast = allowsGrassUnderSouthEast || allowsGrassUnderTopEast ? block.getBrightness(
+				blockView, x + 1, y + 1, z) : brightnessSouthEast;
 			++z;
 			f2 = (brightnessNorthEast + brightnessTopNorthEast + brightnessEast + brightnessTopEast) / 4.0F;
 			f3 = (brightnessEast + brightnessTopEast + brightnessSouthEast + brightnessTopSouthEast) / 4.0F;
@@ -340,7 +350,7 @@ public class BHBlockRenderer {
 			colorRed10 *= f5;
 			colorGreen10 *= f5;
 			colorBlue10 *= f5;
-			renderEastFace(block, x, y, z, state.getTextureForIndex(view, x, y, z, 2));
+			renderEastFace(block, x, y, z, state.getTextureForIndex(blockView, x, y, z, 2));
 			if (fancyGraphics && block == BaseBlock.GRASS && !breaking) {
 				colorRed00 *= f;
 				colorRed01 *= f;
@@ -359,15 +369,19 @@ public class BHBlockRenderer {
 			result = true;
 		}
 		
-		if (renderAllSides || block.isSideRendered(view, x, y, z + 1, 3)) {
-			brightnessNorthWest = block.getBrightness(view, x - 1, y, ++z);
-			brightnessSouthWest = block.getBrightness(view, x + 1, y, z);
-			brightnessBottomWest = block.getBrightness(view, x, y - 1, z);
-			brightnessTopWest = block.getBrightness(view, x, y + 1, z);
-			brightnessBottomNorthWest = allowsGrassUnderNorthWest || allowsGrassUnderBottomWest ? block.getBrightness(view, x - 1, y - 1, z) : brightnessNorthWest;
-			brightnessTopNorthWest = allowsGrassUnderNorthWest || allowsGrassUnderTopWest ? block.getBrightness(view, x - 1, y + 1, z) : brightnessNorthWest;
-			brightnessBottomSouthWest = allowsGrassUnderSouthWest || allowsGrassUnderBottomWest ? block.getBrightness(view, x + 1, y - 1, z) : brightnessSouthWest;
-			brightnessTopSouthWest = allowsGrassUnderSouthWest || allowsGrassUnderTopWest ? block.getBrightness(view, x + 1, y + 1, z) : brightnessSouthWest;
+		if (renderAllSides || block.isSideRendered(blockView, x, y, z + 1, 3)) {
+			brightnessNorthWest = getBrightness(block, x - 1, y, ++z);
+			brightnessSouthWest = getBrightness(block, x + 1, y, z);
+			brightnessBottomWest = getBrightness(block, x, y - 1, z);
+			brightnessTopWest = getBrightness(block, x, y + 1, z);
+			brightnessBottomNorthWest = allowsGrassUnderNorthWest || allowsGrassUnderBottomWest ? block.getBrightness(
+				blockView, x - 1, y - 1, z) : brightnessNorthWest;
+			brightnessTopNorthWest = allowsGrassUnderNorthWest || allowsGrassUnderTopWest ? block.getBrightness(
+				blockView, x - 1, y + 1, z) : brightnessNorthWest;
+			brightnessBottomSouthWest = allowsGrassUnderSouthWest || allowsGrassUnderBottomWest ? block.getBrightness(
+				blockView, x + 1, y - 1, z) : brightnessSouthWest;
+			brightnessTopSouthWest = allowsGrassUnderSouthWest || allowsGrassUnderTopWest ? block.getBrightness(
+				blockView, x + 1, y + 1, z) : brightnessSouthWest;
 			--z;
 			f2 = (brightnessNorthWest + brightnessTopNorthWest + brightnessWest + brightnessTopWest) / 4.0F;
 			f5 = (brightnessWest + brightnessTopWest + brightnessSouthWest + brightnessTopSouthWest) / 4.0F;
@@ -394,7 +408,7 @@ public class BHBlockRenderer {
 			colorRed10 *= f5;
 			colorGreen10 *= f5;
 			colorBlue10 *= f5;
-			renderWestFace(block, x, y, z, state.getTextureForIndex(view, x, y, z, 3));
+			renderWestFace(block, x, y, z, state.getTextureForIndex(blockView, x, y, z, 3));
 			if (fancyGraphics && block == BaseBlock.GRASS && !breaking) {
 				colorRed00 *= f;
 				colorRed01 *= f;
@@ -413,15 +427,19 @@ public class BHBlockRenderer {
 			result = true;
 		}
 		
-		if (renderAllSides || block.isSideRendered(view, x - 1, y, z, 4)) {
-			brightnessBottomNorth = block.getBrightness(view, --x, y - 1, z);
-			brightnessNorthEast = block.getBrightness(view, x, y, z - 1);
-			brightnessNorthWest = block.getBrightness(view, x, y, z + 1);
-			brightnessTopNorth = block.getBrightness(view, x, y + 1, z);
-			brightnessBottomNorthEast = allowsGrassUnderNorthEast || allowsGrassUnderBottomNorth ? block.getBrightness(view, x, y - 1, z - 1) : brightnessNorthEast;
-			brightnessBottomNorthWest = allowsGrassUnderNorthWest || allowsGrassUnderBottomNorth ? block.getBrightness(view, x, y - 1, z + 1) : brightnessNorthWest;
-			brightnessTopNorthEast = allowsGrassUnderNorthEast || allowsGrassUnderTopNorth ? block.getBrightness(view, x, y + 1, z - 1) : brightnessNorthEast;
-			brightnessTopNorthWest = allowsGrassUnderNorthWest || allowsGrassUnderTopNorth ? block.getBrightness(view, x, y + 1, z + 1) : brightnessNorthWest;
+		if (renderAllSides || block.isSideRendered(blockView, x - 1, y, z, 4)) {
+			brightnessBottomNorth = getBrightness(block, --x, y - 1, z);
+			brightnessNorthEast = getBrightness(block, x, y, z - 1);
+			brightnessNorthWest = getBrightness(block, x, y, z + 1);
+			brightnessTopNorth = getBrightness(block, x, y + 1, z);
+			brightnessBottomNorthEast = allowsGrassUnderNorthEast || allowsGrassUnderBottomNorth ? block.getBrightness(
+				blockView, x, y - 1, z - 1) : brightnessNorthEast;
+			brightnessBottomNorthWest = allowsGrassUnderNorthWest || allowsGrassUnderBottomNorth ? block.getBrightness(
+				blockView, x, y - 1, z + 1) : brightnessNorthWest;
+			brightnessTopNorthEast = allowsGrassUnderNorthEast || allowsGrassUnderTopNorth ? block.getBrightness(
+				blockView, x, y + 1, z - 1) : brightnessNorthEast;
+			brightnessTopNorthWest = allowsGrassUnderNorthWest || allowsGrassUnderTopNorth ? block.getBrightness(
+				blockView, x, y + 1, z + 1) : brightnessNorthWest;
 			++x;
 			f5 = (brightnessBottomNorth + brightnessBottomNorthWest + brightnessNorth + brightnessNorthWest) / 4.0F;
 			f2 = (brightnessNorth + brightnessNorthWest + brightnessTopNorth + brightnessTopNorthWest) / 4.0F;
@@ -448,7 +466,7 @@ public class BHBlockRenderer {
 			colorRed10 *= f5;
 			colorGreen10 *= f5;
 			colorBlue10 *= f5;
-			renderNorthFace(block, x, y, z, state.getTextureForIndex(view, x, y, z, 4));
+			renderNorthFace(block, x, y, z, state.getTextureForIndex(blockView, x, y, z, 4));
 			if (fancyGraphics && block == BaseBlock.GRASS && !breaking) {
 				colorRed00 *= f;
 				colorRed01 *= f;
@@ -467,15 +485,19 @@ public class BHBlockRenderer {
 			result = true;
 		}
 		
-		if (renderAllSides || block.isSideRendered(view, x + 1, y, z, 5)) {
-			brightnessBottomSouth = block.getBrightness(view, ++x, y - 1, z);
-			brightnessSouthEast = block.getBrightness(view, x, y, z - 1);
-			brightnessSouthWest = block.getBrightness(view, x, y, z + 1);
-			brightnessTopSouth = block.getBrightness(view, x, y + 1, z);
-			brightnessBottomSouthEast = allowsGrassUnderBottomSouth || allowsGrassUnderSouthEast ? block.getBrightness(view, x, y - 1, z - 1) : brightnessSouthEast;
-			brightnessBottomSouthWest = allowsGrassUnderBottomSouth || allowsGrassUnderSouthWest ? block.getBrightness(view, x, y - 1, z + 1) : brightnessSouthWest;
-			brightnessTopSouthEast = allowsGrassUnderTopSouth || allowsGrassUnderSouthEast ? block.getBrightness(view, x, y + 1, z - 1) : brightnessSouthEast;
-			brightnessTopSouthWest = allowsGrassUnderTopSouth || allowsGrassUnderSouthWest ? block.getBrightness(view, x, y + 1, z + 1) : brightnessSouthWest;
+		if (renderAllSides || block.isSideRendered(blockView, x + 1, y, z, 5)) {
+			brightnessBottomSouth = getBrightness(block, ++x, y - 1, z);
+			brightnessSouthEast = getBrightness(block, x, y, z - 1);
+			brightnessSouthWest = getBrightness(block, x, y, z + 1);
+			brightnessTopSouth = getBrightness(block, x, y + 1, z);
+			brightnessBottomSouthEast = allowsGrassUnderBottomSouth || allowsGrassUnderSouthEast ? block.getBrightness(
+				blockView, x, y - 1, z - 1) : brightnessSouthEast;
+			brightnessBottomSouthWest = allowsGrassUnderBottomSouth || allowsGrassUnderSouthWest ? block.getBrightness(
+				blockView, x, y - 1, z + 1) : brightnessSouthWest;
+			brightnessTopSouthEast = allowsGrassUnderTopSouth || allowsGrassUnderSouthEast ? block.getBrightness(
+				blockView, x, y + 1, z - 1) : brightnessSouthEast;
+			brightnessTopSouthWest = allowsGrassUnderTopSouth || allowsGrassUnderSouthWest ? block.getBrightness(
+				blockView, x, y + 1, z + 1) : brightnessSouthWest;
 			--x;
 			f2 = (brightnessBottomSouth + brightnessBottomSouthWest + brightnessSouth + brightnessSouthWest) / 4.0F;
 			f5 = (brightnessSouth + brightnessSouthWest + brightnessTopSouth + brightnessTopSouthWest) / 4.0F;
@@ -502,7 +524,7 @@ public class BHBlockRenderer {
 			colorRed10 *= f5;
 			colorGreen10 *= f5;
 			colorBlue10 *= f5;
-			renderSouthFace(block, x, y, z, state.getTextureForIndex(view, x, y, z, 5));
+			renderSouthFace(block, x, y, z, state.getTextureForIndex(blockView, x, y, z, 5));
 			if (fancyGraphics && block == BaseBlock.GRASS && !breaking) {
 				colorRed00 *= f;
 				colorRed01 *= f;
@@ -525,7 +547,7 @@ public class BHBlockRenderer {
 		return result;
 	}
 	
-	private static boolean renderFast(BlockState state, int x, int y, int z, float r, float g, float b) {
+	private static boolean renderCubeFast(BlockState state, int x, int y, int z, float r, float g, float b) {
 		BaseBlock block = state.getBlock();
 		float light;
 		shadeTopFace = false;
@@ -540,13 +562,16 @@ public class BHBlockRenderer {
 		float bG = 0.5F;
 		float bB = 0.5F;
 		
-		float ewR = 0.8F;
-		float ewG = 0.8F;
-		float ewB = 0.8F;
+		float ewR, ewG, ewB, nsR, nsG, nsB;
 		
-		float nsR = 0.6F;
-		float nsG = 0.6F;
-		float nsB = 0.6F;
+		if (item) {
+			ewR = 0.7F; ewG = 0.7F; ewB = 0.7F;
+			nsR = 0.9F; nsG = 0.9F; nsB = 0.9F;
+		}
+		else {
+			ewR = 0.8F; ewG = 0.8F; ewB = 0.8F;
+			nsR = 0.6F; nsG = 0.6F; nsB = 0.6F;
+		}
 		
 		if (block != BaseBlock.GRASS) {
 			bR *= r;
@@ -560,35 +585,35 @@ public class BHBlockRenderer {
 			nsB *= b;
 		}
 		
-		float light2 = item ? 1.0F : block.getBrightness(view, x, y, z);
+		float light2 = getBrightness(block, x, y, z);
 		
-		if (renderAllSides || block.isSideRendered(view, x, y - 1, z, 0)) {
-			light = item ? 1.0F : block.getBrightness(view, x, y - 1, z);
+		if (renderAllSides || block.isSideRendered(blockView, x, y - 1, z, 0)) {
+			light = getBrightness(block, x, y - 1, z);
 			tessellator.color(bR * light, bG * light, bB * light);
 			if (item) tessellator.setNormal(0.0f, -1.0f, 0.0f);
-			renderBottomFace(block, x, y, z, state.getTextureForIndex(view, x, y, z, 0));
+			renderBottomFace(block, x, y, z, state.getTextureForIndex(blockView, x, y, z, 0));
 			result = true;
 		}
 		
-		if (renderAllSides || block.isSideRendered(view, x, y + 1, z, 1)) {
-			light = item ? 1.0F : block.getBrightness(view, x, y + 1, z);
+		if (renderAllSides || block.isSideRendered(blockView, x, y + 1, z, 1)) {
+			light = getBrightness(block, x, y + 1, z);
 			if (block.maxY != 1.0 && !block.material.isLiquid()) {
 				light = light2;
 			}
 			tessellator.color(tR * light, tG * light, tB * light);
 			if (item) tessellator.setNormal(0.0f, 1.0f, 0.0f);
-			renderTopFace(block, x, y, z, state.getTextureForIndex(view, x, y, z, 1));
+			renderTopFace(block, x, y, z, state.getTextureForIndex(blockView, x, y, z, 1));
 			result = true;
 		}
 		
-		if (renderAllSides || block.isSideRendered(view, x, y, z - 1, 2)) {
-			light = item ? 1.0F : block.getBrightness(view, x, y, z - 1);
+		if (renderAllSides || block.isSideRendered(blockView, x, y, z - 1, 2)) {
+			light = block.getBrightness(blockView, x, y, z - 1);
 			if (block.minZ > 0.0) {
 				light = light2;
 			}
 			tessellator.color(ewR * light, ewG * light, ewB * light);
 			if (item) tessellator.setNormal(0.0f, 0.0f, -1.0f);
-			renderEastFace(block, x, y, z, state.getTextureForIndex(view, x, y, z, 2));
+			renderEastFace(block, x, y, z, state.getTextureForIndex(blockView, x, y, z, 2));
 			if (fancyGraphics && block == BaseBlock.GRASS && !breaking) {
 				tessellator.color(ewR * light * r, ewG * light * g, ewB * light * b);
 				renderEastFace(block, x, y, z, Textures.getVanillaBlockSample(38));
@@ -596,15 +621,15 @@ public class BHBlockRenderer {
 			result = true;
 		}
 		
-		if (renderAllSides || block.isSideRendered(view, x, y, z + 1, 3)) {
-			light = item ? 1.0F : block.getBrightness(view, x, y, z + 1);
+		if (renderAllSides || block.isSideRendered(blockView, x, y, z + 1, 3)) {
+			light = getBrightness(block, x, y, z + 1);
 			if (block.maxZ < 1.0) {
 				light = light2;
 			}
 			
 			tessellator.color(ewR * light, ewG * light, ewB * light);
 			if (item) tessellator.setNormal(0.0f, 0.0f, 1.0f);
-			renderWestFace(block, x, y, z, state.getTextureForIndex(view, x, y, z, 3));
+			renderWestFace(block, x, y, z, state.getTextureForIndex(blockView, x, y, z, 3));
 			
 			if (fancyGraphics && block == BaseBlock.GRASS && !breaking) {
 				tessellator.color(ewR * light * r, ewG * light * g, ewB * light * b);
@@ -614,14 +639,14 @@ public class BHBlockRenderer {
 			result = true;
 		}
 		
-		if (renderAllSides || block.isSideRendered(view, x - 1, y, z, 4)) {
-			light = item ? 1.0F : block.getBrightness(view, x - 1, y, z);
+		if (renderAllSides || block.isSideRendered(blockView, x - 1, y, z, 4)) {
+			light = getBrightness(block, x - 1, y, z);
 			if (block.minX > 0.0) {
 				light = light2;
 			}
 			tessellator.color(nsR * light, nsG * light, nsB * light);
 			if (item) tessellator.setNormal(-1.0f, 0.0f, 0.0f);
-			renderNorthFace(block, x, y, z, state.getTextureForIndex(view, x, y, z, 4));
+			renderNorthFace(block, x, y, z, state.getTextureForIndex(blockView, x, y, z, 4));
 			if (fancyGraphics && block == BaseBlock.GRASS && !breaking) {
 				tessellator.color(nsR * light * r, nsG * light * g, nsB * light * b);
 				renderNorthFace(block, x, y, z, Textures.getVanillaBlockSample(38));
@@ -629,14 +654,14 @@ public class BHBlockRenderer {
 			result = true;
 		}
 		
-		if (renderAllSides || block.isSideRendered(view, x + 1, y, z, 5)) {
-			light = item ? 1.0F : block.getBrightness(view, x + 1, y, z);
+		if (renderAllSides || block.isSideRendered(blockView, x + 1, y, z, 5)) {
+			light = getBrightness(block, x + 1, y, z);
 			if (block.maxX < 1.0) {
 				light = light2;
 			}
 			tessellator.color(nsR * light, nsG * light, nsB * light);
 			if (item) tessellator.setNormal(1.0f, 0.0f, 0.0f);
-			renderSouthFace(block, x, y, z, state.getTextureForIndex(view, x, y, z, 5));
+			renderSouthFace(block, x, y, z, state.getTextureForIndex(blockView, x, y, z, 5));
 			if (fancyGraphics && block == BaseBlock.GRASS && !breaking) {
 				tessellator.color(nsR * light * r, nsG * light * g, nsB * light * b);
 				renderSouthFace(block, x, y, z, Textures.getVanillaBlockSample(38));
@@ -1197,5 +1222,86 @@ public class BHBlockRenderer {
 			tessellator.vertex(d10, d12, d13, u22, v22);
 			tessellator.vertex(d10, d12, d14, u11, v12);
 		}
+	}
+	
+	private static boolean renderCross(BlockState state, int x, int y, int z) {
+		Tessellator tessellator = Tessellator.INSTANCE;
+		BaseBlock block = state.getBlock();
+		float light = getBrightness(block, x, y, z);
+		int color = block.getColorMultiplier(blockView, x, y, z);
+		
+		float r = (float) (color >> 16 & 0xFF) / 255.0f;
+		float g = (float) (color >> 8 & 0xFF) / 255.0f;
+		float b = (float) (color & 0xFF) / 255.0f;
+		
+		if (GameRenderer.anaglyph3d) {
+			float f5 = (r * 30.0f + g * 59.0f + b * 11.0f) / 100.0f;
+			float f6 = (r * 30.0f + g * 70.0f) / 100.0f;
+			float f7 = (r * 30.0f + b * 70.0f) / 100.0f;
+			r = f5;
+			g = f6;
+			b = f7;
+		}
+		tessellator.color(light * r, light * g, light * b);
+		
+		double px = x;
+		double py = y;
+		double pz = z;
+		
+		// TODO Enhance random grass offsets (use xorshift)
+		if (block == BaseBlock.TALLGRASS) {
+			long l = ((long) x * 3129871) ^ (long) z * 116129781L ^ (long) y;
+			l = l * l * 42317861L + l * 11L;
+			px += ((double)((float)(l >> 16 & 0xFL) / 15.0f) - 0.5) * 0.5;
+			py += ((double)((float)(l >> 20 & 0xFL) / 15.0f) - 1.0) * 0.2;
+			pz += ((double)((float)(l >> 24 & 0xFL) / 15.0f) - 0.5) * 0.5;
+			/*xorShift.setState(x, y, z, state.getID());
+			px += (xorShift.getFloat() - 0.5F) * 0.5F;
+			pz += (xorShift.getFloat() - 0.5F) * 0.5F;
+			py -= xorShift.getFloat() * 0.2F;*/
+		}
+		
+		renderCross(px, py, pz, state.getTextureForIndex(blockView, x, y, z, 0));
+		return true;
+	}
+	
+	private static void renderCross(double x, double y, double z, TextureSample sample) {
+		Tessellator tessellator = Tessellator.INSTANCE;
+		
+		float u1, u2, v1, v2;
+		
+		if (breaking) {
+			u1 = 0; u2 = 1;
+			v1 = 0; v2 = 1;
+		}
+		else {
+			UVPair uv = sample.getUV();
+			u1 = uv.getU(0);
+			u2 = uv.getU(1);
+			v1 = uv.getV(0);
+			v2 = uv.getV(1);
+		}
+		
+		double x1 = x + 0.5 - 0.45;
+		double x2 = x + 0.5 + 0.45;
+		double z1 = z + 0.5 - 0.45;
+		double z2 = z + 0.5 + 0.45;
+		
+		tessellator.vertex(x1, y + 1.0, z1, u1, v1);
+		tessellator.vertex(x1, y + 0.0, z1, u1, v2);
+		tessellator.vertex(x2, y + 0.0, z2, u2, v2);
+		tessellator.vertex(x2, y + 1.0, z2, u2, v1);
+		tessellator.vertex(x2, y + 1.0, z2, u1, v1);
+		tessellator.vertex(x2, y + 0.0, z2, u1, v2);
+		tessellator.vertex(x1, y + 0.0, z1, u2, v2);
+		tessellator.vertex(x1, y + 1.0, z1, u2, v1);
+		tessellator.vertex(x1, y + 1.0, z2, u1, v1);
+		tessellator.vertex(x1, y + 0.0, z2, u1, v2);
+		tessellator.vertex(x2, y + 0.0, z1, u2, v2);
+		tessellator.vertex(x2, y + 1.0, z1, u2, v1);
+		tessellator.vertex(x2, y + 1.0, z1, u1, v1);
+		tessellator.vertex(x2, y + 0.0, z1, u1, v2);
+		tessellator.vertex(x1, y + 0.0, z2, u2, v2);
+		tessellator.vertex(x1, y + 1.0, z2, u2, v1);
 	}
 }

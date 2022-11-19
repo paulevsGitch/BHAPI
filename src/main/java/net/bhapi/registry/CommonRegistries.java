@@ -172,6 +172,16 @@ public class CommonRegistries {
 		addVariants("leaves", BaseBlock.LEAVES, 3);
 		addVariants("slab", BaseBlock.STONE_SLAB, 4);
 		addVariants("wool", BaseBlock.WOOL, 16);
+		
+		BlockState state = BlockState.getDefaultState(BaseBlock.TALLGRASS);
+		ITEM_REGISTRY.register(
+			Identifier.make("tall_grass"),
+			new BHBlockItem(state.with(state.getProperty("meta"), 1), true)
+		);
+		ITEM_REGISTRY.register(
+			Identifier.make("fern"),
+			new BHBlockItem(state.with(state.getProperty("meta"), 2), true)
+		);
 	}
 	
 	private static void addVariants(String id, BaseBlock block, int count) {
@@ -184,7 +194,7 @@ public class CommonRegistries {
 	
 	private static boolean itemIsFlat(BaseBlock block) {
 		if (!BHAPI.isClient()) return false;
-		return BlockRenderer.isSpecificRenderType(block.getRenderType());
+		return !BlockRenderer.isSpecificRenderType(block.getRenderType());
 	}
 	
 	private static void initItems() {

@@ -44,9 +44,9 @@ public abstract class ItemRendererMixin extends EntityRenderer {
 		BaseItem item = bhapi_renderingStack.getType();
 		if (item == null) return;
 		
-		if (item instanceof BHBlockItem) {
+		if (item instanceof BHBlockItem && !BHBlockItem.cast(item).isFlat()) {
 			Textures.getAtlas().bind();
-			BlockState state = ((BHBlockItem) item).getState();
+			BlockState state = BHBlockItem.cast(item).getState();
 			GL11.glPushMatrix();
 			GL11.glTranslatef(x - 2, y + 3, -3.0f);
 			GL11.glScalef(10.0f, 10.0f, 10.0f);
@@ -54,6 +54,7 @@ public abstract class ItemRendererMixin extends EntityRenderer {
 			GL11.glScalef(1.0f, 1.0f, -1.0f);
 			GL11.glRotatef(210.0f, 1.0f, 0.0f, 0.0f);
 			GL11.glRotatef(45.0f, 0.0f, 1.0f, 0.0f);
+			
 			if (this.coloriseItem) {
 				int color = item.getColorMultiplier(j);
 				float r = (float) (color >> 16 & 0xFF) / 255.0F;
@@ -119,12 +120,12 @@ public abstract class ItemRendererMixin extends EntityRenderer {
 		GL11.glEnable(32826);
 		
 		BaseItem item = entity.stack.getType();
-		if (item instanceof BHBlockItem) {
+		if (item instanceof BHBlockItem && !BHBlockItem.cast(item).isFlat()) {
 			GL11.glRotatef(angle, 0.0f, 1.0f, 0.0f);
 			Textures.getAtlas().bind();
 			float scale = 0.25f;
 			
-			BlockState state = ((BHBlockItem) item).getState();
+			BlockState state = BHBlockItem.cast(item).getState();
 			if (!state.getBlock().isFullCube() && !state.is(BaseBlock.STONE_SLAB)) {
 				scale = 0.5f;
 			}

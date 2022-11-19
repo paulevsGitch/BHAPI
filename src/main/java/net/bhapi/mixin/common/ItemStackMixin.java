@@ -133,7 +133,7 @@ public abstract class ItemStackMixin implements ItemProvider {
 		Identifier id = CommonRegistries.ITEM_REGISTRY.getID(item);
 		if (id == null) {
 			if (item instanceof BHBlockItem) {
-				id = CommonRegistries.BLOCK_REGISTRY.getID(((BHBlockItem) item).getState().getBlock());
+				id = CommonRegistries.BLOCK_REGISTRY.getID(BHBlockItem.cast(item).getState().getBlock());
 				item = CommonRegistries.ITEM_REGISTRY.get(id);
 				setItem(item);
 			}

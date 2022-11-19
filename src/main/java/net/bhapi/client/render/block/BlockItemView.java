@@ -4,13 +4,15 @@ import net.bhapi.blockstate.BlockState;
 import net.bhapi.blockstate.properties.BlockPropertyType;
 import net.bhapi.blockstate.properties.IntegerProperty;
 import net.bhapi.blockstate.properties.StateProperty;
-import net.bhapi.client.BHAPIClient;
 import net.minecraft.block.entity.BaseBlockEntity;
 import net.minecraft.block.material.Material;
 import net.minecraft.level.BlockView;
+import net.minecraft.level.biome.BaseBiome;
 import net.minecraft.level.gen.BiomeSource;
+import net.minecraft.level.gen.FixedBiomeSource;
 
 public class BlockItemView implements BlockView {
+	private static final BiomeSource BIOME_SOURCE = new FixedBiomeSource(BaseBiome.PLAINS, 0.5F, 0.5F);
 	private BlockState state;
 	private int meta;
 	
@@ -66,6 +68,6 @@ public class BlockItemView implements BlockView {
 	
 	@Override
 	public BiomeSource getBiomeSource() {
-		return BHAPIClient.getMinecraft().level.getBiomeSource();
+		return BIOME_SOURCE;
 	}
 }

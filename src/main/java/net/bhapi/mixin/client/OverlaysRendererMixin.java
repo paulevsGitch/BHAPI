@@ -209,14 +209,14 @@ public abstract class OverlaysRendererMixin {
 		TextureAtlas atlas = Textures.getAtlas();
 		atlas.bind();
 		
-		if (item instanceof BHBlockItem) {
+		if (item instanceof BHBlockItem && !BHBlockItem.cast(item).isFlat()) {
 			// TODO save only first after all render implementation
-			BlockState state = ((BHBlockItem) item).getState();
+			BlockState state = BHBlockItem.cast(item).getState();
 			if (BHBlockRenderer.isImplemented(state.getRenderType(entity.level, (int) entity.x, (int) entity.y, (int) entity.z))) {
 				BHBlockRenderer.setRenderer(bhapi_itemView, this.blockRenderer);
 				BHBlockRenderer.renderItem(state, false, entity.getBrightnessAtEyes(1.0f));
 			}
-			else this.blockRenderer.renderBlockItem(((BHBlockItem) item).getState().getBlock(), stack.getDamage(), entity.getBrightnessAtEyes(1.0f));
+			else this.blockRenderer.renderBlockItem(BHBlockItem.cast(item).getState().getBlock(), stack.getDamage(), entity.getBrightnessAtEyes(1.0f));
 		}
 		else {
 			float f;
