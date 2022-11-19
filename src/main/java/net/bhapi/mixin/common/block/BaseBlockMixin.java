@@ -82,7 +82,7 @@ public abstract class BaseBlockMixin implements BlockStateContainer, BHBlockRend
 			CustomDropProvider.cast(this).getCustomDrop(level, x, y, z, drop);
 			drop.forEach(stack -> this.drop(level, x, y, z, stack));
 		}
-		else {
+		else if (BlockUtil.brokenBlock != null && BlockUtil.brokenBlock.getBlock() == BaseBlock.class.cast(this)) {
 			int count = this.getDropCount(level.random);
 			ItemStack stack = ItemUtil.makeStack(BlockUtil.brokenBlock, count);
 			this.drop(level, x, y, z, stack);

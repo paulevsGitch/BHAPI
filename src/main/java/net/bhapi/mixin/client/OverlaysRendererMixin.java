@@ -213,7 +213,6 @@ public abstract class OverlaysRendererMixin {
 			// TODO save only first after all render implementation
 			BlockState state = ((BHBlockItem) item).getState();
 			if (BHBlockRenderer.isImplemented(state.getRenderType(entity.level, (int) entity.x, (int) entity.y, (int) entity.z))) {
-				GL11.glTranslatef(-0.5F, -0.5F, -0.5F);
 				BHBlockRenderer.setRenderer(bhapi_itemView, this.blockRenderer);
 				BHBlockRenderer.renderItem(state, false, entity.getBrightnessAtEyes(1.0f));
 			}

@@ -61,11 +61,9 @@ public abstract class ItemRendererMixin extends EntityRenderer {
 				float b = (float) (color & 0xFF) / 255.0F;
 				GL11.glColor4f(r, g, b, 1.0F);
 			}
-			GL11.glRotatef(-90.0f, 0.0f, 1.0f, 0.0f);
 			
 			// TODO save only first after all render implementation
 			if (BHBlockRenderer.isImplemented(state.getRenderType(bhapi_itemView, 0, 0, 0))) {
-				GL11.glTranslatef(0.0F, -0.1F, 0.0F);
 				bhapi_itemView.setBlockState(state);
 				BHBlockRenderer.setRenderer(bhapi_itemView, this.internalBlockRenderer);
 				BHBlockRenderer.renderItem(state, this.coloriseItem, 1.0f);
@@ -143,7 +141,6 @@ public abstract class ItemRendererMixin extends EntityRenderer {
 				
 				// TODO save only first after all render implementation
 				if (BHBlockRenderer.isImplemented(state.getRenderType(bhapi_itemView, 0, 0, 0))) {
-					GL11.glTranslatef(-0.5F, -0.5F, -0.5F);
 					bhapi_itemView.setBlockState(state);
 					BHBlockRenderer.setRenderer(bhapi_itemView, this.internalBlockRenderer);
 					BHBlockRenderer.renderItem(state, this.coloriseItem, entity.getBrightnessAtEyes(delta));

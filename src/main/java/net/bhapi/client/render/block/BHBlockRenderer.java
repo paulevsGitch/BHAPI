@@ -13,6 +13,7 @@ import net.minecraft.client.render.GameRenderer;
 import net.minecraft.client.render.Tessellator;
 import net.minecraft.client.render.block.BlockRenderer;
 import net.minecraft.level.BlockView;
+import org.lwjgl.opengl.GL11;
 
 public class BHBlockRenderer {
 	private static BlockRenderer renderer;
@@ -107,6 +108,8 @@ public class BHBlockRenderer {
 	}
 	
 	public static void renderItem(BlockState state, boolean colorizeItem, float light) {
+		GL11.glTranslatef(-0.5F, -0.5F, -0.5F);
+		
 		Tessellator tessellator = Tessellator.INSTANCE;
 		tessellator.start();
 		item = true;
