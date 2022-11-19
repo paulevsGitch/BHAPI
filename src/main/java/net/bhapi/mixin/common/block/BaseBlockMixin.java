@@ -6,6 +6,7 @@ import net.bhapi.blockstate.BlockStateContainer;
 import net.bhapi.client.render.block.BHBlockRender;
 import net.bhapi.level.BlockStateProvider;
 import net.bhapi.util.BlockUtil;
+import net.bhapi.util.ItemUtil;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
 import net.minecraft.block.BaseBlock;
@@ -23,10 +24,12 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Random;
 
 @Mixin(BaseBlock.class)
 public abstract class BaseBlockMixin implements BlockStateContainer, BHBlockRender {
 	@Shadow protected abstract void drop(Level arg, int i, int j, int k, ItemStack arg2);
+	@Shadow public abstract int getDropCount(Random random);
 	
 	@Unique	private BlockState defaultState;
 	
@@ -72,13 +75,17 @@ public abstract class BaseBlockMixin implements BlockStateContainer, BHBlockRend
 	
 	@Inject(method = "drop(Lnet/minecraft/level/Level;IIIIF)V", at = @At("HEAD"), cancellable = true)
 	private void bhapi_drop(Level level, int x, int y, int z, int l, float f, CallbackInfo info) {
+		info.cancel();
+		if (level.isClientSide) return;
 		if (this instanceof CustomDropProvider) {
-			info.cancel();
-			if (!level.isClientSide) {
-				List<ItemStack> drop = new ArrayList<>();
-				CustomDropProvider.cast(this).getCustomDrop(level, x, y, z, drop);
-				drop.forEach(stack -> this.drop(level, x, y, z, stack));
-			}
+			List<ItemStack> drop = new ArrayList<>();
+			CustomDropProvider.cast(this).getCustomDrop(level, x, y, z, drop);
+			drop.forEach(stack -> this.drop(level, x, y, z, stack));
+		}
+		else {
+			int count = this.getDropCount(level.random);
+			ItemStack stack = ItemUtil.makeStack(BlockUtil.brokenBlock, count);
+			this.drop(level, x, y, z, stack);
 		}
 	}
 }

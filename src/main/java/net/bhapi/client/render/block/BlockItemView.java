@@ -15,6 +15,7 @@ public class BlockItemView implements BlockView {
 	private int meta;
 	
 	public void setBlockState(BlockState state) {
+		if (this.state == state) return;
 		this.state = state;
 		StateProperty<?> property = state.getProperty("meta");
 		if (property != null && property.getType() == BlockPropertyType.INTEGER) {

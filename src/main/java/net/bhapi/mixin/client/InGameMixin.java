@@ -51,14 +51,14 @@ public abstract class InGameMixin extends DrawableHelper {
 			items[index[0]++] = ItemUtil.makeStack(Identifier.make("iron_pickaxe"));
 			items[index[0]++] = ItemUtil.makeStack(Identifier.make("iron_shovel"));
 			items[index[0]++] = ItemUtil.makeStack(Identifier.make("iron_axe"));
-			items[index[0]++] = ItemUtil.makeStack(Identifier.make("redstone_dust"));
+			items[index[0]++] = ItemUtil.makeStack(Identifier.make("redstone"));
 			items[index[0]++] = ItemUtil.makeStack(Identifier.make("redstone_torch"));
-			TestEvent.BLOCKS.keySet().forEach(id -> {
-				ItemStack stack = new ItemStack(CommonRegistries.ITEM_REGISTRY.get(id), 64);
-				items[index[0]++] = stack;
+			TestEvent.BLOCKS.values().forEach(block -> {
+				items[index[0]++] = new ItemStack(block, 64);
 			});
 			for (byte m = 0; m < 3; m++) items[index[0]++] = new ItemStack(BaseBlock.SAPLING, 64, m);
 			for (byte m = 0; m < 3; m++) items[index[0]++] = new ItemStack(BaseBlock.LOG, 64, m);
+			for (byte m = 0; m < 16; m++) items[index[0]++] = new ItemStack(BaseBlock.WOOL, 64, m);
 			this.minecraft.player.openChestScreen(inventory);
 		}
 	}

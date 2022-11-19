@@ -2,6 +2,7 @@ package net.bhapi.mixin.client;
 
 import net.bhapi.blockstate.BlockState;
 import net.bhapi.level.BlockStateProvider;
+import net.bhapi.util.BlockUtil;
 import net.minecraft.block.BlockSounds;
 import net.minecraft.client.BaseClientInteractionManager;
 import net.minecraft.client.Minecraft;
@@ -44,6 +45,7 @@ public abstract class SinglePlayerClientInteractionManagerMixin extends BaseClie
 		
 		boolean canRemove = this.minecraft.player.canRemoveBlock(state.getBlock());
 		if (result && canRemove) {
+			BlockUtil.brokenBlock = state;
 			int meta = this.minecraft.level.getBlockMeta(x, y, z);
 			state.getBlock().afterBreak(this.minecraft.level, this.minecraft.player, x, y, z, meta);
 		}

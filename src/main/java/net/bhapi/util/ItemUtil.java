@@ -76,4 +76,9 @@ public class ItemUtil {
 		}
 		return new ItemStack(item, count, damage);
 	}
+	
+	public static ItemStack makeStack(BlockState state, int count) {
+		BHBlockItem item = BHBlockItem.get(state);
+		return new ItemStack(item, count);
+	}
 }

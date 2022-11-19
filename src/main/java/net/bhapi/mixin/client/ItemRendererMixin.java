@@ -144,6 +144,7 @@ public abstract class ItemRendererMixin extends EntityRenderer {
 				// TODO save only first after all render implementation
 				if (BHBlockRenderer.isImplemented(state.getRenderType(bhapi_itemView, 0, 0, 0))) {
 					GL11.glTranslatef(-0.5F, -0.5F, -0.5F);
+					bhapi_itemView.setBlockState(state);
 					BHBlockRenderer.setRenderer(bhapi_itemView, this.internalBlockRenderer);
 					BHBlockRenderer.renderItem(state, this.coloriseItem, entity.getBrightnessAtEyes(delta));
 				}

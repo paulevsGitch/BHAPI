@@ -122,6 +122,7 @@ public abstract class ServerPlayerInterractionManagerMixin {
 		}
 		
 		if (result && this.player.canRemoveBlock(state.getBlock())) {
+			BlockUtil.brokenBlock = state;
 			state.getBlock().afterBreak(this.level, this.player, x, y, z, meta);
 			((ServerPlayer) this.player).packetHandler.send(new BlockChangePacket(x, y, z, this.level));
 		}

@@ -20,6 +20,7 @@ public class BlockUtil {
 	public static final BHAirBlock AIR_BLOCK = new BHAirBlock();
 	public static final BlockState AIR_STATE = BlockState.getDefaultState(AIR_BLOCK);
 	public static final int MOD_BLOCK_ID = 255;
+	public static BlockState brokenBlock;
 	
 	public static void init() {
 		Arrays.stream(BaseBlock.BY_ID).filter(Objects::nonNull).forEach(block -> {
