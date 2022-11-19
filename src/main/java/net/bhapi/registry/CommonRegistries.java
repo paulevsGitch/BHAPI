@@ -207,11 +207,11 @@ public class CommonRegistries {
 		ITEM_REGISTRY.register(Identifier.make("string"), BaseItem.string);
 		ITEM_REGISTRY.register(Identifier.make("feather"), BaseItem.feather);
 		ITEM_REGISTRY.register(Identifier.make("gunpowder"), BaseItem.gunpowder);
-		ITEM_REGISTRY.register(Identifier.make("wood_hoe"), BaseItem.woodHoe);
+		ITEM_REGISTRY.register(Identifier.make("wooden_hoe"), BaseItem.woodHoe);
 		ITEM_REGISTRY.register(Identifier.make("stone_hoe"), BaseItem.stoneHoe);
 		ITEM_REGISTRY.register(Identifier.make("iron_hoe"), BaseItem.ironHoe);
 		ITEM_REGISTRY.register(Identifier.make("diamond_hoe"), BaseItem.diamondHoe);
-		ITEM_REGISTRY.register(Identifier.make("gold_hoe"), BaseItem.goldHoe);
+		ITEM_REGISTRY.register(Identifier.make("golden_hoe"), BaseItem.goldHoe);
 		ITEM_REGISTRY.register(Identifier.make("wheat_seeds"), BaseItem.seeds);
 		ITEM_REGISTRY.register(Identifier.make("wheat"), BaseItem.wheat);
 		ITEM_REGISTRY.register(Identifier.make("bread"), BaseItem.bread);
