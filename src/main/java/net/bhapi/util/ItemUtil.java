@@ -43,20 +43,6 @@ public class ItemUtil {
 			ItemStack stack = pair.second();
 			BaseItem item = BHBlockItem.get(state);
 			if (item != null) ItemProvider.cast(stack).setItem(item);
-			
-			/*Identifier id = CommonRegistries.BLOCK_REGISTRY.getID(state.getBlock());
-			Identifier id2 = null;
-			StateProperty<?> meta = state.getProperty("meta");
-			if (meta != null && meta.getType() == BlockPropertyType.INTEGER) {
-				int m = (int) state.getValue(meta);
-				if (m > 0) {
-					id2 = Identifier.make(id.getModID(), id.getName() + "_" + m);
-				}
-			}
-			BaseItem item = null;
-			if (id2 != null) item = CommonRegistries.ITEM_REGISTRY.get(id);
-			if (item == null && id != null) item = CommonRegistries.ITEM_REGISTRY.get(id);
-			if (item != null) ItemProvider.cast(stack).setItem(item);*/
 		});
 	}
 	

@@ -2,6 +2,7 @@ package net.bhapi.util;
 
 import net.bhapi.BHAPI;
 import net.bhapi.client.BHAPIClient;
+import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.client.resource.TexturePack;
 
 import javax.imageio.ImageIO;
@@ -34,10 +35,10 @@ public class ImageUtil {
 	}
 	
 	public static BufferedImage loadFromSource(String path) {
-		TexturePack pack = BHAPIClient.getMinecraft().texturePackManager.texturePack;
+		//TexturePack pack = BHAPIClient.getMinecraft().texturePackManager.texturePack;
 		BufferedImage img = EMPTY;
 		try {
-			InputStream stream = pack.getResourceAsStream(path);
+			InputStream stream = ResourceUtil.getStream(path);//pack.getResourceAsStream(path);
 			if (stream != null) {
 				img = ImageIO.read(stream);
 				stream.close();
@@ -60,10 +61,10 @@ public class ImageUtil {
 	public static Map<Identifier, BufferedImage> loadTexturesFromPathDir(Identifier folder) {
 		String path = "/assets/" + folder.getModID() + "/textures/" + folder.getName();
 		if (!path.endsWith("/")) path += "/";
-		TexturePack pack = BHAPIClient.getMinecraft().texturePackManager.texturePack;
+		//TexturePack pack = BHAPIClient.getMinecraft().texturePackManager.texturePack;
 		Map<Identifier, BufferedImage> result = new HashMap<>();
 		getResources(path).forEach(p -> {
-			InputStream stream = pack.getResourceAsStream(p + ".mcmeta");
+			InputStream stream = ResourceUtil.getStream(p + ".mcmeta");//pack.getResourceAsStream(p + ".mcmeta");
 			if (stream == null) {
 				BufferedImage img = ImageUtil.loadFromSource(p);
 				String name = p.substring(p.lastIndexOf('/') + 1, p.lastIndexOf('.'));
@@ -85,10 +86,10 @@ public class ImageUtil {
 	
 	private static List<String> getResources(String path) {
 		List<String> resources = new ArrayList<>();
-		TexturePack pack = BHAPIClient.getMinecraft().texturePackManager.texturePack;
+		//TexturePack pack = BHAPIClient.getMinecraft().texturePackManager.texturePack;
 		String resource;
 		try {
-			InputStream stream = pack.getResourceAsStream(path);
+			InputStream stream = ResourceUtil.getStream(path);//pack.getResourceAsStream(path);
 			if (stream != null) {
 				BufferedReader reader = new BufferedReader(new InputStreamReader(stream));
 				while ((resource = reader.readLine()) != null) {
