@@ -8,6 +8,7 @@ import net.bhapi.event.AfterBlockAndItemsEvent;
 import net.bhapi.event.BHEvent;
 import net.bhapi.event.BlockRegistryEvent;
 import net.bhapi.event.CommandRegistryEvent;
+import net.bhapi.event.EventRegistrationEvent;
 import net.bhapi.event.ItemRegistryEvent;
 import net.bhapi.event.RecipeRegistryEvent;
 import net.bhapi.event.StartupEvent;
@@ -401,6 +402,7 @@ public class CommonRegistries {
 		EVENT_REGISTRY.put(ItemRegistryEvent.class, () -> new ItemRegistryEvent(ITEM_REGISTRY));
 		EVENT_REGISTRY.put(AfterBlockAndItemsEvent.class, AfterBlockAndItemsEvent::new);
 		EVENT_REGISTRY.put(RecipeRegistryEvent.class, () -> new RecipeRegistryEvent(RecipeRegistry.getInstance()));
+		EVENT_REGISTRY.put(EventRegistrationEvent.class, () -> new EventRegistrationEvent(EVENT_REGISTRY));
 		if (BHAPI.isServer()) {
 			EVENT_REGISTRY.put(CommandRegistryEvent.class, () -> new CommandRegistryEvent(COMMAND_REGISTRY));
 		}

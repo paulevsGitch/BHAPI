@@ -127,6 +127,7 @@ public class BHAPI implements ModInitializer {
 				}
 			});
 		}
+		events.remove(EventRegistrationEvent.class);
 		
 		events.keySet()
 			  .stream()
