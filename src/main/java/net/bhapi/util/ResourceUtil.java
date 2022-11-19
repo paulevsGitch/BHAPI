@@ -1,62 +1,89 @@
 package net.bhapi.util;
 
+import net.bhapi.storage.Resource;
 import net.fabricmc.loader.api.FabricLoader;
 import net.fabricmc.loader.api.ModContainer;
 import net.fabricmc.tinyremapper.extension.mixin.common.data.Pair;
-import org.jetbrains.annotations.Nullable;
 import org.spongepowered.include.com.google.common.collect.ImmutableList;
 
-import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.InputStreamReader;
 import java.nio.file.Path;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Comparator;
 import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
 
 public class ResourceUtil {
+	private static final Map<File, ZipFile> ZIP_FILES = new HashMap<>();
 	private static final ImmutableList<File> MODS;
 	
-	@Nullable
-	public static InputStream getStream(String resource) {
+	public static Resource getResource(String resource, String extension) {
+		return getResources(resource, extension).get(0);
+	}
+	
+	public static List<Resource> getResources(String resource, String extension) {
+		List<Resource> result = new ArrayList<>();
 		String search = resource.startsWith("/") ? resource.substring(1) : resource;
 		for (File mod: MODS) {
 			if (mod.isDirectory()) {
 				File file = new File(mod, search);
-				if (file.exists() && file.isFile()) {
-					try {
-						return new FileInputStream(file);
+				if (file.exists()) {
+					if (file.isFile()) {
+						try {
+							InputStream stream = new FileInputStream(file);
+							String path = file.getAbsolutePath();
+							result.add(new Resource(stream, path));
+						}
+						catch (FileNotFoundException e) {
+							e.printStackTrace();
+						}
 					}
-					catch (FileNotFoundException e) {
-						e.printStackTrace();
+					else if (file.isDirectory()) {
+						Arrays.stream(Objects.requireNonNull(file.listFiles())).filter(File::isFile).forEach(f -> {
+							try {
+								InputStream stream = new FileInputStream(f);
+								String path = f.getAbsolutePath();
+								result.add(new Resource(stream, path));
+							}
+							catch (FileNotFoundException e) {
+								e.printStackTrace();
+							}
+						});
 					}
 				}
 			}
 			else {
 				try {
-					ZipFile zipFile = new ZipFile(mod);
-					Enumeration<? extends ZipEntry> entries = zipFile.entries();
-					InputStream stream = null;
-					while (entries.hasMoreElements()) {
-						ZipEntry entry = entries.nextElement();
-						if (entry.getName().equals(search)) {
-							stream = zipFile.getInputStream(entry);
-							break;
+					ZipFile zipFile = ZIP_FILES.computeIfAbsent(mod, f -> {
+						try {
+							return new ZipFile(f);
 						}
-					}
-					zipFile.close();
-					if (stream != null) {
-						return stream;
+						catch (IOException e) {
+							e.printStackTrace();
+							return null;
+						}
+					});
+					if (zipFile != null) {
+						Enumeration<? extends ZipEntry> entries = zipFile.entries();
+						while (entries.hasMoreElements()) {
+							ZipEntry entry = entries.nextElement();
+							String name = entry.getName();
+							if (name.startsWith(search) && (extension == null || name.endsWith(extension))) {
+								InputStream stream = zipFile.getInputStream(entry);
+								result.add(new Resource(stream, name));
+							}
+						}
 					}
 				}
 				catch (IOException e) {
@@ -64,27 +91,7 @@ public class ResourceUtil {
 				}
 			}
 		}
-		return ResourceUtil.class.getResourceAsStream(resource);
-	}
-	
-	public static List<String> getResources(String path, String mask) {
-		List<String> resources = new ArrayList<>();
-		String resource;
-		try {
-			InputStream stream = getStream(path);
-			if (stream != null) {
-				BufferedReader reader = new BufferedReader(new InputStreamReader(stream));
-				while ((resource = reader.readLine()) != null) {
-					if (resource.endsWith(mask)) resources.add(path + resource);
-				}
-				reader.close();
-				stream.close();
-			}
-		}
-		catch (IOException e) {
-			e.printStackTrace();
-		}
-		return resources;
+		return result;
 	}
 	
 	static {

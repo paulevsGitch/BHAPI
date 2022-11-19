@@ -1,6 +1,7 @@
 package net.bhapi.util;
 
 import net.bhapi.BHAPI;
+import net.bhapi.storage.Resource;
 
 import javax.imageio.ImageIO;
 import java.awt.Color;
@@ -9,7 +10,6 @@ import java.awt.image.DataBuffer;
 import java.awt.image.DataBufferInt;
 import java.io.File;
 import java.io.IOException;
-import java.io.InputStream;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -30,10 +30,10 @@ public class ImageUtil {
 	public static BufferedImage loadFromSource(String path) {
 		BufferedImage img = EMPTY;
 		try {
-			InputStream stream = ResourceUtil.getStream(path);
-			if (stream != null) {
-				img = ImageIO.read(stream);
-				stream.close();
+			Resource resource = ResourceUtil.getResource(path, ".png");
+			if (resource != null) {
+				img = ImageIO.read(resource.getStream());
+				resource.close();
 			}
 			else {
 				BHAPI.warn("Missing image: " + path);
@@ -54,22 +54,17 @@ public class ImageUtil {
 		String path = "/assets/" + folder.getModID() + "/textures/" + folder.getName();
 		if (!path.endsWith("/")) path += "/";
 		Map<Identifier, BufferedImage> result = new HashMap<>();
-		ResourceUtil.getResources(path, ".png").forEach(p -> {
-			InputStream stream = ResourceUtil.getStream(p + ".mcmeta");
-			if (stream == null) {
-				BufferedImage img = ImageUtil.loadFromSource(p);
-				String name = p.substring(p.lastIndexOf('/') + 1, p.lastIndexOf('.'));
+		ResourceUtil.getResources(path, ".png").forEach(resource -> {
+			try {
+				BufferedImage img = ImageIO.read(resource.getStream());
+				String name = resource.getName();
 				String fName = folder.getName();
 				Identifier id = Identifier.make(folder.getModID(), fName.isEmpty() ? name : fName + "/" + name);
 				result.put(id, img);
+				resource.close();
 			}
-			else {
-				try {
-					stream.close();
-				}
-				catch (IOException e) {
-					e.printStackTrace();
-				}
+			catch (IOException e) {
+				e.printStackTrace();
 			}
 		});
 		return result;
