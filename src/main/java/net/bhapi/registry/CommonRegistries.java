@@ -92,7 +92,7 @@ public class CommonRegistries {
 		BLOCK_REGISTRY.register(Identifier.make("detector_rail"), BaseBlock.DETECTOR_RAIL);
 		BLOCK_REGISTRY.register(Identifier.make("sticky_piston"), BaseBlock.STICKY_PISTON);
 		BLOCK_REGISTRY.register(Identifier.make("cobweb"), BaseBlock.COBWEB);
-		BLOCK_REGISTRY.register(Identifier.make("tallgrass"), BaseBlock.TALLGRASS);
+		BLOCK_REGISTRY.register(Identifier.make("tall_grass"), BaseBlock.TALLGRASS);
 		BLOCK_REGISTRY.register(Identifier.make("deadbush"), BaseBlock.DEADBUSH);
 		BLOCK_REGISTRY.register(Identifier.make("piston"), BaseBlock.PISTON);
 		BLOCK_REGISTRY.register(Identifier.make("piston_head"), BaseBlock.PISTON_HEAD);
