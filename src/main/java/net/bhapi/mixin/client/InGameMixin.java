@@ -58,6 +58,7 @@ public abstract class InGameMixin extends DrawableHelper {
 				items[index[0]++] = stack;
 			});
 			for (byte m = 0; m < 3; m++) items[index[0]++] = new ItemStack(BaseBlock.SAPLING, 64, m);
+			for (byte m = 0; m < 3; m++) items[index[0]++] = new ItemStack(BaseBlock.LOG, 64, m);
 			this.minecraft.player.openChestScreen(inventory);
 		}
 	}

@@ -2,8 +2,7 @@ package net.bhapi.util;
 
 import net.bhapi.BHAPI;
 import net.bhapi.blockstate.BlockState;
-import net.bhapi.blockstate.properties.BlockPropertyType;
-import net.bhapi.blockstate.properties.StateProperty;
+import net.bhapi.item.BHBlockItem;
 import net.bhapi.item.ItemProvider;
 import net.bhapi.registry.CommonRegistries;
 import net.fabricmc.tinyremapper.extension.mixin.common.data.Pair;
@@ -30,6 +29,10 @@ public class ItemUtil {
 		}
 	}
 	
+	public static boolean isFrozen() {
+		return isFrozen;
+	}
+	
 	public static void addStackForPostProcessing(BlockState state, ItemStack stack) {
 		POST_PROCESSING_STACKS.add(Pair.of(state, stack));
 	}
@@ -38,7 +41,10 @@ public class ItemUtil {
 		POST_PROCESSING_STACKS.forEach(pair -> {
 			BlockState state = pair.first();
 			ItemStack stack = pair.second();
-			Identifier id = CommonRegistries.BLOCK_REGISTRY.getID(state.getBlock());
+			BaseItem item = BHBlockItem.get(state);
+			if (item != null) ItemProvider.cast(stack).setItem(item);
+			
+			/*Identifier id = CommonRegistries.BLOCK_REGISTRY.getID(state.getBlock());
 			Identifier id2 = null;
 			StateProperty<?> meta = state.getProperty("meta");
 			if (meta != null && meta.getType() == BlockPropertyType.INTEGER) {
@@ -50,7 +56,7 @@ public class ItemUtil {
 			BaseItem item = null;
 			if (id2 != null) item = CommonRegistries.ITEM_REGISTRY.get(id);
 			if (item == null && id != null) item = CommonRegistries.ITEM_REGISTRY.get(id);
-			if (item != null) ItemProvider.cast(stack).setItem(item);
+			if (item != null) ItemProvider.cast(stack).setItem(item);*/
 		});
 	}
 	

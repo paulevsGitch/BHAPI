@@ -30,7 +30,7 @@ public class ExpandableArray <T> {
 	}
 	
 	public void putAll(Map<Integer, T> loadingObjects) {
-		loadingObjects.forEach((id, obj) -> data[id] = obj);
+		loadingObjects.forEach(this::put);
 	}
 	
 	public void forEach(BiConsumer<Integer, T> consumer) {

@@ -1,6 +1,9 @@
 package net.bhapi.client.render.block;
 
 import net.bhapi.blockstate.BlockState;
+import net.bhapi.blockstate.properties.BlockPropertyType;
+import net.bhapi.blockstate.properties.IntegerProperty;
+import net.bhapi.blockstate.properties.StateProperty;
 import net.bhapi.client.BHAPIClient;
 import net.minecraft.block.entity.BaseBlockEntity;
 import net.minecraft.block.material.Material;
@@ -9,9 +12,15 @@ import net.minecraft.level.gen.BiomeSource;
 
 public class BlockItemView implements BlockView {
 	private BlockState state;
+	private int meta;
 	
 	public void setBlockState(BlockState state) {
 		this.state = state;
+		StateProperty<?> property = state.getProperty("meta");
+		if (property != null && property.getType() == BlockPropertyType.INTEGER) {
+			meta = state.getValue((IntegerProperty) property);
+		}
+		else meta = 0;
 	}
 	
 	@Override
@@ -36,7 +45,7 @@ public class BlockItemView implements BlockView {
 	
 	@Override
 	public int getBlockMeta(int i, int j, int k) {
-		return 0;
+		return meta;
 	}
 	
 	@Override

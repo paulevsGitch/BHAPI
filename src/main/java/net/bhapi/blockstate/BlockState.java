@@ -28,9 +28,11 @@ import java.util.Random;
 
 public final class BlockState implements IDProvider {
 	private static final Map<BaseBlock, BlockState[]> POSSIBLE_STATES = new HashMap<>();
+	private static int incrementalHash = 0;
 	
 	private final Map<StateProperty<?>, Object> propertyValues = new HashMap<>();
 	private final Map<String, StateProperty<?>> properties;
+	private final int hash = incrementalHash++;
 	private final BlockState[] localCache;
 	private final BaseBlock block;
 	private int rawID;
@@ -377,7 +379,24 @@ public final class BlockState implements IDProvider {
 	
 	@Override
 	public int hashCode() {
-		return rawID;
+		return hash;
+	}
+	
+	@Override
+	public boolean equals(Object obj) {
+		if (obj == this) return true;
+		if (!(obj instanceof BlockState)) return false;
+		BlockState state = (BlockState) obj;
+		if (block != state.block) return false;
+		if (state.properties.size() != properties.size()) return false;
+		for (StateProperty<?> property: propertyValues.keySet()) {
+			Object value1 = propertyValues.get(property);
+			Object value2 = state.propertyValues.get(property);
+			if (value2 == null || !value1.equals(value2)) {
+				return false;
+			}
+		}
+		return true;
 	}
 	
 	@Environment(EnvType.CLIENT)

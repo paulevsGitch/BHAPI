@@ -1,5 +1,6 @@
 package net.bhapi.item;
 
+import net.bhapi.BHAPI;
 import net.bhapi.blockstate.BlockState;
 import net.bhapi.client.render.texture.TextureSample;
 import net.bhapi.level.BlockStateProvider;
@@ -15,7 +16,12 @@ import net.minecraft.entity.player.PlayerBase;
 import net.minecraft.item.ItemStack;
 import net.minecraft.level.Level;
 
+import java.util.HashMap;
+import java.util.Map;
+
 public class BHBlockItem extends BHItem {
+	private static final Map<BlockState, BHBlockItem> ITEMS = new HashMap<>();
+	
 	private final BlockState state;
 	private final boolean isFlat;
 	private static int globalID;
@@ -24,6 +30,7 @@ public class BHBlockItem extends BHItem {
 	public BHBlockItem(BlockState state, boolean isFlat) {
 		this.state = state;
 		this.isFlat = isFlat;
+		ITEMS.put(state, this);
 	}
 	
 	public BHBlockItem(BaseBlock block, boolean isFlat) {
@@ -110,5 +117,14 @@ public class BHBlockItem extends BHItem {
 	@Environment(EnvType.CLIENT)
 	public TextureSample getTexture(ItemStack stack) {
 		return null;
+	}
+	
+	public static BHBlockItem get(BlockState state) {
+		BHBlockItem item = ITEMS.get(state);
+		if (item == null) {
+			BHAPI.warn("Missing block item for " + state + ", attempt to get default");
+			item = ITEMS.get(BlockState.getDefaultState(state.getBlock()));
+		}
+		return item;
 	}
 }

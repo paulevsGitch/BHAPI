@@ -159,12 +159,27 @@ public class CommonRegistries {
 		BLOCK_REGISTRY.register(Identifier.make("locked_chest"), BaseBlock.LOCKED_CHEST);
 		BLOCK_REGISTRY.register(Identifier.make("trapdoor"), BaseBlock.TRAPDOOR);
 		
-		// Make sure that all vanilla blocks are generated on startup
 		BLOCK_REGISTRY.forEach(block -> {
 			BlockState state = BlockStateContainer.cast(block).getDefaultState();
-			state.getPossibleStates();
-			ITEM_REGISTRY.register(BLOCK_REGISTRY.getID(block), new BHBlockItem(state, itemIsFlat(block)));
+			state.getPossibleStates(); // Make sure that all vanilla blocks are generated on startup
+			Identifier id = BLOCK_REGISTRY.getID(block);
+			BHBlockItem item = new BHBlockItem(state, itemIsFlat(block));
+			ITEM_REGISTRY.register(id, item);
 		});
+		
+		addVariants("sapling", BaseBlock.SAPLING, 3);
+		addVariants("log", BaseBlock.LOG, 3);
+		addVariants("leaves", BaseBlock.LEAVES, 3);
+		addVariants("slab", BaseBlock.STONE_SLAB, 4);
+		addVariants("wool", BaseBlock.WOOL, 16);
+	}
+	
+	private static void addVariants(String id, BaseBlock block, int count) {
+		BlockState state = BlockStateContainer.cast(block).getDefaultState();
+		for (int meta = 1; meta < count; meta++) {
+			state = state.with(state.getProperty("meta"), meta);
+			ITEM_REGISTRY.register(Identifier.make(id + "_" + meta), new BHBlockItem(state, false));
+		}
 	}
 	
 	private static boolean itemIsFlat(BaseBlock block) {
