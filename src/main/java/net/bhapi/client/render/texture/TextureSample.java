@@ -12,4 +12,8 @@ public class TextureSample {
 	public UVPair getUV() {
 		return atlas.getUV(id);
 	}
+	
+	public int getTextureID() {
+		return id;
+	}
 }

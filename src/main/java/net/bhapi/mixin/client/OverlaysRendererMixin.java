@@ -4,10 +4,14 @@ import net.bhapi.blockstate.BlockState;
 import net.bhapi.client.render.block.BHBlockRenderer;
 import net.bhapi.client.render.block.BlockItemView;
 import net.bhapi.client.render.texture.TextureAtlas;
+import net.bhapi.client.render.texture.TextureSample;
 import net.bhapi.client.render.texture.Textures;
 import net.bhapi.client.render.texture.UVPair;
 import net.bhapi.item.BHBlockItem;
 import net.bhapi.item.BHItemRender;
+import net.bhapi.level.BlockStateProvider;
+import net.minecraft.block.BaseBlock;
+import net.minecraft.block.material.Material;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.render.OverlaysRenderer;
 import net.minecraft.client.render.RenderHelper;
@@ -42,6 +46,9 @@ public abstract class OverlaysRendererMixin {
 	@Shadow private BlockRenderer blockRenderer;
 	
 	@Shadow public abstract void renderHand(LivingEntity arg, ItemStack arg2);
+	@Shadow protected abstract void renderUnderwaterOverlay(float f);
+	@Shadow protected abstract void renderFireOverlay(float f);
+	@Shadow protected abstract void renderSuffocateOverlay(float f, int i);
 	
 	@Unique private BlockItemView bhapi_itemView = new BlockItemView();
 	
@@ -287,5 +294,121 @@ public abstract class OverlaysRendererMixin {
 			GL11.glDisable(32826);
 		}
 		GL11.glPopMatrix();
+	}
+	
+	@Inject(method = "renderOverlays", at = @At("HEAD"), cancellable = true)
+	public void bhapi_renderOverlays(float delta, CallbackInfo info) {
+		info.cancel();
+		int x, y, z;
+		GL11.glDisable(GL11.GL_ALPHA_TEST);
+		
+		if (this.minecraft.player.isOnFire()) {
+			Textures.getAtlas().bind();
+			this.renderFireOverlay(delta);
+		}
+		
+		if (this.minecraft.player.isInsideWall()) {
+			x = MathHelper.floor(this.minecraft.player.x);
+			y = MathHelper.floor(this.minecraft.player.y);
+			z = MathHelper.floor(this.minecraft.player.z);
+			Textures.getAtlas().bind();
+			BlockState state = BlockStateProvider.cast(this.minecraft.level).getBlockState(x, y, z);
+			if (this.minecraft.level.canSuffocate(x, y, z)) {
+				int texture = state.getTextureForIndex(this.minecraft.level, x, y, z, 2).getTextureID();
+				this.renderSuffocateOverlay(delta, texture);
+			}
+			else {
+				for (int i = 0; i < 8; ++i) {
+					float fx = (((i) & 1) - 0.5f) * this.minecraft.player.width * 0.9f;
+					float fy = (((i >> 1) & 1) - 0.5f) * this.minecraft.player.height * 0.2f;
+					float fz = (((i >> 2) & 1) - 0.5f) * this.minecraft.player.width * 0.9f;
+					int px = MathHelper.floor(x + fx);
+					int py = MathHelper.floor(y + fy);
+					int pz = MathHelper.floor(z + fz);
+					if (!this.minecraft.level.canSuffocate(px, py, pz)) continue;
+					state = BlockStateProvider.cast(this.minecraft.level).getBlockState(px, py, pz);
+				}
+			}
+			if (!state.isAir()) {
+				int texture = state.getTextureForIndex(this.minecraft.level, x, y, z, 2).getTextureID();
+				this.renderSuffocateOverlay(delta, texture);
+			}
+		}
+		
+		if (this.minecraft.player.isInFluid(Material.WATER)) {
+			int texture = this.minecraft.textureManager.getTextureId("/misc/water.png");
+			GL11.glBindTexture(GL11.GL_TEXTURE_2D, texture);
+			this.renderUnderwaterOverlay(delta);
+		}
+		
+		GL11.glEnable(GL11.GL_ALPHA_TEST);
+	}
+	
+	@Inject(method = "renderFireOverlay", at = @At("HEAD"), cancellable = true)
+	private void bhapi_renderFireOverlay(float delta, CallbackInfo info) {
+		info.cancel();
+		Tessellator tessellator = Tessellator.INSTANCE;
+		GL11.glColor4f(1.0f, 1.0f, 1.0f, 0.9f);
+		GL11.glEnable(GL11.GL_BLEND);
+		GL11.glBlendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE_MINUS_SRC_ALPHA);
+		
+		float f2 = 1.0f;
+		for (int i = 0; i < 2; ++i) {
+			GL11.glPushMatrix();
+			
+			TextureSample texture = BlockState
+				.getDefaultState(BaseBlock.FIRE)
+				.getTextureForIndex(bhapi_itemView, 0, 0, 0, i);
+			UVPair uv = texture.getUV();
+			
+			float u1 = uv.getU(0);
+			float u2 = uv.getU(1);
+			float v1 = uv.getV(0);
+			float v2 = uv.getV(1);
+			float x1 = (0.0f - f2) / 2.0f;
+			float x2 = x1 + f2;
+			float y1 = 0.0f - f2 / 2.0f;
+			float y2 = y1 + f2;
+			
+			GL11.glTranslatef((1 - i * 2) * 0.24f, -0.3f, 0.0f);
+			GL11.glRotatef((i * 2 - 1) * 10.0f, 0.0f, 1.0f, 0.0f);
+			
+			tessellator.start();
+			tessellator.vertex(x1, y1, -0.5f, u2, v2);
+			tessellator.vertex(x2, y1, -0.5f, u1, v2);
+			tessellator.vertex(x2, y2, -0.5f, u1, v1);
+			tessellator.vertex(x1, y2, -0.5f, u2, v1);
+			tessellator.draw();
+			
+			GL11.glPopMatrix();
+		}
+		
+		GL11.glColor4f(1.0f, 1.0f, 1.0f, 1.0f);
+		GL11.glDisable(GL11.GL_BLEND);
+	}
+	
+	@Inject(method = "renderSuffocateOverlay", at = @At("HEAD"), cancellable = true)
+	private void bhapi_renderSuffocateOverlay(float delta, int index, CallbackInfo info) {
+		info.cancel();
+		Tessellator tessellator = Tessellator.INSTANCE;
+		GL11.glColor4f(0.1f, 0.1f, 0.1f, 0.5f);
+		GL11.glPushMatrix();
+		
+		UVPair uv = Textures.getAtlas().getUV(index);
+		
+		float u1 = uv.getU(0);
+		float u2 = uv.getU(1);
+		float v1 = uv.getV(0);
+		float v2 = uv.getV(1);
+		
+		tessellator.start();
+		tessellator.vertex(-1.0f, -1.0f, -0.5f, u2, v2);
+		tessellator.vertex(1.0f, -1.0f, -0.5f, u1, v2);
+		tessellator.vertex(1.0f, 1.0f, -0.5f, u1, v1);
+		tessellator.vertex(-1.0f, 1.0f, -0.5f, u2, v1);
+		tessellator.draw();
+		
+		GL11.glPopMatrix();
+		GL11.glColor4f(1.0f, 1.0f, 1.0f, 1.0f);
 	}
 }

@@ -570,9 +570,9 @@ public abstract class LevelMixin implements LevelHeightProvider, BlockStateProvi
 	@Override
 	public boolean canPlaceState(BlockState state, int x, int y, int z, boolean flag, int facing) {
 		Level level = Level.class.cast(this);
-		//BlockState levelState = getBlockState(x, y, z);
+		BlockState levelState = getBlockState(x, y, z);
+		if (!levelState.isAir() && !levelState.getMaterial().isReplaceable()) return false;
 		
-		//BaseBlock levelBlock = levelState.getBlock();
 		BaseBlock placeBlock = state.getBlock();
 		Box collider = placeBlock.getCollisionShape(level, x, y, z);
 		
@@ -582,11 +582,6 @@ public abstract class LevelMixin implements LevelHeightProvider, BlockStateProvi
 		
 		if (collider != null && !level.canSpawnEntity(collider)) return false;
 		
-		/*if (levelBlock instanceof FluidBlock || levelBlock == BaseBlock.FIRE || levelBlock == BaseBlock.SNOW) {
-			levelBlock = null;
-		}*/
-		
-		//return levelBlock == null || placeBlock.canPlaceAt(level, x, y, z, facing);
 		return placeBlock.canPlaceAt(level, x, y, z, facing);
 	}
 	

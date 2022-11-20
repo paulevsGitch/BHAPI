@@ -20,6 +20,7 @@
 		"PlayerRendererMixin",
 		"BlockRendererMixin",
 		"LevelRendererMixin",
+		"EntityRenderMixin",
 		"ItemRendererMixin",
 		"AreaRendererMixin",
 		"BaseItemAccessor",

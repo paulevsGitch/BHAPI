@@ -91,7 +91,7 @@ public class BHBlockRenderer {
 	private static Vec3F itemColor = new Vec3F();
 	
 	public static boolean isImplemented(int renderType) {
-		return renderType > -1 && renderType < 2;
+		return renderType >= 0 && renderType <= BlockRenderTypes.FIRE;
 	}
 	
 	public static void setRenderer(BlockView view, BlockRenderer renderer) {
@@ -124,7 +124,6 @@ public class BHBlockRenderer {
 			float r = (float) (color >> 16 & 0xFF) / 255.0F;
 			float g = (float) (color >> 8 & 0xFF) / 255.0F;
 			float b = (float) (color & 0xFF) / 255.0F;
-			//GL11.glColor4f(r * light, g * light, b * light, 1.0f);
 			itemColor.multiply(r, g, b);
 		}
 		
@@ -141,6 +140,7 @@ public class BHBlockRenderer {
 		if (type == BlockRenderTypes.FULL_CUBE) return renderFullCube(state, x, y, z);
 		if (type == BlockRenderTypes.CROSS) return renderCross(state, x, y, z);
 		if (type == BlockRenderTypes.TORCH) return renderTorch(state, x, y, z);
+		if (type == BlockRenderTypes.FIRE) return renderFire(state, x, y, z);
 		if (type == BlockRenderTypes.CUSTOM) return true; // TODO make custom rendering
 		else if (BlockRenderTypes.isVanilla(type)) {
 			return renderer.render(state.getBlock(), x, y, z);
@@ -1385,5 +1385,203 @@ public class BHBlockRenderer {
 		tessellator.vertex(d7 + dx, y + 0.0, z - d10 + dz, u11, v12);
 		tessellator.vertex(d6 + dx, y + 0.0, z - d10 + dz, u12, v12);
 		tessellator.vertex(d6, y + 1.0, z - d10, u12, v11);
+	}
+	
+	private static boolean renderFire(BlockState state, int x, int y, int z) {
+		BaseBlock block = state.getBlock();
+		Tessellator tessellator = Tessellator.INSTANCE;
+		
+		float light = block.getBrightness(blockView, x, y, z);
+		tessellator.color(light, light, light);
+		
+		UVPair uv1 = state.getTextureForIndex(blockView, x, y, z, 0).getUV();
+		UVPair uv2 = state.getTextureForIndex(blockView, x, y, z, 1).getUV();
+		float u1, u2, v1, v2;
+		
+		if (breaking) {
+			u1 = 0; u2 = 1;
+			v1 = 0; v2 = 1;
+		}
+		else {
+			u1 = uv1.getU(0);
+			u2 = uv1.getU(1);
+			v1 = uv1.getV(0);
+			v2 = uv1.getV(1);
+		}
+		
+		float size = 1.4f;
+		if (blockView.canSuffocate(x, y - 1, z) || BaseBlock.FIRE.method_1824(blockView, x, y - 1, z)) {
+			double x2 = x + 0.5 + 0.2;
+			double x1 = x + 0.5 - 0.2;
+			double z2 = z + 0.5 + 0.2;
+			double z1 = z + 0.5 - 0.2;
+			double x3 = x + 0.5 - 0.3;
+			double x4 = x + 0.5 + 0.3;
+			double z3 = z + 0.5 - 0.3;
+			double z4 = z + 0.5 + 0.3;
+			
+			tessellator.vertex(x3, y + size, z + 1, u2, v1);
+			tessellator.vertex(x2, y, z + 1, u2, v2);
+			tessellator.vertex(x2, y, z, u1, v2);
+			tessellator.vertex(x3, y + size, z, u1, v1);
+			tessellator.vertex(x4, y + size, z, u2, v1);
+			tessellator.vertex(x1, y, z, u2, v2);
+			tessellator.vertex(x1, y, z + 1, u1, v2);
+			tessellator.vertex(x4, y + size, z + 1, u1, v1);
+			
+			u1 = uv2.getU(0);
+			u2 = uv2.getU(1);
+			v1 = uv2.getV(0);
+			v2 = uv2.getV(1);
+			
+			tessellator.vertex(x + 1, y + size, z4, u2, v1);
+			tessellator.vertex(x + 1, y, z1, u2, v2);
+			tessellator.vertex(x, y, z1, u1, v2);
+			tessellator.vertex(x, y + size, z4, u1, v1);
+			tessellator.vertex(x, y + size, z3, u2, v1);
+			tessellator.vertex(x, y, z2, u2, v2);
+			tessellator.vertex(x + 1, y, z2, u1, v2);
+			tessellator.vertex(x + 1, y + size, z3, u1, v1);
+			
+			x2 = x + 0.5 - 0.5;
+			x1 = x + 0.5 + 0.5;
+			z2 = z + 0.5 - 0.5;
+			z1 = z + 0.5 + 0.5;
+			x3 = x + 0.5 - 0.4;
+			x4 = x + 0.5 + 0.4;
+			z3 = z + 0.5 - 0.4;
+			z4 = z + 0.5 + 0.4;
+			
+			tessellator.vertex(x3, y + size, z, u1, v1);
+			tessellator.vertex(x2, y, z, u1, v2);
+			tessellator.vertex(x2, y, z + 1, u2, v2);
+			tessellator.vertex(x3, y + size, z + 1, u2, v1);
+			tessellator.vertex(x4, y + size, z + 1, u1, v1);
+			tessellator.vertex(x1, y, z + 1, u1, v2);
+			tessellator.vertex(x1, y, z, u2, v2);
+			tessellator.vertex(x4, y + size, z, u2, v1);
+			
+			u1 = uv1.getU(0);
+			u2 = uv1.getU(1);
+			v1 = uv1.getV(0);
+			v2 = uv1.getV(1);
+			
+			tessellator.vertex(x, y + size, z4, u1, v1);
+			tessellator.vertex(x, y, z1, u1, v2);
+			tessellator.vertex(x + 1, y, z1, u2, v2);
+			tessellator.vertex(x + 1, y + size, z4, u2, v1);
+			tessellator.vertex(x + 1, y + size, z3, u1, v1);
+			tessellator.vertex(x + 1, y, z2, u1, v2);
+			tessellator.vertex(x, y, z2, u2, v2);
+			tessellator.vertex(x, y + size, z3, u2, v1);
+		}
+		else {
+			float f3 = 0.2f;
+			float f4 = 0.0625f;
+			
+			if ((x + y + z & 1) == 1) {
+				u1 = uv2.getU(0);
+				u2 = uv2.getU(1);
+				v1 = uv2.getV(0);
+				v2 = uv2.getV(1);
+			}
+			
+			if ((x / 2 + y / 2 + z / 2 & 1) == 1) {
+				float u = u2;
+				u2 = u1;
+				u1 = u;
+			}
+			
+			if (BaseBlock.FIRE.method_1824(blockView, x - 1, y, z)) {
+				tessellator.vertex(x + f3, y + size + f4, z + 1, u2, v1);
+				tessellator.vertex(x, y + f4, z + 1, u2, v2);
+				tessellator.vertex(x, y + f4, z, u1, v2);
+				tessellator.vertex(x + f3, y + size + f4, z, u1, v1);
+				tessellator.vertex(x + f3, y + size + f4, z, u1, v1);
+				tessellator.vertex(x, y + f4, z, u1, v2);
+				tessellator.vertex(x, y + f4, z + 1, u2, v2);
+				tessellator.vertex(x + f3, y + size + f4, z + 1, u2, v1);
+			}
+			
+			if (BaseBlock.FIRE.method_1824(blockView, x + 1, y, z)) {
+				tessellator.vertex(x + 1 - f3, y + size + f4, z, u1, v1);
+				tessellator.vertex(x + 1, y + f4, z, u1, v2);
+				tessellator.vertex(x + 1, y + f4, z + 1, u2, v2);
+				tessellator.vertex(x + 1 - f3, y + size + f4, z + 1, u2, v1);
+				tessellator.vertex(x + 1 - f3, y + size + f4, z + 1, u2, v1);
+				tessellator.vertex(x + 1, y + f4, z + 1, u2, v2);
+				tessellator.vertex(x + 1, y + f4, z, u1, v2);
+				tessellator.vertex(x + 1 - f3, y + size + f4, z, u1, v1);
+			}
+			
+			if (BaseBlock.FIRE.method_1824(blockView, x, y, z - 1)) {
+				tessellator.vertex(x, y + size + f4, z + f3, u2, v1);
+				tessellator.vertex(x, y + f4, z, u2, v2);
+				tessellator.vertex(x + 1, y + f4, z, u1, v2);
+				tessellator.vertex(x + 1, y + size + f4, z + f3, u1, v1);
+				tessellator.vertex(x + 1, y + size + f4, z + f3, u1, v1);
+				tessellator.vertex(x + 1, y + f4, z, u1, v2);
+				tessellator.vertex(x, y + f4, z, u2, v2);
+				tessellator.vertex(x, y + size + f4, z + f3, u2, v1);
+			}
+			
+			if (BaseBlock.FIRE.method_1824(blockView, x, y, z + 1)) {
+				tessellator.vertex(x + 1, y + size + f4, z + 1 - f3, u1, v1);
+				tessellator.vertex(x + 1, y + f4, z + 1, u1, v2);
+				tessellator.vertex(x, y + f4, z + 1, u2, v2);
+				tessellator.vertex(x, y + size + f4, z + 1 - f3, u2, v1);
+				tessellator.vertex(x, y + size + f4, z + 1 - f3, u2, v1);
+				tessellator.vertex(x, y + f4, z + 1, u2, v2);
+				tessellator.vertex(x + 1, y + f4, z + 1, u1, v2);
+				tessellator.vertex(x + 1, y + size + f4, z + 1 - f3, u1, v1);
+			}
+			
+			if (BaseBlock.FIRE.method_1824(blockView, x, y + 1, z)) {
+				double x6 = x + 0.5 + 0.5;
+				double x5 = x + 0.5 - 0.5;
+				double z6 = z + 0.5 + 0.5;
+				double z5 = z + 0.5 - 0.5;
+				double x7 = x + 0.5 - 0.5;
+				double x8 = x + 0.5 + 0.5;
+				double z7 = z + 0.5 - 0.5;
+				double z8 = z + 0.5 + 0.5;
+				
+				size = -0.2f;
+				if ((x + ++y + z & 1) == 0) {
+					tessellator.vertex(x7, y + size, z, u2, v1);
+					tessellator.vertex(x6, y, z, u2, v2);
+					tessellator.vertex(x6, y, z + 1, u1, v2);
+					tessellator.vertex(x7, y + size, z + 1, u1, v1);
+					
+					u1 = uv2.getU(0);
+					u2 = uv2.getU(1);
+					v1 = uv2.getV(0);
+					v2 = uv2.getV(1);
+					
+					tessellator.vertex(x8, y + size, z + 1, u2, v1);
+					tessellator.vertex(x5, y, z + 1, u2, v2);
+					tessellator.vertex(x5, y, z, u1, v2);
+					tessellator.vertex(x8, y + size, z, u1, v1);
+				}
+				else {
+					tessellator.vertex(x, y + size, z8, u2, v1);
+					tessellator.vertex(x, y, z5, u2, v2);
+					tessellator.vertex(x + 1, y, z5, u1, v2);
+					tessellator.vertex(x + 1, y + size, z8, u1, v1);
+					
+					u1 = uv2.getU(0);
+					u2 = uv2.getU(1);
+					v1 = uv2.getV(0);
+					v2 = uv2.getV(1);
+					
+					tessellator.vertex(x + 1, y + size, z7, u2, v1);
+					tessellator.vertex(x + 1, y, z6, u2, v2);
+					tessellator.vertex(x, y, z6, u1, v2);
+					tessellator.vertex(x, y + size, z7, u1, v1);
+				}
+			}
+		}
+		
+		return true;
 	}
 }
