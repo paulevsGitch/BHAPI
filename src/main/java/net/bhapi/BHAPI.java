@@ -62,6 +62,8 @@ public class BHAPI implements ModInitializer {
 		handleEvents();
 		ItemUtil.setFrozen(true);
 		ItemUtil.postProcessStacks();
+		
+		CommonRegistries.initRecipes();
 		RecipeSorter.sort(RecipeRegistry.getInstance());
 		
 		BHConfigs.save();

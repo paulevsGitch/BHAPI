@@ -56,7 +56,6 @@ public class CommonRegistries {
 		initBlocks();
 		initItems();
 		initEvents();
-		initRecipes();
 		if (BHAPI.isServer()) initCommands();
 	}
 	
@@ -352,7 +351,7 @@ public class CommonRegistries {
 		});
 	}
 	
-	private static void initRecipes() {
+	public static void initRecipes() {
 		RecipeRegistry registry = RecipeRegistry.getInstance();
 		RecipeRegistryAccessor accessor = (RecipeRegistryAccessor) registry;
 		new ToolRecipes().register(registry);
