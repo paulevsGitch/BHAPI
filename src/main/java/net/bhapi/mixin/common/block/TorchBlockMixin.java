@@ -45,7 +45,7 @@ public abstract class TorchBlockMixin extends BaseBlock implements BlockStateCon
 			else return false;
 		}
 		Vec3I pos = dir.move(new Vec3I(x, y, z));
-		if (facing == 5) return method_1674(level, pos.x, pos.y, pos.z);
+		if (facing < 2) return method_1674(level, pos.x, pos.y, pos.z);
 		else return level.canSuffocate(pos.x, pos.y, pos.z);
 	}
 	
