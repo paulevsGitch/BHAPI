@@ -1,6 +1,5 @@
 package net.bhapi.item;
 
-import net.bhapi.BHAPI;
 import net.bhapi.blockstate.BlockState;
 import net.bhapi.client.render.block.BlockItemView;
 import net.bhapi.client.render.texture.TextureSample;
@@ -50,19 +49,26 @@ public class BHBlockItem extends BHItem {
 		BlockState worldState = provider.getBlockState(x, y, z);
 		if (worldState.is(BaseBlock.SNOW)) facing = 0;
 		
-		BlockDirection dir = BlockDirection.getFromFacing(facing);
-		Vec3I pos = dir.move(new Vec3I(x, y, z));
-		
+		if (!place(stack, level, x, y, z, facing, player)) {
+			BlockDirection dir = BlockDirection.getFromFacing(facing);
+			Vec3I pos = dir.move(new Vec3I(x, y, z));
+			return place(stack, level, pos.x, pos.y, pos.z, facing, player);
+		}
+		return true;
+	}
+	
+	private boolean place(ItemStack stack, Level level, int x, int y, int z, int facing, PlayerBase player) {
 		PlaceChecker checker = PlaceChecker.cast(level);
-		if (checker.canPlaceState(state, pos.x, pos.y, pos.z, false, facing)) {
-			if (provider.setBlockState(pos, state)) {
-				state.onBlockPlaced(level, pos.x, pos.y, pos.z);
-				state.getBlock().afterPlaced(level, pos.x, pos.y, pos.z, player);
+		BlockStateProvider provider = BlockStateProvider.cast(level);
+		if (checker.canPlaceState(state, x, y, z, false, facing)) {
+			if (provider.setBlockState(x, y, z, state)) {
+				state.onBlockPlaced(level, x, y, z, facing);
+				state.getBlock().afterPlaced(level, x, y, z, player);
 				BlockSounds sounds = state.getSounds();
 				level.playSound(
-					pos.x + 0.5F,
-					pos.y + 0.5F,
-					pos.z + 0.5F,
+					x + 0.5F,
+					y + 0.5F,
+					z + 0.5F,
 					sounds.getWalkSound(),
 					sounds.getVolume() * 0.5F + 0.5F,
 					sounds.getPitch() * 0.8F
@@ -133,7 +139,7 @@ public class BHBlockItem extends BHItem {
 	public static BHBlockItem get(BlockState state) {
 		BHBlockItem item = ITEMS.get(state);
 		if (item == null) {
-			BHAPI.warn("Missing block item for " + state + ", attempt to get default");
+			// BHAPI.warn("Missing block item for " + state + ", attempt to get default");
 			item = ITEMS.get(BlockState.getDefaultState(state.getBlock()));
 		}
 		return item;

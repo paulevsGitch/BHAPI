@@ -29,6 +29,10 @@ public enum BlockDirection {
 		return VALUES[facing];
 	}
 	
+	public BlockDirection invert() {
+		return (facing & 1) == 0 ? VALUES[facing + 1] : VALUES[facing - 1];
+	}
+	
 	public Vec3I move(Vec3I vec) {
 		return vec.add(x, y, z);
 	}

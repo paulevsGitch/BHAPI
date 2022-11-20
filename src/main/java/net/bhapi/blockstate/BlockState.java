@@ -348,6 +348,18 @@ public final class BlockState implements IDProvider {
 	}
 	
 	/**
+	 * Called after {@link BlockState} is placed in the world.
+	 * @param level {@link Level} where block is located
+	 * @param x X coordinate
+	 * @param y Y coordinate
+	 * @param z Z coordinate
+	 * @param facing Facing index
+	 */
+	public void onBlockPlaced(Level level, int x, int y, int z, int facing) {
+		getContainer().onBlockPlaced(level, x, y, z, facing, this);
+	}
+	
+	/**
 	 * Applied on random or scheduled ticks.
 	 * @param level {@link Level} where block is located
 	 * @param x X coordinate

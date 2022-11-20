@@ -163,6 +163,19 @@ public interface BlockStateContainer {
 		state.getBlock().onBlockPlaced(level, x, y, z);
 	}
 	
+	/**
+	 * Called after state is placed in the world.
+	 * @param level {@link Level} where block is located
+	 * @param x X coordinate
+	 * @param y Y coordinate
+	 * @param z Z coordinate
+	 * @param facing Facing index
+	 * @param state {@link BlockState} that was placed
+	 */
+	default void onBlockPlaced(Level level, int x, int y, int z, int facing, BlockState state) {
+		state.getBlock().onBlockPlaced(level, x, y, z, facing);
+	}
+	
 	static BlockStateContainer cast(Object obj) {
 		return (BlockStateContainer) obj;
 	}

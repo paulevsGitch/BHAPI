@@ -70,7 +70,7 @@ public abstract class BaseBlockMixin implements BlockStateContainer, BHBlockRend
 	@Inject(method = "canPlaceAt(Lnet/minecraft/level/Level;III)Z", at = @At("HEAD"), cancellable = true)
 	private void bhapi_canPlaceAt(Level level, int x, int y, int z, CallbackInfoReturnable<Boolean> info) {
 		BlockState state = BlockStateProvider.cast(level).getBlockState(x, y, z);
-		info.setReturnValue(state.getBlock().material.isReplaceable());
+		info.setReturnValue(state.getBlock().material.isReplaceable() || state.is(BaseBlock.SNOW));
 	}
 	
 	@Inject(method = "drop(Lnet/minecraft/level/Level;IIIIF)V", at = @At("HEAD"), cancellable = true)

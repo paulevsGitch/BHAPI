@@ -1,6 +1,8 @@
 package net.bhapi.client.render.block;
 
 import net.bhapi.blockstate.BlockState;
+import net.bhapi.blockstate.properties.BlockPropertyType;
+import net.bhapi.blockstate.properties.StateProperty;
 import net.bhapi.client.render.texture.TextureSample;
 import net.bhapi.client.render.texture.Textures;
 import net.bhapi.client.render.texture.UVPair;
@@ -138,6 +140,7 @@ public class BHBlockRenderer {
 		if (type == BlockRenderTypes.EMPTY) return false;
 		if (type == BlockRenderTypes.FULL_CUBE) return renderFullCube(state, x, y, z);
 		if (type == BlockRenderTypes.CROSS) return renderCross(state, x, y, z);
+		if (type == BlockRenderTypes.TORCH) return renderTorch(state, x, y, z);
 		if (type == BlockRenderTypes.CUSTOM) return true; // TODO make custom rendering
 		else if (BlockRenderTypes.isVanilla(type)) {
 			return renderer.render(state.getBlock(), x, y, z);
@@ -1303,5 +1306,84 @@ public class BHBlockRenderer {
 		tessellator.vertex(x2, y + 0.0, z1, u1, v2);
 		tessellator.vertex(x1, y + 0.0, z2, u2, v2);
 		tessellator.vertex(x1, y + 1.0, z2, u2, v1);
+	}
+	
+	private static boolean renderTorch(BlockState state, int x, int y, int z) {
+		int meta = 0;
+		StateProperty<?> property = state.getProperty("meta");
+		if (property != null && property.getType() == BlockPropertyType.INTEGER) {
+			meta = (int) state.getValue(property);
+		}
+		BaseBlock block = state.getBlock();
+		Tessellator tessellator = Tessellator.INSTANCE;
+		
+		float light = getBrightness(block, x, y, z);
+		if (state.getEmittance() > 0) {
+			light = 1.0f;
+		}
+		
+		tessellator.color(light, light, light);
+		
+		double d = 0.4f;
+		double d2 = 0.5 - d;
+		double d3 = 0.2f;
+		
+		TextureSample sample = state.getTextureForIndex(blockView, x, y, z, 0);
+		
+		switch (meta) {
+			case 1 -> renderTorchSkewed(x - d2, y + d3, z, -d, 0.0, sample);
+			case 2 -> renderTorchSkewed(x + d2, y + d3, z, d, 0.0, sample);
+			case 3 -> renderTorchSkewed(x, y + d3, z - d2, 0.0, -d, sample);
+			case 4 -> renderTorchSkewed(x, y + d3, z + d2, 0.0, d, sample);
+			default -> renderTorchSkewed(x, y, z, 0.0, 0.0, sample);
+		}
+		
+		return true;
+	}
+	
+	private static void renderTorchSkewed(double x, double y, double z, double dx, double dz, TextureSample sample) {
+		Tessellator tessellator = Tessellator.INSTANCE;
+		
+		UVPair uv = sample.getUV();
+		
+		float u11 = uv.getU(0);
+		float u12 = uv.getU(1);
+		float v11 = uv.getV(0);
+		float v12 = uv.getV(1);
+		
+		double u21 = uv.getU(0.4375F);
+		double u22 = uv.getU(0.375F);
+		double v21 = uv.getV(0.5625F);
+		double v22 = uv.getV(0.5F);
+		
+		double d6 = (x += 0.5) - 0.5;
+		double d7 = x + 0.5;
+		double d8 = (z += 0.5) - 0.5;
+		double d9 = z + 0.5;
+		double d10 = 0.0625;
+		double d11 = 0.625;
+		
+		double x1 = x + dx * (1.0 - d11);
+		double z1 = z + dz * (1.0 - d11);
+		tessellator.vertex(x1 - d10, y + d11, z1 - d10, u21, u22);
+		tessellator.vertex(x1 - d10, y + d11, z1 + d10, u21, v22);
+		tessellator.vertex(x1 + d10, y + d11, z1 + d10, v21, v22);
+		tessellator.vertex(x1 + d10, y + d11, z1 - d10, v21, u22);
+		tessellator.vertex(x - d10, y + 1.0, d8, u11, v11);
+		tessellator.vertex(x - d10 + dx, y + 0.0, d8 + dz, u11, v12);
+		tessellator.vertex(x - d10 + dx, y + 0.0, d9 + dz, u12, v12);
+		tessellator.vertex(x - d10, y + 1.0, d9, u12, v11);
+		tessellator.vertex(x + d10, y + 1.0, d9, u11, v11);
+		tessellator.vertex(x + dx + d10, y + 0.0, d9 + dz, u11, v12);
+		tessellator.vertex(x + dx + d10, y + 0.0, d8 + dz, u12, v12);
+		tessellator.vertex(x + d10, y + 1.0, d8, u12, v11);
+		tessellator.vertex(d6, y + 1.0, z + d10, u11, v11);
+		tessellator.vertex(d6 + dx, y + 0.0, z + d10 + dz, u11, v12);
+		tessellator.vertex(d7 + dx, y + 0.0, z + d10 + dz, u12, v12);
+		tessellator.vertex(d7, y + 1.0, z + d10, u12, v11);
+		tessellator.vertex(d7, y + 1.0, z - d10, u11, v11);
+		tessellator.vertex(d7 + dx, y + 0.0, z - d10 + dz, u11, v12);
+		tessellator.vertex(d6 + dx, y + 0.0, z - d10 + dz, u12, v12);
+		tessellator.vertex(d6, y + 1.0, z - d10, u12, v11);
 	}
 }
