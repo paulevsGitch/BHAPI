@@ -38,7 +38,7 @@ public abstract class TextureManagerMixin {
 	
 	@Inject(method = "<init>", at = @At("TAIL"))
 	private void bhapi_onTextureManagerInit(TexturePackManager manager, GameOptions options, CallbackInfo info) {
-		currentImageBuffer = BufferUtil.createByteBuffer(4096 * 4096 * 4); // 4k texture
+		//currentImageBuffer = BufferUtil.createByteBuffer(4096 * 4096 * 4); // 4k texture
 	}
 	
 	@Inject(method = "getTextureId", at = @At("HEAD"), cancellable = true)
@@ -80,10 +80,13 @@ public abstract class TextureManagerMixin {
 				for (y = 0; y < binder.textureSize; ++y) {
 					UVPair uv = atlas.getUV(binder.index);
 					
+					int width = uv.getWidth() / binder.textureSize;
+					int height = uv.getHeight() / binder.textureSize;
 					GL11.glTexSubImage2D(
 						GL11.GL_TEXTURE_2D, 0,
-						uv.getX(), uv.getY(),
-						uv.getWidth(), uv.getHeight(),
+						uv.getX() + x * width,
+						uv.getY() + y * height,
+						width, height,
 						GL11.GL_RGBA, GL11.GL_UNSIGNED_BYTE, this.currentImageBuffer
 					);
 					

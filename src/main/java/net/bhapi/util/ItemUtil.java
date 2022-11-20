@@ -14,6 +14,7 @@ import java.util.List;
 
 public class ItemUtil {
 	private static final List<Pair<BlockState, ItemStack>> POST_PROCESSING_STACKS = new ArrayList<>();
+	public static final ItemStack EMPTY_STACK = new ItemStack(256, 0, 0);
 	public static final int MOD_ITEM_ID = 31743;
 	private static boolean isFrozen;
 	
@@ -64,7 +65,8 @@ public class ItemUtil {
 	}
 	
 	public static ItemStack makeStack(BlockState state, int count) {
+		if (state == null) return EMPTY_STACK;
 		BHBlockItem item = BHBlockItem.get(state);
-		return new ItemStack(item, count);
+		return item == null ? EMPTY_STACK : new ItemStack(item, count);
 	}
 }

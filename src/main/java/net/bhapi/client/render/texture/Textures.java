@@ -178,9 +178,16 @@ public class Textures {
 		idMap.forEach((index, id) -> {
 			byte x = (byte) (index & 15);
 			byte y = (byte) (index >> 4);
-			BufferedImage img = ImageUtil.makeImage(width, height);
-			img.getGraphics().drawImage(atlas, -x * width, -y * height, null);
-			textures.put(id, img);
+			if (idMap == ID_BLOCK && (index == 238 || index == 206)) {
+				BufferedImage img = ImageUtil.makeImage(width << 1, height << 1);
+				img.getGraphics().drawImage(atlas, -x * width, -y * height, null);
+				textures.put(id, img);
+			}
+			else {
+				BufferedImage img = ImageUtil.makeImage(width, height);
+				img.getGraphics().drawImage(atlas, -x * width, -y * height, null);
+				textures.put(id, img);
+			}
 		});
 	}
 	
@@ -333,19 +340,13 @@ public class Textures {
 		ID_BLOCK.put(194, Identifier.make("block/magenta_wool"));
 		ID_BLOCK.put(195, Identifier.make("block/detector_rail"));
 		ID_BLOCK.put(205, Identifier.make("block/water_still"));
-		ID_BLOCK.put(206, Identifier.make("block/water_flow_1"));
-		ID_BLOCK.put(207, Identifier.make("block/water_flow_2"));
+		ID_BLOCK.put(206, Identifier.make("block/water_flow"));
 		ID_BLOCK.put(208, Identifier.make("block/sandstone_bottom"));
 		ID_BLOCK.put(209, Identifier.make("block/cyan_wool"));
 		ID_BLOCK.put(210, Identifier.make("block/orange_wool"));
-		ID_BLOCK.put(222, Identifier.make("block/water_flow_3"));
-		ID_BLOCK.put(223, Identifier.make("block/water_flow_4"));
 		ID_BLOCK.put(225, Identifier.make("block/light_gray_wool"));
 		ID_BLOCK.put(237, Identifier.make("block/lava_still"));
-		ID_BLOCK.put(238, Identifier.make("block/lava_flow_1"));
-		ID_BLOCK.put(239, Identifier.make("block/lava_flow_2"));
-		ID_BLOCK.put(254, Identifier.make("block/lava_flow_3"));
-		ID_BLOCK.put(255, Identifier.make("block/lava_flow_4"));
+		ID_BLOCK.put(238, Identifier.make("block/lava_flow"));
 		
 		ID_ITEM.put(0, Identifier.make("item/leather_helmet"));
 		ID_ITEM.put(1, Identifier.make("item/chainmail_helmet"));

@@ -3,6 +3,7 @@ package net.bhapi.mixin.client;
 import net.bhapi.blockstate.BlockState;
 import net.bhapi.blockstate.properties.StateProperty;
 import net.bhapi.client.gui.DebugAllItems;
+import net.bhapi.client.render.texture.Textures;
 import net.bhapi.event.TestEvent;
 import net.bhapi.level.BlockStateProvider;
 import net.bhapi.registry.CommonRegistries;
@@ -12,6 +13,7 @@ import net.minecraft.block.entity.BaseBlockEntity;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.DrawableHelper;
 import net.minecraft.client.gui.InGame;
+import net.minecraft.client.render.Tessellator;
 import net.minecraft.client.render.TextRenderer;
 import net.minecraft.client.util.ScreenScaler;
 import net.minecraft.item.ItemStack;
@@ -84,6 +86,19 @@ public abstract class InGameMixin extends DrawableHelper {
 			drawTextWithShadow(renderer, text, px - renderer.getTextWidth(text) - 2, offset += 20, 16777215);
 			bhapi_blockstateInfo(hit.x, hit.y, hit.z, renderer, px, offset);
 		}
+		
+		final int w = 128;
+		final int h = 128;
+		px = scaler.getScaledWidth() - w;
+		py = scaler.getScaledHeight() - h;
+		Textures.getAtlas().bind();
+		Tessellator tessellator = Tessellator.INSTANCE;
+		tessellator.start();
+		tessellator.vertex(px, py + w, this.zOffset, 0, 1);
+		tessellator.vertex(px + h, py + w, this.zOffset, 1, 1);
+		tessellator.vertex(px + h, py, this.zOffset, 1, 0);
+		tessellator.vertex(px, py, this.zOffset, 0, 0);
+		tessellator.draw();
 	}
 	
 	@Unique

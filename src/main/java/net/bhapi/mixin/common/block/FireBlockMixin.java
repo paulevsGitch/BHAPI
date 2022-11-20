@@ -20,7 +20,7 @@ import java.util.List;
 @Mixin(FireBlock.class)
 public abstract class FireBlockMixin implements BlockStateContainer, ClientPostInit, BHBlockRender {
 	@Environment(EnvType.CLIENT)
-	private static final TextureSample[] TEXTURES = new TextureSample[2];
+	private static final TextureSample[] BHAPI_SAMPLES = new TextureSample[2];
 	
 	@Override
 	public void appendProperties(List<StateProperty<?>> properties) {
@@ -30,15 +30,15 @@ public abstract class FireBlockMixin implements BlockStateContainer, ClientPostI
 	@Override
 	@Environment(EnvType.CLIENT)
 	public void afterClientInit() {
-		if (TEXTURES[0] != null) return;
-		TEXTURES[0] = Textures.getAtlas().getSample(Identifier.make("block/fire_0"));
-		TEXTURES[1] = Textures.getAtlas().getSample(Identifier.make("block/fire_1"));
+		if (BHAPI_SAMPLES[0] != null) return;
+		BHAPI_SAMPLES[0] = Textures.getAtlas().getSample(Identifier.make("block/fire_0"));
+		BHAPI_SAMPLES[1] = Textures.getAtlas().getSample(Identifier.make("block/fire_1"));
 	}
 	
 	@Override
 	@Environment(EnvType.CLIENT)
 	public TextureSample getTextureForIndex(BlockView view, int x, int y, int z, BlockState state, int index) {
-		return TEXTURES[index & 1];
+		return BHAPI_SAMPLES[index & 1];
 	}
 }
 

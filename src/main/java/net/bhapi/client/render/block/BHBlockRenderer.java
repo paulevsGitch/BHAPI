@@ -11,11 +11,14 @@ import net.bhapi.storage.Vec3F;
 import net.bhapi.util.MathUtil;
 import net.bhapi.util.XorShift128;
 import net.minecraft.block.BaseBlock;
+import net.minecraft.block.FluidBlock;
+import net.minecraft.block.material.Material;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.render.GameRenderer;
 import net.minecraft.client.render.Tessellator;
 import net.minecraft.client.render.block.BlockRenderer;
 import net.minecraft.level.BlockView;
+import net.minecraft.util.maths.MathHelper;
 import org.lwjgl.opengl.GL11;
 
 public class BHBlockRenderer {
@@ -91,7 +94,7 @@ public class BHBlockRenderer {
 	private static Vec3F itemColor = new Vec3F();
 	
 	public static boolean isImplemented(int renderType) {
-		return renderType >= 0 && renderType <= BlockRenderTypes.FIRE;
+		return renderType >= 0 && renderType <= BlockRenderTypes.FLUID;
 	}
 	
 	public static void setRenderer(BlockView view, BlockRenderer renderer) {
@@ -141,6 +144,7 @@ public class BHBlockRenderer {
 		if (type == BlockRenderTypes.CROSS) return renderCross(state, x, y, z);
 		if (type == BlockRenderTypes.TORCH) return renderTorch(state, x, y, z);
 		if (type == BlockRenderTypes.FIRE) return renderFire(state, x, y, z);
+		if (type == BlockRenderTypes.FLUID) return renderFluid(state, x, y, z);
 		if (type == BlockRenderTypes.CUSTOM) return true; // TODO make custom rendering
 		else if (BlockRenderTypes.isVanilla(type)) {
 			return renderer.render(state.getBlock(), x, y, z);
@@ -1583,5 +1587,189 @@ public class BHBlockRenderer {
 		}
 		
 		return true;
+	}
+	
+	private static boolean renderFluid(BlockState state, int x, int y, int z) {
+		BaseBlock block = state.getBlock();
+		
+		Tessellator tessellator = Tessellator.INSTANCE;
+		
+		int color = block.getColorMultiplier(blockView, x, y, z);
+		float r = (float) (color >> 16 & 0xFF) / 255.0f;
+		float g = (float) (color >> 8 & 0xFF) / 255.0f;
+		float b = (float) (color & 0xFF) / 255.0f;
+		
+		boolean renderTop = block.isSideRendered(blockView, x, y + 1, z, 1);
+		boolean renderBottom = block.isSideRendered(blockView, x, y - 1, z, 0);
+		
+		boolean[] renderSides = new boolean[] {
+			block.isSideRendered(blockView, x, y, z - 1, 2),
+			block.isSideRendered(blockView, x, y, z + 1, 3),
+			block.isSideRendered(blockView, x - 1, y, z, 4),
+			block.isSideRendered(blockView, x + 1, y, z, 5)
+		};
+		
+		if (!(renderTop || renderBottom || renderSides[0] || renderSides[1] || renderSides[2] || renderSides[3])) {
+			return false;
+		}
+		
+		boolean result = false;
+		double d = 0.0;
+		double d2 = 1.0;
+		
+		Material material = block.material;
+		int meta = blockView.getBlockMeta(x, y, z);
+		float h1 = getFluidHeight(x, y, z, material);
+		float h2 = getFluidHeight(x, y, z + 1, material);
+		float h3 = getFluidHeight(x + 1, y, z + 1, material);
+		float h4 = getFluidHeight(x + 1, y, z, material);
+		
+		if (renderAllSides || renderTop) {
+			float angle = (float) FluidBlock.getFluidAngle(blockView, x, y, z, material);
+			
+			boolean isFlowing = angle > -999.0f;
+			TextureSample sample = state.getTextureForIndex(blockView, x, y, z, isFlowing ? 2 : 1);
+			UVPair uv = sample.getUV();
+			
+			float u1 = isFlowing ? 0.25F : 0.5F;
+			float v1 = isFlowing ? 0.25F : 0.5F;
+			
+			if (angle < -999.0f) {
+				angle = 0.0f;
+			}
+			else {
+				u1 = isFlowing ? 0.5F : 1.0F;
+				v1 = isFlowing ? 0.5F : 1.0F;
+			}
+			
+			float sin = MathHelper.sin(angle) * (isFlowing ? 0.25F : 0.5F);
+			float cos = MathHelper.cos(angle) * (isFlowing ? 0.25F : 0.5F);
+			
+			float light = block.getBrightness(blockView, x, y, z);
+			tessellator.color(light * r, light * g, light * b);
+			
+			tessellator.vertex(x, y + h1, z, uv.getU(u1 - cos - sin), uv.getV(v1 - cos + sin));
+			tessellator.vertex(x, y + h2, z + 1, uv.getU(u1 - cos + sin), uv.getV(v1 + cos + sin));
+			tessellator.vertex(x + 1, y + h3, z + 1, uv.getU(u1 + cos + sin), uv.getV(v1 + cos - sin));
+			tessellator.vertex(x + 1, y + h4, z, uv.getU(u1 + cos - sin), uv.getV(v1 - cos - sin));
+			result = true;
+		}
+		
+		if (renderAllSides || renderBottom) {
+			float light = getBrightness(block, x, y - 1, z) * 0.5F;
+			tessellator.color(light, light, light);
+			renderBottomFace(block, x, y, z, state.getTextureForIndex(blockView, x, y, z, 0));
+			result = true;
+		}
+		
+		float px1, px2, py1, py2, pz1, pz2;
+		for (int side = 0; side < 4; ++side) {
+			int dx = x;
+			int dy = y;
+			int dz = z;
+			
+			if (side == 0) --dz;
+			if (side == 1) ++dz;
+			if (side == 2) --dx;
+			if (side == 3) ++dx;
+			
+			/*int n7 = block.getTextureForSide(side + 2, meta);
+			int n8 = (n7 & 0xF) << 4;
+			int n9 = n7 & 0xF0;*/
+			
+			if (!renderAllSides && !renderSides[side]) continue;
+			
+			if (side == 0) {
+				py1 = h1;
+				py2 = h4;
+				px1 = x;
+				px2 = x + 1;
+				pz1 = z;
+				pz2 = z;
+			}
+			else if (side == 1) {
+				py1 = h3;
+				py2 = h2;
+				px1 = x + 1;
+				px2 = x;
+				pz1 = z + 1;
+				pz2 = z + 1;
+			}
+			else if (side == 2) {
+				py1 = h2;
+				py2 = h1;
+				px1 = x;
+				px2 = x;
+				pz1 = z + 1;
+				pz2 = z;
+			}
+			else {
+				py1 = h4;
+				py2 = h3;
+				px1 = x + 1;
+				px2 = x + 1;
+				pz1 = z;
+				pz2 = z + 1;
+			}
+			
+			TextureSample sample = state.getTextureForIndex(blockView, x, y, z, side + 2);
+			UVPair uv = sample.getUV();
+			
+			double u1 = uv.getU(0);
+			double u2 = uv.getU(0.5F);
+			double v1 = uv.getV(0.5F - py1 * 0.5F);
+			double v2 = uv.getV(0.5F - py2 * 0.5F);
+			double v3 = uv.getV(0.5F);
+			float light = block.getBrightness(blockView, dx, dy, dz);
+			
+			light = side < 2 ? (light * 0.8f) : (light * 0.6f);
+			
+			tessellator.color(light * r, light * g, light * b);
+			
+			tessellator.vertex(px1, y + py1, pz1, u1, v1);
+			tessellator.vertex(px2, y + py2, pz2, u2, v2);
+			tessellator.vertex(px2, y, pz2, u2, v3);
+			tessellator.vertex(px1, y, pz1, u1, v3);
+			result = true;
+		}
+		
+		block.minY = d;
+		block.maxY = d2;
+		
+		return result;
+	}
+	
+	private static float getFluidHeight(int x, int y, int z, Material material) {
+		int iteration = 0;
+		float offset = 0.0f;
+		
+		for (int i2 = 0; i2 < 4; ++i2) {
+			int px = x - (i2 & 1);
+			int py = y;
+			int pz = z - (i2 >> 1 & 1);
+			
+			if (blockView.getMaterial(px, py + 1, pz) == material) {
+				return 1.0f;
+			}
+			
+			Material levelMaterial = blockView.getMaterial(px, py, pz);
+			
+			if (material == levelMaterial) {
+				int meta = blockView.getBlockMeta(px, py, pz);
+				if (meta >= 8 || meta == 0) {
+					offset += FluidBlock.getVisualHeight(meta) * 10.0f;
+					iteration += 10;
+				}
+				offset += FluidBlock.getVisualHeight(meta);
+				++iteration;
+				continue;
+			}
+			if (levelMaterial.isSolid()) continue;
+			
+			offset += 1.0f;
+			++iteration;
+		}
+		
+		return 1.0f - offset / (float) iteration;
 	}
 }

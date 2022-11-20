@@ -14,6 +14,7 @@ import net.minecraft.block.material.Material;
 import net.minecraft.item.ItemStack;
 import net.minecraft.level.BlockView;
 import net.minecraft.level.Level;
+import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.Unique;
@@ -30,6 +31,12 @@ import java.util.Random;
 public abstract class BaseBlockMixin implements BlockStateContainer, BHBlockRender {
 	@Shadow protected abstract void drop(Level arg, int i, int j, int k, ItemStack arg2);
 	@Shadow public abstract int getDropCount(Random random);
+	
+	@Shadow public abstract int getDropId(int i, Random random);
+	
+	@Shadow @Final public int id;
+	
+	@Shadow protected abstract int getDropMeta(int i);
 	
 	@Unique	private BlockState defaultState;
 	
@@ -74,18 +81,31 @@ public abstract class BaseBlockMixin implements BlockStateContainer, BHBlockRend
 	}
 	
 	@Inject(method = "drop(Lnet/minecraft/level/Level;IIIIF)V", at = @At("HEAD"), cancellable = true)
-	private void bhapi_drop(Level level, int x, int y, int z, int l, float f, CallbackInfo info) {
+	private void bhapi_drop(Level level, int x, int y, int z, int meta, float f, CallbackInfo info) {
 		info.cancel();
 		if (level.isClientSide) return;
 		if (this instanceof CustomDropProvider) {
 			List<ItemStack> drop = new ArrayList<>();
 			CustomDropProvider.cast(this).getCustomDrop(level, x, y, z, drop);
 			drop.forEach(stack -> this.drop(level, x, y, z, stack));
+			return;
 		}
-		else if (BlockUtil.brokenBlock != null && BlockUtil.brokenBlock.getBlock() == BaseBlock.class.cast(this)) {
-			int count = this.getDropCount(level.random);
-			ItemStack stack = ItemUtil.makeStack(BlockUtil.brokenBlock, count);
-			this.drop(level, x, y, z, stack);
+		BlockState state = BlockUtil.brokenBlock;
+		if (state == null) return;
+		if (state.getBlock() == BaseBlock.class.cast(this)) {
+			if (this.id == BlockUtil.MOD_BLOCK_ID) {
+				ItemStack stack = ItemUtil.makeStack(getDefaultState(), 1);
+				if (stack.count > 0) this.drop(level, x, y, z, stack);
+			}
+			else {
+				int dropID = this.getDropId(meta, level.random);
+				int dropMeta = this.getDropMeta(meta);
+				int count = this.getDropCount(level.random);
+				ItemStack stack;
+				if (dropID < 256) stack = ItemUtil.makeStack(BlockUtil.getLegacyBlock(dropID, dropMeta), count);
+				else stack = new ItemStack(dropID, count, dropMeta);
+				if (stack.count > 0) this.drop(level, x, y, z, stack);
+			}
 		}
 	}
 }
