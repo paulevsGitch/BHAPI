@@ -13,7 +13,7 @@ import net.bhapi.event.ItemRegistryEvent;
 import net.bhapi.event.RecipeRegistryEvent;
 import net.bhapi.event.StartupEvent;
 import net.bhapi.item.BHBlockItem;
-import net.bhapi.mixin.common.RecipeRegistryAccessor;
+import net.bhapi.mixin.common.recipe.RecipeRegistryAccessor;
 import net.bhapi.util.BlockUtil;
 import net.bhapi.util.Identifier;
 import net.fabricmc.api.EnvType;

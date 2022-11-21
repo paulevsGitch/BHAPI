@@ -1,4 +1,4 @@
-package net.bhapi.mixin.common;
+package net.bhapi.mixin.common.recipe;
 
 import net.minecraft.inventory.Crafting;
 import net.minecraft.item.ItemStack;

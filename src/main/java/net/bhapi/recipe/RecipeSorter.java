@@ -1,6 +1,6 @@
 package net.bhapi.recipe;
 
-import net.bhapi.mixin.common.RecipeRegistryAccessor;
+import net.bhapi.mixin.common.recipe.RecipeRegistryAccessor;
 import net.minecraft.recipe.Recipe;
 import net.minecraft.recipe.RecipeRegistry;
 import net.minecraft.recipe.ShapedRecipe;

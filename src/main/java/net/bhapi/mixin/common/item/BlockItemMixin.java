@@ -1,4 +1,4 @@
-package net.bhapi.mixin.common;
+package net.bhapi.mixin.common.item;
 
 import net.bhapi.level.LevelHeightProvider;
 import net.minecraft.entity.player.PlayerBase;

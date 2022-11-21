@@ -2,24 +2,20 @@ package net.bhapi.client.render.texture;
 
 import net.bhapi.BHAPI;
 import net.bhapi.client.BHAPIClient;
-import net.bhapi.mixin.client.BaseItemAccessor;
 import net.bhapi.mixin.client.TextureManagerAccessor;
 import net.bhapi.util.BufferUtil;
 import net.bhapi.util.Identifier;
 import net.bhapi.util.ImageUtil;
 import net.bhapi.util.ImageUtil.FormatConvert;
 import net.minecraft.client.render.TextureBinder;
-import net.minecraft.item.BaseItem;
 import org.lwjgl.opengl.GL11;
 
 import java.awt.Graphics;
 import java.awt.image.BufferedImage;
 import java.nio.IntBuffer;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 import java.util.stream.IntStream;
 
 public class Textures {
@@ -74,15 +70,6 @@ public class Textures {
 			binder.index = atlas.getTextureIndex(id);
 		});
 		
-		Arrays.stream(BaseItem.byId, 0, 2002).filter(Objects::nonNull).forEach(item -> {
-			BaseItemAccessor accessor = (BaseItemAccessor) item;
-			int texture = accessor.bhapi_getTexturePosition();
-			Identifier id = item.id < 256 ? ID_BLOCK.get(texture) : ID_ITEM.get(texture);
-			texture = atlas.getTextureIndex(id, true);
-			if (texture != -1) {
-				accessor.bhapi_setTexturePosition(texture);
-			}
-		});
 		building = false;
 	}
 	
@@ -179,9 +166,6 @@ public class Textures {
 			byte x = (byte) (index & 15);
 			byte y = (byte) (index >> 4);
 			if (idMap == ID_BLOCK && (index == 238 || index == 206)) {
-				/*BufferedImage img = ImageUtil.makeImage(width << 1, height << 1);
-				img.getGraphics().drawImage(atlas, -x * width, -y * height, null);
-				textures.put(id, img);*/
 				textures.put(id, ImageUtil.makeImage(32, 32));
 			}
 			else if (idMap == ID_BLOCK && (index == 31 || index == 47 || index == 205 || index == 237)) {

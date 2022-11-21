@@ -11,6 +11,7 @@ import net.bhapi.storage.Vec3F;
 import net.bhapi.util.MathUtil;
 import net.bhapi.util.XorShift128;
 import net.minecraft.block.BaseBlock;
+import net.minecraft.block.DoorBlock;
 import net.minecraft.block.FluidBlock;
 import net.minecraft.block.RedstoneDustBlock;
 import net.minecraft.block.material.Material;
@@ -23,19 +24,19 @@ import net.minecraft.util.maths.MathHelper;
 import org.lwjgl.opengl.GL11;
 
 public class BHBlockRenderer {
-	private static XorShift128 xorShift = new XorShift128();
+	private static final XorShift128 xorShift = new XorShift128();
 	private static BlockRenderer renderer;
 	private static BlockView blockView;
 	
 	private static boolean mirrorTexture = false;
 	private static boolean renderAllSides = false;
 	public static boolean itemColorEnabled = true;
-	private static int eastFaceRotation = 0;
-	private static int westFaceRotation = 0;
-	private static int southFaceRotation = 0;
-	private static int northFaceRotation = 0;
-	private static int topFaceRotation = 0;
-	private static int bottomFaceRotation = 0;
+	private static final int eastFaceRotation = 0;
+	private static final int westFaceRotation = 0;
+	private static final int southFaceRotation = 0;
+	private static final int northFaceRotation = 0;
+	private static final int topFaceRotation = 0;
+	private static final int bottomFaceRotation = 0;
 	private static boolean shadeTopFace;
 	private static float brightnessMiddle;
 	private static float brightnessNorth;
@@ -88,14 +89,14 @@ public class BHBlockRenderer {
 	private static boolean allowsGrassUnderBottomSouth;
 	private static boolean allowsGrassUnderBottomNorth;
 	private static boolean allowsGrassUnderBottomWest;
-	private static boolean fancyGraphics = true;
+	private static final boolean fancyGraphics = true;
 	private static boolean breaking = false;
 	private static boolean item = false;
 	
-	private static Vec3F itemColor = new Vec3F();
+	private static final Vec3F itemColor = new Vec3F();
 	
 	public static boolean isImplemented(int renderType) {
-		return renderType >= 0 && renderType <= BlockRenderTypes.REDSTONE_DUST;
+		return renderType >= 0 && renderType <= BlockRenderTypes.DOOR;
 	}
 	
 	public static void setRenderer(BlockView view, BlockRenderer renderer) {
@@ -147,6 +148,8 @@ public class BHBlockRenderer {
 		if (type == BlockRenderTypes.FIRE) return renderFire(state, x, y, z);
 		if (type == BlockRenderTypes.FLUID) return renderFluid(state, x, y, z);
 		if (type == BlockRenderTypes.REDSTONE_DUST) return renderRedstoneDust(state, x, y, z);
+		if (type == BlockRenderTypes.CROP) return renderCrops(state, x, y, z);
+		if (type == BlockRenderTypes.DOOR) return renderDoor(state, x, y, z);
 		if (type == BlockRenderTypes.CUSTOM) return true; // TODO make custom rendering
 		else if (BlockRenderTypes.isVanilla(type)) {
 			return renderer.render(state.getBlock(), x, y, z);
@@ -1909,6 +1912,194 @@ public class BHBlockRenderer {
 				tessellator.vertex(x + 0, (float)(y + 1) + 0.021875f, (float)(z + 1) - 0.015625f, u2, v2);
 			}
 		}
+		
+		return true;
+	}
+	
+	private static boolean renderCrops(BlockState state, int x, int y, int z) {
+		BaseBlock block = state.getBlock();
+		float light = getBrightness(block, x, y, z);
+		Tessellator tessellator = Tessellator.INSTANCE;
+		tessellator.color(light, light, light);
+		int meta = blockView.getBlockMeta(x, y, z);
+		TextureSample sample = state.getTextureForIndex(blockView, x, y, z, meta);
+		renderCrop(x, y - 0.0625f, z, sample);
+		return true;
+	}
+	
+	private static void renderCrop(double x, double y, double z, TextureSample sample) {
+		Tessellator tessellator = Tessellator.INSTANCE;
+		UVPair uv = sample.getUV();
+		
+		float u1 = uv.getU(0);
+		float u2 = uv.getU(1);
+		float v1 = uv.getV(0);
+		float v2 = uv.getV(1);
+		
+		double x1 = x + 0.5 - 0.25;
+		double x2 = x + 0.5 + 0.25;
+		double z1 = z + 0.5 - 0.5;
+		double z2 = z + 0.5 + 0.5;
+		
+		tessellator.vertex(x1, y + 1.0, z1, u1, v1);
+		tessellator.vertex(x1, y + 0.0, z1, u1, v2);
+		tessellator.vertex(x1, y + 0.0, z2, u2, v2);
+		tessellator.vertex(x1, y + 1.0, z2, u2, v1);
+		tessellator.vertex(x1, y + 1.0, z2, u1, v1);
+		tessellator.vertex(x1, y + 0.0, z2, u1, v2);
+		tessellator.vertex(x1, y + 0.0, z1, u2, v2);
+		tessellator.vertex(x1, y + 1.0, z1, u2, v1);
+		tessellator.vertex(x2, y + 1.0, z2, u1, v1);
+		tessellator.vertex(x2, y + 0.0, z2, u1, v2);
+		tessellator.vertex(x2, y + 0.0, z1, u2, v2);
+		tessellator.vertex(x2, y + 1.0, z1, u2, v1);
+		tessellator.vertex(x2, y + 1.0, z1, u1, v1);
+		tessellator.vertex(x2, y + 0.0, z1, u1, v2);
+		tessellator.vertex(x2, y + 0.0, z2, u2, v2);
+		tessellator.vertex(x2, y + 1.0, z2, u2, v1);
+		
+		x1 = x + 0.5 - 0.5;
+		x2 = x + 0.5 + 0.5;
+		z1 = z + 0.5 - 0.25;
+		z2 = z + 0.5 + 0.25;
+		
+		tessellator.vertex(x1, y + 1.0, z1, u1, v1);
+		tessellator.vertex(x1, y + 0.0, z1, u1, v2);
+		tessellator.vertex(x2, y + 0.0, z1, u2, v2);
+		tessellator.vertex(x2, y + 1.0, z1, u2, v1);
+		tessellator.vertex(x2, y + 1.0, z1, u1, v1);
+		tessellator.vertex(x2, y + 0.0, z1, u1, v2);
+		tessellator.vertex(x1, y + 0.0, z1, u2, v2);
+		tessellator.vertex(x1, y + 1.0, z1, u2, v1);
+		tessellator.vertex(x2, y + 1.0, z2, u1, v1);
+		tessellator.vertex(x2, y + 0.0, z2, u1, v2);
+		tessellator.vertex(x1, y + 0.0, z2, u2, v2);
+		tessellator.vertex(x1, y + 1.0, z2, u2, v1);
+		tessellator.vertex(x1, y + 1.0, z2, u1, v1);
+		tessellator.vertex(x1, y + 0.0, z2, u1, v2);
+		tessellator.vertex(x2, y + 0.0, z2, u2, v2);
+		tessellator.vertex(x2, y + 1.0, z2, u2, v1);
+	}
+	
+	private static boolean renderDoor(BlockState state, int x, int y, int z) {
+		BaseBlock block = state.getBlock();
+		Tessellator tessellator = Tessellator.INSTANCE;
+		DoorBlock doorBlock = (DoorBlock) block;
+		
+		float f = 0.5f;
+		float f2 = 1.0f;
+		float f3 = 0.8f;
+		float f4 = 0.6f;
+		
+		float f5 = block.getBrightness(blockView, x, y, z);
+		float f6 = block.getBrightness(blockView, x, y - 1, z);
+		
+		if (doorBlock.minY > 0.0) {
+			f6 = f5;
+		}
+		
+		if (BaseBlock.EMITTANCE[block.id] > 0) {
+			f6 = 1.0f;
+		}
+		
+		tessellator.color(f * f6, f * f6, f * f6);
+		TextureSample sample = state.getTextureForIndex(blockView, x, y, z, 0);
+		renderBottomFace(block, x, y, z, sample);
+		
+		f6 = block.getBrightness(blockView, x, y + 1, z);
+		
+		if (doorBlock.maxY < 1.0) {
+			f6 = f5;
+		}
+		
+		if (BaseBlock.EMITTANCE[block.id] > 0) {
+			f6 = 1.0f;
+		}
+		
+		tessellator.color(f2 * f6, f2 * f6, f2 * f6);
+		sample = state.getTextureForIndex(blockView, x, y, z, 1);
+		renderTopFace(block, x, y, z, sample);
+		f6 = block.getBrightness(blockView, x, y, z - 1);
+		
+		if (doorBlock.minZ > 0.0) {
+			f6 = f5;
+		}
+		
+		if (BaseBlock.EMITTANCE[block.id] > 0) {
+			f6 = 1.0f;
+		}
+		
+		tessellator.color(f3 * f6, f3 * f6, f3 * f6);
+		sample = state.getTextureForIndex(blockView, x, y, z, 2);
+		int t = block.getTextureForSide(blockView, x, y, z, 2);
+		if (t < 0) {
+			mirrorTexture = true; // TODO invert samples
+			//t = -t;
+		}
+		
+		renderEastFace(block, x, y, z, sample);
+		mirrorTexture = false;
+		
+		f6 = block.getBrightness(blockView, x, y, z + 1);
+		if (doorBlock.maxZ < 1.0) {
+			f6 = f5;
+		}
+		
+		if (BaseBlock.EMITTANCE[block.id] > 0) {
+			f6 = 1.0f;
+		}
+		
+		tessellator.color(f3 * f6, f3 * f6, f3 * f6);
+		sample = state.getTextureForIndex(blockView, x, y, z, 3);
+		t = block.getTextureForSide(blockView, x, y, z, 3);
+		if (t < 0) {
+			mirrorTexture = true;
+			//t = -t;
+		}
+		
+		renderWestFace(block, x, y, z, sample);
+		mirrorTexture = false;
+		
+		f6 = block.getBrightness(blockView, x - 1, y, z);
+		if (doorBlock.minX > 0.0) {
+			f6 = f5;
+		}
+		
+		if (BaseBlock.EMITTANCE[block.id] > 0) {
+			f6 = 1.0f;
+		}
+		
+		tessellator.color(f4 * f6, f4 * f6, f4 * f6);
+		sample = state.getTextureForIndex(blockView, x, y, z, 4);
+		t = block.getTextureForSide(blockView, x, y, z, 4);
+		if (t < 0) {
+			mirrorTexture = true;
+			//t = -t;
+		}
+		
+		renderNorthFace(block, x, y, z, sample);
+		mirrorTexture = false;
+		
+		f6 = block.getBrightness(blockView, x + 1, y, z);
+		if (doorBlock.maxX < 1.0) {
+			f6 = f5;
+		}
+		
+		if (BaseBlock.EMITTANCE[block.id] > 0) {
+			f6 = 1.0f;
+		}
+		
+		tessellator.color(f4 * f6, f4 * f6, f4 * f6);
+		sample = state.getTextureForIndex(blockView, x, y, z, 5);
+		t = block.getTextureForSide(blockView, x, y, z, 5);
+		
+		if (t < 0) {
+			mirrorTexture = true;
+			//t = -t;
+		}
+		
+		renderSouthFace(block, x, y, z, sample);
+		mirrorTexture = false;
 		
 		return true;
 	}
