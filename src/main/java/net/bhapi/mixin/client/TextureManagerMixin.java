@@ -66,6 +66,11 @@ public abstract class TextureManagerMixin {
 		for (index = 0; index < this.textureBinders.size(); ++index) {
 			binder = (TextureBinder) this.textureBinders.get(index);
 			binder.render3d = this.gameOptions.anaglyph3d;
+			
+			UVPair uv = atlas.getUV(binder.index);
+			//int size = uv.getWidth() * uv.getHeight();
+			//if (binder.grid.length != size) binder.grid = new byte[size * 4];
+			
 			binder.update();
 			
 			if (currentImageBuffer.capacity() < binder.grid.length) {
@@ -78,8 +83,6 @@ public abstract class TextureManagerMixin {
 			
 			for (x = 0; x < binder.textureSize; ++x) {
 				for (y = 0; y < binder.textureSize; ++y) {
-					UVPair uv = atlas.getUV(binder.index);
-					
 					int width = uv.getWidth() / binder.textureSize;
 					int height = uv.getHeight() / binder.textureSize;
 					GL11.glTexSubImage2D(

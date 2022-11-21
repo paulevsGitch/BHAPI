@@ -87,8 +87,10 @@ public abstract class InGameMixin extends DrawableHelper {
 			bhapi_blockstateInfo(hit.x, hit.y, hit.z, renderer, px, offset);
 		}
 		
-		final int w = 128;
-		final int h = 128;
+		if (!FabricLoader.getInstance().isDevelopmentEnvironment()) return;
+		
+		final int w = 96;
+		final int h = 96;
 		px = scaler.getScaledWidth() - w;
 		py = scaler.getScaledHeight() - h;
 		Textures.getAtlas().bind();

@@ -3,6 +3,8 @@ package net.bhapi.mixin.common.block;
 import net.bhapi.block.CustomDropProvider;
 import net.bhapi.blockstate.BlockState;
 import net.bhapi.blockstate.BlockStateContainer;
+import net.bhapi.blockstate.properties.BlockPropertyType;
+import net.bhapi.blockstate.properties.StateProperty;
 import net.bhapi.client.render.block.BHBlockRender;
 import net.bhapi.level.BlockStateProvider;
 import net.bhapi.util.BlockUtil;
@@ -98,6 +100,12 @@ public abstract class BaseBlockMixin implements BlockStateContainer, BHBlockRend
 				if (stack.count > 0) this.drop(level, x, y, z, stack);
 			}
 			else {
+				if (meta == 0) {
+					StateProperty<?> property = state.getProperty("meta");
+					if (property != null && property.getType() == BlockPropertyType.INTEGER) {
+						meta = (int) state.getValue(property);
+					}
+				}
 				int dropID = this.getDropId(meta, level.random);
 				int dropMeta = this.getDropMeta(meta);
 				int count = this.getDropCount(level.random);

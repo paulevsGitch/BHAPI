@@ -12,6 +12,7 @@ import net.bhapi.util.MathUtil;
 import net.bhapi.util.XorShift128;
 import net.minecraft.block.BaseBlock;
 import net.minecraft.block.FluidBlock;
+import net.minecraft.block.RedstoneDustBlock;
 import net.minecraft.block.material.Material;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.render.GameRenderer;
@@ -94,7 +95,7 @@ public class BHBlockRenderer {
 	private static Vec3F itemColor = new Vec3F();
 	
 	public static boolean isImplemented(int renderType) {
-		return renderType >= 0 && renderType <= BlockRenderTypes.FLUID;
+		return renderType >= 0 && renderType <= BlockRenderTypes.REDSTONE_DUST;
 	}
 	
 	public static void setRenderer(BlockView view, BlockRenderer renderer) {
@@ -145,6 +146,7 @@ public class BHBlockRenderer {
 		if (type == BlockRenderTypes.TORCH) return renderTorch(state, x, y, z);
 		if (type == BlockRenderTypes.FIRE) return renderFire(state, x, y, z);
 		if (type == BlockRenderTypes.FLUID) return renderFluid(state, x, y, z);
+		if (type == BlockRenderTypes.REDSTONE_DUST) return renderRedstoneDust(state, x, y, z);
 		if (type == BlockRenderTypes.CUSTOM) return true; // TODO make custom rendering
 		else if (BlockRenderTypes.isVanilla(type)) {
 			return renderer.render(state.getBlock(), x, y, z);
@@ -1347,7 +1349,6 @@ public class BHBlockRenderer {
 	
 	private static void renderTorchSkewed(double x, double y, double z, double dx, double dz, TextureSample sample) {
 		Tessellator tessellator = Tessellator.INSTANCE;
-		
 		UVPair uv = sample.getUV();
 		
 		float u11 = uv.getU(0);
@@ -1355,40 +1356,43 @@ public class BHBlockRenderer {
 		float v11 = uv.getV(0);
 		float v12 = uv.getV(1);
 		
-		double u21 = uv.getU(0.4375F);
-		double u22 = uv.getU(0.375F);
-		double v21 = uv.getV(0.5625F);
-		double v22 = uv.getV(0.5F);
+		float u21 = uv.getU(0.4375F);
+		float u22 = uv.getU(0.5625F);
+		float v21 = uv.getV(0.375F);
+		float v22 = uv.getV(0.5F);
 		
-		double d6 = (x += 0.5) - 0.5;
-		double d7 = x + 0.5;
-		double d8 = (z += 0.5) - 0.5;
-		double d9 = z + 0.5;
-		double d10 = 0.0625;
-		double d11 = 0.625;
+		double x2 = (x += 0.5) - 0.5;
+		double x3 = x + 0.5;
+		double z2 = (z += 0.5) - 0.5;
+		double z3 = z + 0.5;
 		
-		double x1 = x + dx * (1.0 - d11);
-		double z1 = z + dz * (1.0 - d11);
-		tessellator.vertex(x1 - d10, y + d11, z1 - d10, u21, u22);
-		tessellator.vertex(x1 - d10, y + d11, z1 + d10, u21, v22);
-		tessellator.vertex(x1 + d10, y + d11, z1 + d10, v21, v22);
-		tessellator.vertex(x1 + d10, y + d11, z1 - d10, v21, u22);
-		tessellator.vertex(x - d10, y + 1.0, d8, u11, v11);
-		tessellator.vertex(x - d10 + dx, y + 0.0, d8 + dz, u11, v12);
-		tessellator.vertex(x - d10 + dx, y + 0.0, d9 + dz, u12, v12);
-		tessellator.vertex(x - d10, y + 1.0, d9, u12, v11);
-		tessellator.vertex(x + d10, y + 1.0, d9, u11, v11);
-		tessellator.vertex(x + dx + d10, y + 0.0, d9 + dz, u11, v12);
-		tessellator.vertex(x + dx + d10, y + 0.0, d8 + dz, u12, v12);
-		tessellator.vertex(x + d10, y + 1.0, d8, u12, v11);
-		tessellator.vertex(d6, y + 1.0, z + d10, u11, v11);
-		tessellator.vertex(d6 + dx, y + 0.0, z + d10 + dz, u11, v12);
-		tessellator.vertex(d7 + dx, y + 0.0, z + d10 + dz, u12, v12);
-		tessellator.vertex(d7, y + 1.0, z + d10, u12, v11);
-		tessellator.vertex(d7, y + 1.0, z - d10, u11, v11);
-		tessellator.vertex(d7 + dx, y + 0.0, z - d10 + dz, u11, v12);
-		tessellator.vertex(d6 + dx, y + 0.0, z - d10 + dz, u12, v12);
-		tessellator.vertex(d6, y + 1.0, z - d10, u12, v11);
+		double x1 = x + dx * (1.0 - 0.625);
+		double z1 = z + dz * (1.0 - 0.625);
+		
+		tessellator.vertex(x1 - 0.0625, y + 0.625, z1 - 0.0625, u21, v21);
+		tessellator.vertex(x1 - 0.0625, y + 0.625, z1 + 0.0625, u21, v22);
+		tessellator.vertex(x1 + 0.0625, y + 0.625, z1 + 0.0625, u22, v22);
+		tessellator.vertex(x1 + 0.0625, y + 0.625, z1 - 0.0625, u22, v21);
+		
+		tessellator.vertex(x - 0.0625, y + 1.0, z2, u11, v11);
+		tessellator.vertex(x - 0.0625 + dx, y + 0.0, z2 + dz, u11, v12);
+		tessellator.vertex(x - 0.0625 + dx, y + 0.0, z3 + dz, u12, v12);
+		tessellator.vertex(x - 0.0625, y + 1.0, z3, u12, v11);
+		
+		tessellator.vertex(x + 0.0625, y + 1.0, z3, u11, v11);
+		tessellator.vertex(x + dx + 0.0625, y + 0.0, z3 + dz, u11, v12);
+		tessellator.vertex(x + dx + 0.0625, y + 0.0, z2 + dz, u12, v12);
+		tessellator.vertex(x + 0.0625, y + 1.0, z2, u12, v11);
+		
+		tessellator.vertex(x2, y + 1.0, z + 0.0625, u11, v11);
+		tessellator.vertex(x2 + dx, y + 0.0, z + 0.0625 + dz, u11, v12);
+		tessellator.vertex(x3 + dx, y + 0.0, z + 0.0625 + dz, u12, v12);
+		tessellator.vertex(x3, y + 1.0, z + 0.0625, u12, v11);
+		
+		tessellator.vertex(x3, y + 1.0, z - 0.0625, u11, v11);
+		tessellator.vertex(x3 + dx, y + 0.0, z - 0.0625 + dz, u11, v12);
+		tessellator.vertex(x2 + dx, y + 0.0, z - 0.0625 + dz, u12, v12);
+		tessellator.vertex(x2, y + 1.0, z - 0.0625, u12, v11);
 	}
 	
 	private static boolean renderFire(BlockState state, int x, int y, int z) {
@@ -1771,5 +1775,141 @@ public class BHBlockRenderer {
 		}
 		
 		return 1.0f - offset / (float) iteration;
+	}
+	
+	private static boolean renderRedstoneDust(BlockState state, int x, int y, int z) {
+		BaseBlock block = state.getBlock();
+		
+		Tessellator tessellator = Tessellator.INSTANCE;
+		int meta = blockView.getBlockMeta(x, y, z);
+		int n2 = block.getTextureForSide(1, meta);
+		
+		float light = block.getBrightness(blockView, x, y, z);
+		float power = (float) meta / 15.0f;
+		
+		float r = power * 0.6f + 0.4f;
+		float g = power * power * 0.7f - 0.5f;
+		float b = power * power * 0.6f - 0.7f;
+		
+		if (meta == 0) r = 0.3f;
+		if (g < 0.0f) g = 0.0f;
+		if (b < 0.0f) b = 0.0f;
+		
+		tessellator.color(light * r, light * g, light * b);
+		
+		UVPair uv1 = state.getTextureForIndex(blockView, x, y, z, 0).getUV();
+		UVPair uv2 = state.getTextureForIndex(blockView, x, y, z, 1).getUV();
+		
+		float u1 = uv1.getU(0);
+		float u2 = uv1.getU(1);
+		float v1 = uv1.getV(0);
+		float v2 = uv1.getV(1);
+		
+		boolean cx1 = RedstoneDustBlock.canConnect(blockView, x - 1, y, z, 1) || !blockView.canSuffocate(x - 1, y, z) && RedstoneDustBlock.canConnect(blockView, x - 1, y - 1, z, -1);
+		boolean cx2 = RedstoneDustBlock.canConnect(blockView, x + 1, y, z, 3) || !blockView.canSuffocate(x + 1, y, z) && RedstoneDustBlock.canConnect(blockView, x + 1, y - 1, z, -1);
+		boolean cz1 = RedstoneDustBlock.canConnect(blockView, x, y, z - 1, 2) || !blockView.canSuffocate(x, y, z - 1) && RedstoneDustBlock.canConnect(blockView, x, y - 1, z - 1, -1);
+		boolean cz2 = RedstoneDustBlock.canConnect(blockView, x, y, z + 1, 0) || !blockView.canSuffocate(x, y, z + 1) && RedstoneDustBlock.canConnect(blockView, x, y - 1, z + 1, -1);
+		
+		if (!blockView.canSuffocate(x, y + 1, z)) {
+			if (blockView.canSuffocate(x - 1, y, z) && RedstoneDustBlock.canConnect(blockView, x - 1, y + 1, z, -1)) {
+				cx1 = true;
+			}
+			if (blockView.canSuffocate(x + 1, y, z) && RedstoneDustBlock.canConnect(blockView, x + 1, y + 1, z, -1)) {
+				cx2 = true;
+			}
+			if (blockView.canSuffocate(x, y, z - 1) && RedstoneDustBlock.canConnect(blockView, x, y + 1, z - 1, -1)) {
+				cz1 = true;
+			}
+			if (blockView.canSuffocate(x, y, z + 1) && RedstoneDustBlock.canConnect(blockView, x, y + 1, z + 1, -1)) {
+				cz2 = true;
+			}
+		}
+		
+		float x1 = x;
+		float x2 = x + 1;
+		float z1 = z;
+		float z2 = z + 1;
+		
+		int type = 0;
+		if ((cx1 || cx2) && !cz1 && !cz2) type = 1;
+		if ((cz1 || cz2) && !cx2 && !cx1) type = 2;
+		
+		if (type != 0) {
+			u1 = uv2.getU(0);
+			u2 = uv2.getU(1);
+			v1 = uv2.getV(0);
+			v2 = uv2.getV(1);
+		}
+		
+		if (type == 0) {
+			if (cx2 || cz1 || cz2 || cx1) {
+				if (!cx1) x1 += 0.3125f;
+				if (!cx1) u1 = uv1.getU(0.3125F);
+				if (!cx2) x2 -= 0.3125f;
+				if (!cx2) u2 = uv1.getU(0.6875F);
+				if (!cz1) z1 += 0.3125f;
+				if (!cz1) v1 = uv1.getV(0.3125F);
+				if (!cz2) z2 -= 0.3125f;
+				if (!cz2) v2 = uv1.getV(0.6875F);
+			}
+			
+			tessellator.vertex(x2, y + 0.015625f, z2, u2, v2);
+			tessellator.vertex(x2, y + 0.015625f, z1, u2, v1);
+			tessellator.vertex(x1, y + 0.015625f, z1, u1, v1);
+			tessellator.vertex(x1, y + 0.015625f, z2, u1, v2);
+		}
+		else if (type == 1) {
+			tessellator.vertex(x2, y + 0.015625f, z2, u2, v2);
+			tessellator.vertex(x2, y + 0.015625f, z1, u2, v1);
+			tessellator.vertex(x1, y + 0.015625f, z1, u1, v1);
+			tessellator.vertex(x1, y + 0.015625f, z2, u1, v2);
+		}
+		else {
+			tessellator.vertex(x2, y + 0.015625f, z2, u2, v2);
+			tessellator.vertex(x2, y + 0.015625f, z1, u1, v2);
+			tessellator.vertex(x1, y + 0.015625f, z1, u1, v1);
+			tessellator.vertex(x1, y + 0.015625f, z2, u2, v1);
+		}
+		
+		if (!blockView.canSuffocate(x, y + 1, z)) {
+			u1 = uv2.getU(0);
+			u2 = uv2.getU(1);
+			v1 = uv2.getV(0);
+			v2 = uv2.getV(1);
+			
+			if (blockView.canSuffocate(x - 1, y, z) && blockView.getBlockId(x - 1, y + 1, z) == BaseBlock.REDSTONE_DUST.id) {
+				tessellator.color(light * r, light * g, light * b);
+				tessellator.vertex(x + 0.015625f, (float)(y + 1) + 0.021875f, z + 1, u2, v1);
+				tessellator.vertex(x + 0.015625f, y + 0, z + 1, u1, v1);
+				tessellator.vertex(x + 0.015625f, y + 0, z + 0, u1, v2);
+				tessellator.vertex(x + 0.015625f, (float)(y + 1) + 0.021875f, z + 0, u2, v2);
+			}
+			
+			if (blockView.canSuffocate(x + 1, y, z) && blockView.getBlockId(x + 1, y + 1, z) == BaseBlock.REDSTONE_DUST.id) {
+				tessellator.color(light * r, light * g, light * b);
+				tessellator.vertex((float)(x + 1) - 0.015625f, y + 0, z + 1, u1, v2);
+				tessellator.vertex((float)(x + 1) - 0.015625f, (float)(y + 1) + 0.021875f, z + 1, u2, v2);
+				tessellator.vertex((float)(x + 1) - 0.015625f, (float)(y + 1) + 0.021875f, z + 0, u2, v1);
+				tessellator.vertex((float)(x + 1) - 0.015625f, y + 0, z + 0, u1, v1);
+			}
+			
+			if (blockView.canSuffocate(x, y, z - 1) && blockView.getBlockId(x, y + 1, z - 1) == BaseBlock.REDSTONE_DUST.id) {
+				tessellator.color(light * r, light * g, light * b);
+				tessellator.vertex(x + 1, y + 0, (float)z + 0.015625f, u1, v2);
+				tessellator.vertex(x + 1, (float)(y + 1) + 0.021875f, (float)z + 0.015625f, u2, v2);
+				tessellator.vertex(x + 0, (float)(y + 1) + 0.021875f, (float)z + 0.015625f, u2, v1);
+				tessellator.vertex(x + 0, y + 0, (float)z + 0.015625f, u1, v1);
+			}
+			
+			if (blockView.canSuffocate(x, y, z + 1) && blockView.getBlockId(x, y + 1, z + 1) == BaseBlock.REDSTONE_DUST.id) {
+				tessellator.color(light * r, light * g, light * b);
+				tessellator.vertex(x + 1, (float)(y + 1) + 0.021875f, (float)(z + 1) - 0.015625f, u2, v1);
+				tessellator.vertex(x + 1, y + 0, (float)(z + 1) - 0.015625f, u1, v1);
+				tessellator.vertex(x + 0, y + 0, (float)(z + 1) - 0.015625f, u1, v2);
+				tessellator.vertex(x + 0, (float)(y + 1) + 0.021875f, (float)(z + 1) - 0.015625f, u2, v2);
+			}
+		}
+		
+		return true;
 	}
 }

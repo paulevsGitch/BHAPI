@@ -179,9 +179,13 @@ public class Textures {
 			byte x = (byte) (index & 15);
 			byte y = (byte) (index >> 4);
 			if (idMap == ID_BLOCK && (index == 238 || index == 206)) {
-				BufferedImage img = ImageUtil.makeImage(width << 1, height << 1);
+				/*BufferedImage img = ImageUtil.makeImage(width << 1, height << 1);
 				img.getGraphics().drawImage(atlas, -x * width, -y * height, null);
-				textures.put(id, img);
+				textures.put(id, img);*/
+				textures.put(id, ImageUtil.makeImage(32, 32));
+			}
+			else if (idMap == ID_BLOCK && (index == 31 || index == 47 || index == 205 || index == 237)) {
+				textures.put(id, ImageUtil.makeImage(16, 16));
 			}
 			else {
 				BufferedImage img = ImageUtil.makeImage(width, height);
@@ -206,7 +210,7 @@ public class Textures {
 		ID_BLOCK.put(11, Identifier.make("block/cobweb"));
 		ID_BLOCK.put(12, Identifier.make("block/rose"));
 		ID_BLOCK.put(13, Identifier.make("block/dandelion"));
-		ID_BLOCK.put(14, Identifier.make("terrain_14"));
+		ID_BLOCK.put(14, Identifier.make("block/nether_portal"));
 		ID_BLOCK.put(15, Identifier.make("block/sapling_oak"));
 		ID_BLOCK.put(16, Identifier.make("block/cobblestone"));
 		ID_BLOCK.put(17, Identifier.make("block/bedrock"));
