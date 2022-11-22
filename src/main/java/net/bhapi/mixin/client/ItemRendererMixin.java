@@ -11,6 +11,7 @@ import net.minecraft.block.BaseBlock;
 import net.minecraft.client.render.Tessellator;
 import net.minecraft.client.render.TextRenderer;
 import net.minecraft.client.render.block.BlockRenderer;
+import net.minecraft.client.render.block.FoliageColor;
 import net.minecraft.client.render.entity.EntityRenderer;
 import net.minecraft.client.render.entity.ItemRenderer;
 import net.minecraft.client.texture.TextureManager;
@@ -83,6 +84,13 @@ public abstract class ItemRendererMixin extends EntityRenderer {
 			
 			if (this.coloriseItem) {
 				int color = item.getColorMultiplier(j);
+				if (item instanceof BHBlockItem && color == 0xFFFFFF) {
+					BlockState state = BHBlockItem.cast(item).getState();
+					if (state.is(BaseBlock.TALLGRASS)) {
+						int meta = (int) state.getValue(state.getProperty("meta"));
+						color = meta > 0 ? FoliageColor.getFoliageColor(0.5, 0.5) : 0xFFFFFF;
+					}
+				}
 				float r = (float) (color >> 16 & 0xFF) / 255.0F;
 				float g = (float) (color >> 8 & 0xFF) / 255.0F;
 				float b = (float) (color & 0xFF) / 255.0F;

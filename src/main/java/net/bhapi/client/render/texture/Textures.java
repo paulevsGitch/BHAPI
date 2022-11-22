@@ -108,6 +108,7 @@ public class Textures {
 	}
 	
 	public static TextureSample getVanillaBlockSample(int texture) {
+		if (texture < 0) texture = -texture;
 		return VANILLA_BLOCKS.getOrDefault(texture, empty);
 	}
 	
