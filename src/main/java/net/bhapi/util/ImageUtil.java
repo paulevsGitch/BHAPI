@@ -1,7 +1,15 @@
 package net.bhapi.util;
 
+import com.google.gson.JsonObject;
 import net.bhapi.BHAPI;
+import net.bhapi.client.BHAPIClient;
+import net.bhapi.client.render.texture.AnimationTextureBinder;
+import net.bhapi.client.render.texture.TextureAtlas;
+import net.bhapi.client.render.texture.Textures;
+import net.bhapi.mixin.client.TextureManagerAccessor;
+import net.bhapi.registry.Registry;
 import net.bhapi.storage.Resource;
+import net.minecraft.client.render.TextureBinder;
 
 import javax.imageio.ImageIO;
 import java.awt.Color;
@@ -11,10 +19,16 @@ import java.awt.image.DataBufferInt;
 import java.io.File;
 import java.io.IOException;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 public class ImageUtil {
 	public static final BufferedImage EMPTY = new BufferedImage(2, 2, BufferedImage.TYPE_INT_ARGB);
+	private static final Registry<TextureBinder> BINDERS = new Registry<>();
+	
+	public static void registerAnimation(Identifier id, TextureBinder binder) {
+		BINDERS.register(id, binder);
+	}
 	
 	public static BufferedImage loadFromFile(File file) {
 		BufferedImage img = EMPTY;
@@ -54,12 +68,71 @@ public class ImageUtil {
 		String path = "/assets/" + folder.getModID() + "/textures/" + folder.getName();
 		if (!path.endsWith("/")) path += "/";
 		Map<Identifier, BufferedImage> result = new HashMap<>();
-		ResourceUtil.getResources(path, ".png").forEach(resource -> {
+		
+		Map<Resource, Resource> links = new HashMap<>();
+		List<Resource> metaList = ResourceUtil.getResources(path, ".png.mcmeta");
+		List<Resource> pngList = ResourceUtil.getResources(path, ".png");
+		
+		List<Resource> remove = metaList.stream().filter(meta -> {
+			String name = meta.getName();
+			name = name.substring(0, name.length() - 4);
+			boolean add = true;
+			for (Resource resource: pngList) {
+				if (name.equals(resource.getName())) {
+					links.put(resource, meta);
+					add = false;
+					break;
+				}
+			}
+			return add;
+		}).toList();
+		metaList.removeAll(remove);
+		remove.forEach(resource -> {
+			try {
+				resource.close();
+			}
+			catch (IOException e) {
+				e.printStackTrace();
+			}
+		});
+		
+		pngList.forEach(resource -> {
 			try {
 				BufferedImage img = ImageIO.read(resource.getStream());
+				Resource meta = links.get(resource);
+				
 				String name = resource.getName();
 				String fName = folder.getName();
 				Identifier id = Identifier.make(folder.getModID(), fName.isEmpty() ? name : fName + "/" + name);
+				
+				if (meta != null) {
+					int width = img.getWidth();
+					int height = img.getHeight();
+					int frameCount = height / width;
+					
+					BufferedImage animImg = makeImage(width, width);
+					animImg.getGraphics().drawImage(img, 0, 0, null);
+					
+					if (frameCount * width != height) {
+						BHAPI.warn("Wrong aspect ratio of animation " + meta.getName());
+						meta.close();
+					}
+					else {
+						JsonObject json = JsonUtil.read(meta.getStream());
+						json = json.getAsJsonObject("animation");
+						boolean interpolate = json.has("interpolate") && json.get("interpolate").getAsBoolean();
+						int speed = json.has("frametime") ? json.get("frametime").getAsInt() : 1;
+						BufferedImage[] frames = new BufferedImage[frameCount];
+						for (int i = 0; i < frameCount; i++) {
+							frames[i] = img.getSubimage(0, i * width, width, width);
+						}
+						AnimationTextureBinder binder = new AnimationTextureBinder(frames, interpolate, speed);
+						BINDERS.register(id, binder);
+					}
+					
+					img = animImg;
+				}
+				
 				result.put(id, img);
 				resource.close();
 			}
@@ -69,8 +142,6 @@ public class ImageUtil {
 		});
 		return result;
 	}
-	
-	
 	
 	public static int[] getPixelData(BufferedImage image) {
 		DataBuffer buffer = image.getRaster().getDataBuffer();
@@ -104,6 +175,26 @@ public class ImageUtil {
 	
 	public static BufferedImage makeImage(int width, int height) {
 		return new BufferedImage(width, height, BufferedImage.TYPE_INT_ARGB);
+	}
+	
+	@SuppressWarnings("unchecked")
+	public static void processAnimations() {
+		TextureAtlas atlas = Textures.getAtlas();
+		List<TextureBinder> binders = (List<TextureBinder>) ((TextureManagerAccessor) BHAPIClient.getMinecraft().textureManager).getTextureBinders();
+		
+		BINDERS.forEach((id, binder) -> {
+			binder.index = atlas.getTextureIndex(id);
+			boolean added = false;
+			for (int i = 0; i < binders.size(); i++) {
+				TextureBinder b = binders.get(i);
+				if (b.index == binder.index) {
+					binders.set(i, binder);
+					added = true;
+					break;
+				}
+			}
+			if (!added) binders.add(binder);
+		});
 	}
 	
 	static {

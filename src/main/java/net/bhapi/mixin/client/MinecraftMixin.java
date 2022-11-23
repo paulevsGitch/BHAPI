@@ -5,6 +5,7 @@ import net.bhapi.client.ClientRegistries;
 import net.bhapi.client.render.texture.Textures;
 import net.bhapi.interfaces.ClientPostInit;
 import net.bhapi.registry.CommonRegistries;
+import net.bhapi.util.ImageUtil;
 import net.minecraft.client.Minecraft;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
@@ -19,6 +20,7 @@ public class MinecraftMixin {
 		Textures.preInit();
 		BHAPI.processEntryPoints("bhapi:client_events", ClientRegistries.EVENT_REGISTRY_PRE);
 		Textures.init();
+		ImageUtil.processAnimations();
 	}
 	
 	@Inject(method = "init()V", at = @At("RETURN"))

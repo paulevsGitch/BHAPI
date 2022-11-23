@@ -96,7 +96,7 @@ public class BHBlockRenderer {
 	private static final Vec3F itemColor = new Vec3F();
 	
 	public static boolean isImplemented(int renderType) {
-		return renderType >= 0 && renderType <= BlockRenderTypes.DOOR;
+		return renderType >= 0 && renderType <= BlockRenderTypes.LADDER;
 	}
 	
 	public static void setRenderer(BlockView view, BlockRenderer renderer) {
@@ -151,6 +151,7 @@ public class BHBlockRenderer {
 		if (type == BlockRenderTypes.REDSTONE_DUST) return renderRedstoneDust(state, x, y, z);
 		if (type == BlockRenderTypes.CROP) return renderCrops(state, x, y, z);
 		if (type == BlockRenderTypes.DOOR) return renderDoor(state, x, y, z);
+		if (type == BlockRenderTypes.LADDER) return renderLadder(state, x, y, z);
 		if (type == BlockRenderTypes.CUSTOM) return true; // TODO make custom rendering
 		else if (BlockRenderTypes.isVanilla(type)) {
 			return renderer.render(state.getBlock(), x, y, z);
@@ -2008,6 +2009,7 @@ public class BHBlockRenderer {
 		Tessellator tessellator = Tessellator.INSTANCE;
 		DoorBlock doorBlock = (DoorBlock) block;
 		
+		// TODO switch to this in the future
 		//renderCubeSmooth(state, x, y, z, 1F, 1F, 1F);
 		
 		float f = 0.5f;
@@ -2036,7 +2038,7 @@ public class BHBlockRenderer {
 			lightB = lightT;
 		}
 		
-		if (BaseBlock.EMITTANCE[block.id] > 0) {
+		if (state.getEmittance() > 0) {
 			lightB = 1.0f;
 		}
 		
@@ -2049,7 +2051,7 @@ public class BHBlockRenderer {
 			lightB = lightT;
 		}
 		
-		if (BaseBlock.EMITTANCE[block.id] > 0) {
+		if (state.getEmittance() > 0) {
 			lightB = 1.0f;
 		}
 		
@@ -2069,7 +2071,7 @@ public class BHBlockRenderer {
 			lightB = lightT;
 		}
 		
-		if (BaseBlock.EMITTANCE[block.id] > 0) {
+		if (state.getEmittance() > 0) {
 			lightB = 1.0f;
 		}
 		
@@ -2089,7 +2091,7 @@ public class BHBlockRenderer {
 			lightB = lightT;
 		}
 		
-		if (BaseBlock.EMITTANCE[block.id] > 0) {
+		if (state.getEmittance() > 0) {
 			lightB = 1.0f;
 		}
 		
@@ -2109,7 +2111,7 @@ public class BHBlockRenderer {
 			lightB = lightT;
 		}
 		
-		if (BaseBlock.EMITTANCE[block.id] > 0) {
+		if (state.getEmittance() > 0) {
 			lightB = 1.0f;
 		}
 		
@@ -2124,6 +2126,64 @@ public class BHBlockRenderer {
 		
 		renderSouthFace(block, x, y, z, sample);
 		mirrorTexture = false;
+		
+		return true;
+	}
+	
+	private static boolean renderLadder(BlockState state, int x, int y, int z) {
+		BaseBlock block = state.getBlock();
+		Tessellator tessellator = Tessellator.INSTANCE;
+		
+		float light = block.getBrightness(blockView, x, y, z);
+		tessellator.color(light, light, light);
+		
+		int meta = blockView.getBlockMeta(x, y, z);
+		float u1, u2, v1, v2;
+		if (breaking) {
+			boolean dirZ = meta > 3;
+			u1 = dirZ ? (float) block.minZ : (float) block.minX;
+			u2 = dirZ ? (float) block.maxZ : (float) block.maxX;
+			v1 = (float) block.minY;
+			v2 = (float) block.maxY;
+		}
+		else {
+			UVPair uv = state.getTextureForIndex(blockView, x, y, z, 0).getUV();
+			u1 = uv.getU(0);
+			u2 = uv.getU(1);
+			v1 = uv.getV(0);
+			v2 = uv.getV(1);
+		}
+		
+		float f2 = 0.0f;
+		float f3 = 0.05f;
+		
+		if (meta == 5) {
+			tessellator.vertex(x + f3, y + 1 + f2, z + 1 + f2, u1, v1);
+			tessellator.vertex(x + f3, y - f2, z + 1 + f2, u1, v2);
+			tessellator.vertex(x + f3, y - f2, z - f2, u2, v2);
+			tessellator.vertex(x + f3, y + 1 + f2, z - f2, u2, v1);
+		}
+		
+		if (meta == 4) {
+			tessellator.vertex(x + 1 - f3, y - f2, z + 1 + f2, u2, v2);
+			tessellator.vertex(x + 1 - f3, y + 1 + f2, z + 1 + f2, u2, v1);
+			tessellator.vertex(x + 1 - f3, y + 1 + f2, z - f2, u1, v1);
+			tessellator.vertex(x + 1 - f3, y - f2, z - f2, u1, v2);
+		}
+		
+		if (meta == 3) {
+			tessellator.vertex(x + 1 + f2, y - f2, z + f3, u2, v2);
+			tessellator.vertex(x + 1 + f2, y + 1 + f2, z + f3, u2, v1);
+			tessellator.vertex(x - f2, y + 1 + f2, z + f3, u1, v1);
+			tessellator.vertex(x - f2, y - f2, z + f3, u1, v2);
+		}
+		
+		if (meta == 2) {
+			tessellator.vertex(x + 1 + f2, y + 1 + f2, z + 1 - f3, u1, v1);
+			tessellator.vertex(x + 1 + f2, y - f2, z + 1 - f3, u1, v2);
+			tessellator.vertex(x - f2, y - f2, z + 1 - f3, u2, v2);
+			tessellator.vertex(x - f2, y + 1 + f2, z + 1 - f3, u2, v1);
+		}
 		
 		return true;
 	}

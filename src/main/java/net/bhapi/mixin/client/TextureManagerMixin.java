@@ -6,6 +6,7 @@ import net.bhapi.client.render.texture.TextureAtlas;
 import net.bhapi.client.render.texture.Textures;
 import net.bhapi.client.render.texture.UVPair;
 import net.bhapi.util.BufferUtil;
+import net.bhapi.util.ImageUtil;
 import net.minecraft.client.TexturePackManager;
 import net.minecraft.client.options.GameOptions;
 import net.minecraft.client.render.TextureBinder;
@@ -114,6 +115,7 @@ public abstract class TextureManagerMixin {
 		Textures.preReload();
 		BHAPI.processEntryPoints("bhapi:client_events", ClientRegistries.EVENT_REGISTRY_RELOAD);
 		Textures.reload();
+		ImageUtil.processAnimations();
 	}
 	
 	@Inject(method = "bindImage(Ljava/awt/image/BufferedImage;I)V", at = @At("HEAD"))

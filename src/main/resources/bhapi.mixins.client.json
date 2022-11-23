@@ -23,6 +23,7 @@
 		"EntityRenderMixin",
 		"ItemRendererMixin",
 		"AreaRendererMixin",
+		"MinecraftAccessor",
 		"BaseItemAccessor",
 		"ClientLevelMixin",
 		"MinecraftMixin",

@@ -39,7 +39,7 @@ public class ResourceUtil {
 			if (mod.isDirectory()) {
 				File file = new File(mod, search);
 				if (file.exists()) {
-					if (file.isFile()) {
+					if (file.isFile() && file.getName().endsWith(extension)) {
 						try {
 							InputStream stream = new FileInputStream(file);
 							String path = file.getAbsolutePath();
@@ -50,7 +50,9 @@ public class ResourceUtil {
 						}
 					}
 					else if (file.isDirectory()) {
-						Arrays.stream(Objects.requireNonNull(file.listFiles())).filter(File::isFile).forEach(f -> {
+						Arrays.stream(Objects.requireNonNull(file.listFiles())).filter(File::isFile).filter(
+							f -> f.getName().endsWith(extension)
+						).forEach(f -> {
 							try {
 								InputStream stream = new FileInputStream(f);
 								String path = f.getAbsolutePath();
