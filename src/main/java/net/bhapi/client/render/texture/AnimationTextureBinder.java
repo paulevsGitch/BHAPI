@@ -8,13 +8,15 @@ import net.minecraft.client.render.TextureBinder;
 import java.awt.image.BufferedImage;
 
 public class AnimationTextureBinder extends TextureBinder {
-	private final int[][] pixels;
-	private final boolean interpolate;
 	private final byte[] color = new byte[4];
-	private final int speed;
+	private final boolean interpolate;
+	private final int[] totalTime;
+	private final int largestTime;
+	private final int[][] pixels;
+	private final int[] time;
 	private final int size;
 	
-	public AnimationTextureBinder(BufferedImage[] frames, boolean interpolate, int speed) {
+	public AnimationTextureBinder(BufferedImage[] frames, int[] time, boolean interpolate) {
 		super(0);
 		this.interpolate = interpolate;
 		BufferedImage img = frames[0];
@@ -24,15 +26,32 @@ public class AnimationTextureBinder extends TextureBinder {
 			frames[i].getRGB(0, 0, img.getWidth(), img.getHeight(), pixels[i], 0, img.getWidth());
 		}
 		this.size = this.grid.length >> 2;
-		this.speed = speed;
+		this.time = time;
+		totalTime = new int[time.length];
+		totalTime[0] = time[0];
+		for (int i = 1; i < totalTime.length; i++) {
+			totalTime[i] = totalTime[i - 1] + time[i];
+		}
+		largestTime = totalTime[totalTime.length - 1];
 	}
 	
 	@Override
 	public void update() {
 		int ticks = ((MinecraftAccessor) BHAPIClient.getMinecraft()).bhapi_getTicks();
-		int index1 = (ticks / speed) % pixels.length;
+		int time = ticks % largestTime;
+		
+		int index1;
+		for (index1 = 0; index1 < this.time.length; index1++) {
+			if (time <= totalTime[index1]) break;
+		}
 		int index2 = (index1 + 1) % pixels.length;
-		float delta = (float) (ticks % speed) / speed;
+		
+		if (index1 > 0) {
+			time -= totalTime[index1 - 1];
+		}
+		
+		float delta = (float) time / this.time[index1];
+		
 		for (int i = 0; i < this.size; i++) {
 			byte[] color = getColor(i, index1, index2, delta);
 			int index = i << 2;
@@ -47,15 +66,15 @@ public class AnimationTextureBinder extends TextureBinder {
 		int argb2 = pixels[index2][xyIndex];
 		if (interpolate) {
 			color[3] = (byte) (MathUtil.lerp(((argb1 >> 24) & 255) / 255F, ((argb2 >> 24) & 255) / 255F, delta) * 255F);
-			color[0] = (byte) (MathUtil.lerp(((argb1 >> 16) & 255)/ 255F, ((argb2 >> 16) & 255) / 255F, delta) * 255F);
+			color[0] = (byte) (MathUtil.lerp(((argb1 >> 16) & 255) / 255F, ((argb2 >> 16) & 255) / 255F, delta) * 255F);
 			color[1] = (byte) (MathUtil.lerp(((argb1 >> 8) & 255) / 255F, ((argb2 >> 8) & 255) / 255F, delta) * 255F);
 			color[2] = (byte) (MathUtil.lerp((argb1 & 255) / 255F, (argb2 & 255) / 255F, delta) * 255F);
 		}
 		else {
-			color[0] = (byte) ((argb1 >> 24) & 255);
-			color[1] = (byte) ((argb1 >> 16) & 255);
-			color[2] = (byte) ((argb1 >> 8) & 255);
-			color[3] = (byte) (argb1 & 255);
+			color[3] = (byte) ((argb1 >> 24) & 255);
+			color[0] = (byte) ((argb1 >> 16) & 255);
+			color[1] = (byte) ((argb1 >> 8) & 255);
+			color[2] = (byte) (argb1 & 255);
 		}
 		return color;
 	}

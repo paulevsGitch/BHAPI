@@ -1,5 +1,7 @@
 package net.bhapi.util;
 
+import com.google.gson.JsonArray;
+import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import net.bhapi.BHAPI;
 import net.bhapi.client.BHAPIClient;
@@ -18,6 +20,7 @@ import java.awt.image.DataBuffer;
 import java.awt.image.DataBufferInt;
 import java.io.File;
 import java.io.IOException;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -120,13 +123,47 @@ public class ImageUtil {
 					else {
 						JsonObject json = JsonUtil.read(meta.getStream());
 						json = json.getAsJsonObject("animation");
+						
 						boolean interpolate = json.has("interpolate") && json.get("interpolate").getAsBoolean();
-						int speed = json.has("frametime") ? json.get("frametime").getAsInt() : 1;
+						int frametime = json.has("frametime") ? json.get("frametime").getAsInt() : 1;
+						
 						BufferedImage[] frames = new BufferedImage[frameCount];
 						for (int i = 0; i < frameCount; i++) {
 							frames[i] = img.getSubimage(0, i * width, width, width);
 						}
-						AnimationTextureBinder binder = new AnimationTextureBinder(frames, interpolate, speed);
+						
+						BufferedImage[] sortedFrames;
+						int[] time;
+						if (json.has("frames")) {
+							JsonArray arr = json.getAsJsonArray("frames");
+							sortedFrames = new BufferedImage[arr.size()];
+							time = new int[sortedFrames.length];
+							Arrays.fill(time, frametime);
+							for (int i = 0; i < sortedFrames.length; i++) {
+								JsonElement element = arr.get(i);
+								if (element.isJsonPrimitive()) {
+									int index = element.getAsInt();
+									sortedFrames[i] = frames[index];
+								}
+								else {
+									JsonObject obj = element.getAsJsonObject();
+									int index = obj.get("index").getAsInt();
+									sortedFrames[i] = frames[index];
+									if (obj.has("time")) {
+										time[i] = obj.get("time").getAsInt();
+									}
+								}
+							}
+							
+							System.out.println(Arrays.toString(time));
+						}
+						else {
+							sortedFrames = frames;
+							time = new int[sortedFrames.length];
+							Arrays.fill(time, frametime);
+						}
+						
+						AnimationTextureBinder binder = new AnimationTextureBinder(sortedFrames, time, interpolate);
 						BINDERS.register(id, binder);
 					}
 					

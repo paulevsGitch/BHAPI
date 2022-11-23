@@ -7,6 +7,7 @@ import net.bhapi.util.BufferUtil;
 import net.bhapi.util.Identifier;
 import net.bhapi.util.ImageUtil;
 import net.bhapi.util.ImageUtil.FormatConvert;
+import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.client.render.TextureBinder;
 import org.lwjgl.opengl.GL11;
 
@@ -53,6 +54,8 @@ public class Textures {
 			GL11.glTexParameterf(GL11.GL_TEXTURE_2D, GL11.GL_TEXTURE_WRAP_S, GL11.GL_REPEAT);
 			GL11.glTexParameterf(GL11.GL_TEXTURE_2D, GL11.GL_TEXTURE_WRAP_T, GL11.GL_REPEAT);
 		});
+		
+		loadModsAssets();
 	}
 	
 	public static void init() {
@@ -91,6 +94,8 @@ public class Textures {
 			GL11.glTexParameterf(GL11.GL_TEXTURE_2D, GL11.GL_TEXTURE_WRAP_S, GL11.GL_REPEAT);
 			GL11.glTexParameterf(GL11.GL_TEXTURE_2D, GL11.GL_TEXTURE_WRAP_T, GL11.GL_REPEAT);
 		});
+		
+		loadModsAssets();
 	}
 	
 	public static void reload() {
@@ -177,6 +182,16 @@ public class Textures {
 				img.getGraphics().drawImage(atlas, -x * width, -y * height, null);
 				textures.put(id, img);
 			}
+		});
+	}
+	
+	private static void loadModsAssets() {
+		FabricLoader.getInstance().getAllMods().forEach(modContainer -> {
+			String id = modContainer.getMetadata().getId();
+			System.out.println("Mod: " + id);
+			LOADED_TEXTURES.putAll(ImageUtil.loadTexturesFromPathDir(Identifier.make(id, "block")));
+			LOADED_TEXTURES.putAll(ImageUtil.loadTexturesFromPathDir(Identifier.make(id, "item")));
+			LOADED_TEXTURES.putAll(ImageUtil.loadTexturesFromPathDir(Identifier.make(id, "particle")));
 		});
 	}
 	
