@@ -22,12 +22,34 @@ import net.minecraft.client.render.Tessellator;
 import net.minecraft.client.render.block.BlockRenderer;
 import net.minecraft.level.BlockView;
 import net.minecraft.util.maths.MathHelper;
+import net.minecraft.util.maths.Vec3f;
 import org.lwjgl.opengl.GL11;
+
+import java.util.ArrayList;
+import java.util.List;
 
 public class BHBlockRenderer {
 	private static final XorShift128 xorShift = new XorShift128();
+	private static final List<BlockRenderingFunction> RENDER_FUNCTIONS = new ArrayList<>();
 	private static BlockRenderer renderer;
 	private static BlockView blockView;
+	
+	static {
+		RENDER_FUNCTIONS.add(BHBlockRenderer::renderFullCube);
+		RENDER_FUNCTIONS.add(BHBlockRenderer::renderCross);
+		RENDER_FUNCTIONS.add(BHBlockRenderer::renderTorch);
+		RENDER_FUNCTIONS.add(BHBlockRenderer::renderFire);
+		RENDER_FUNCTIONS.add(BHBlockRenderer::renderFluid);
+		RENDER_FUNCTIONS.add(BHBlockRenderer::renderRedstoneDust);
+		RENDER_FUNCTIONS.add(BHBlockRenderer::renderCrops);
+		RENDER_FUNCTIONS.add(BHBlockRenderer::renderDoor);
+		RENDER_FUNCTIONS.add(BHBlockRenderer::renderLadder);
+		RENDER_FUNCTIONS.add(BHBlockRenderer::renderRails);
+		RENDER_FUNCTIONS.add(BHBlockRenderer::renderStairs);
+		RENDER_FUNCTIONS.add(BHBlockRenderer::renderFence);
+		RENDER_FUNCTIONS.add(BHBlockRenderer::renderLever);
+		RENDER_FUNCTIONS.add(BHBlockRenderer::renderCactus);
+	}
 	
 	private static boolean mirrorTexture = false;
 	private static boolean renderAllSides = false;
@@ -97,7 +119,7 @@ public class BHBlockRenderer {
 	private static final Vec3F itemColor = new Vec3F();
 	
 	public static boolean isImplemented(int renderType) {
-		return renderType >= 0 && renderType <= BlockRenderTypes.RAILS;
+		return renderType >= 0 && renderType < RENDER_FUNCTIONS.size();
 	}
 	
 	public static void setRenderer(BlockView view, BlockRenderer renderer) {
@@ -144,16 +166,9 @@ public class BHBlockRenderer {
 		state.getBlock().updateBoundingBox(blockView, x, y, z);
 		byte type = state.getRenderType(blockView, x, y, z);
 		if (type == BlockRenderTypes.EMPTY) return false;
-		if (type == BlockRenderTypes.FULL_CUBE) return renderFullCube(state, x, y, z);
-		if (type == BlockRenderTypes.CROSS) return renderCross(state, x, y, z);
-		if (type == BlockRenderTypes.TORCH) return renderTorch(state, x, y, z);
-		if (type == BlockRenderTypes.FIRE) return renderFire(state, x, y, z);
-		if (type == BlockRenderTypes.FLUID) return renderFluid(state, x, y, z);
-		if (type == BlockRenderTypes.REDSTONE_DUST) return renderRedstoneDust(state, x, y, z);
-		if (type == BlockRenderTypes.CROP) return renderCrops(state, x, y, z);
-		if (type == BlockRenderTypes.DOOR) return renderDoor(state, x, y, z);
-		if (type == BlockRenderTypes.LADDER) return renderLadder(state, x, y, z);
-		if (type == BlockRenderTypes.RAILS) return renderRails(state, x, y, z);
+		if (type < RENDER_FUNCTIONS.size()) {
+			return RENDER_FUNCTIONS.get(type).render(state, x, y, z);
+		}
 		if (type == BlockRenderTypes.CUSTOM) return true; // TODO make custom rendering
 		else if (BlockRenderTypes.isVanilla(type)) {
 			return renderer.render(state.getBlock(), x, y, z);
@@ -2261,5 +2276,377 @@ public class BHBlockRenderer {
 		tessellator.vertex(x1, y1, z1, u2, v1);
 		
 		return true;
+	}
+	
+	private static boolean renderStairs(BlockState state, int i, int j, int k) {
+		BaseBlock block = state.getBlock();
+		boolean result = false;
+		
+		int meta = blockView.getBlockMeta(i, j, k);
+		if (meta == 0) {
+			block.setBoundingBox(0.0f, 0.0f, 0.0f, 0.5f, 0.5f, 1.0f);
+			renderFullCube(state, i, j, k);
+			block.setBoundingBox(0.5f, 0.0f, 0.0f, 1.0f, 1.0f, 1.0f);
+			renderFullCube(state, i, j, k);
+			result = true;
+		}
+		else if (meta == 1) {
+			block.setBoundingBox(0.0f, 0.0f, 0.0f, 0.5f, 1.0f, 1.0f);
+			renderFullCube(state, i, j, k);
+			block.setBoundingBox(0.5f, 0.0f, 0.0f, 1.0f, 0.5f, 1.0f);
+			renderFullCube(state, i, j, k);
+			result = true;
+		}
+		else if (meta == 2) {
+			block.setBoundingBox(0.0f, 0.0f, 0.0f, 1.0f, 0.5f, 0.5f);
+			renderFullCube(state, i, j, k);
+			block.setBoundingBox(0.0f, 0.0f, 0.5f, 1.0f, 1.0f, 1.0f);
+			renderFullCube(state, i, j, k);
+			result = true;
+		}
+		else if (meta == 3) {
+			block.setBoundingBox(0.0f, 0.0f, 0.0f, 1.0f, 1.0f, 0.5f);
+			renderFullCube(state, i, j, k);
+			block.setBoundingBox(0.0f, 0.0f, 0.5f, 1.0f, 0.5f, 1.0f);
+			renderFullCube(state, i, j, k);
+			result = true;
+		}
+		
+		block.setBoundingBox(0.0f, 0.0f, 0.0f, 1.0f, 1.0f, 1.0f);
+		return result;
+	}
+	
+	private static boolean renderFence(BlockState state, int x, int y, int z) {
+		BaseBlock block = state.getBlock();
+		block.setBoundingBox(0.375f, 0.0f, 0.375f, 0.625f, 1.0f, 0.625f);
+		renderFullCube(state, x, y, z);
+		
+		BlockStateProvider provider = BlockStateProvider.cast(blockView);
+		
+		boolean cx1 = provider.getBlockState(x - 1, y, z).is(block);
+		boolean cx2 = provider.getBlockState(x + 1, y, z).is(block);
+		boolean cz1 = provider.getBlockState(x, y, z - 1).is(block);
+		boolean cz2 = provider.getBlockState(x, y, z + 1).is(block);
+		
+		boolean cx = cx1 || cx2;
+		boolean cz = cz1 || cz2;
+		
+		if (!cx && !cz) cx = true;
+		
+		float dx1 = cx1 ? 0.0f : 0.4375f;
+		float dx2 = cx2 ? 1.0f : 0.5625f;
+		float dz1 = cz1 ? 0.0f : 0.4375f;
+		float dz2 = cz2 ? 1.0f : 0.5625f;
+		
+		if (cx) {
+			block.setBoundingBox(dx1, 0.75f, 0.4375f, dx2, 0.9375f, 0.5625f);
+			renderFullCube(state, x, y, z);
+		}
+		
+		if (cz) {
+			block.setBoundingBox(0.4375f, 0.75f, dz1, 0.5625f, 0.9375f, dz2);
+			renderFullCube(state, x, y, z);
+		}
+		
+		if (cx) {
+			block.setBoundingBox(dx1, 0.375f, 0.4375f, dx2, 0.5625f, 0.5625f);
+			renderFullCube(state, x, y, z);
+		}
+		
+		if (cz) {
+			block.setBoundingBox(0.4375f, 0.375f, dz1, 0.5625f, 0.5625f, dz2);
+			renderFullCube(state, x, y, z);
+		}
+		
+		block.setBoundingBox(0.0f, 0.0f, 0.0f, 1.0f, 1.0f, 1.0f);
+		return true;
+	}
+	
+	private static boolean renderLever(BlockState state, int x, int y, int z) {
+		BaseBlock block = state.getBlock();
+		
+		boolean bl;
+		int meta = blockView.getBlockMeta(x, y, z);
+		int wrappedMeta = meta & 7;
+		boolean isActive = (meta & 8) > 0;
+		
+		//bl = this.textureOverride >= 0;
+		
+		//if (!bl) {
+			//this.textureOverride = BaseBlock.COBBLESTONE.texture;
+		//}
+		
+		if (wrappedMeta == 5) {
+			block.setBoundingBox(0.5f - 0.1875f, 0.0f, 0.5f - 0.25f, 0.5f + 0.1875f, 0.1875f, 0.5f + 0.25f);
+		}
+		else if (wrappedMeta == 6) {
+			block.setBoundingBox(0.5f - 0.25f, 0.0f, 0.5f - 0.1875f, 0.5f + 0.25f, 0.1875f, 0.5f + 0.1875f);
+		}
+		else if (wrappedMeta == 4) {
+			block.setBoundingBox(0.5f - 0.1875f, 0.5f - 0.25f, 1.0f - 0.1875f, 0.5f + 0.1875f, 0.5f + 0.25f, 1.0f);
+		}
+		else if (wrappedMeta == 3) {
+			block.setBoundingBox(0.5f - 0.1875f, 0.5f - 0.25f, 0.0f, 0.5f + 0.1875f, 0.5f + 0.25f, 0.1875f);
+		}
+		else if (wrappedMeta == 2) {
+			block.setBoundingBox(1.0f - 0.1875f, 0.5f - 0.25f, 0.5f - 0.1875f, 1.0f, 0.5f + 0.25f, 0.5f + 0.1875f);
+		}
+		else if (wrappedMeta == 1) {
+			block.setBoundingBox(0.0f, 0.5f - 0.25f, 0.5f - 0.1875f, 0.1875f, 0.5f + 0.25f, 0.5f + 0.1875f);
+		}
+		
+		renderFullCube(state, x, y, z);
+		
+		//if (!bl) {
+			//this.textureOverride = -1;
+		//}
+		
+		float light = block.getBrightness(blockView, x, y, z);
+		if (BaseBlock.EMITTANCE[block.id] > 0) {
+			light = 1.0f;
+		}
+		
+		Tessellator tessellator = Tessellator.INSTANCE;
+		UVPair uv = state.getTextureForIndex(blockView, x, y, z, 6).getUV();
+		tessellator.color(light, light, light);
+		
+		float u1, u2, v1, v2;
+		if (breaking) {
+			u1 = 0;
+			u2 = 1;
+			v1 = 0;
+			v2 = 1;
+		}
+		else {
+			u1 = uv.getU(0);
+			u2 = uv.getU(1);
+			v1 = uv.getV(0);
+			v2 = uv.getV(1);
+		}
+		
+		Vec3f[] points = new Vec3f[8];
+		
+		points[0] = Vec3f.getFromCacheAndSet(-0.0625f, 0.0, -0.0625f);
+		points[1] = Vec3f.getFromCacheAndSet(0.0625f, 0.0, -0.0625f);
+		points[2] = Vec3f.getFromCacheAndSet(0.0625f, 0.0, 0.0625f);
+		points[3] = Vec3f.getFromCacheAndSet(-0.0625f, 0.0, 0.0625f);
+		points[4] = Vec3f.getFromCacheAndSet(-0.0625f, 0.625f, -0.0625f);
+		points[5] = Vec3f.getFromCacheAndSet(0.0625f, 0.625f, -0.0625f);
+		points[6] = Vec3f.getFromCacheAndSet(0.0625f, 0.625f, 0.0625f);
+		points[7] = Vec3f.getFromCacheAndSet(-0.0625f, 0.625f, 0.0625f);
+		
+		for (int i2 = 0; i2 < 8; ++i2) {
+			if (isActive) {
+				points[i2].z -= 0.0625;
+				points[i2].rotateX(0.69813174f);
+			}
+			else {
+				points[i2].z += 0.0625;
+				points[i2].rotateX(-0.69813174f);
+			}
+			
+			if (wrappedMeta == 6) {
+				points[i2].rotateY(1.5707964f);
+			}
+			
+			if (wrappedMeta < 5) {
+				points[i2].y -= 0.375;
+				points[i2].rotateX(1.5707964f);
+				if (wrappedMeta == 4) {
+					points[i2].rotateY(0.0f);
+				}
+				if (wrappedMeta == 3) {
+					points[i2].rotateY((float)Math.PI);
+				}
+				if (wrappedMeta == 2) {
+					points[i2].rotateY(1.5707964f);
+				}
+				if (wrappedMeta == 1) {
+					points[i2].rotateY(-1.5707964f);
+				}
+				points[i2].x += x + 0.5;
+				points[i2].y += y + 0.5;
+				points[i2].z += z + 0.5;
+				continue;
+			}
+			
+			points[i2].x += x + 0.5;
+			points[i2].y += y + 0.125;
+			points[i2].z += z + 0.5;
+		}
+		
+		Vec3f p1 = null;
+		Vec3f p2 = null;
+		Vec3f p3 = null;
+		Vec3f p4 = null;
+		
+		for (int side = 0; side < 6; ++side) {
+			if (side == 0) {
+				u1 = uv.getU(7F / 16F);
+				u2 = uv.getU(9F / 16F);
+				v1 = uv.getV(6F / 16F);
+				v2 = uv.getV(8F / 16F);
+			}
+			else if (side == 2) {
+				u1 = uv.getU(7F / 16F);
+				u2 = uv.getU(9F / 16F);
+				v1 = uv.getV(6F / 16F);
+				v2 = uv.getV(1);
+			}
+			
+			if (side == 0) {
+				p1 = points[0];
+				p2 = points[1];
+				p3 = points[2];
+				p4 = points[3];
+			}
+			else if (side == 1) {
+				p1 = points[7];
+				p2 = points[6];
+				p3 = points[5];
+				p4 = points[4];
+			}
+			else if (side == 2) {
+				p1 = points[1];
+				p2 = points[0];
+				p3 = points[4];
+				p4 = points[5];
+			}
+			else if (side == 3) {
+				p1 = points[2];
+				p2 = points[1];
+				p3 = points[5];
+				p4 = points[6];
+			}
+			else if (side == 4) {
+				p1 = points[3];
+				p2 = points[2];
+				p3 = points[6];
+				p4 = points[7];
+			}
+			else if (side == 5) {
+				p1 = points[0];
+				p2 = points[3];
+				p3 = points[7];
+				p4 = points[4];
+			}
+			
+			tessellator.vertex(p1.x, p1.y, p1.z, u1, v2);
+			tessellator.vertex(p2.x, p2.y, p2.z, u2, v2);
+			tessellator.vertex(p3.x, p3.y, p3.z, u2, v1);
+			tessellator.vertex(p4.x, p4.y, p4.z, u1, v1);
+		}
+		
+		return true;
+	}
+	
+	private static boolean renderCactus(BlockState state, int i, int j, int k) {
+		BaseBlock block = state.getBlock();
+		int color = block.getColorMultiplier(blockView, i, j, k);
+		float r = (float) (color >> 16 & 0xFF) / 255.0f;
+		float g = (float) (color >> 8 & 0xFF) / 255.0f;
+		float b = (float) (color & 0xFF) / 255.0f;
+		
+		if (GameRenderer.anaglyph3d) {
+			float nr = (r * 30.0f + g * 59.0f + b * 11.0f) / 100.0f;
+			float ng = (r * 30.0f + g * 70.0f) / 100.0f;
+			float nb = (r * 30.0f + b * 70.0f) / 100.0f;
+			r = nr;
+			g = ng;
+			b = nb;
+		}
+		
+		return renderCactusBlock(state, block, i, j, k, r, g, b);
+	}
+	
+	private static boolean renderCactusBlock(BlockState state, BaseBlock block, int x, int y, int z, float r, float g, float b) {
+		float r1 = item ? r : 0.5f * r;
+		float r2 = item ? r : 0.8f * r;
+		float r3 = item ? r : 0.6f * r;
+		float g1 = item ? g : 0.5f * g;
+		float g2 = item ? g : 0.8f * g;
+		float g3 = item ? g : 0.6f * g;
+		float b1 = item ? b : 0.5f * b;
+		float b2 = item ? b : 0.8f * b;
+		float b3 = item ? b : 0.6f * b;
+		
+		float blockLight = getBrightness(block, x, y, z);
+		float light;
+		
+		Tessellator tessellator = Tessellator.INSTANCE;
+		boolean result = false;
+		
+		if (renderAllSides || block.isSideRendered(blockView, x, y - 1, z, 0)) {
+			light = getBrightness(block, x, y - 1, z);
+			if (item) tessellator.setNormal(0.0f, -1.0f, 0.0f);
+			tessellator.color(r1 * light, g1 * light, b1 * light);
+			renderBottomFace(block, x, y, z, state.getTextureForIndex(blockView, x, y, z, 0));
+			result = true;
+		}
+		
+		if (renderAllSides || block.isSideRendered(blockView, x, y + 1, z, 1)) {
+			light = getBrightness(block, x, y + 1, z);
+			if (block.maxY != 1.0 && !block.material.isLiquid()) {
+				light = blockLight;
+			}
+			if (item) tessellator.setNormal(0.0f, 1.0f, 0.0f);
+			tessellator.color(r * light, g * light, b * light);
+			renderTopFace(block, x, y, z, state.getTextureForIndex(blockView, x, y, z, 1));
+			result = true;
+		}
+		
+		if (renderAllSides || block.isSideRendered(blockView, x, y, z - 1, 2)) {
+			light = getBrightness(block, x, y, z - 1);
+			if (block.minZ > 0.0) {
+				light = blockLight;
+			}
+			if (item) tessellator.setNormal(0.0f, 0.0f, -1.0f);
+			tessellator.color(r2 * light, g2 * light, b2 * light);
+			tessellator.addOffset(0.0f, 0.0f, 0.0625f);
+			renderEastFace(block, x, y, z, state.getTextureForIndex(blockView, x, y, z, 2));
+			tessellator.addOffset(0.0f, 0.0f, -0.0625f);
+			result = true;
+		}
+		
+		if (renderAllSides || block.isSideRendered(blockView, x, y, z + 1, 3)) {
+			light = getBrightness(block, x, y, z + 1);
+			if (block.maxZ < 1.0) {
+				light = blockLight;
+			}
+			if (item) tessellator.setNormal(0.0f, 0.0f, 1.0f);
+			tessellator.color(r2 * light, g2 * light, b2 * light);
+			tessellator.addOffset(0.0f, 0.0f, -0.0625f);
+			renderWestFace(block, x, y, z, state.getTextureForIndex(blockView, x, y, z, 3));
+			tessellator.addOffset(0.0f, 0.0f, 0.0625f);
+			result = true;
+		}
+		
+		if (renderAllSides || block.isSideRendered(blockView, x - 1, y, z, 4)) {
+			light = getBrightness(block, x - 1, y, z);
+			if (block.minX > 0.0) {
+				light = blockLight;
+			}
+			if (item) tessellator.setNormal(-1.0f, 0.0f, 0.0f);
+			tessellator.color(r3 * light, g3 * light, b3 * light);
+			tessellator.addOffset(0.0625f, 0.0f, 0.0f);
+			renderNorthFace(block, x, y, z, state.getTextureForIndex(blockView, x, y, z, 4));
+			tessellator.addOffset(-0.0625f, 0.0f, 0.0f);
+			result = true;
+		}
+		
+		if (renderAllSides || block.isSideRendered(blockView, x + 1, y, z, 5)) {
+			light = getBrightness(block, x + 1, y, z);
+			if (block.maxX < 1.0) {
+				light = blockLight;
+			}
+			if (item) tessellator.setNormal(1.0f, 0.0f, 0.0f);
+			tessellator.color(r3 * light, g3 * light, b3 * light);
+			tessellator.addOffset(-0.0625f, 0.0f, 0.0f);
+			renderSouthFace(block, x, y, z, state.getTextureForIndex(blockView, x, y, z, 5));
+			tessellator.addOffset(0.0625f, 0.0f, 0.0f);
+			result = true;
+		}
+		
+		return result;
 	}
 }

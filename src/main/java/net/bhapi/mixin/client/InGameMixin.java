@@ -9,6 +9,7 @@ import net.bhapi.level.BlockStateProvider;
 import net.bhapi.registry.CommonRegistries;
 import net.bhapi.util.BlockUtil;
 import net.fabricmc.loader.api.FabricLoader;
+import net.minecraft.block.BaseBlock;
 import net.minecraft.block.entity.BaseBlockEntity;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.DrawableHelper;
@@ -49,6 +50,7 @@ public abstract class InGameMixin extends DrawableHelper {
 			TestEvent.BLOCKS.values().forEach(block -> {
 				items[index[0]++] = new ItemStack(block, 64);
 			});
+			items[index[0]++] = new ItemStack(BaseBlock.CACTUS, 64);
 			this.minecraft.player.openChestScreen(inventory);
 		}
 	}
