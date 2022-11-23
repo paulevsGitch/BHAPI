@@ -188,7 +188,6 @@ public class Textures {
 	private static void loadModsAssets() {
 		FabricLoader.getInstance().getAllMods().forEach(modContainer -> {
 			String id = modContainer.getMetadata().getId();
-			System.out.println("Mod: " + id);
 			LOADED_TEXTURES.putAll(ImageUtil.loadTexturesFromPathDir(Identifier.make(id, "block")));
 			LOADED_TEXTURES.putAll(ImageUtil.loadTexturesFromPathDir(Identifier.make(id, "item")));
 			LOADED_TEXTURES.putAll(ImageUtil.loadTexturesFromPathDir(Identifier.make(id, "particle")));

@@ -13,6 +13,7 @@ import net.bhapi.util.XorShift128;
 import net.minecraft.block.BaseBlock;
 import net.minecraft.block.DoorBlock;
 import net.minecraft.block.FluidBlock;
+import net.minecraft.block.RailBlock;
 import net.minecraft.block.RedstoneDustBlock;
 import net.minecraft.block.material.Material;
 import net.minecraft.client.Minecraft;
@@ -96,7 +97,7 @@ public class BHBlockRenderer {
 	private static final Vec3F itemColor = new Vec3F();
 	
 	public static boolean isImplemented(int renderType) {
-		return renderType >= 0 && renderType <= BlockRenderTypes.LADDER;
+		return renderType >= 0 && renderType <= BlockRenderTypes.RAILS;
 	}
 	
 	public static void setRenderer(BlockView view, BlockRenderer renderer) {
@@ -152,6 +153,7 @@ public class BHBlockRenderer {
 		if (type == BlockRenderTypes.CROP) return renderCrops(state, x, y, z);
 		if (type == BlockRenderTypes.DOOR) return renderDoor(state, x, y, z);
 		if (type == BlockRenderTypes.LADDER) return renderLadder(state, x, y, z);
+		if (type == BlockRenderTypes.RAILS) return renderRails(state, x, y, z);
 		if (type == BlockRenderTypes.CUSTOM) return true; // TODO make custom rendering
 		else if (BlockRenderTypes.isVanilla(type)) {
 			return renderer.render(state.getBlock(), x, y, z);
@@ -365,7 +367,7 @@ public class BHBlockRenderer {
 			colorGreen10 *= f5;
 			colorBlue10 *= f5;
 			renderEastFace(block, x, y, z, state.getTextureForIndex(blockView, x, y, z, 2));
-			if (fancyGraphics && block == BaseBlock.GRASS && !breaking) {
+			if (fancyGraphics && block == BaseBlock.GRASS && !breaking && block.getTextureForSide(blockView, x, y, z, 2) != 68) {
 				colorRed00 *= f;
 				colorRed01 *= f;
 				colurRed11 *= f;
@@ -423,7 +425,7 @@ public class BHBlockRenderer {
 			colorGreen10 *= f5;
 			colorBlue10 *= f5;
 			renderWestFace(block, x, y, z, state.getTextureForIndex(blockView, x, y, z, 3));
-			if (fancyGraphics && block == BaseBlock.GRASS && !breaking) {
+			if (fancyGraphics && block == BaseBlock.GRASS && !breaking && block.getTextureForSide(blockView, x, y, z, 2) != 68) {
 				colorRed00 *= f;
 				colorRed01 *= f;
 				colurRed11 *= f;
@@ -481,7 +483,7 @@ public class BHBlockRenderer {
 			colorGreen10 *= f5;
 			colorBlue10 *= f5;
 			renderNorthFace(block, x, y, z, state.getTextureForIndex(blockView, x, y, z, 4));
-			if (fancyGraphics && block == BaseBlock.GRASS && !breaking) {
+			if (fancyGraphics && block == BaseBlock.GRASS && !breaking && block.getTextureForSide(blockView, x, y, z, 2) != 68) {
 				colorRed00 *= f;
 				colorRed01 *= f;
 				colurRed11 *= f;
@@ -539,7 +541,7 @@ public class BHBlockRenderer {
 			colorGreen10 *= f5;
 			colorBlue10 *= f5;
 			renderSouthFace(block, x, y, z, state.getTextureForIndex(blockView, x, y, z, 5));
-			if (fancyGraphics && block == BaseBlock.GRASS && !breaking) {
+			if (fancyGraphics && block == BaseBlock.GRASS && !breaking && block.getTextureForSide(blockView, x, y, z, 2) != 68) {
 				colorRed00 *= f;
 				colorRed01 *= f;
 				colurRed11 *= f;
@@ -2184,6 +2186,79 @@ public class BHBlockRenderer {
 			tessellator.vertex(x - f2, y - f2, z + 1 - f3, u2, v2);
 			tessellator.vertex(x - f2, y + 1 + f2, z + 1 - f3, u2, v1);
 		}
+		
+		return true;
+	}
+	
+	private static boolean renderRails(BlockState state, int x, int y, int z) {
+		RailBlock arg = (RailBlock) state.getBlock();
+		Tessellator tessellator = Tessellator.INSTANCE;
+		
+		int meta = blockView.getBlockMeta(x, y, z);
+		if (arg.wrapMeta()) {
+			meta &= 7;
+		}
+		
+		float light = arg.getBrightness(blockView, x, y, z);
+		tessellator.color(light, light, light);
+		
+		UVPair uv = state.getTextureForIndex(blockView, x, y, z, meta).getUV();
+		
+		float u1 = uv.getU(0);
+		float u2 = uv.getU(1);
+		float v1 = uv.getV(0);
+		float v2 = uv.getV(1);
+		
+		float x1 = x + 1;
+		float x2 = x1;
+		float x3 = x;
+		float x4 = x;
+		float z1 = z;
+		float z2 = z + 1;
+		float z3 = z2;
+		float z4 = z;
+		
+		float y1 = (float) y + 0.0625f;
+		float y2 = y1;
+		float y3 = y1;
+		float y4 = y1;
+		
+		if (meta == 1 || meta == 2 || meta == 3 || meta == 7) {
+			x1 = x4 = (float) (x + 1);
+			x2 = x3 = (float) x;
+			z1 = z2 = (float) (z + 1);
+			z3 = z4 = (float) z;
+		}
+		else if (meta == 8) {
+			x1 = x2 = (float) x;
+			x3 = x4 = (float) (x + 1);
+			z1 = z4 = (float) (z + 1);
+			z2 = z3 = (float) z;
+		}
+		else if (meta == 9) {
+			x1 = x4 = (float) x;
+			x2 = x3 = (float) (x + 1);
+			z1 = z2 = (float) z;
+			z3 = z4 = (float) (z + 1);
+		}
+		
+		if (meta == 2 || meta == 4) {
+			y1 += 1.0f;
+			y4 += 1.0f;
+		}
+		else if (meta == 3 || meta == 5) {
+			y2 += 1.0f;
+			y3 += 1.0f;
+		}
+		
+		tessellator.vertex(x1, y1, z1, u2, v1);
+		tessellator.vertex(x2, y2, z2, u2, v2);
+		tessellator.vertex(x3, y3, z3, u1, v2);
+		tessellator.vertex(x4, y4, z4, u1, v1);
+		tessellator.vertex(x4, y4, z4, u1, v1);
+		tessellator.vertex(x3, y3, z3, u1, v2);
+		tessellator.vertex(x2, y2, z2, u2, v2);
+		tessellator.vertex(x1, y1, z1, u2, v1);
 		
 		return true;
 	}

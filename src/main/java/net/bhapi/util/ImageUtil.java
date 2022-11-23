@@ -154,8 +154,6 @@ public class ImageUtil {
 									}
 								}
 							}
-							
-							System.out.println(Arrays.toString(time));
 						}
 						else {
 							sortedFrames = frames;
