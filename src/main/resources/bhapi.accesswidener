@@ -1,0 +1,7 @@
+accessWidener   v1  named
+
+# Classes
+accessible	class	net/minecraft/block/RailBlock$RailData
+
+# Methods
+accessible	method	net/minecraft/block/RailBlock$RailData	countNeighbours	()I

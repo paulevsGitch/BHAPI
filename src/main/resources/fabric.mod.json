@@ -35,6 +35,7 @@
 			"net.bhapi.event.TestServerEvent"
 		]
 	},
+	"accessWidener": "bhapi.accesswidener",
 	"mixins": [
 		"bhapi.mixins.common.json",
 		"bhapi.mixins.client.json",

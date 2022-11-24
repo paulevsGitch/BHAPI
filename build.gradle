@@ -13,6 +13,7 @@ group = project.maven_group
 loom {
 	gluedMinecraftJar()
 	customMinecraftManifest.set("https://babric.github.io/manifest-polyfill/${minecraft_version}.json")
+	accessWidenerPath = file("src/main/resources/bhapi.accesswidener")
 }
 
 repositories {

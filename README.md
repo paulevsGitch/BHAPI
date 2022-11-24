@@ -18,6 +18,8 @@ Documentation is not available yet, but there are javadocs in the code.
 - Custom items
 - Custom commands
 - Custom recipes
+- Custom textures
+- Animations (using .mcmeta format)
 - Events (only startup and on resource reloading)
 - Configs
 - Multithreading (Configurable)
