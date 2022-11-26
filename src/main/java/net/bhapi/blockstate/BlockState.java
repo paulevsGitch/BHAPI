@@ -6,6 +6,7 @@ import net.bhapi.client.render.block.BHBlockRender;
 import net.bhapi.client.render.texture.TextureSample;
 import net.bhapi.interfaces.IDProvider;
 import net.bhapi.registry.CommonRegistries;
+import net.bhapi.util.BlockDirection;
 import net.bhapi.util.Identifier;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
@@ -377,6 +378,36 @@ public final class BlockState implements IDProvider {
 	 */
 	public Material getMaterial() {
 		return getBlock().material;
+	}
+	
+	/**
+	 * Called when block neighbour is updated
+	 * @param level {@link Level} where block is located
+	 * @param x X coordinate
+	 * @param y Y coordinate
+	 * @param z Z coordinate
+	 * @param facing Direction (from target block)
+	 * @param neighbour Neighbour {@link BlockState}
+	 */
+	public void onNeighbourBlockUpdate(Level level, int x, int y, int z, BlockDirection facing, BlockState neighbour) {
+		getContainer().onNeighbourBlockUpdate(level, x, y, z, facing, this, neighbour);
+	}
+	
+	/**
+	 * Check if specified {@link BlockState} has redstone power.
+	 * @param level {@link Level} where block is located
+	 * @param x X coordinate
+	 * @param y Y coordinate
+	 * @param z Z coordinate
+	 * @param facing {@link BlockDirection}
+	 * @return {@code true} if blockstate has redstone power
+	 */
+	public boolean isPowered(Level level, int x, int y, int z, BlockDirection facing) {
+		return getContainer().isPowered(level, x, y, z, facing, this);
+	}
+	
+	public boolean emitsPower() {
+		return getBlock().getEmitsRedstonePower();
 	}
 	
 	@Override

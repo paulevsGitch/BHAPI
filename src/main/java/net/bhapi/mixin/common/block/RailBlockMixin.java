@@ -1,8 +1,10 @@
 package net.bhapi.mixin.common.block;
 
+import net.bhapi.blockstate.BlockState;
 import net.bhapi.blockstate.BlockStateContainer;
 import net.bhapi.blockstate.properties.LegacyProperties;
 import net.bhapi.blockstate.properties.StateProperty;
+import net.bhapi.util.BlockDirection;
 import net.minecraft.block.BaseBlock;
 import net.minecraft.block.RailBlock;
 import net.minecraft.block.RailBlock.RailData;
@@ -11,11 +13,7 @@ import net.minecraft.level.Level;
 import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
-import org.spongepowered.asm.mixin.injection.At;
-import org.spongepowered.asm.mixin.injection.Inject;
-import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
-import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.util.List;
 
@@ -36,14 +34,13 @@ public abstract class RailBlockMixin extends BaseBlock implements BlockStateCont
 		properties.add(LegacyProperties.META_16);
 	}
 	
-	@Inject(method = "onAdjacentBlockUpdate", at = @At("HEAD"), cancellable = true)
-	private void bhapi_onAdjacentBlockUpdate(Level level, int x, int y, int z, int l, CallbackInfo info) {
-		info.cancel();
-		
-		int meta = level.getBlockMeta(x, y, z);
+	@Override
+	public void onNeighbourBlockUpdate(Level level, int x, int y, int z, BlockDirection facing, BlockState state, BlockState neighbour) {
 		if (level.isClientSide) {
 			return;
 		}
+		
+		int meta = state.getValue(LegacyProperties.META_16);
 		
 		int wrappedMeta = meta;
 		if (this.wrapMeta) {
@@ -61,7 +58,7 @@ public abstract class RailBlockMixin extends BaseBlock implements BlockStateCont
 			this.drop(level, x, y, z, level.getBlockMeta(x, y, z));
 			level.setBlock(x, y, z, 0);
 		}
-		else if (this.id == BaseBlock.GOLDEN_RAIL.id) {
+		else if (this == BaseBlock.GOLDEN_RAIL) {
 			boolean power = level.hasRedstonePower(x, y, z) || level.hasRedstonePower(x, y + 1, z);
 			power = power || this.canBePowered(level, x, y, z, meta, true, 0) || this.canBePowered(level, x, y, z, meta, false, 0);
 			boolean update = false;
@@ -82,14 +79,13 @@ public abstract class RailBlockMixin extends BaseBlock implements BlockStateCont
 				}
 			}
 		}
-		else if (l > 0 && /*BaseBlock.BY_ID[l].getEmitsRedstonePower() &&*/ !this.wrapMeta && bhapi_countNeighbours(level, x, y, z) == 3) {
-			this.updateBlock(level, x, y, z, false); //TODO add neighbours block check using Block Util
+		else if (!neighbour.isAir() && neighbour.emitsPower() && !this.wrapMeta && bhapi_countNeighbours(level, x, y, z) == 3) {
+			this.updateBlock(level, x, y, z, false);
 		}
 	}
 	
 	private int bhapi_countNeighbours(Level level, int x, int y, int z) {
 		try {
-			Class<?>[] args = new Class[] {RailBlock.class, Level.class, Integer.class, Integer.class, Integer.class};
 			RailBlock block = RailBlock.class.cast(this);
 			RailData data = (RailData) RailData.class.getConstructors()[0].newInstance(block, level, x, y, z);
 			return data.countNeighbours();

@@ -7,6 +7,8 @@ import net.bhapi.level.LevelChunkUpdater;
 import net.bhapi.level.LevelHeightProvider;
 import net.bhapi.level.PlaceChecker;
 import net.bhapi.registry.CommonRegistries;
+import net.bhapi.storage.Vec3I;
+import net.bhapi.util.BlockDirection;
 import net.bhapi.util.BlockUtil;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
@@ -43,6 +45,7 @@ import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Random;
 import java.util.Set;
@@ -78,6 +81,10 @@ public abstract class LevelMixin implements LevelHeightProvider, BlockStateProvi
 	@Shadow private ArrayList collidingEntitySearchCache;
 	
 	@Shadow public abstract List getEntities(BaseEntity arg, Box arg2);
+	
+	@Shadow public abstract boolean canSuffocate(int i, int j, int k);
+	
+	@Shadow public abstract boolean hasInderectPower(int i, int j, int k);
 	
 	@Unique private LevelChunkUpdater bhapi_updater;
 	
@@ -659,6 +666,30 @@ public abstract class LevelMixin implements LevelHeightProvider, BlockStateProvi
 	private void bhapi_canSuffocate(int x, int y, int z, CallbackInfoReturnable<Boolean> info) {
 		BlockState state = getBlockState(x, y, z);
 		info.setReturnValue(state.getMaterial().hasNoSuffocation() && state.getBlock().isFullCube());
+	}
+	
+	@Inject(method = "updateAdjacentBlocks", at = @At("HEAD"), cancellable = true)
+	private void bhapi_updateAdjacentBlocks(int x, int y, int z, int id, CallbackInfo info) {
+		info.cancel();
+		final BlockState neighbour = getBlockState(x, y, z);
+		final Vec3I pos = new Vec3I();
+		final Level level = Level.class.cast(this);
+		Arrays.stream(BlockDirection.VALUES).forEach(facing -> {
+			facing.move(pos.set(x, y, z));
+			BlockState state = getBlockState(pos.x, pos.y, pos.z);
+			state.onNeighbourBlockUpdate(level, pos.x, pos.y, pos.z, facing.invert(), neighbour);
+		});
+	}
+	
+	@Inject(method = "hasRedstonePower", at = @At("HEAD"), cancellable = true)
+	private void bhapi_hasRedstonePower(int x, int y, int z, int facing, CallbackInfoReturnable<Boolean> info) {
+		if (this.canSuffocate(x, y, z)) {
+			info.setReturnValue(this.hasInderectPower(x, y, z));
+		}
+		else {
+			Level level = Level.class.cast(this);
+			info.setReturnValue(getBlockState(x, y, z).isPowered(level, x, y, z, BlockDirection.getFromFacing(facing)));
+		}
 	}
 	
 	@ModifyConstant(method = {

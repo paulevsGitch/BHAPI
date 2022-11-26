@@ -1,6 +1,7 @@
 package net.bhapi.blockstate;
 
 import net.bhapi.blockstate.properties.StateProperty;
+import net.bhapi.util.BlockDirection;
 import net.bhapi.util.BlockUtil;
 import net.minecraft.block.BlockSounds;
 import net.minecraft.entity.BaseEntity;
@@ -174,6 +175,34 @@ public interface BlockStateContainer {
 	 */
 	default void onBlockPlaced(Level level, int x, int y, int z, int facing, BlockState state) {
 		state.getBlock().onBlockPlaced(level, x, y, z, facing);
+	}
+	
+	/**
+	 * Called when block neighbour is updated
+	 * @param level {@link Level} where block is located
+	 * @param x X coordinate
+	 * @param y Y coordinate
+	 * @param z Z coordinate
+	 * @param facing Direction (from target block)
+	 * @param state Self {@link BlockState}
+	 * @param neighbour Neighbour {@link BlockState}
+	 */
+	default void onNeighbourBlockUpdate(Level level, int x, int y, int z, BlockDirection facing, BlockState state, BlockState neighbour) {
+		state.getBlock().onAdjacentBlockUpdate(level, x, y, z, neighbour.getBlock().id);
+	}
+	
+	/**
+	 * Check if specified {@link BlockState} has redstone power.
+	 * @param level {@link Level} where block is located
+	 * @param x X coordinate
+	 * @param y Y coordinate
+	 * @param z Z coordinate
+	 * @param facing {@link BlockDirection}
+	 * @param state {@link BlockState} that is checked
+	 * @return {@code true} if blockstate has redstone power
+	 */
+	default boolean isPowered(Level level, int x, int y, int z, BlockDirection facing, BlockState state) {
+		return state.getBlock().isPowered(level, x, y, z, facing.ordinal());
 	}
 	
 	static BlockStateContainer cast(Object obj) {
