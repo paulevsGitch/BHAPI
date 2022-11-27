@@ -1,8 +1,6 @@
 package net.bhapi.client.render.block;
 
 import net.bhapi.blockstate.BlockState;
-import net.bhapi.blockstate.properties.BlockPropertyType;
-import net.bhapi.blockstate.properties.StateProperty;
 import net.bhapi.client.render.texture.TextureSample;
 import net.bhapi.client.render.texture.Textures;
 import net.bhapi.client.render.texture.UVPair;
@@ -11,11 +9,13 @@ import net.bhapi.storage.Vec3F;
 import net.bhapi.util.MathUtil;
 import net.bhapi.util.XorShift128;
 import net.minecraft.block.BaseBlock;
+import net.minecraft.block.BedBlock;
 import net.minecraft.block.DoorBlock;
 import net.minecraft.block.FluidBlock;
 import net.minecraft.block.RailBlock;
 import net.minecraft.block.RedstoneDustBlock;
 import net.minecraft.block.material.Material;
+import net.minecraft.block.technical.MagicBedNumbers;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.render.GameRenderer;
 import net.minecraft.client.render.Tessellator;
@@ -49,6 +49,7 @@ public class BHBlockRenderer {
 		RENDER_FUNCTIONS.add(BHBlockRenderer::renderFence);
 		RENDER_FUNCTIONS.add(BHBlockRenderer::renderLever);
 		RENDER_FUNCTIONS.add(BHBlockRenderer::renderCactus);
+		RENDER_FUNCTIONS.add(BHBlockRenderer::renderBed);
 	}
 	
 	private static boolean mirrorTexture = false;
@@ -718,8 +719,8 @@ public class BHBlockRenderer {
 		else {
 			u11 = uv.getU(MathUtil.clamp((float) block.minX, 0, 1));
 			u12 = uv.getU(MathUtil.clamp((float) block.maxX, 0, 1));
-			v11 = uv.getV(MathUtil.clamp((float) block.maxZ, 0, 1));
-			v12 = uv.getV(MathUtil.clamp((float) block.minZ, 0, 1));
+			v11 = uv.getV(MathUtil.clamp(1F - (float) block.minZ, 0, 1));
+			v12 = uv.getV(MathUtil.clamp(1F - (float) block.maxZ, 0, 1));
 		}
 		
 		float u22 = u12;
@@ -890,10 +891,10 @@ public class BHBlockRenderer {
 			v12 = (float) block.maxY;
 		}
 		else {
-			u11 = uv.getU(MathUtil.clamp((float) block.minX, 0, 1));
-			u12 = uv.getU(MathUtil.clamp((float) block.maxX, 0, 1));
-			v11 = uv.getV(MathUtil.clamp((float) block.minY, 0, 1));
-			v12 = uv.getV(MathUtil.clamp((float) block.maxY, 0, 1));
+			u11 = uv.getU(MathUtil.clamp(1F - (float) block.maxX, 0, 1));
+			u12 = uv.getU(MathUtil.clamp(1F - (float) block.minX, 0, 1));
+			v11 = uv.getV(MathUtil.clamp(1F - (float) block.maxY, 0, 1));
+			v12 = uv.getV(MathUtil.clamp(1F - (float) block.minY, 0, 1));
 		}
 		
 		if (mirrorTexture) {
@@ -989,8 +990,8 @@ public class BHBlockRenderer {
 		else {
 			u11 = uv.getU(MathUtil.clamp((float) block.minX, 0, 1));
 			u12 = uv.getU(MathUtil.clamp((float) block.maxX, 0, 1));
-			v11 = uv.getV(MathUtil.clamp((float) block.maxY, 0, 1));
-			v12 = uv.getV(MathUtil.clamp((float) block.minY, 0, 1));
+			v11 = uv.getV(MathUtil.clamp(1F - (float) block.minY, 0, 1));
+			v12 = uv.getV(MathUtil.clamp(1F - (float) block.maxY, 0, 1));
 		}
 		
 		if (mirrorTexture) {
@@ -1093,8 +1094,8 @@ public class BHBlockRenderer {
 		else {
 			u11 = uv.getU(MathUtil.clamp((float) block.minZ, 0, 1));
 			u12 = uv.getU(MathUtil.clamp((float) block.maxZ, 0, 1));
-			v11 = uv.getV(MathUtil.clamp((float) block.maxY, 0, 1));
-			v12 = uv.getV(MathUtil.clamp((float) block.minY, 0, 1));
+			v11 = uv.getV(MathUtil.clamp(1F - (float) block.minY, 0, 1));
+			v12 = uv.getV(MathUtil.clamp(1F - (float) block.maxY, 0, 1));
 		}
 		
 		if (mirrorTexture) {
@@ -1190,10 +1191,10 @@ public class BHBlockRenderer {
 			v12 = (float) block.minY;
 		}
 		else {
-			u11 = uv.getU(MathUtil.clamp((float) block.minZ, 0, 1));
-			u12 = uv.getU(MathUtil.clamp((float) block.maxZ, 0, 1));
-			v11 = uv.getV(MathUtil.clamp((float) block.maxY, 0, 1));
-			v12 = uv.getV(MathUtil.clamp((float) block.minY, 0, 1));
+			u11 = uv.getU(MathUtil.clamp(1F - (float) block.maxZ, 0, 1));
+			u12 = uv.getU(MathUtil.clamp(1F - (float) block.minZ, 0, 1));
+			v11 = uv.getV(MathUtil.clamp(1F - (float) block.minY, 0, 1));
+			v12 = uv.getV(MathUtil.clamp(1F - (float) block.maxY, 0, 1));
 		}
 		
 		if (mirrorTexture) {
@@ -1358,11 +1359,7 @@ public class BHBlockRenderer {
 	}
 	
 	private static boolean renderTorch(BlockState state, int x, int y, int z) {
-		int meta = 0;
-		StateProperty<?> property = state.getProperty("meta");
-		if (property != null && property.getType() == BlockPropertyType.INTEGER) {
-			meta = (int) state.getValue(property);
-		}
+		int meta = state.getMeta();
 		BaseBlock block = state.getBlock();
 		Tessellator tessellator = Tessellator.INSTANCE;
 		
@@ -2648,5 +2645,159 @@ public class BHBlockRenderer {
 		}
 		
 		return result;
+	}
+	
+	private static boolean renderBed(BlockState state, int x, int y, int z) {
+		BaseBlock arg = state.getBlock();
+		Tessellator tessellator = Tessellator.INSTANCE;
+		
+		int meta = state.getMeta();
+		int facing = BedBlock.orientationOnly(meta);
+		boolean isFoot = BedBlock.isFoot(meta);
+		
+		float f = 0.5f;
+		float f2 = 1.0f;
+		float f3 = 0.8f;
+		float f4 = 0.6f;
+		
+		float r2 = f2;
+		float g2 = f2;
+		float b2 = f2;
+		float r = f;
+		float f9 = f3;
+		float f10 = f4;
+		float g = f;
+		float f12 = f3;
+		float f13 = f4;
+		float b = f;
+		float f15 = f3;
+		float f16 = f4;
+		
+		float light = arg.getBrightness(blockView, x, y, z);
+		tessellator.color(r * light, g * light, b * light);
+		
+		UVPair uv = state.getTextureForIndex(blockView, x, y, z, 0).getUV();
+		float u11 = uv.getU(0);
+		float u12 = uv.getU(1);
+		float v11 = uv.getV(0);
+		float v12 = uv.getV(1);
+		
+		double x1 = x + arg.minX;
+		double x2 = x + arg.maxX;
+		double y2 = y + arg.minY + 0.1875;
+		double z1 = z + arg.minZ;
+		double z2 = z + arg.maxZ;
+		
+		tessellator.vertex(x1, y2, z2, u11, v12);
+		tessellator.vertex(x1, y2, z1, u11, v11);
+		tessellator.vertex(x2, y2, z1, u12, v11);
+		tessellator.vertex(x2, y2, z2, u12, v12);
+		
+		float light2 = arg.getBrightness(blockView, x, y + 1, z);
+		tessellator.color(r2 * light2, g2 * light2, b2 * light2);
+		
+		uv = state.getTextureForIndex(blockView, x, y, z, 1).getUV();
+		float u21 = uv.getU(0);
+		float u22 = uv.getU(1);
+		float v21 = uv.getV(0);
+		float v22 = uv.getV(1);
+		
+		float d14 = u21;
+		float d15 = u22;
+		float d16 = v21;
+		float d17 = v21;
+		float d18 = u21;
+		float d19 = u22;
+		float d20 = v22;
+		float d21 = v22;
+		
+		if (facing == 0) {
+			d15 = u21;
+			d16 = v22;
+			d18 = u22;
+			d21 = v21;
+		}
+		else if (facing == 2) {
+			d14 = u22;
+			d17 = v22;
+			d19 = u21;
+			d20 = v21;
+		}
+		else if (facing == 3) {
+			d14 = u22;
+			d17 = v22;
+			d19 = u21;
+			d20 = v21;
+			d15 = u21;
+			d16 = v22;
+			d18 = u22;
+			d21 = v21;
+		}
+		
+		double d22 = (double) x + arg.minX;
+		double d23 = (double) x + arg.maxX;
+		double d24 = (double) y + arg.maxY;
+		double d25 = (double) z + arg.minZ;
+		double d26 = (double) z + arg.maxZ;
+		
+		tessellator.vertex(d23, d24, d26, d18, d20);
+		tessellator.vertex(d23, d24, d25, d14, d16);
+		tessellator.vertex(d22, d24, d25, d15, d17);
+		tessellator.vertex(d22, d24, d26, d19, d21);
+		
+		int magic = MagicBedNumbers.field_792[facing];
+		if (isFoot) {
+			magic = MagicBedNumbers.field_792[MagicBedNumbers.field_793[facing]];
+		}
+		
+		int face = 4;
+		switch (facing) {
+			case 0 -> face = 5;
+			case 3 -> face = 2;
+			case 1 -> face = 3;
+		}
+		
+		if (magic != 2 && (renderAllSides || arg.isSideRendered(blockView, x, y, z - 1, 2))) {
+			float f19 = arg.getBrightness(blockView, x, y, z - 1);
+			if (arg.minZ > 0.0) {
+				f19 = light;
+			}
+			tessellator.color(f9 * f19, f12 * f19, f15 * f19);
+			mirrorTexture = face == 2;
+			renderEastFace(arg, x, y, z, state.getTextureForIndex(blockView, x, y, z, 2));
+		}
+		
+		if (magic != 3 && (renderAllSides || arg.isSideRendered(blockView, x, y, z + 1, 3))) {
+			float f20 = arg.getBrightness(blockView, x, y, z + 1);
+			if (arg.maxZ < 1.0) {
+				f20 = light;
+			}
+			tessellator.color(f9 * f20, f12 * f20, f15 * f20);
+			mirrorTexture = face == 3;
+			renderWestFace(arg, x, y, z, state.getTextureForIndex(blockView, x, y, z, 3));
+		}
+		
+		if (magic != 4 && (renderAllSides || arg.isSideRendered(blockView, x - 1, y, z, 4))) {
+			float f21 = arg.getBrightness(blockView, x - 1, y, z);
+			if (arg.minX > 0.0) {
+				f21 = light;
+			}
+			tessellator.color(f10 * f21, f13 * f21, f16 * f21);
+			mirrorTexture = face == 4;
+			renderNorthFace(arg, x, y, z, state.getTextureForIndex(blockView, x, y, z, 4));
+		}
+		
+		if (magic != 5 && (renderAllSides || arg.isSideRendered(blockView, x + 1, y, z, 5))) {
+			float f22 = arg.getBrightness(blockView, x + 1, y, z);
+			if (arg.maxX < 1.0) {
+				f22 = light;
+			}
+			tessellator.color(f10 * f22, f13 * f22, f16 * f22);
+			mirrorTexture = face == 5;
+			renderSouthFace(arg, x, y, z, state.getTextureForIndex(blockView, x, y, z, 5));
+		}
+		
+		mirrorTexture = false;
+		return true;
 	}
 }

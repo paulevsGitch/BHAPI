@@ -1,6 +1,7 @@
 package net.bhapi.blockstate;
 
 import net.bhapi.block.BHAirBlock;
+import net.bhapi.blockstate.properties.IntegerProperty;
 import net.bhapi.blockstate.properties.StateProperty;
 import net.bhapi.client.render.block.BHBlockRender;
 import net.bhapi.client.render.texture.TextureSample;
@@ -408,6 +409,35 @@ public final class BlockState implements IDProvider {
 	
 	public boolean emitsPower() {
 		return getBlock().getEmitsRedstonePower();
+	}
+	
+	/**
+	 * Get meta value, used for legacy blocks that uses meta properties.
+	 * @see net.bhapi.blockstate.properties.LegacyProperties
+	 * @return meta value or zero if state don't have meta
+	 */
+	public int getMeta() {
+		StateProperty<?> property = getProperty("meta");
+		if (property instanceof IntegerProperty) {
+			return (int) getValue(property);
+		}
+		return 0;
+	}
+	
+	/**
+	 * Get state with meta, used for legacy blocks. If state don't have meta will return itself.
+	 * @param meta integer meta value
+	 * @return {@link BlockState} or self
+	 */
+	public BlockState withMeta(int meta) {
+		StateProperty<?> property = getProperty("meta");
+		if (property instanceof IntegerProperty) {
+			IntegerProperty metaProperty = (IntegerProperty) property;
+			if (metaProperty.isInRange(meta)) {
+				return with(metaProperty, meta);
+			}
+		}
+		return this;
 	}
 	
 	@Override

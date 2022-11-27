@@ -1,9 +1,6 @@
 package net.bhapi.level;
 
 import net.bhapi.blockstate.BlockState;
-import net.bhapi.blockstate.properties.BlockPropertyType;
-import net.bhapi.blockstate.properties.IntegerProperty;
-import net.bhapi.blockstate.properties.StateProperty;
 import net.bhapi.interfaces.NBTSerializable;
 import net.bhapi.registry.CommonRegistries;
 import net.bhapi.storage.MultiThreadStorage;
@@ -47,20 +44,13 @@ public class ChunkSection implements NBTSerializable {
 	}
 	
 	public int getMeta(int x, int y, int z) {
-		BlockState state = getBlockState(x, y, z);
-		StateProperty<?> meta = state.getProperty("meta");
-		return meta != null && meta.getType() == BlockPropertyType.INTEGER ? (int) state.getValue(meta) : 0;
+		return getBlockState(x, y, z).getMeta();
 	}
 	
 	public void setMeta(int x, int y, int z, int meta) {
 		int index = getIndex(x, y, z);
-		BlockState state = states[index];
-		if (state == null) return;
-		StateProperty<?> property = state.getProperty("meta");
-		if (property != null && property.getType() == BlockPropertyType.INTEGER) {
-			IntegerProperty iProperty = (IntegerProperty) property;
-			if (iProperty.isInRange(meta)) states[index] = state.with(iProperty, meta);
-		}
+		if (states[index] == null) return;
+		states[index] = states[index].withMeta(meta);
 	}
 	
 	public BaseBlockEntity getBlockEntity(Vec3I pos) {

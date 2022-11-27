@@ -87,7 +87,7 @@ public abstract class ItemRendererMixin extends EntityRenderer {
 				if (item instanceof BHBlockItem && color == 0xFFFFFF) {
 					BlockState state = BHBlockItem.cast(item).getState();
 					if (state.is(BaseBlock.TALLGRASS)) {
-						int meta = (int) state.getValue(state.getProperty("meta"));
+						int meta = state.getMeta();
 						color = meta > 0 ? FoliageColor.getFoliageColor(0.5, 0.5) : 0xFFFFFF;
 					}
 				}

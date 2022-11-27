@@ -54,8 +54,7 @@ public abstract class TorchBlockMixin extends BaseBlock implements BlockStateCon
 		int meta = 6 - facing;
 		if (meta < 1 || meta > 5) meta = 5;
 		BlockState state = BlockState.getDefaultState(this);
-		state = state.with(state.getProperty("meta"), meta);
-		BlockStateProvider.cast(level).setBlockState(x, y, z, state);
+		BlockStateProvider.cast(level).setBlockState(x, y, z, state.withMeta(meta));
 		info.cancel();
 	}
 	

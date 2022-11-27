@@ -20,8 +20,8 @@ public class BooleanProperty extends StateProperty<Boolean> {
 	}
 	
 	@Override
-	public BlockPropertyType getType() {
-		return BlockPropertyType.BOOLEAN;
+	protected String getType() {
+		return "boolean";
 	}
 	
 	@Override

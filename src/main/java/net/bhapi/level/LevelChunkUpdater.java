@@ -193,7 +193,7 @@ public class LevelChunkUpdater {
 						BlockStateProvider provider = BlockStateProvider.cast(chunk);
 						BlockState block = provider.getBlockState(px, py - 1 + chunkY, pz);
 						BlockState up = section.getBlockState(px, py, pz);
-						if ((up.isAir() || !up.getMaterial().blocksMovement()) && block.is(BaseBlock.STILL_WATER) && (int) block.getValue(block.getProperty("meta")) == 0) {
+						if ((up.isAir() || !up.getMaterial().blocksMovement()) && block.is(BaseBlock.STILL_WATER) && block.getMeta() == 0) {
 							levelProvider.setBlockState(px | chunkX, py - 1, pz | chunkZ, BlockState.getDefaultState(BaseBlock.ICE));
 						}
 					}

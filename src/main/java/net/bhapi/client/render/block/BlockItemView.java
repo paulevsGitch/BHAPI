@@ -1,9 +1,6 @@
 package net.bhapi.client.render.block;
 
 import net.bhapi.blockstate.BlockState;
-import net.bhapi.blockstate.properties.BlockPropertyType;
-import net.bhapi.blockstate.properties.IntegerProperty;
-import net.bhapi.blockstate.properties.StateProperty;
 import net.bhapi.level.BlockStateProvider;
 import net.bhapi.util.BlockUtil;
 import net.minecraft.block.entity.BaseBlockEntity;
@@ -21,11 +18,7 @@ public class BlockItemView implements BlockView, BlockStateProvider {
 	public void setBlockState(BlockState state) {
 		if (this.state == state) return;
 		this.state = state;
-		StateProperty<?> property = state.getProperty("meta");
-		if (property != null && property.getType() == BlockPropertyType.INTEGER) {
-			meta = state.getValue((IntegerProperty) property);
-		}
-		else meta = 0;
+		this.meta = state.getMeta();
 	}
 	
 	@Override

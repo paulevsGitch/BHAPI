@@ -175,19 +175,18 @@ public class CommonRegistries {
 		BlockState state = BlockState.getDefaultState(BaseBlock.TALLGRASS);
 		ITEM_REGISTRY.register(
 			Identifier.make("tall_grass"),
-			new BHBlockItem(state.with(state.getProperty("meta"), 1), true)
+			new BHBlockItem(state.withMeta(1), true)
 		);
 		ITEM_REGISTRY.register(
 			Identifier.make("fern"),
-			new BHBlockItem(state.with(state.getProperty("meta"), 2), true)
+			new BHBlockItem(state.withMeta(2), true)
 		);
 	}
 	
 	private static void addVariants(String id, BaseBlock block, int count) {
-		BlockState state = BlockStateContainer.cast(block).getDefaultState();
+		BlockState state = BlockState.getDefaultState(block);
 		for (int meta = 1; meta < count; meta++) {
-			state = state.with(state.getProperty("meta"), meta);
-			ITEM_REGISTRY.register(Identifier.make(id + "_" + meta), new BHBlockItem(state, false));
+			ITEM_REGISTRY.register(Identifier.make(id + "_" + meta), new BHBlockItem(state.withMeta(meta), false));
 		}
 	}
 	

@@ -4,7 +4,6 @@ import java.util.List;
 
 public abstract class StateProperty <T> {
 	public abstract List<T> getValues();
-	public abstract BlockPropertyType getType();
 	public abstract T defaultValue();
 	public abstract int getCount();
 	public abstract int getIndex(T value);
@@ -26,9 +25,11 @@ public abstract class StateProperty <T> {
 	
 	public abstract T parseValue(String value);
 	
+	protected abstract String getType();
+	
 	@Override
 	public String toString() {
-		return String.format("[%s:%s]", getName(), getType());
+		return String.format("[%s, %s]", getName(), getType());
 	}
 	
 	@Override

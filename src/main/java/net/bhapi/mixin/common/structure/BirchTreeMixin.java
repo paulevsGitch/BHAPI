@@ -66,7 +66,7 @@ public class BirchTreeMixin {
 		
 		stateProvider.setBlockState(x, y - 1, z, BlockState.getDefaultState(BaseBlock.DIRT));
 		BlockState placing = BlockState.getDefaultState(BaseBlock.LEAVES);
-		placing = placing.with(placing.getProperty("meta"), 2);
+		placing = placing.withMeta(2);
 		
 		for (py = y - 3 + height; py <= y + height; ++py) {
 			int dy = py - (y + height);
@@ -84,7 +84,7 @@ public class BirchTreeMixin {
 		}
 		
 		placing = BlockState.getDefaultState(BaseBlock.LOG);
-		placing = placing.with(placing.getProperty("meta"), 2);
+		placing = placing.withMeta(2);
 		for (py = 0; py < height; ++py) {
 			state = stateProvider.getBlockState(x, y + py, z);
 			if (!state.isAir() && !state.is(BaseBlock.LEAVES)) continue;

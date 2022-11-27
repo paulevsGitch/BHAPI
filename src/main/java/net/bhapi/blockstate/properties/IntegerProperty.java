@@ -25,8 +25,8 @@ public class IntegerProperty extends StateProperty<Integer> {
 	}
 	
 	@Override
-	public BlockPropertyType getType() {
-		return BlockPropertyType.INTEGER;
+	public String getType() {
+		return "integer";
 	}
 	
 	@Override
