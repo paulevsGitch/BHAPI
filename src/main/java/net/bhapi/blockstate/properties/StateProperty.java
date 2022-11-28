@@ -23,8 +23,6 @@ public abstract class StateProperty <T> {
 		return getIndex((T) obj);
 	}
 	
-	public abstract T parseValue(String value);
-	
 	protected abstract String getType();
 	
 	@Override

@@ -431,8 +431,7 @@ public final class BlockState implements IDProvider {
 	 */
 	public BlockState withMeta(int meta) {
 		StateProperty<?> property = getProperty("meta");
-		if (property instanceof IntegerProperty) {
-			IntegerProperty metaProperty = (IntegerProperty) property;
+		if (property instanceof IntegerProperty metaProperty) {
 			if (metaProperty.isInRange(meta)) {
 				return with(metaProperty, meta);
 			}

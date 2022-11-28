@@ -8,12 +8,18 @@ import net.bhapi.client.render.block.BHBlockRender;
 import net.bhapi.client.render.texture.TextureSample;
 import net.bhapi.client.render.texture.Textures;
 import net.bhapi.interfaces.ClientPostInit;
+import net.bhapi.level.BlockStateProvider;
 import net.bhapi.util.Identifier;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
+import net.minecraft.block.BaseBlock;
 import net.minecraft.block.RedstoneDustBlock;
+import net.minecraft.block.technical.MagicBedNumbers;
 import net.minecraft.level.BlockView;
 import org.spongepowered.asm.mixin.Mixin;
+import org.spongepowered.asm.mixin.injection.At;
+import org.spongepowered.asm.mixin.injection.Inject;
+import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 import java.util.List;
 
@@ -39,6 +45,34 @@ public abstract class RedstoneDustBlockMixin implements BlockStateContainer, Cli
 	@Environment(EnvType.CLIENT)
 	public TextureSample getTextureForIndex(BlockView view, int x, int y, int z, BlockState state, int index) {
 		return BHAPI_SAMPLES[index & 1];
+	}
+	
+	@Inject(method = "canConnect", at = @At("HEAD"), cancellable = true)
+	private static void bhapi_canConnect(BlockView view, int x, int y, int z, int facing, CallbackInfoReturnable<Boolean> info) {
+		BlockState state = BlockStateProvider.cast(view).getBlockState(x, y, z);
+		
+		if (state.isAir()) {
+			info.setReturnValue(false);
+			return;
+		}
+		
+		if (state.getBlock() instanceof RedstoneDustBlock) {
+			info.setReturnValue(true);
+			return;
+		}
+		
+		if (state.emitsPower()) {
+			info.setReturnValue(true);
+			return;
+		}
+		
+		if (state.is(BaseBlock.REDSTONE_REPEATER) || state.is(BaseBlock.REDSTONE_REPEATER_LIT)) {
+			int meta = state.getMeta();
+			info.setReturnValue(facing == MagicBedNumbers.field_793[meta & 3]);
+			return;
+		}
+		
+		info.setReturnValue(false);
 	}
 }
 

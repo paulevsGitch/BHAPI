@@ -53,7 +53,7 @@ public abstract class DoorBlockMixin extends BaseBlock implements BlockStateCont
 				provider.setBlockState(x, y, z, BlockUtil.AIR_STATE);
 				drop = true;
 				if (!provider.getBlockState(x, y + 1, z).is(block)) {
-					level.setBlock(x, y + 1, z, 0);
+					provider.setBlockState(x, y + 1, z, BlockUtil.AIR_STATE);
 				}
 			}
 			if (drop) {

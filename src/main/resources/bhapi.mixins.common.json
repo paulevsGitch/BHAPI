@@ -67,15 +67,17 @@
 		"block.CropsBlockMixin",
 		"block.LeverBlockMixin",
 		"block.TorchBlockMixin",
-		"block.CakeBlockMixin",
 		"block.BaseBlockMixin",
+		"block.CakeBlockMixin",
 		"block.DoorBlockMixin",
 		"block.FireBlockMixin",
+		"block.NoteBlockMixin",
 		"block.RailBlockMixin",
 		"block.SignBlockMixin",
 		"block.WoolBlockMixin",
 		"block.BedBlockMixin",
 		"block.LogBlockMixin",
+		"block.TntBlockMixin",
 		
 		"structure.BirchTreeMixin"
 	],
