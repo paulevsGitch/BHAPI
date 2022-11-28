@@ -5,6 +5,7 @@ import net.bhapi.client.render.texture.TextureSample;
 import net.bhapi.client.render.texture.Textures;
 import net.bhapi.client.render.texture.UVPair;
 import net.bhapi.level.BlockStateProvider;
+import net.bhapi.storage.PermutationTable;
 import net.bhapi.storage.Vec3F;
 import net.bhapi.util.MathUtil;
 import net.bhapi.util.XorShift128;
@@ -29,7 +30,11 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class BHBlockRenderer {
-	private static final XorShift128 xorShift = new XorShift128();
+	private static final PermutationTable[] TABLES = {
+		new PermutationTable(0),
+		new PermutationTable(1),
+		new PermutationTable(2)
+	};
 	private static final List<BlockRenderingFunction> RENDER_FUNCTIONS = new ArrayList<>();
 	private static BlockRenderer renderer;
 	private static BlockView blockView;
@@ -1301,17 +1306,10 @@ public class BHBlockRenderer {
 		double py = y;
 		double pz = z;
 		
-		// TODO Enhance random grass offsets (use xorshift)
 		if (block == BaseBlock.TALLGRASS) {
-			long l = ((long) x * 3129871) ^ (long) z * 116129781L ^ (long) y;
-			l = l * l * 42317861L + l * 11L;
-			px += ((double)((float)(l >> 16 & 0xFL) / 15.0f) - 0.5) * 0.5;
-			py += ((double)((float)(l >> 20 & 0xFL) / 15.0f) - 1.0) * 0.2;
-			pz += ((double)((float)(l >> 24 & 0xFL) / 15.0f) - 0.5) * 0.5;
-			/*xorShift.setState(x, y, z, state.getID());
-			px += (xorShift.getFloat() - 0.5F) * 0.5F;
-			pz += (xorShift.getFloat() - 0.5F) * 0.5F;
-			py -= xorShift.getFloat() * 0.2F;*/
+			px += TABLES[0].getFloat(x, y, z) * 0.5F - 0.25F;
+			pz += TABLES[1].getFloat(x, y, z) * 0.5F - 0.25F;
+			py -= TABLES[2].getFloat(x, y, z) * 0.2F;
 		}
 		
 		renderCross(px, py, pz, state.getTextureForIndex(blockView, x, y, z, 0));

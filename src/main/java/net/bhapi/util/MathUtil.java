@@ -2,6 +2,7 @@ package net.bhapi.util;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Random;
 
 public class MathUtil {
 	public static int writeInt(byte[] data, int value, int index) {
@@ -77,6 +78,10 @@ public class MathUtil {
 		return (int) (delta * side);
 	}
 	
+	public static boolean isPowerOfTwo(int value) {
+		return (value & (value - 1)) == 0;
+	}
+	
 	public static <A, B> Map<A, B> invertMap(Map<B, A> map) {
 		Map<A, B> result = new HashMap<>();
 		map.forEach((b, a) -> result.put(a, b));
@@ -95,5 +100,68 @@ public class MathUtil {
 			if (array[i] == value) return true;
 		}
 		return false;
+	}
+	
+	public static <T> void shuffle(T[] array, Random random) {
+		for (int i = 0; i < array.length; i++) {
+			int i2 = random.nextInt(array.length);
+			T value = array[i];
+			array[i] = array[i2];
+			array[i2] = value;
+		}
+	}
+	
+	public static void shuffle(byte[] array, Random random) {
+		for (int i = 0; i < array.length; i++) {
+			int i2 = random.nextInt(array.length);
+			byte value = array[i];
+			array[i] = array[i2];
+			array[i2] = value;
+		}
+	}
+	
+	public static void shuffle(short[] array, Random random) {
+		for (int i = 0; i < array.length; i++) {
+			int i2 = random.nextInt(array.length);
+			short value = array[i];
+			array[i] = array[i2];
+			array[i2] = value;
+		}
+	}
+	
+	public static void shuffle(int[] array, Random random) {
+		for (int i = 0; i < array.length; i++) {
+			int i2 = random.nextInt(array.length);
+			int value = array[i];
+			array[i] = array[i2];
+			array[i2] = value;
+		}
+	}
+	
+	public static void shuffle(long[] array, Random random) {
+		for (int i = 0; i < array.length; i++) {
+			int i2 = random.nextInt(array.length);
+			long value = array[i];
+			array[i] = array[i2];
+			array[i2] = value;
+		}
+	}
+	
+	public static void shuffle(float[] array, Random random) {
+		for (int i = 0; i < array.length; i++) {
+			int i2 = random.nextInt(array.length);
+			float value = array[i];
+			array[i] = array[i2];
+			array[i2] = value;
+		}
+	}
+	
+	public static void shuffle(double[] array, Random random) {
+		for (int i = 0; i < array.length; i++) {
+			int i2 = random.nextInt(array.length);
+			double value = array[i];
+			array[i] = array[i2];
+			array[i2] = value;
+		}
 	}
 }
