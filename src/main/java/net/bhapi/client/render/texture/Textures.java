@@ -288,7 +288,7 @@ public class Textures {
 		ID_BLOCK.put(96, Identifier.make("block/lever"));
 		ID_BLOCK.put(97, Identifier.make("block/wood_door_lower"));
 		ID_BLOCK.put(98, Identifier.make("block/iron_door_lower"));
-		ID_BLOCK.put(99, Identifier.make("block/redstone_torch"));
+		ID_BLOCK.put(99, Identifier.make("block/redstone_torch_on"));
 		ID_BLOCK.put(102, Identifier.make("block/pumpkin_top"));
 		ID_BLOCK.put(103, Identifier.make("block/netherrack"));
 		ID_BLOCK.put(104, Identifier.make("block/soul_sand"));
@@ -314,7 +314,7 @@ public class Textures {
 		ID_BLOCK.put(128, Identifier.make("block/rail"));
 		ID_BLOCK.put(129, Identifier.make("block/red_wool"));
 		ID_BLOCK.put(130, Identifier.make("block/pink_wool"));
-		ID_BLOCK.put(131, Identifier.make("block/repeater"));
+		ID_BLOCK.put(131, Identifier.make("block/redstone_repeater_off"));
 		ID_BLOCK.put(132, Identifier.make("block/spruce_leaves"));
 		ID_BLOCK.put(133, Identifier.make("block/spruce_leaves_opaque"));
 		ID_BLOCK.put(134, Identifier.make("block/bed_feet_top"));
@@ -323,7 +323,7 @@ public class Textures {
 		ID_BLOCK.put(144, Identifier.make("block/lapis_block"));
 		ID_BLOCK.put(145, Identifier.make("block/green_wool"));
 		ID_BLOCK.put(146, Identifier.make("block/lime_wool"));
-		ID_BLOCK.put(147, Identifier.make("block/repeater_on"));
+		ID_BLOCK.put(147, Identifier.make("block/redstone_repeater_on"));
 		ID_BLOCK.put(149, Identifier.make("block/bed_feet_end"));
 		ID_BLOCK.put(150, Identifier.make("block/bed_feet_side"));
 		ID_BLOCK.put(151, Identifier.make("block/bed_head_side"));

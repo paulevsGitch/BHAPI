@@ -8,13 +8,13 @@ import net.bhapi.level.BlockStateProvider;
 import net.bhapi.storage.PermutationTable;
 import net.bhapi.storage.Vec3F;
 import net.bhapi.util.MathUtil;
-import net.bhapi.util.XorShift128;
 import net.minecraft.block.BaseBlock;
 import net.minecraft.block.BedBlock;
 import net.minecraft.block.DoorBlock;
 import net.minecraft.block.FluidBlock;
 import net.minecraft.block.RailBlock;
 import net.minecraft.block.RedstoneDustBlock;
+import net.minecraft.block.RedstoneRepeaterBlock;
 import net.minecraft.block.material.Material;
 import net.minecraft.block.technical.MagicBedNumbers;
 import net.minecraft.client.Minecraft;
@@ -55,6 +55,7 @@ public class BHBlockRenderer {
 		RENDER_FUNCTIONS.add(BHBlockRenderer::renderLever);
 		RENDER_FUNCTIONS.add(BHBlockRenderer::renderCactus);
 		RENDER_FUNCTIONS.add(BHBlockRenderer::renderBed);
+		RENDER_FUNCTIONS.add(BHBlockRenderer::renderRedstoneRepeater);
 	}
 	
 	private static boolean mirrorTexture = false;
@@ -2796,6 +2797,96 @@ public class BHBlockRenderer {
 		}
 		
 		mirrorTexture = false;
+		return true;
+	}
+	
+	private static boolean renderRedstoneRepeater(BlockState state, int x, int y, int z) {
+		BaseBlock block = state.getBlock();
+		int meta = state.getMeta();
+		int wrappedMeta = meta & 3;
+		int powered = (meta & 0xC) >> 2;
+		renderFullCube(state, x, y, z);
+		Tessellator tessellator = Tessellator.INSTANCE;
+		
+		float light = block.getBrightness(blockView, x, y, z);
+		if (state.getEmittance() > 0) {
+			light = (light + 1.0f) * 0.5f;
+		}
+		
+		tessellator.color(light, light, light);
+		
+		double dy = -0.1875;
+		double dx = 0.0;
+		double dz = 0.0;
+		double d4 = 0.0;
+		double d5 = 0.0;
+		
+		switch (wrappedMeta) {
+			case 0 -> {
+				d5 = -0.3125;
+				dz = RedstoneRepeaterBlock.renderOffset[powered];
+			}
+			case 2 -> {
+				d5 = 0.3125;
+				dz = -RedstoneRepeaterBlock.renderOffset[powered];
+			}
+			case 3 -> {
+				d4 = -0.3125;
+				dx = RedstoneRepeaterBlock.renderOffset[powered];
+			}
+			case 1 -> {
+				d4 = 0.3125;
+				dx = -RedstoneRepeaterBlock.renderOffset[powered];
+			}
+		}
+		
+		TextureSample sample = state.getTextureForIndex(blockView, x, y, z, 6);
+		renderTorchSkewed(x + dx, y + dy, z + dz, 0.0, 0.0, sample);
+		renderTorchSkewed(x + d4, y + dy, z + d5, 0.0, 0.0, sample);
+		
+		sample = state.getTextureForIndex(blockView, x, y, z, 0);
+		UVPair uv = sample.getUV();
+		
+		double u1 = uv.getU(0);
+		double u2 = uv.getU(1);
+		double v1 = uv.getV(0);
+		double v2 = uv.getV(1);
+		
+		float x1 = x + 1;
+		float x2 = x1;
+		float x3 = x;
+		float x4 = x;
+		float z1 = z;
+		float z2 = z + 1;
+		float z3 = z2;
+		float z4 = z;
+		
+		float y1 = (float) y + 0.125f;
+		
+		if (wrappedMeta == 2) {
+			x1 = x2 = (float) x;
+			x3 = x4 = (float) (x + 1);
+			z1 = z4 = (float) (z + 1);
+			z2 = z3 = (float) z;
+		}
+		else if (wrappedMeta == 3) {
+			x1 = x4 = (float) x;
+			x2 = x3 = (float) (x + 1);
+			z1 = z2 = (float) z;
+			z3 = z4 = (float) (z + 1);
+		}
+		else if (wrappedMeta == 1) {
+			x1 = x4 = (float) (x + 1);
+			x2 = x3 = (float) x;
+			z1 = z2 = (float) (z + 1);
+			z3 = z4 = (float) z;
+		}
+		
+		tessellator.vertex(x4, y1, z4, u1, v1);
+		tessellator.vertex(x3, y1, z3, u1, v2);
+		tessellator.vertex(x2, y1, z2, u2, v2);
+		tessellator.vertex(x1, y1, z1, u2, v1);
+		
 		return true;
 	}
 }

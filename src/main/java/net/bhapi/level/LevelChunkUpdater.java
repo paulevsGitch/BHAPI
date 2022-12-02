@@ -11,7 +11,6 @@ import net.bhapi.storage.Vec2I;
 import net.bhapi.storage.Vec3I;
 import net.bhapi.util.ThreadManager;
 import net.bhapi.util.ThreadManager.RunnableThread;
-import net.bhapi.util.XorShift128;
 import net.minecraft.block.BaseBlock;
 import net.minecraft.entity.LightningEntity;
 import net.minecraft.entity.player.PlayerBase;
