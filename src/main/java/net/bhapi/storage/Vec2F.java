@@ -37,8 +37,8 @@ public class Vec2F {
 				ny = -y;
 			}
 			case 3 -> {
-				nx = -x;
-				ny = y;
+				nx = -y;
+				ny = x;
 			}
 		}
 		return set(nx, ny);
