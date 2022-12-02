@@ -3,10 +3,12 @@ package net.bhapi.mixin.client;
 import net.bhapi.blockstate.BlockState;
 import net.bhapi.client.render.block.BHBlockRenderer;
 import net.bhapi.client.render.block.BlockItemView;
+import net.bhapi.client.render.texture.TextureSample;
 import net.bhapi.client.render.texture.Textures;
 import net.bhapi.client.render.texture.UVPair;
 import net.bhapi.item.BHBlockItem;
 import net.bhapi.item.BHItemRender;
+import net.bhapi.storage.Vec2F;
 import net.minecraft.block.BaseBlock;
 import net.minecraft.client.render.Tessellator;
 import net.minecraft.client.render.TextRenderer;
@@ -97,11 +99,9 @@ public abstract class ItemRendererMixin extends EntityRenderer {
 				GL11.glColor4f(r, g, b, 1.0F);
 			}
 			
-			UVPair uv;
-			if (item instanceof BHItemRender) uv = BHItemRender.cast(item).getTexture(bhapi_renderingStack).getUV();
-			else uv = Textures.getAtlas().getUV(texture);
+			TextureSample sample = BHItemRender.cast(item).getTexture(bhapi_renderingStack);
 			
-			bhapi_renderRectangle(x, y, uv);
+			bhapi_renderRectangle(x, y, sample);
 			GL11.glEnable(2896);
 		}
 		GL11.glEnable(2884);
@@ -165,17 +165,12 @@ public abstract class ItemRendererMixin extends EntityRenderer {
 			float b, g, r;
 			int color;
 			GL11.glScalef(0.5f, 0.5f, 0.5f);
-			int texture = entity.stack.getTexturePosition();
 			Textures.getAtlas().bind();
 			
-			UVPair uv;
-			if (item instanceof BHItemRender) uv = BHItemRender.cast(item).getTexture(entity.stack).getUV();
-			else uv = Textures.getAtlas().getUV(texture);
+			TextureSample sample = BHItemRender.cast(item).getTexture(entity.stack);
 			
-			float u1 = uv.getU(0);
-			float u2 = uv.getU(1);
-			float v1 = uv.getV(0);
-			float v2 = uv.getV(1);
+			Vec2F uv1 = sample.getUV(0, 0);
+			Vec2F uv2 = sample.getUV(1, 1);
 			
 			if (this.coloriseItem) {
 				color = item.getColorMultiplier(entity.stack.getDamage());
@@ -199,10 +194,10 @@ public abstract class ItemRendererMixin extends EntityRenderer {
 				Tessellator tessellator = Tessellator.INSTANCE;
 				tessellator.start();
 				tessellator.setNormal(0.0F, 1.0F, 0.0F);
-				tessellator.vertex(-0.5F, -0.25F, 0.0, u1, v2);
-				tessellator.vertex(0.5F, -0.25F, 0.0, u2, v2);
-				tessellator.vertex(0.5F, 0.75F, 0.0, u2, v1);
-				tessellator.vertex(-0.5F, 0.75F, 0.0, u1, v1);
+				tessellator.vertex(-0.5F, -0.25F, 0.0, uv1.x, uv2.y);
+				tessellator.vertex(0.5F, -0.25F, 0.0, uv2.x, uv2.y);
+				tessellator.vertex(0.5F, 0.75F, 0.0, uv2.x, uv1.y);
+				tessellator.vertex(-0.5F, 0.75F, 0.0, uv1.x, uv1.y);
 				tessellator.draw();
 				
 				GL11.glPopMatrix();
@@ -218,17 +213,15 @@ public abstract class ItemRendererMixin extends EntityRenderer {
 	}
 	
 	@Unique
-	public void bhapi_renderRectangle(int x, int y, UVPair pair) {
+	public void bhapi_renderRectangle(int x, int y, TextureSample sample) {
 		Tessellator tessellator = Tessellator.INSTANCE;
 		tessellator.start();
-		float u1 = pair.getU(0);
-		float u2 = pair.getU(1);
-		float v1 = pair.getV(0);
-		float v2 = pair.getV(1);
-		tessellator.vertex(x, y + 16, 0, u1, v2);
-		tessellator.vertex(x + 16, y + 16, 0, u2, v2);
-		tessellator.vertex(x + 16, y, 0, u2, v1);
-		tessellator.vertex(x, y, 0, u1, v1);
+		Vec2F uv1 = sample.getUV(0, 0);
+		Vec2F uv2 = sample.getUV(1, 1);
+		tessellator.vertex(x, y + 16, 0, uv1.x, uv2.y);
+		tessellator.vertex(x + 16, y + 16, 0, uv2.x, uv2.y);
+		tessellator.vertex(x + 16, y, 0, uv2.x, uv1.y);
+		tessellator.vertex(x, y, 0, uv1.x, uv1.y);
 		tessellator.draw();
 	}
 }

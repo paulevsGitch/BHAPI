@@ -3,6 +3,7 @@ package net.bhapi.mixin.client.particle;
 import net.bhapi.client.render.texture.TextureSample;
 import net.bhapi.client.render.texture.TextureSampleProvider;
 import net.bhapi.client.render.texture.UVPair;
+import net.bhapi.storage.Vec2F;
 import net.minecraft.client.render.Tessellator;
 import net.minecraft.client.render.particle.DiggingParticle;
 import net.minecraft.entity.BaseParticle;
@@ -24,14 +25,11 @@ public abstract class DiggingParticleMixin extends BaseParticle implements Textu
 		
 		TextureSample sample = TextureSampleProvider.cast(this).getTextureSample();
 		if (sample == null) return;
-		UVPair uv = sample.getUV();
 		
 		float u = this.deltaU / 16F;
 		float v = this.deltaU / 16F;
-		float u1 = uv.getU(u);
-		float u2 = uv.getU(u + 0.25F);
-		float v1 = uv.getV(v);
-		float v2 = uv.getV(v + 0.25F);
+		Vec2F uv1 = sample.getUV(u, v);
+		Vec2F uv2 = sample.getUV(u + 0.25F, v + 0.25F);
 		float scale = 0.1f * this.size;
 		
 		float f7 = (float) (this.prevX + (this.x - this.prevX) * delta - posX);
@@ -41,9 +39,9 @@ public abstract class DiggingParticleMixin extends BaseParticle implements Textu
 		float light = this.getBrightnessAtEyes(delta);
 		
 		tessellator.color(light * this.colorR, light * this.colorG, light * this.colorB);
-		tessellator.vertex(f7 - x * scale - width * scale, f8 - y * scale, f9 - z * scale - height * scale, u1, v2);
-		tessellator.vertex(f7 - x * scale + width * scale, f8 + y * scale, f9 - z * scale + height * scale, u1, v1);
-		tessellator.vertex(f7 + x * scale + width * scale, f8 + y * scale, f9 + z * scale + height * scale, u2, v1);
-		tessellator.vertex(f7 + x * scale - width * scale, f8 - y * scale, f9 + z * scale - height * scale, u2, v2);
+		tessellator.vertex(f7 - x * scale - width * scale, f8 - y * scale, f9 - z * scale - height * scale, uv1.x, uv2.y);
+		tessellator.vertex(f7 - x * scale + width * scale, f8 + y * scale, f9 - z * scale + height * scale, uv1.x, uv1.y);
+		tessellator.vertex(f7 + x * scale + width * scale, f8 + y * scale, f9 + z * scale + height * scale, uv2.x, uv1.y);
+		tessellator.vertex(f7 + x * scale - width * scale, f8 - y * scale, f9 + z * scale - height * scale, uv2.x, uv2.y);
 	}
 }

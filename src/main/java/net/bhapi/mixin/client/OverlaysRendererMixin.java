@@ -231,14 +231,12 @@ public abstract class OverlaysRendererMixin {
 			float delta;
 			int count;
 			
-			UVPair uv;
-			if (item instanceof BHItemRender) uv = BHItemRender.cast(item).getTexture(stack).getUV();
-			else uv = atlas.getUV(entity.getTexture(stack));
+			TextureSample sample = BHItemRender.cast(item).getTexture(stack);
 			
-			float u1 = uv.getU(0);
-			float u2 = uv.getU(1);
-			float v1 = uv.getV(0);
-			float v2 = uv.getV(1);
+			float u1 = sample.getU(0);
+			float u2 = sample.getU(1);
+			float v1 = sample.getV(0);
+			float v2 = sample.getV(1);
 			
 			float f8 = 1.0f;
 			float f9 = 0.0f;
@@ -269,9 +267,9 @@ public abstract class OverlaysRendererMixin {
 			tessellator.vertex(0.0, 0.0, 0.0f - 0.0625f, u2, v2);
 			
 			tessellator.setNormal(-1.0f, 0.0f, 0.0f);
-			for (count = 0; count < uv.getWidth(); ++count) {
-				delta = (float) count / uv.getWidth();
-				u22 = uv.getU(0.999F - delta);
+			for (count = 0; count < sample.getWidth(); ++count) {
+				delta = (float) count / sample.getWidth();
+				u22 = sample.getU(0.999F - delta);
 				f = f8 * delta;
 				tessellator.vertex(f, 0.0, 0.0f - 0.0625f, u22, v2);
 				tessellator.vertex(f, 0.0, 0.0, u22, v2);
@@ -280,9 +278,9 @@ public abstract class OverlaysRendererMixin {
 			}
 			
 			tessellator.setNormal(0.0f, -1.0f, 0.0f);
-			for (count = 0; count < uv.getHeight(); ++count) {
-				delta = (float) count / uv.getHeight();
-				u22 = uv.getV(0.999F - delta);
+			for (count = 0; count < sample.getHeight(); ++count) {
+				delta = (float) count / sample.getHeight();
+				u22 = sample.getV(0.999F - delta);
 				f = f8 * delta;
 				tessellator.vertex(f8, f, 0.0, u1, u22);
 				tessellator.vertex(0.0, f, 0.0, u2, u22);
@@ -356,15 +354,12 @@ public abstract class OverlaysRendererMixin {
 		for (int i = 0; i < 2; ++i) {
 			GL11.glPushMatrix();
 			
-			TextureSample texture = BlockState
-				.getDefaultState(BaseBlock.FIRE)
-				.getTextureForIndex(bhapi_itemView, 0, 0, 0, i);
-			UVPair uv = texture.getUV();
+			TextureSample sample = BlockState.getDefaultState(BaseBlock.FIRE).getTextureForIndex(bhapi_itemView, 0, 0, 0, i);
 			
-			float u1 = uv.getU(0);
-			float u2 = uv.getU(1);
-			float v1 = uv.getV(0);
-			float v2 = uv.getV(1);
+			float u1 = sample.getU(0);
+			float u2 = sample.getU(1);
+			float v1 = sample.getV(0);
+			float v2 = sample.getV(1);
 			float x1 = (0.0f - f2) / 2.0f;
 			float x2 = x1 + f2;
 			float y1 = 0.0f - f2 / 2.0f;

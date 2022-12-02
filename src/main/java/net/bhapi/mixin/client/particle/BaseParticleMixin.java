@@ -3,6 +3,7 @@ package net.bhapi.mixin.client.particle;
 import net.bhapi.client.render.texture.TextureSample;
 import net.bhapi.client.render.texture.TextureSampleProvider;
 import net.bhapi.client.render.texture.UVPair;
+import net.bhapi.storage.Vec2F;
 import net.minecraft.client.render.Tessellator;
 import net.minecraft.entity.BaseEntity;
 import net.minecraft.entity.BaseParticle;
@@ -50,11 +51,8 @@ public abstract class BaseParticleMixin extends BaseEntity implements TextureSam
 		TextureSample sample = getTextureSample();
 		if (sample == null) return;
 		
-		UVPair uv = sample.getUV();
-		float u1 = uv.getU(0);
-		float u2 = uv.getU(1);
-		float v1 = uv.getV(0);
-		float v2 = uv.getV(1);
+		Vec2F uv1 = sample.getUV(0, 0);
+		Vec2F uv2 = sample.getUV(1, 1);
 		float scale = 0.1F * this.size;
 		
 		float x = (float) (this.prevX + (this.x - this.prevX) * delta - posX);
@@ -64,9 +62,9 @@ public abstract class BaseParticleMixin extends BaseEntity implements TextureSam
 		float light = this.getBrightnessAtEyes(delta);
 		tessellator.color(this.colorR * light, this.colorG * light, this.colorB * light);
 		
-		tessellator.vertex(x - dx * scale - width * scale, y - dy * scale, z - dz * scale - height * scale, u2, v2);
-		tessellator.vertex(x - dx * scale + width * scale, y + dy * scale, z - dz * scale + height * scale, u2, v1);
-		tessellator.vertex(x + dx * scale + width * scale, y + dy * scale, z + dz * scale + height * scale, u1, v1);
-		tessellator.vertex(x + dx * scale - width * scale, y - dy * scale, z + dz * scale - height * scale, u1, v2);
+		tessellator.vertex(x - dx * scale - width * scale, y - dy * scale, z - dz * scale - height * scale, uv2.x, uv2.y);
+		tessellator.vertex(x - dx * scale + width * scale, y + dy * scale, z - dz * scale + height * scale, uv2.x, uv1.y);
+		tessellator.vertex(x + dx * scale + width * scale, y + dy * scale, z + dz * scale + height * scale, uv1.x, uv1.y);
+		tessellator.vertex(x + dx * scale - width * scale, y - dy * scale, z + dz * scale - height * scale, uv1.x, uv2.y);
 	}
 }

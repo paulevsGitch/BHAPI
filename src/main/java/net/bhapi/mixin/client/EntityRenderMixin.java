@@ -4,6 +4,7 @@ import net.bhapi.blockstate.BlockState;
 import net.bhapi.client.render.texture.TextureSample;
 import net.bhapi.client.render.texture.Textures;
 import net.bhapi.client.render.texture.UVPair;
+import net.bhapi.storage.Vec2F;
 import net.minecraft.block.BaseBlock;
 import net.minecraft.client.render.Tessellator;
 import net.minecraft.client.render.entity.EntityRenderDispatcher;
@@ -46,21 +47,18 @@ public class EntityRenderMixin {
 		tessellator.start();
 		
 		int index = 0;
-		float u1, u2, v1, v2;
 		while (height > 0.0f) {
 			BlockState state = BlockState.getDefaultState(BaseBlock.FIRE);
 			TextureSample sample = state.getTextureForIndex(arg.level, 0, 0, 0, index);
-			UVPair uv = sample.getUV();
-			boolean flip = ((index >> 1) & 1) == 0;
-			u1 = uv.getU(flip ? 1 : 0);
-			u2 = uv.getU(flip ? 0 : 1);
-			v1 = uv.getV(0);
-			v2 = uv.getV(1);
 			
-			tessellator.vertex(dx, 0.0f - dy, dz, u2, v2);
-			tessellator.vertex(-dx, 0.0f - dy, dz, u1, v2);
-			tessellator.vertex(-dx, 1.4f - dy, dz, u1, v1);
-			tessellator.vertex(dx, 1.4f - dy, dz, u2, v1);
+			boolean flip = ((index >> 1) & 1) == 0;
+			Vec2F uv1 = sample.getUV(flip ? 1 : 0, 0);
+			Vec2F uv2 = sample.getUV(flip ? 0 : 1, 1);
+			
+			tessellator.vertex(dx, 0.0f - dy, dz, uv2.x, uv2.y);
+			tessellator.vertex(-dx, 0.0f - dy, dz, uv1.x, uv2.y);
+			tessellator.vertex(-dx, 1.4f - dy, dz, uv1.x, uv1.y);
+			tessellator.vertex(dx, 1.4f - dy, dz, uv2.x, uv1.y);
 			
 			height -= 0.45f;
 			dy -= 0.45f;

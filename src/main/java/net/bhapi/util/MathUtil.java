@@ -1,5 +1,7 @@
 package net.bhapi.util;
 
+import net.bhapi.storage.Vec2F;
+
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Random;
@@ -39,6 +41,12 @@ public class MathUtil {
 	
 	public static double lerp(double a, double b, double delta) {
 		return a + delta * (b - a);
+	}
+	
+	public static Vec2F lerp(Vec2F a, Vec2F b, float delta) {
+		float x = lerp(a.x, b.x, delta);
+		float y = lerp(a.y, b.y, delta);
+		return new Vec2F(x, y);
 	}
 	
 	/**

@@ -24,6 +24,30 @@ public class Vec2F {
 		return MathHelper.sqrt(lengthSqr());
 	}
 	
+	public Vec2F rotateCW(int index) {
+		float nx = x;
+		float ny = y;
+		switch (index) {
+			case 1 -> {
+				nx = y;
+				ny = -x;
+			}
+			case 2 -> {
+				nx = -x;
+				ny = -y;
+			}
+			case 3 -> {
+				nx = -x;
+				ny = y;
+			}
+		}
+		return set(nx, ny);
+	}
+	
+	public Vec2F add(float value) {
+		return add(value, value);
+	}
+	
 	public Vec2F add(float x, float y) {
 		this.x += x;
 		this.y += y;
