@@ -76,6 +76,10 @@ public class PermutationTable implements RandomGenerator {
 		return value;
 	}
 	
+	public int getSize() {
+		return values.length;
+	}
+	
 	@Override
 	public void nextBytes(byte[] bytes) {
 		for (int i = 0; i < bytes.length; i++) {

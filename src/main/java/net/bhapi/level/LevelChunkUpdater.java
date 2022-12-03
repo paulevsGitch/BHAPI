@@ -6,6 +6,7 @@ import net.bhapi.client.BHAPIClient;
 import net.bhapi.config.BHConfigs;
 import net.bhapi.mixin.common.level.LevelAccessor;
 import net.bhapi.storage.ExpandableCache;
+import net.bhapi.storage.IncrementalPermutationTable;
 import net.bhapi.storage.PermutationTable;
 import net.bhapi.storage.Vec2I;
 import net.bhapi.storage.Vec3I;
@@ -35,7 +36,7 @@ public class LevelChunkUpdater {
 	private final Set<Vec3I> loadedSections = new HashSet<>();
 	private final Set<Vec2I> loadedChunks = new HashSet<>();
 	private final BaseBiome[] biomes = new BaseBiome[1];
-	private final PermutationTable random = new PermutationTable();
+	private final PermutationTable random = new IncrementalPermutationTable();
 	//private final XorShift128 random = new XorShift128();
 	private final BiomeSource biomeSource;
 	private final Level level;
@@ -48,7 +49,6 @@ public class LevelChunkUpdater {
 	private boolean useThreads;
 	private int updatesVertical;
 	private int updatesHorizontal;
-	private short ticksIncrement;
 	
 	public LevelChunkUpdater(Level level) {
 		this.level = level;
@@ -247,12 +247,6 @@ public class LevelChunkUpdater {
 				}
 			}
 		});
-		
-		ticksIncrement++;
-		if (ticksIncrement >= 1019) {
-			random.setIncrement(random.getIncrement() + 1);
-			ticksIncrement = 0;
-		}
 		
 		check();
 		delay();

@@ -3,7 +3,6 @@ package net.bhapi.mixin.client.particle;
 import net.bhapi.client.render.texture.TextureSample;
 import net.bhapi.client.render.texture.TextureSampleProvider;
 import net.bhapi.client.render.texture.Textures;
-import net.bhapi.client.render.texture.UVPair;
 import net.bhapi.item.BHItemRender;
 import net.bhapi.registry.CommonRegistries;
 import net.bhapi.storage.Vec2F;

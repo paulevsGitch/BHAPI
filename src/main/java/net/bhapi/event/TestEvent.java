@@ -70,6 +70,7 @@ public class TestEvent {
 			super(material);
 			setHardness(0.1F);
 			setBlastResistance(0.1F);
+			setBoundingBox(0.25F, 0, 0, 1, 1, 1);
 			setSounds(sounds);
 		}
 		

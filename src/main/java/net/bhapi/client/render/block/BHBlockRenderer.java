@@ -3,7 +3,6 @@ package net.bhapi.client.render.block;
 import net.bhapi.blockstate.BlockState;
 import net.bhapi.client.render.texture.TextureSample;
 import net.bhapi.client.render.texture.Textures;
-import net.bhapi.client.render.texture.UVPair;
 import net.bhapi.level.BlockStateProvider;
 import net.bhapi.storage.PermutationTable;
 import net.bhapi.storage.Vec2F;
@@ -14,6 +13,7 @@ import net.minecraft.block.BedBlock;
 import net.minecraft.block.DoorBlock;
 import net.minecraft.block.FluidBlock;
 import net.minecraft.block.PistonBlock;
+import net.minecraft.block.PistonHeadBlock;
 import net.minecraft.block.RailBlock;
 import net.minecraft.block.RedstoneDustBlock;
 import net.minecraft.block.RedstoneRepeaterBlock;
@@ -59,6 +59,7 @@ public class BHBlockRenderer {
 		RENDER_FUNCTIONS.add(BHBlockRenderer::renderBed);
 		RENDER_FUNCTIONS.add(BHBlockRenderer::renderRedstoneRepeater);
 		RENDER_FUNCTIONS.add(BHBlockRenderer::renderPiston);
+		RENDER_FUNCTIONS.add(BHBlockRenderer::renderPistonHead);
 	}
 	
 	private static boolean mirrorTexture = false;
@@ -801,27 +802,6 @@ public class BHBlockRenderer {
 	
 	private static void renderTopFace(BaseBlock block, double x, double y, double z, TextureSample sample) {
 		Tessellator tessellator = Tessellator.INSTANCE;
-		
-		/*float u11, u12, v11, v12;
-		
-		if (breaking) {
-			u11 = (float) block.minX;
-			u12 = (float) block.maxX;
-			v11 = (float) block.minZ;
-			v12 = (float) block.maxZ;
-		}
-		else {
-			u11 = sample.getU(MathUtil.clamp((float) block.minX, 0, 1));
-			u12 = sample.getU(MathUtil.clamp((float) block.maxX, 0, 1));
-			v11 = sample.getV(MathUtil.clamp((float) block.minZ, 0, 1));
-			v12 = sample.getV(MathUtil.clamp((float) block.maxZ, 0, 1));
-		}
-		
-		float u22 = u12;
-		float u21 = u11;
-		float v21 = v11;
-		float v22 = v12;*/
-		
 		float u11, u12, v11, v12;
 		
 		if (breaking) {
@@ -831,10 +811,10 @@ public class BHBlockRenderer {
 			v12 = (float) block.maxZ;
 		}
 		else {
-			u11 = MathUtil.clamp((float) block.minX, 0, 1);
-			u12 = MathUtil.clamp((float) block.maxX, 0, 1);
-			v11 = MathUtil.clamp((float) block.minZ, 0, 1);
-			v12 = MathUtil.clamp((float) block.maxZ, 0, 1);
+			u11 = MathUtil.clamp(1 - (float) block.maxX, 0, 1);
+			u12 = MathUtil.clamp(1 - (float) block.minX, 0, 1);
+			v11 = MathUtil.clamp(1 - (float) block.maxZ, 0, 1);
+			v12 = MathUtil.clamp(1 - (float) block.minZ, 0, 1);
 		}
 		
 		sample.setRotation(topFaceRotation);
@@ -2933,26 +2913,26 @@ public class BHBlockRenderer {
 				case 2 -> {
 					southFaceRotation = 1;
 					northFaceRotation = 2;
+					topFaceRotation = 2;
 					block.setBoundingBox(0.0f, 0.0f, 0.25f, 1.0f, 1.0f, 1.0f);
 				}
 				case 3 -> {
 					southFaceRotation = 2;
 					northFaceRotation = 1;
-					topFaceRotation = 3;
 					bottomFaceRotation = 3;
 					block.setBoundingBox(0.0f, 0.0f, 0.0f, 1.0f, 1.0f, 0.75f);
 				}
 				case 4 -> {
 					eastFaceRotation = 1;
 					westFaceRotation = 2;
-					topFaceRotation = 2;
+					topFaceRotation = 1;
 					bottomFaceRotation = 1;
 					block.setBoundingBox(0.25f, 0.0f, 0.0f, 1.0f, 1.0f, 1.0f);
 				}
 				case 5 -> {
 					eastFaceRotation = 2;
 					westFaceRotation = 1;
-					topFaceRotation = 1;
+					topFaceRotation = 3;
 					bottomFaceRotation = 2;
 					block.setBoundingBox(0.0f, 0.0f, 0.0f, 0.75f, 1.0f, 1.0f);
 				}
@@ -2983,19 +2963,18 @@ public class BHBlockRenderer {
 				case 3 -> {
 					southFaceRotation = 2;
 					northFaceRotation = 1;
-					topFaceRotation = 3 + 1;
 					bottomFaceRotation = 3;
 				}
 				case 4 -> {
 					eastFaceRotation = 1;
 					westFaceRotation = 2;
-					topFaceRotation = 2 - 1;
+					topFaceRotation = 1;
 					bottomFaceRotation = 1;
 				}
 				case 5 -> {
 					eastFaceRotation = 2;
 					westFaceRotation = 1;
-					topFaceRotation = 1 + 2;
+					topFaceRotation = 3;
 					bottomFaceRotation = 2;
 				}
 			}
@@ -3010,5 +2989,124 @@ public class BHBlockRenderer {
 		}
 		
 		return true;
+	}
+	
+	private static boolean renderPistonHead(BlockState state, int x, int y, int z) {
+		return renderPistonHead(state, x, y, z, true);
+	}
+	
+	private static boolean renderPistonHead(BlockState state, int x, int y, int z, boolean extended) {
+		BaseBlock block = state.getBlock();
+		int meta = state.getMeta();
+		int offset = PistonHeadBlock.getOffsetIndex(meta);
+		float light = block.getBrightness(blockView, x, y, z);
+		float delta = extended ? 1.0F : 0.5F;
+		float scale = extended ? 16.0F : 8.0F;
+		switch (offset) {
+			case 0 -> {
+				eastFaceRotation = 3;
+				westFaceRotation = 3;
+				southFaceRotation = 3;
+				northFaceRotation = 3;
+				block.setBoundingBox(0.0f, 0.0f, 0.0f, 1.0f, 0.25f, 1.0f);
+				renderFullCube(state, x, y, z);
+				renderPistonHead(x + 0.375f, x + 0.625f, y + 0.25f, y + 0.25f + delta, z + 0.625f, z + 0.625f, light * 0.8f, scale, 0);
+				renderPistonHead(x + 0.625f, x + 0.375f, y + 0.25f, y + 0.25f + delta, z + 0.375f, z + 0.375f, light * 0.8f, scale, 0);
+				renderPistonHead(x + 0.375f, x + 0.375f, y + 0.25f, y + 0.25f + delta, z + 0.375f, z + 0.625f, light * 0.6f, scale, 0);
+				renderPistonHead(x + 0.625f, x + 0.625f, y + 0.25f, y + 0.25f + delta, z + 0.625f, z + 0.375f, light * 0.6f, scale, 0);
+			}
+			case 1 -> {
+				block.setBoundingBox(0.0f, 0.75f, 0.0f, 1.0f, 1.0f, 1.0f);
+				renderFullCube(state, x, y, z);
+				renderPistonHead(x + 0.375f, x + 0.625f, y - 0.25f + 1.0f - delta, y - 0.25f + 1.0f, z + 0.625f, z + 0.625f, light * 0.8f, scale, 0);
+				renderPistonHead(x + 0.625f, x + 0.375f, y - 0.25f + 1.0f - delta, y - 0.25f + 1.0f, z + 0.375f, z + 0.375f, light * 0.8f, scale, 0);
+				renderPistonHead(x + 0.375f, x + 0.375f, y - 0.25f + 1.0f - delta, y - 0.25f + 1.0f, z + 0.375f, z + 0.625f, light * 0.6f, scale, 0);
+				renderPistonHead(x + 0.625f, x + 0.625f, y - 0.25f + 1.0f - delta, y - 0.25f + 1.0f, z + 0.625f, z + 0.375f, light * 0.6f, scale, 0);
+			}
+			case 2 -> {
+				southFaceRotation = 1;
+				northFaceRotation = 2;
+				//topFaceRotation = 2;
+				block.setBoundingBox(0.0f, 0.0f, 0.0f, 1.0f, 1.0f, 0.25f);
+				renderFullCube(state, x, y, z);
+				renderPistonHead(x + 0.375f, x + 0.375f, y + 0.625f, y + 0.375f, z + 0.25f, z + 0.25f + delta, light * 0.6f, scale, 1);
+				renderPistonHead(x + 0.625f, x + 0.625f, y + 0.375f, y + 0.625f, z + 0.25f, z + 0.25f + delta, light * 0.6f, scale, 1);
+				renderPistonHead(x + 0.375f, x + 0.625f, y + 0.375f, y + 0.375f, z + 0.25f, z + 0.25f + delta, light * 0.5f, scale, 1);
+				renderPistonHead(x + 0.625f, x + 0.375f, y + 0.625f, y + 0.625f, z + 0.25f, z + 0.25f + delta, light, scale, 1);
+			}
+			case 3 -> {
+				southFaceRotation = 2;
+				northFaceRotation = 1;
+				topFaceRotation = 2;
+				bottomFaceRotation = 3;
+				block.setBoundingBox(0.0f, 0.0f, 0.75f, 1.0f, 1.0f, 1.0f);
+				renderFullCube(state, x, y, z);
+				renderPistonHead(x + 0.375f, x + 0.375f, y + 0.625f, y + 0.375f, z - 0.25f + 1.0f - delta, z - 0.25f + 1.0f, light * 0.6f, scale, 1);
+				renderPistonHead(x + 0.625f, x + 0.625f, y + 0.375f, y + 0.625f, z - 0.25f + 1.0f - delta, z - 0.25f + 1.0f, light * 0.6f, scale, 1);
+				renderPistonHead(x + 0.375f, x + 0.625f, y + 0.375f, y + 0.375f, z - 0.25f + 1.0f - delta, z - 0.25f + 1.0f, light * 0.5f, scale, 1);
+				renderPistonHead(x + 0.625f, x + 0.375f, y + 0.625f, y + 0.625f, z - 0.25f + 1.0f - delta, z - 0.25f + 1.0f, light, scale, 1);
+			}
+			case 4 -> {
+				eastFaceRotation = 1;
+				westFaceRotation = 2;
+				topFaceRotation = 3;
+				bottomFaceRotation = 1;
+				block.setBoundingBox(0.0f, 0.0f, 0.0f, 0.25f, 1.0f, 1.0f);
+				renderFullCube(state, x, y, z);
+				renderPistonHead(x + 0.25f, x + 0.25f + delta, y + 0.375f, y + 0.375f, z + 0.625f, z + 0.375f, light * 0.5f, scale, 2);
+				renderPistonHead(x + 0.25f, x + 0.25f + delta, y + 0.625f, y + 0.625f, z + 0.375f, z + 0.625f, light, scale, 2);
+				renderPistonHead(x + 0.25f, x + 0.25f + delta, y + 0.375f, y + 0.625f, z + 0.375f, z + 0.375f, light * 0.6f, scale, 2);
+				renderPistonHead(x + 0.25f, x + 0.25f + delta, y + 0.625f, y + 0.375f, z + 0.625f, z + 0.625f, light * 0.6f, scale, 2);
+			}
+			case 5 -> {
+				eastFaceRotation = 2;
+				westFaceRotation = 1;
+				topFaceRotation = 1;
+				bottomFaceRotation = 2;
+				block.setBoundingBox(0.75f, 0.0f, 0.0f, 1.0f, 1.0f, 1.0f);
+				renderFullCube(state, x, y, z);
+				renderPistonHead(x - 0.25f + 1.0f - delta, x - 0.25f + 1.0f, y + 0.375f, y + 0.375f, z + 0.625f, z + 0.375f, light * 0.5f, scale, 2);
+				renderPistonHead(x - 0.25f + 1.0f - delta, x - 0.25f + 1.0f, y + 0.625f, y + 0.625f, z + 0.375f, z + 0.625f, light, scale, 2);
+				renderPistonHead(x - 0.25f + 1.0f - delta, x - 0.25f + 1.0f, y + 0.375f, y + 0.625f, z + 0.375f, z + 0.375f, light * 0.6f, scale, 2);
+				renderPistonHead(x - 0.25f + 1.0f - delta, x - 0.25f + 1.0f, y + 0.625f, y + 0.375f, z + 0.625f, z + 0.625f, light * 0.6f, scale, 2);
+			}
+		}
+		eastFaceRotation = 0;
+		westFaceRotation = 0;
+		southFaceRotation = 0;
+		northFaceRotation = 0;
+		topFaceRotation = 0;
+		bottomFaceRotation = 0;
+		block.setBoundingBox(0.0f, 0.0f, 0.0f, 1.0f, 1.0f, 1.0f);
+		return true;
+	}
+	
+	private static void renderPistonHead(double x1, double x2, double y1, double y2, double z1, double z2, float light, float delta, int type) {
+		Tessellator tessellator = Tessellator.INSTANCE;
+		TextureSample sample = Textures.getVanillaBlockSample(108);
+		sample.setRotation(0);
+		Vec2F uv1 = sample.getUV(0, 0);
+		Vec2F uv2 = sample.getUV(delta / 16F, 0.25F);
+		tessellator.color(light, light, light);
+		switch (type) {
+			case 0 -> {
+				tessellator.vertex(x1, y2, z1, uv2.x, uv1.y);
+				tessellator.vertex(x1, y1, z1, uv1.x, uv1.y);
+				tessellator.vertex(x2, y1, z2, uv1.x, uv2.y);
+				tessellator.vertex(x2, y2, z2, uv2.x, uv2.y);
+			}
+			case 1 -> {
+				tessellator.vertex(x1, y1, z2, uv2.x, uv1.y);
+				tessellator.vertex(x1, y1, z1, uv1.x, uv1.y);
+				tessellator.vertex(x2, y2, z1, uv1.x, uv2.y);
+				tessellator.vertex(x2, y2, z2, uv2.x, uv2.y);
+			}
+			case 2 -> {
+				tessellator.vertex(x2, y1, z1, uv2.x, uv1.y);
+				tessellator.vertex(x1, y1, z1, uv1.x, uv1.y);
+				tessellator.vertex(x1, y2, z2, uv1.x, uv2.y);
+				tessellator.vertex(x2, y2, z2, uv2.x, uv2.y);
+			}
+		}
 	}
 }

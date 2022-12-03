@@ -3,7 +3,6 @@ package net.bhapi.mixin.client;
 import net.bhapi.blockstate.BlockState;
 import net.bhapi.client.render.texture.TextureSample;
 import net.bhapi.client.render.texture.Textures;
-import net.bhapi.client.render.texture.UVPair;
 import net.bhapi.storage.Vec2F;
 import net.minecraft.block.BaseBlock;
 import net.minecraft.client.render.Tessellator;

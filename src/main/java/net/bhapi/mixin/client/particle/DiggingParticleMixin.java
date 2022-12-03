@@ -2,7 +2,6 @@ package net.bhapi.mixin.client.particle;
 
 import net.bhapi.client.render.texture.TextureSample;
 import net.bhapi.client.render.texture.TextureSampleProvider;
-import net.bhapi.client.render.texture.UVPair;
 import net.bhapi.storage.Vec2F;
 import net.minecraft.client.render.Tessellator;
 import net.minecraft.client.render.particle.DiggingParticle;

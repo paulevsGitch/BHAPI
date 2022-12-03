@@ -5,7 +5,6 @@ import net.bhapi.client.render.block.BHBlockRenderer;
 import net.bhapi.client.render.block.BlockItemView;
 import net.bhapi.client.render.texture.TextureSample;
 import net.bhapi.client.render.texture.Textures;
-import net.bhapi.client.render.texture.UVPair;
 import net.bhapi.item.BHBlockItem;
 import net.bhapi.item.BHItemRender;
 import net.bhapi.storage.Vec2F;
