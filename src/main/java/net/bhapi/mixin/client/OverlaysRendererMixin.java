@@ -1,6 +1,7 @@
 package net.bhapi.mixin.client;
 
 import net.bhapi.blockstate.BlockState;
+import net.bhapi.client.BHAPIClient;
 import net.bhapi.client.render.block.BHBlockRenderer;
 import net.bhapi.client.render.block.BlockItemView;
 import net.bhapi.client.render.texture.TextureAtlas;
@@ -10,13 +11,13 @@ import net.bhapi.client.render.texture.UVPair;
 import net.bhapi.item.BHBlockItem;
 import net.bhapi.item.BHItemRender;
 import net.bhapi.level.BlockStateProvider;
+import net.bhapi.storage.Vec2F;
 import net.minecraft.block.BaseBlock;
 import net.minecraft.block.material.Material;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.render.OverlaysRenderer;
 import net.minecraft.client.render.RenderHelper;
 import net.minecraft.client.render.Tessellator;
-import net.minecraft.client.render.block.BlockRenderer;
 import net.minecraft.client.render.entity.EntityRenderDispatcher;
 import net.minecraft.client.render.entity.EntityRenderer;
 import net.minecraft.client.render.entity.PlayerRenderer;
@@ -43,7 +44,6 @@ public abstract class OverlaysRendererMixin {
 	@Shadow private Minecraft minecraft;
 	@Shadow private ItemStack stack;
 	@Shadow private MapRenderer mapRenderer;
-	@Shadow private BlockRenderer blockRenderer;
 	
 	@Shadow public abstract void renderHand(LivingEntity arg, ItemStack arg2);
 	@Shadow protected abstract void renderUnderwaterOverlay(float f);
@@ -217,13 +217,10 @@ public abstract class OverlaysRendererMixin {
 		atlas.bind();
 		
 		if (item instanceof BHBlockItem && !BHBlockItem.cast(item).isFlat()) {
-			// TODO save only first after all render implementation
 			BlockState state = BHBlockItem.cast(item).getState();
-			if (BHBlockRenderer.isImplemented(state.getRenderType(entity.level, (int) entity.x, (int) entity.y, (int) entity.z))) {
-				BHBlockRenderer.setRenderer(bhapi_itemView, this.blockRenderer);
-				BHBlockRenderer.renderItem(state, false, entity.getBrightnessAtEyes(1.0f));
-			}
-			else this.blockRenderer.renderBlockItem(BHBlockItem.cast(item).getState().getBlock(), stack.getDamage(), entity.getBrightnessAtEyes(1.0f));
+			BHBlockRenderer renderer = BHAPIClient.getBlockRenderer();
+			renderer.setView(bhapi_itemView);
+			renderer.renderItem(state, false, entity.getBrightnessAtEyes(1.0f));
 		}
 		else {
 			float f;
@@ -232,11 +229,13 @@ public abstract class OverlaysRendererMixin {
 			int count;
 			
 			TextureSample sample = BHItemRender.cast(item).getTexture(stack);
+			Vec2F uv1 = sample.getUV(0, 0);
+			Vec2F uv2 = sample.getUV(1, 1);
 			
-			float u1 = sample.getU(0);
+			/*float u1 = sample.getU(0);
 			float u2 = sample.getU(1);
 			float v1 = sample.getV(0);
-			float v2 = sample.getV(1);
+			float v2 = sample.getV(1);*/
 			
 			float f8 = 1.0f;
 			float f9 = 0.0f;
@@ -253,20 +252,21 @@ public abstract class OverlaysRendererMixin {
 			
 			tessellator.start();
 			tessellator.setNormal(0.0f, 0.0f, 1.0f);
-			tessellator.vertex(0.0, 0.0, 0.0, u2, v2);
-			tessellator.vertex(f8, 0.0, 0.0, u1, v2);
-			tessellator.vertex(f8, 1.0, 0.0, u1, v1);
-			tessellator.vertex(0.0, 1.0, 0.0, u2, v1);
+			tessellator.vertex(0.0, 0.0, 0.0, uv2.x, uv2.y);
+			tessellator.vertex(f8, 0.0, 0.0, uv1.x, uv2.y);
+			tessellator.vertex(f8, 1.0, 0.0, uv1.x, uv1.y);
+			tessellator.vertex(0.0, 1.0, 0.0, uv2.x, uv1.y);
 			//tessellator.draw();
 			
 			//tessellator.start();
 			tessellator.setNormal(0.0f, 0.0f, -1.0f);
-			tessellator.vertex(0.0, 1.0, 0.0f - 0.0625f, u2, v1);
-			tessellator.vertex(f8, 1.0, 0.0f - 0.0625f, u1, v1);
-			tessellator.vertex(f8, 0.0, 0.0f - 0.0625f, u1, v2);
-			tessellator.vertex(0.0, 0.0, 0.0f - 0.0625f, u2, v2);
+			tessellator.vertex(0.0, 1.0, 0.0f - 0.0625f, uv2.x, uv1.y);
+			tessellator.vertex(f8, 1.0, 0.0f - 0.0625f, uv1.x, uv1.y);
+			tessellator.vertex(f8, 0.0, 0.0f - 0.0625f, uv1.x, uv2.y);
+			tessellator.vertex(0.0, 0.0, 0.0f - 0.0625f, uv2.x, uv2.y);
 			
-			tessellator.setNormal(-1.0f, 0.0f, 0.0f);
+			// TODO check this - same coordinate U
+			/*tessellator.setNormal(-1.0f, 0.0f, 0.0f);
 			for (count = 0; count < sample.getWidth(); ++count) {
 				delta = (float) count / sample.getWidth();
 				u22 = sample.getU(0.999F - delta);
@@ -286,7 +286,7 @@ public abstract class OverlaysRendererMixin {
 				tessellator.vertex(0.0, f, 0.0, u2, u22);
 				tessellator.vertex(0.0, f, 0.0f - 0.0625f, u2, u22);
 				tessellator.vertex(f8, f, 0.0f - 0.0625f, u1, u22);
-			}
+			}*/
 			tessellator.draw();
 			
 			GL11.glDisable(32826);
@@ -355,11 +355,9 @@ public abstract class OverlaysRendererMixin {
 			GL11.glPushMatrix();
 			
 			TextureSample sample = BlockState.getDefaultState(BaseBlock.FIRE).getTextureForIndex(bhapi_itemView, 0, 0, 0, i);
+			Vec2F uv1 = sample.getUV(0, 0);
+			Vec2F uv2 = sample.getUV(1, 1);
 			
-			float u1 = sample.getU(0);
-			float u2 = sample.getU(1);
-			float v1 = sample.getV(0);
-			float v2 = sample.getV(1);
 			float x1 = (0.0f - f2) / 2.0f;
 			float x2 = x1 + f2;
 			float y1 = 0.0f - f2 / 2.0f;
@@ -369,10 +367,10 @@ public abstract class OverlaysRendererMixin {
 			GL11.glRotatef((i * 2 - 1) * 10.0f, 0.0f, 1.0f, 0.0f);
 			
 			tessellator.start();
-			tessellator.vertex(x1, y1, -0.5f, u2, v2);
-			tessellator.vertex(x2, y1, -0.5f, u1, v2);
-			tessellator.vertex(x2, y2, -0.5f, u1, v1);
-			tessellator.vertex(x1, y2, -0.5f, u2, v1);
+			tessellator.vertex(x1, y1, -0.5f, uv2.x, uv2.y);
+			tessellator.vertex(x2, y1, -0.5f, uv1.x, uv2.y);
+			tessellator.vertex(x2, y2, -0.5f, uv1.x, uv1.y);
+			tessellator.vertex(x1, y2, -0.5f, uv2.x, uv1.y);
 			tessellator.draw();
 			
 			GL11.glPopMatrix();

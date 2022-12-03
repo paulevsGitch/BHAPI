@@ -16,6 +16,7 @@
 		"OverlaysRendererMixin",
 		"BaseBlockEntityMixin",
 		"ParticleManagerMixin",
+		"PistonRendererMixin",
 		"TextureManagerMixin",
 		"PlayerRendererMixin",
 		"BlockRendererMixin",

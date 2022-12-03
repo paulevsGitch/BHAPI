@@ -7,7 +7,6 @@ import net.minecraft.block.BaseBlock;
 import net.minecraft.block.entity.BaseBlockEntity;
 import net.minecraft.client.render.AreaRenderer;
 import net.minecraft.client.render.Tessellator;
-import net.minecraft.client.render.block.BlockRenderer;
 import net.minecraft.client.render.entity.BlockEntityRenderDispatcher;
 import net.minecraft.level.Level;
 import net.minecraft.level.LevelPopulationRegion;
@@ -15,6 +14,7 @@ import net.minecraft.level.chunk.Chunk;
 import org.lwjgl.opengl.GL11;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
+import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
@@ -42,6 +42,8 @@ public abstract class AreaRendererMixin {
 	@Shadow private boolean hasData;
 	
 	@Shadow protected abstract void offset();
+	
+	@Unique private final BHBlockRenderer bhapi_renderer = new BHBlockRenderer();
 	
 	@SuppressWarnings("all")
 	@Inject(method = "update", at = @At("HEAD"), cancellable = true)
@@ -71,8 +73,7 @@ public abstract class AreaRendererMixin {
 		
 		LevelPopulationRegion region = new LevelPopulationRegion(this.level, x1 - 1, y1 - 1, z1 - 1, x2 + 1, y2 + 1, z2 + 1);
 		BlockStateProvider provider = BlockStateProvider.cast(region);
-		BlockRenderer renderer = new BlockRenderer(region);
-		BHBlockRenderer.setRenderer(region, renderer);
+		bhapi_renderer.setView(region);
 		
 		for (byte pass = 0; pass < 2; ++pass) {
 			boolean anotherPass = false;
@@ -107,7 +108,7 @@ public abstract class AreaRendererMixin {
 							continue;
 						}
 						
-						layerHasData |= BHBlockRenderer.render(state, px, py, pz);
+						layerHasData |= bhapi_renderer.render(state, px, py, pz);
 					}
 				}
 			}

@@ -1,6 +1,7 @@
 package net.bhapi.mixin.client;
 
 import net.bhapi.blockstate.BlockState;
+import net.bhapi.client.BHAPIClient;
 import net.bhapi.client.render.block.BHBlockRenderer;
 import net.bhapi.client.render.block.BreakInfo;
 import net.bhapi.client.render.texture.Textures;
@@ -12,7 +13,6 @@ import net.minecraft.block.BlockSounds;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.render.LevelRenderer;
 import net.minecraft.client.render.Tessellator;
-import net.minecraft.client.render.block.BlockRenderer;
 import net.minecraft.entity.player.PlayerBase;
 import net.minecraft.item.ItemStack;
 import net.minecraft.level.Level;
@@ -33,14 +33,10 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 @Mixin(LevelRenderer.class)
 public abstract class LevelRendererMixin implements LevelHeightProvider {
 	@Shadow private Level level;
-	
-	@Shadow protected abstract void renderBox(Box arg);
-	
 	@Shadow private Minecraft client;
-	
 	@Shadow public float blockBreakDelta;
 	
-	@Shadow private BlockRenderer tileRenderer;
+	@Shadow protected abstract void renderBox(Box arg);
 	
 	@ModifyConstant(method = "method_1544(Lnet/minecraft/util/maths/Vec3f;Lnet/minecraft/class_68;F)V", constant = @Constant(intValue = 128))
 	private int bhapi_changeMaxHeight(int value) {
@@ -149,8 +145,9 @@ public abstract class LevelRendererMixin implements LevelHeightProvider {
 			tessellator.setOffset(-dx, -dy, -dz);
 			tessellator.disableColor();
 			
-			BHBlockRenderer.setRenderer(level, tileRenderer);
-			BHBlockRenderer.renderBlockBreak(state, hit.x, hit.y, hit.z);
+			BHBlockRenderer renderer = BHAPIClient.getBlockRenderer();
+			renderer.setView(level);
+			renderer.renderBlockBreak(state, hit.x, hit.y, hit.z);
 			
 			tessellator.draw();
 			tessellator.setOffset(0.0, 0.0, 0.0);

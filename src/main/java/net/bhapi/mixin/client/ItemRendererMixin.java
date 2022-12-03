@@ -1,6 +1,7 @@
 package net.bhapi.mixin.client;
 
 import net.bhapi.blockstate.BlockState;
+import net.bhapi.client.BHAPIClient;
 import net.bhapi.client.render.block.BHBlockRenderer;
 import net.bhapi.client.render.block.BlockItemView;
 import net.bhapi.client.render.texture.TextureSample;
@@ -11,7 +12,6 @@ import net.bhapi.storage.Vec2F;
 import net.minecraft.block.BaseBlock;
 import net.minecraft.client.render.Tessellator;
 import net.minecraft.client.render.TextRenderer;
-import net.minecraft.client.render.block.BlockRenderer;
 import net.minecraft.client.render.block.FoliageColor;
 import net.minecraft.client.render.entity.EntityRenderer;
 import net.minecraft.client.render.entity.ItemRenderer;
@@ -33,7 +33,6 @@ import java.util.Random;
 @Mixin(ItemRenderer.class)
 public abstract class ItemRendererMixin extends EntityRenderer {
 	@Shadow public boolean coloriseItem;
-	@Shadow private BlockRenderer internalBlockRenderer;
 	@Shadow private Random rand;
 	
 	@Unique private BlockItemView bhapi_itemView = new BlockItemView();
@@ -65,17 +64,10 @@ public abstract class ItemRendererMixin extends EntityRenderer {
 				GL11.glColor4f(r, g, b, 1.0F);
 			}
 			
-			// TODO save only first after all render implementation
-			if (BHBlockRenderer.isImplemented(state.getRenderType(bhapi_itemView, 0, 0, 0))) {
-				bhapi_itemView.setBlockState(state);
-				BHBlockRenderer.setRenderer(bhapi_itemView, this.internalBlockRenderer);
-				BHBlockRenderer.renderItem(state, this.coloriseItem, 1.0f);
-			}
-			else {
-				this.internalBlockRenderer.itemColorEnabled = this.coloriseItem;
-				this.internalBlockRenderer.renderBlockItem(state.getBlock(), j, 1.0f);
-				this.internalBlockRenderer.itemColorEnabled = true;
-			}
+			BHBlockRenderer renderer = BHAPIClient.getBlockRenderer();
+			bhapi_itemView.setBlockState(state);
+			renderer.setView(bhapi_itemView);
+			renderer.renderItem(state, this.coloriseItem, 1.0f);
 			
 			GL11.glPopMatrix();
 		}
@@ -147,15 +139,10 @@ public abstract class ItemRendererMixin extends EntityRenderer {
 					GL11.glTranslatef(dx, dy, dz);
 				}
 				
-				// TODO save only first after all render implementation
-				if (BHBlockRenderer.isImplemented(state.getRenderType(bhapi_itemView, 0, 0, 0))) {
-					bhapi_itemView.setBlockState(state);
-					BHBlockRenderer.setRenderer(bhapi_itemView, this.internalBlockRenderer);
-					BHBlockRenderer.renderItem(state, this.coloriseItem, entity.getBrightnessAtEyes(delta));
-				}
-				else {
-					this.internalBlockRenderer.renderBlockItem(state.getBlock(), entity.stack.getDamage(), entity.getBrightnessAtEyes(delta));
-				}
+				BHBlockRenderer renderer = BHAPIClient.getBlockRenderer();
+				bhapi_itemView.setBlockState(state);
+				renderer.setView(bhapi_itemView);
+				renderer.renderItem(state, this.coloriseItem, entity.getBrightnessAtEyes(delta));
 				
 				GL11.glPopMatrix();
 			}

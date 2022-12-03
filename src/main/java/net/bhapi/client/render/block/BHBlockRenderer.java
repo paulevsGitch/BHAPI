@@ -1,6 +1,7 @@
 package net.bhapi.client.render.block;
 
 import net.bhapi.blockstate.BlockState;
+import net.bhapi.client.BHAPIClient;
 import net.bhapi.client.render.texture.TextureSample;
 import net.bhapi.client.render.texture.Textures;
 import net.bhapi.level.BlockStateProvider;
@@ -22,7 +23,6 @@ import net.minecraft.block.technical.MagicBedNumbers;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.render.GameRenderer;
 import net.minecraft.client.render.Tessellator;
-import net.minecraft.client.render.block.BlockRenderer;
 import net.minecraft.level.BlockView;
 import net.minecraft.util.maths.MathHelper;
 import net.minecraft.util.maths.Vec3f;
@@ -37,120 +37,125 @@ public class BHBlockRenderer {
 		new PermutationTable(1),
 		new PermutationTable(2)
 	};
-	private static final List<BlockRenderingFunction> RENDER_FUNCTIONS = new ArrayList<>();
-	private static BlockRenderer renderer;
-	private static BlockView blockView;
+	private final List<BlockRenderingFunction> renderingFunctions = new ArrayList<>();
+	private BlockView blockView;
 	
-	static {
-		RENDER_FUNCTIONS.add(BHBlockRenderer::renderFullCube);
-		RENDER_FUNCTIONS.add(BHBlockRenderer::renderCross);
-		RENDER_FUNCTIONS.add(BHBlockRenderer::renderTorch);
-		RENDER_FUNCTIONS.add(BHBlockRenderer::renderFire);
-		RENDER_FUNCTIONS.add(BHBlockRenderer::renderFluid);
-		RENDER_FUNCTIONS.add(BHBlockRenderer::renderRedstoneDust);
-		RENDER_FUNCTIONS.add(BHBlockRenderer::renderCrops);
-		RENDER_FUNCTIONS.add(BHBlockRenderer::renderDoor);
-		RENDER_FUNCTIONS.add(BHBlockRenderer::renderLadder);
-		RENDER_FUNCTIONS.add(BHBlockRenderer::renderRails);
-		RENDER_FUNCTIONS.add(BHBlockRenderer::renderStairs);
-		RENDER_FUNCTIONS.add(BHBlockRenderer::renderFence);
-		RENDER_FUNCTIONS.add(BHBlockRenderer::renderLever);
-		RENDER_FUNCTIONS.add(BHBlockRenderer::renderCactus);
-		RENDER_FUNCTIONS.add(BHBlockRenderer::renderBed);
-		RENDER_FUNCTIONS.add(BHBlockRenderer::renderRedstoneRepeater);
-		RENDER_FUNCTIONS.add(BHBlockRenderer::renderPiston);
-		RENDER_FUNCTIONS.add(BHBlockRenderer::renderPistonHead);
+	public BHBlockRenderer() {
+		renderingFunctions.add(this::renderFullCube);
+		renderingFunctions.add(this::renderCross);
+		renderingFunctions.add(this::renderTorch);
+		renderingFunctions.add(this::renderFire);
+		renderingFunctions.add(this::renderFluid);
+		renderingFunctions.add(this::renderRedstoneDust);
+		renderingFunctions.add(this::renderCrops);
+		renderingFunctions.add(this::renderDoor);
+		renderingFunctions.add(this::renderLadder);
+		renderingFunctions.add(this::renderRails);
+		renderingFunctions.add(this::renderStairs);
+		renderingFunctions.add(this::renderFence);
+		renderingFunctions.add(this::renderLever);
+		renderingFunctions.add(this::renderCactus);
+		renderingFunctions.add(this::renderBed);
+		renderingFunctions.add(this::renderRedstoneRepeater);
+		renderingFunctions.add(this::renderPiston);
+		renderingFunctions.add(this::renderPistonHead);
 	}
 	
-	private static boolean mirrorTexture = false;
-	private static boolean renderAllSides = false;
-	public static boolean itemColorEnabled = true;
-	private static int eastFaceRotation = 0;
-	private static int westFaceRotation = 0;
-	private static int southFaceRotation = 0;
-	private static int northFaceRotation = 0;
-	private static int topFaceRotation = 0;
-	private static int bottomFaceRotation = 0;
-	private static boolean shadeTopFace;
-	private static float brightnessMiddle;
-	private static float brightnessNorth;
-	private static float brightnessBottom;
-	private static float brightnessEast;
-	private static float brightnessSouth;
-	private static float brightnessTop;
-	private static float brightnessWest;
-	private static float brightnessBottomNorthEast;
-	private static float brightnessBottomNorth;
-	private static float brightnessBottomNorthWest;
-	private static float brightnessBottomEast;
-	private static float brightnessBottomWest;
-	private static float brightnessBottomSouthEast;
-	private static float brightnessBottomSouth;
-	private static float brightnessBottomSouthWest;
-	private static float brightnessTopNorthEast;
-	private static float brightnessTopNorth;
-	private static float brightnessTopNorthWest;
-	private static float brightnessTopEast;
-	private static float brightnessTopSouthEast;
-	private static float brightnessTopSouth;
-	private static float brightnessTopWest;
-	private static float brightnessTopSouthWest;
-	private static float brightnessNorthEast;
-	private static float brightnessSouthEast;
-	private static float brightnessNorthWest;
-	private static float brightnessSouthWest;
-	private static float colorRed00;
-	private static float colorRed01;
-	private static float colurRed11;
-	private static float colorRed10;
-	private static float colorGreen00;
-	private static float colorGreen01;
-	private static float colorGreen11;
-	private static float colorGreen10;
-	private static float colorBlue00;
-	private static float colorBlue01;
-	private static float colorBlue11;
-	private static float colorBlue10;
-	private static boolean allowsGrassUnderTopEast;
-	private static boolean allowsGrassUnderTopSouth;
-	private static boolean allowsGrassUnderTopNorth;
-	private static boolean allowsGrassUnderTopWest;
-	private static boolean allowsGrassUnderNorthEast;
-	private static boolean allowsGrassUnderSouthWest;
-	private static boolean allowsGrassUnderNorthWest;
-	private static boolean allowsGrassUnderSouthEast;
-	private static boolean allowsGrassUnderBottomEast;
-	private static boolean allowsGrassUnderBottomSouth;
-	private static boolean allowsGrassUnderBottomNorth;
-	private static boolean allowsGrassUnderBottomWest;
-	private static final boolean fancyGraphics = true;
-	private static boolean breaking = false;
-	private static boolean item = false;
+	private boolean mirrorTexture = false;
+	private boolean renderAllSides = false;
+	public boolean itemColorEnabled = true;
+	private int eastFaceRotation = 0;
+	private int westFaceRotation = 0;
+	private int southFaceRotation = 0;
+	private int northFaceRotation = 0;
+	private int topFaceRotation = 0;
+	private int bottomFaceRotation = 0;
+	private boolean shadeTopFace;
+	private float brightnessMiddle;
+	private float brightnessNorth;
+	private float brightnessBottom;
+	private float brightnessEast;
+	private float brightnessSouth;
+	private float brightnessTop;
+	private float brightnessWest;
+	private float brightnessBottomNorthEast;
+	private float brightnessBottomNorth;
+	private float brightnessBottomNorthWest;
+	private float brightnessBottomEast;
+	private float brightnessBottomWest;
+	private float brightnessBottomSouthEast;
+	private float brightnessBottomSouth;
+	private float brightnessBottomSouthWest;
+	private float brightnessTopNorthEast;
+	private float brightnessTopNorth;
+	private float brightnessTopNorthWest;
+	private float brightnessTopEast;
+	private float brightnessTopSouthEast;
+	private float brightnessTopSouth;
+	private float brightnessTopWest;
+	private float brightnessTopSouthWest;
+	private float brightnessNorthEast;
+	private float brightnessSouthEast;
+	private float brightnessNorthWest;
+	private float brightnessSouthWest;
+	private float colorRed00;
+	private float colorRed01;
+	private float colurRed11;
+	private float colorRed10;
+	private float colorGreen00;
+	private float colorGreen01;
+	private float colorGreen11;
+	private float colorGreen10;
+	private float colorBlue00;
+	private float colorBlue01;
+	private float colorBlue11;
+	private float colorBlue10;
+	private boolean allowsGrassUnderTopEast;
+	private boolean allowsGrassUnderTopSouth;
+	private boolean allowsGrassUnderTopNorth;
+	private boolean allowsGrassUnderTopWest;
+	private boolean allowsGrassUnderNorthEast;
+	private boolean allowsGrassUnderSouthWest;
+	private boolean allowsGrassUnderNorthWest;
+	private boolean allowsGrassUnderSouthEast;
+	private boolean allowsGrassUnderBottomEast;
+	private boolean allowsGrassUnderBottomSouth;
+	private boolean allowsGrassUnderBottomNorth;
+	private boolean allowsGrassUnderBottomWest;
+	private boolean breaking = false;
+	private boolean item = false;
 	
-	private static final Vec3F itemColor = new Vec3F();
+	private final Vec3F itemColor = new Vec3F();
 	
-	public static boolean isImplemented(int renderType) {
-		return renderType >= 0 && renderType < RENDER_FUNCTIONS.size();
+	public void setView(BlockView view) {
+		this.blockView = view;
 	}
 	
-	public static void setRenderer(BlockView view, BlockRenderer renderer) {
-		BHBlockRenderer.renderer = renderer;
-		BHBlockRenderer.blockView = view;
-	}
-	
-	public static void renderBlockBreak(BlockState state, int x, int y, int z) {
+	public void renderBlockBreak(BlockState state, int x, int y, int z) {
 		breaking = true;
 		render(state, x, y, z);
 		breaking = false;
 	}
 	
-	public static void renderAllSides(BlockState state, int x, int y, int z) {
+	public void renderAllSides(BlockState state, int x, int y, int z) {
 		renderAllSides = true;
 		render(state, x, y, z);
 		renderAllSides = false;
 	}
 	
-	public static void renderItem(BlockState state, boolean colorizeItem, float light) {
+	public void renderPistonHeadAllSides(BlockState state, int x, int y, int z, boolean extended) {
+		this.renderAllSides = true;
+		this.renderPistonHead(state, x, y, z, extended);
+		this.renderAllSides = false;
+	}
+	
+	public void renderPistonExtended(BlockState state, int x, int y, int z) {
+		this.renderAllSides = true;
+		this.renderPiston(state, x, y, z, true);
+		this.renderAllSides = false;
+	}
+	
+	public void renderItem(BlockState state, boolean colorizeItem, float light) {
 		GL11.glTranslatef(-0.5F, -0.5F, -0.5F);
 		
 		Tessellator tessellator = Tessellator.INSTANCE;
@@ -173,25 +178,26 @@ public class BHBlockRenderer {
 		tessellator.draw();
 	}
 	
-	public static boolean render(BlockState state, int x, int y, int z) {
+	public boolean render(BlockState state, int x, int y, int z) {
 		state.getBlock().updateBoundingBox(blockView, x, y, z);
 		byte type = state.getRenderType(blockView, x, y, z);
 		if (type == BlockRenderTypes.EMPTY) return false;
-		if (type < RENDER_FUNCTIONS.size()) {
-			return RENDER_FUNCTIONS.get(type).render(state, x, y, z);
+		if (type < renderingFunctions.size()) {
+			return renderingFunctions.get(type).render(state, x, y, z);
 		}
 		if (type == BlockRenderTypes.CUSTOM) return true; // TODO make custom rendering
-		else if (BlockRenderTypes.isVanilla(type)) {
-			return renderer.render(state.getBlock(), x, y, z);
-		}
 		return false;
 	}
 	
-	private static float getBrightness(BaseBlock block, int x, int y, int z) {
+	private float getBrightness(BaseBlock block, int x, int y, int z) {
 		return item ? 1.0F : block.getBrightness(blockView, x, y, z);
 	}
 	
-	private static boolean renderFullCube(BlockState state, int x, int y, int z) {
+	private boolean isFancy() {
+		return BHAPIClient.getMinecraft().options.fancyGraphics;
+	}
+	
+	private boolean renderFullCube(BlockState state, int x, int y, int z) {
 		float r, g, b;
 		if (item) {
 			r = itemColor.x; g = itemColor.y; b = itemColor.z;
@@ -219,7 +225,7 @@ public class BHBlockRenderer {
 		return renderCubeFast(state, x, y, z, r, g, b);
 	}
 	
-	private static boolean renderCubeSmooth(BlockState state, int x, int y, int z, float f, float g, float h) {
+	private boolean renderCubeSmooth(BlockState state, int x, int y, int z, float f, float g, float h) {
 		BaseBlock block = state.getBlock();
 		
 		shadeTopFace = true;
@@ -393,7 +399,7 @@ public class BHBlockRenderer {
 			colorGreen10 *= f5;
 			colorBlue10 *= f5;
 			renderEastFace(block, x, y, z, state.getTextureForIndex(blockView, x, y, z, 2));
-			if (fancyGraphics && block == BaseBlock.GRASS && !breaking && block.getTextureForSide(blockView, x, y, z, 2) != 68) {
+			if (isFancy() && block == BaseBlock.GRASS && !breaking && block.getTextureForSide(blockView, x, y, z, 2) != 68) {
 				colorRed00 *= f;
 				colorRed01 *= f;
 				colurRed11 *= f;
@@ -451,7 +457,7 @@ public class BHBlockRenderer {
 			colorGreen10 *= f5;
 			colorBlue10 *= f5;
 			renderWestFace(block, x, y, z, state.getTextureForIndex(blockView, x, y, z, 3));
-			if (fancyGraphics && block == BaseBlock.GRASS && !breaking && block.getTextureForSide(blockView, x, y, z, 2) != 68) {
+			if (isFancy() && block == BaseBlock.GRASS && !breaking && block.getTextureForSide(blockView, x, y, z, 2) != 68) {
 				colorRed00 *= f;
 				colorRed01 *= f;
 				colurRed11 *= f;
@@ -509,7 +515,7 @@ public class BHBlockRenderer {
 			colorGreen10 *= f5;
 			colorBlue10 *= f5;
 			renderNorthFace(block, x, y, z, state.getTextureForIndex(blockView, x, y, z, 4));
-			if (fancyGraphics && block == BaseBlock.GRASS && !breaking && block.getTextureForSide(blockView, x, y, z, 2) != 68) {
+			if (isFancy() && block == BaseBlock.GRASS && !breaking && block.getTextureForSide(blockView, x, y, z, 2) != 68) {
 				colorRed00 *= f;
 				colorRed01 *= f;
 				colurRed11 *= f;
@@ -567,7 +573,7 @@ public class BHBlockRenderer {
 			colorGreen10 *= f5;
 			colorBlue10 *= f5;
 			renderSouthFace(block, x, y, z, state.getTextureForIndex(blockView, x, y, z, 5));
-			if (fancyGraphics && block == BaseBlock.GRASS && !breaking && block.getTextureForSide(blockView, x, y, z, 2) != 68) {
+			if (isFancy() && block == BaseBlock.GRASS && !breaking && block.getTextureForSide(blockView, x, y, z, 2) != 68) {
 				colorRed00 *= f;
 				colorRed01 *= f;
 				colurRed11 *= f;
@@ -589,7 +595,7 @@ public class BHBlockRenderer {
 		return result;
 	}
 	
-	private static boolean renderCubeFast(BlockState state, int x, int y, int z, float r, float g, float b) {
+	private boolean renderCubeFast(BlockState state, int x, int y, int z, float r, float g, float b) {
 		BaseBlock block = state.getBlock();
 		float light;
 		shadeTopFace = false;
@@ -656,7 +662,7 @@ public class BHBlockRenderer {
 			tessellator.color(ewR * light, ewG * light, ewB * light);
 			if (item) tessellator.setNormal(0.0f, 0.0f, -1.0f);
 			renderEastFace(block, x, y, z, state.getTextureForIndex(blockView, x, y, z, 2));
-			if (fancyGraphics && block == BaseBlock.GRASS && !breaking) {
+			if (isFancy() && block == BaseBlock.GRASS && !breaking) {
 				tessellator.color(ewR * light * r, ewG * light * g, ewB * light * b);
 				renderEastFace(block, x, y, z, Textures.getVanillaBlockSample(38));
 			}
@@ -673,7 +679,7 @@ public class BHBlockRenderer {
 			if (item) tessellator.setNormal(0.0f, 0.0f, 1.0f);
 			renderWestFace(block, x, y, z, state.getTextureForIndex(blockView, x, y, z, 3));
 			
-			if (fancyGraphics && block == BaseBlock.GRASS && !breaking) {
+			if (isFancy() && block == BaseBlock.GRASS && !breaking) {
 				tessellator.color(ewR * light * r, ewG * light * g, ewB * light * b);
 				renderWestFace(block, x, y, z, Textures.getVanillaBlockSample(38));
 			}
@@ -689,7 +695,7 @@ public class BHBlockRenderer {
 			tessellator.color(nsR * light, nsG * light, nsB * light);
 			if (item) tessellator.setNormal(-1.0f, 0.0f, 0.0f);
 			renderNorthFace(block, x, y, z, state.getTextureForIndex(blockView, x, y, z, 4));
-			if (fancyGraphics && block == BaseBlock.GRASS && !breaking) {
+			if (isFancy() && block == BaseBlock.GRASS && !breaking) {
 				tessellator.color(nsR * light * r, nsG * light * g, nsB * light * b);
 				renderNorthFace(block, x, y, z, Textures.getVanillaBlockSample(38));
 			}
@@ -704,7 +710,7 @@ public class BHBlockRenderer {
 			tessellator.color(nsR * light, nsG * light, nsB * light);
 			if (item) tessellator.setNormal(1.0f, 0.0f, 0.0f);
 			renderSouthFace(block, x, y, z, state.getTextureForIndex(blockView, x, y, z, 5));
-			if (fancyGraphics && block == BaseBlock.GRASS && !breaking) {
+			if (isFancy() && block == BaseBlock.GRASS && !breaking) {
 				tessellator.color(nsR * light * r, nsG * light * g, nsB * light * b);
 				renderSouthFace(block, x, y, z, Textures.getVanillaBlockSample(38));
 			}
@@ -714,7 +720,7 @@ public class BHBlockRenderer {
 		return result;
 	}
 	
-	private static void renderBottomFace(BaseBlock block, double x, double y, double z, TextureSample sample) {
+	private void renderBottomFace(BaseBlock block, double x, double y, double z, TextureSample sample) {
 		Tessellator tessellator = Tessellator.INSTANCE;
 		
 		float u11, u12, v11, v12;
@@ -800,7 +806,7 @@ public class BHBlockRenderer {
 		}
 	}
 	
-	private static void renderTopFace(BaseBlock block, double x, double y, double z, TextureSample sample) {
+	private void renderTopFace(BaseBlock block, double x, double y, double z, TextureSample sample) {
 		Tessellator tessellator = Tessellator.INSTANCE;
 		float u11, u12, v11, v12;
 		
@@ -829,45 +835,6 @@ public class BHBlockRenderer {
 			u2v2.set(u12, v12);
 		}
 		
-		/*if (topFaceRotation == 1) {
-			u11 = ((double) n + block.minZ * 16.0) / 256.0;
-			v11 = ((double)(n2 + 16) - block.maxX * 16.0) / 256.0;
-			u12 = ((double)n + block.maxZ * 16.0) / 256.0;
-			v12 = ((double)(n2 + 16) - block.minX * 16.0) / 256.0;
-			u22 = u12;
-			u21 = u11;
-			v21 = v11;
-			v22 = v12;
-			u22 = u11;
-			u21 = u12;
-			v11 = v12;
-			v12 = v21;
-		}
-		else if (topFaceRotation == 2) {
-			u11 = ((double)(n + 16) - block.maxZ * 16.0) / 256.0;
-			v11 = ((double)n2 + block.minX * 16.0) / 256.0;
-			u12 = ((double)(n + 16) - block.minZ * 16.0) / 256.0;
-			v12 = ((double)n2 + block.maxX * 16.0) / 256.0;
-			u22 = u12;
-			u21 = u11;
-			v21 = v11;
-			v22 = v12;
-			u11 = u22;
-			u12 = u21;
-			v21 = v12;
-			v22 = v11;
-		}
-		else if (topFaceRotatioblock == BaseBlock.GRASS) {
-			u11 = ((double)(n + 16) - block.minX * 16.0) / 256.0;
-			u12 = ((double)(n + 16) - block.maxX * 16.0 - 0.01) / 256.0;
-			v11 = ((double)(n2 + 16) - block.minZ * 16.0) / 256.0;
-			v12 = ((double)(n2 + 16) - block.maxZ * 16.0 - 0.01) / 256.0;
-			u22 = u12;
-			u21 = u11;
-			v21 = v11;
-			v22 = v12;
-		}*/
-		
 		double x1 = x + block.minX;
 		double x2 = x + block.maxX;
 		double y2 = y + block.maxY;
@@ -892,7 +859,7 @@ public class BHBlockRenderer {
 		}
 	}
 	
-	private static void renderEastFace(BaseBlock block, double x, double y, double z, TextureSample sample) {
+	private void renderEastFace(BaseBlock block, double x, double y, double z, TextureSample sample) {
 		Tessellator tessellator = Tessellator.INSTANCE;
 		
 		float u11, u12, v11, v12;
@@ -988,7 +955,7 @@ public class BHBlockRenderer {
 		}
 	}
 	
-	private static void renderWestFace(BaseBlock block, double x, double y, double z, TextureSample sample) {
+	private void renderWestFace(BaseBlock block, double x, double y, double z, TextureSample sample) {
 		Tessellator tessellator = Tessellator.INSTANCE;
 		
 		float u11, u12, v11, v12;
@@ -1091,7 +1058,7 @@ public class BHBlockRenderer {
 		}
 	}
 	
-	private static void renderNorthFace(BaseBlock block, double x, double y, double z, TextureSample sample) {
+	private void renderNorthFace(BaseBlock block, double x, double y, double z, TextureSample sample) {
 		Tessellator tessellator = Tessellator.INSTANCE;
 		
 		float u11, u12, v11, v12;
@@ -1189,7 +1156,7 @@ public class BHBlockRenderer {
 		}
 	}
 	
-	private static void renderSouthFace(BaseBlock block, double x, double y, double z, TextureSample sample) {
+	private void renderSouthFace(BaseBlock block, double x, double y, double z, TextureSample sample) {
 		Tessellator tessellator = Tessellator.INSTANCE;
 		
 		float u11, u12, v11, v12;
@@ -1287,7 +1254,7 @@ public class BHBlockRenderer {
 		}
 	}
 	
-	private static boolean renderCross(BlockState state, int x, int y, int z) {
+	private boolean renderCross(BlockState state, int x, int y, int z) {
 		Tessellator tessellator = Tessellator.INSTANCE;
 		BaseBlock block = state.getBlock();
 		float light = getBrightness(block, x, y, z);
@@ -1321,7 +1288,7 @@ public class BHBlockRenderer {
 		return true;
 	}
 	
-	private static void renderCross(double x, double y, double z, TextureSample sample) {
+	private void renderCross(double x, double y, double z, TextureSample sample) {
 		Tessellator tessellator = Tessellator.INSTANCE;
 		
 		float u1, u2, v1, v2;
@@ -1360,7 +1327,7 @@ public class BHBlockRenderer {
 		tessellator.vertex(x1, y + 1.0, z2, u2, v1);
 	}
 	
-	private static boolean renderTorch(BlockState state, int x, int y, int z) {
+	private boolean renderTorch(BlockState state, int x, int y, int z) {
 		int meta = state.getMeta();
 		BaseBlock block = state.getBlock();
 		Tessellator tessellator = Tessellator.INSTANCE;
@@ -1389,7 +1356,7 @@ public class BHBlockRenderer {
 		return true;
 	}
 	
-	private static void renderTorchSkewed(double x, double y, double z, double dx, double dz, TextureSample sample) {
+	private void renderTorchSkewed(double x, double y, double z, double dx, double dz, TextureSample sample) {
 		Tessellator tessellator = Tessellator.INSTANCE;
 		
 		float u11 = sample.getU(0);
@@ -1436,7 +1403,7 @@ public class BHBlockRenderer {
 		tessellator.vertex(x2, y + 1.0, z - 0.0625, u12, v11);
 	}
 	
-	private static boolean renderFire(BlockState state, int x, int y, int z) {
+	private boolean renderFire(BlockState state, int x, int y, int z) {
 		BaseBlock block = state.getBlock();
 		Tessellator tessellator = Tessellator.INSTANCE;
 		
@@ -1634,7 +1601,7 @@ public class BHBlockRenderer {
 		return true;
 	}
 	
-	private static boolean renderFluid(BlockState state, int x, int y, int z) {
+	private boolean renderFluid(BlockState state, int x, int y, int z) {
 		BaseBlock block = state.getBlock();
 		
 		Tessellator tessellator = Tessellator.INSTANCE;
@@ -1663,11 +1630,10 @@ public class BHBlockRenderer {
 		double d2 = 1.0;
 		
 		Material material = block.material;
-		int meta = blockView.getBlockMeta(x, y, z);
-		float h1 = getFluidHeight(x, y, z, material);
-		float h2 = getFluidHeight(x, y, z + 1, material);
-		float h3 = getFluidHeight(x + 1, y, z + 1, material);
-		float h4 = getFluidHeight(x + 1, y, z, material);
+		float h1 = getFluidHeight(x, y, z, material, state.getMeta());
+		float h2 = getFluidHeight(x, y, z + 1, material, state.getMeta());
+		float h3 = getFluidHeight(x + 1, y, z + 1, material, state.getMeta());
+		float h4 = getFluidHeight(x + 1, y, z, material, state.getMeta());
 		
 		if (renderAllSides || renderTop) {
 			float angle = (float) FluidBlock.getFluidAngle(blockView, x, y, z, material);
@@ -1782,7 +1748,7 @@ public class BHBlockRenderer {
 		return result;
 	}
 	
-	private static float getFluidHeight(int x, int y, int z, Material material) {
+	private float getFluidHeight(int x, int y, int z, Material material, int meta) {
 		int iteration = 0;
 		float offset = 0.0f;
 		
@@ -1798,7 +1764,6 @@ public class BHBlockRenderer {
 			Material levelMaterial = blockView.getMaterial(px, py, pz);
 			
 			if (material == levelMaterial) {
-				int meta = blockView.getBlockMeta(px, py, pz);
 				if (meta >= 8 || meta == 0) {
 					offset += FluidBlock.getVisualHeight(meta) * 10.0f;
 					iteration += 10;
@@ -1816,12 +1781,11 @@ public class BHBlockRenderer {
 		return 1.0f - offset / (float) iteration;
 	}
 	
-	private static boolean renderRedstoneDust(BlockState state, int x, int y, int z) {
+	private boolean renderRedstoneDust(BlockState state, int x, int y, int z) {
 		BaseBlock block = state.getBlock();
 		
 		Tessellator tessellator = Tessellator.INSTANCE;
-		int meta = blockView.getBlockMeta(x, y, z);
-		int n2 = block.getTextureForSide(1, meta);
+		int meta = state.getMeta();
 		
 		float light = block.getBrightness(blockView, x, y, z);
 		float power = (float) meta / 15.0f;
@@ -1952,18 +1916,18 @@ public class BHBlockRenderer {
 		return true;
 	}
 	
-	private static boolean renderCrops(BlockState state, int x, int y, int z) {
+	private boolean renderCrops(BlockState state, int x, int y, int z) {
 		BaseBlock block = state.getBlock();
 		float light = getBrightness(block, x, y, z);
 		Tessellator tessellator = Tessellator.INSTANCE;
 		tessellator.color(light, light, light);
-		int meta = blockView.getBlockMeta(x, y, z);
+		int meta = state.getMeta();
 		TextureSample sample = state.getTextureForIndex(blockView, x, y, z, meta);
 		renderCrop(x, y - 0.0625f, z, sample);
 		return true;
 	}
 	
-	private static void renderCrop(double x, double y, double z, TextureSample sample) {
+	private void renderCrop(double x, double y, double z, TextureSample sample) {
 		Tessellator tessellator = Tessellator.INSTANCE;
 		
 		float u1 = sample.getU(0);
@@ -2016,7 +1980,7 @@ public class BHBlockRenderer {
 		tessellator.vertex(x2, y + 1.0, z2, u2, v1);
 	}
 	
-	private static boolean renderDoor(BlockState state, int x, int y, int z) {
+	private boolean renderDoor(BlockState state, int x, int y, int z) {
 		BaseBlock block = state.getBlock();
 		Tessellator tessellator = Tessellator.INSTANCE;
 		DoorBlock doorBlock = (DoorBlock) block;
@@ -2142,14 +2106,14 @@ public class BHBlockRenderer {
 		return true;
 	}
 	
-	private static boolean renderLadder(BlockState state, int x, int y, int z) {
+	private boolean renderLadder(BlockState state, int x, int y, int z) {
 		BaseBlock block = state.getBlock();
 		Tessellator tessellator = Tessellator.INSTANCE;
 		
 		float light = block.getBrightness(blockView, x, y, z);
 		tessellator.color(light, light, light);
 		
-		int meta = blockView.getBlockMeta(x, y, z);
+		int meta = state.getMeta();
 		float u1, u2, v1, v2;
 		if (breaking) {
 			boolean dirZ = meta > 3;
@@ -2200,11 +2164,11 @@ public class BHBlockRenderer {
 		return true;
 	}
 	
-	private static boolean renderRails(BlockState state, int x, int y, int z) {
+	private boolean renderRails(BlockState state, int x, int y, int z) {
 		RailBlock arg = (RailBlock) state.getBlock();
 		Tessellator tessellator = Tessellator.INSTANCE;
 		
-		int meta = blockView.getBlockMeta(x, y, z);
+		int meta = state.getMeta();
 		if (arg.wrapMeta()) {
 			meta &= 7;
 		}
@@ -2273,11 +2237,11 @@ public class BHBlockRenderer {
 		return true;
 	}
 	
-	private static boolean renderStairs(BlockState state, int i, int j, int k) {
+	private boolean renderStairs(BlockState state, int i, int j, int k) {
 		BaseBlock block = state.getBlock();
 		boolean result = false;
 		
-		int meta = blockView.getBlockMeta(i, j, k);
+		int meta = state.getMeta();
 		if (meta == 0) {
 			block.setBoundingBox(0.0f, 0.0f, 0.0f, 0.5f, 0.5f, 1.0f);
 			renderFullCube(state, i, j, k);
@@ -2311,7 +2275,7 @@ public class BHBlockRenderer {
 		return result;
 	}
 	
-	private static boolean renderFence(BlockState state, int x, int y, int z) {
+	private boolean renderFence(BlockState state, int x, int y, int z) {
 		BaseBlock block = state.getBlock();
 		block.setBoundingBox(0.375f, 0.0f, 0.375f, 0.625f, 1.0f, 0.625f);
 		renderFullCube(state, x, y, z);
@@ -2357,11 +2321,11 @@ public class BHBlockRenderer {
 		return true;
 	}
 	
-	private static boolean renderLever(BlockState state, int x, int y, int z) {
+	private boolean renderLever(BlockState state, int x, int y, int z) {
 		BaseBlock block = state.getBlock();
 		
 		boolean bl;
-		int meta = blockView.getBlockMeta(x, y, z);
+		int meta = state.getMeta();
 		int wrappedMeta = meta & 7;
 		boolean isActive = (meta & 8) > 0;
 		
@@ -2535,7 +2499,7 @@ public class BHBlockRenderer {
 		return true;
 	}
 	
-	private static boolean renderCactus(BlockState state, int i, int j, int k) {
+	private boolean renderCactus(BlockState state, int i, int j, int k) {
 		BaseBlock block = state.getBlock();
 		int color = block.getColorMultiplier(blockView, i, j, k);
 		float r = (float) (color >> 16 & 0xFF) / 255.0f;
@@ -2554,7 +2518,7 @@ public class BHBlockRenderer {
 		return renderCactusBlock(state, block, i, j, k, r, g, b);
 	}
 	
-	private static boolean renderCactusBlock(BlockState state, BaseBlock block, int x, int y, int z, float r, float g, float b) {
+	private boolean renderCactusBlock(BlockState state, BaseBlock block, int x, int y, int z, float r, float g, float b) {
 		float r1 = item ? r : 0.5f * r;
 		float r2 = item ? r : 0.8f * r;
 		float r3 = item ? r : 0.6f * r;
@@ -2645,7 +2609,7 @@ public class BHBlockRenderer {
 		return result;
 	}
 	
-	private static boolean renderBed(BlockState state, int x, int y, int z) {
+	private boolean renderBed(BlockState state, int x, int y, int z) {
 		BaseBlock arg = state.getBlock();
 		Tessellator tessellator = Tessellator.INSTANCE;
 		
@@ -2799,7 +2763,7 @@ public class BHBlockRenderer {
 		return true;
 	}
 	
-	private static boolean renderRedstoneRepeater(BlockState state, int x, int y, int z) {
+	private boolean renderRedstoneRepeater(BlockState state, int x, int y, int z) {
 		BaseBlock block = state.getBlock();
 		int meta = state.getMeta();
 		int wrappedMeta = meta & 3;
@@ -2889,11 +2853,11 @@ public class BHBlockRenderer {
 		return true;
 	}
 	
-	private static boolean renderPiston(BlockState state, int x, int y, int z) {
+	private boolean renderPiston(BlockState state, int x, int y, int z) {
 		return renderPiston(state, x, y, z, false);
 	}
 	
-	private static boolean renderPiston(BlockState state, int x, int y, int z, boolean extend) {
+	private boolean renderPiston(BlockState state, int x, int y, int z, boolean extend) {
 		BaseBlock block = state.getBlock();
 		int meta = state.getMeta();
 		boolean extended = extend || (meta & 8) != 0;
@@ -2991,11 +2955,11 @@ public class BHBlockRenderer {
 		return true;
 	}
 	
-	private static boolean renderPistonHead(BlockState state, int x, int y, int z) {
+	private boolean renderPistonHead(BlockState state, int x, int y, int z) {
 		return renderPistonHead(state, x, y, z, true);
 	}
 	
-	private static boolean renderPistonHead(BlockState state, int x, int y, int z, boolean extended) {
+	private boolean renderPistonHead(BlockState state, int x, int y, int z, boolean extended) {
 		BaseBlock block = state.getBlock();
 		int meta = state.getMeta();
 		int offset = PistonHeadBlock.getOffsetIndex(meta);
@@ -3081,7 +3045,7 @@ public class BHBlockRenderer {
 		return true;
 	}
 	
-	private static void renderPistonHead(double x1, double x2, double y1, double y2, double z1, double z2, float light, float delta, int type) {
+	private void renderPistonHead(double x1, double x2, double y1, double y2, double z1, double z2, float light, float delta, int type) {
 		Tessellator tessellator = Tessellator.INSTANCE;
 		TextureSample sample = Textures.getVanillaBlockSample(108);
 		sample.setRotation(0);
