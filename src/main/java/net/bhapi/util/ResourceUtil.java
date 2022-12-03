@@ -3,6 +3,7 @@ package net.bhapi.util;
 import net.bhapi.storage.Resource;
 import net.fabricmc.loader.api.FabricLoader;
 import net.fabricmc.loader.api.ModContainer;
+import net.fabricmc.loader.api.metadata.ModOrigin.Kind;
 import net.fabricmc.tinyremapper.extension.mixin.common.data.Pair;
 import org.spongepowered.include.com.google.common.collect.ImmutableList;
 
@@ -99,7 +100,9 @@ public class ResourceUtil {
 	static {
 		Map<String, Integer> order = new HashMap<>();
 		Map<String, Path> locations = new HashMap<>();
-		Collection<ModContainer> list = FabricLoader.getInstance().getAllMods();
+		Collection<ModContainer> list = FabricLoader.getInstance().getAllMods().stream().filter(
+			modContainer -> modContainer.getOrigin().getKind() == Kind.PATH
+		).toList();
 		
 		list.forEach(modContainer -> {
 			order.put(modContainer.getMetadata().getId(), 0);
