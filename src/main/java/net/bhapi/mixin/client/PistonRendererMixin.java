@@ -1,6 +1,7 @@
 package net.bhapi.mixin.client;
 
 import net.bhapi.blockstate.BlockState;
+import net.bhapi.blockstate.BlockStateContainer;
 import net.bhapi.client.BHAPIClient;
 import net.bhapi.client.render.block.BHBlockRenderer;
 import net.bhapi.client.render.texture.Textures;
@@ -26,7 +27,7 @@ public class PistonRendererMixin {
 	@Inject(method = "render(Lnet/minecraft/block/entity/PistonBlockEntity;DDDF)V", at = @At("HEAD"), cancellable = true)
 	private void bhapi_render(PistonBlockEntity entity, double x, double y, double z, float delta, CallbackInfo info) {
 		info.cancel();
-		BlockState state = CommonRegistries.BLOCKSTATES_MAP.get(entity.getBlockID());
+		BlockState state = BlockStateContainer.cast(entity).getDefaultState();//CommonRegistries.BLOCKSTATES_MAP.get(entity.getBlockID());
 		if (state == null) return;
 		BaseBlock block = state.getBlock();
 		if (entity.getProgress(delta) < 1.0f) {
@@ -62,6 +63,7 @@ public class PistonRendererMixin {
 				renderer.renderPistonHeadAllSides(bhapi_headState, entity.x, entity.y, entity.z, entity.getProgress(delta) < 0.5f);
 				BaseBlock.PISTON_HEAD.resetTexture();
 				tessellator.setOffset(x - entity.x, y - entity.y, z - entity.z);
+				//state = state.withMeta(entity.level.getBlockMeta(entity.x, entity.y, entity.z));
 				renderer.renderPistonExtended(state, entity.x, entity.y, entity.z);
 			}
 			else {
