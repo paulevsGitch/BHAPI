@@ -120,6 +120,8 @@ public class ResourceUtil {
 		ImmutableList.Builder<File> builder = ImmutableList.builder();
 		builder.addAll(order.keySet().stream().map(
 			key -> Pair.of(order.get(key), locations.get(key))
+		).filter(
+			pair -> pair.first() != null && pair.second() != null
 		).sorted(
 			Comparator.comparingInt(Pair::first)
 		).map(Pair::second).map(Path::toFile).filter(File::exists).toList());
