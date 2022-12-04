@@ -1630,10 +1630,10 @@ public class BHBlockRenderer {
 		double d2 = 1.0;
 		
 		Material material = block.material;
-		float h1 = getFluidHeight(x, y, z, material, state.getMeta());
-		float h2 = getFluidHeight(x, y, z + 1, material, state.getMeta());
-		float h3 = getFluidHeight(x + 1, y, z + 1, material, state.getMeta());
-		float h4 = getFluidHeight(x + 1, y, z, material, state.getMeta());
+		float h1 = getFluidHeight(x, y, z, material);
+		float h2 = getFluidHeight(x, y, z + 1, material);
+		float h3 = getFluidHeight(x + 1, y, z + 1, material);
+		float h4 = getFluidHeight(x + 1, y, z, material);
 		
 		if (renderAllSides || renderTop) {
 			float angle = (float) FluidBlock.getFluidAngle(blockView, x, y, z, material);
@@ -1748,7 +1748,7 @@ public class BHBlockRenderer {
 		return result;
 	}
 	
-	private float getFluidHeight(int x, int y, int z, Material material, int meta) {
+	private float getFluidHeight(int x, int y, int z, Material material) {
 		int iteration = 0;
 		float offset = 0.0f;
 		
@@ -1764,6 +1764,7 @@ public class BHBlockRenderer {
 			Material levelMaterial = blockView.getMaterial(px, py, pz);
 			
 			if (material == levelMaterial) {
+				int meta = blockView.getBlockMeta(px, py, pz);
 				if (meta >= 8 || meta == 0) {
 					offset += FluidBlock.getVisualHeight(meta) * 10.0f;
 					iteration += 10;
