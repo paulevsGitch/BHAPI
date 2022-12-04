@@ -11,7 +11,7 @@ public abstract class ThreadedUpdater {
 	protected final boolean useThreads;
 	private RunnableThread updatingThread;
 	private boolean isEmpty = true;
-	private final Level level;
+	protected final Level level;
 	private final String name;
 	private long time;
 	
@@ -26,7 +26,7 @@ public abstract class ThreadedUpdater {
 	public void process() {
 		if (useThreads) {
 			if (updatingThread == null) {
-				updatingThread = ThreadManager.makeThread(name + level.dimension.id, this::update);
+				updatingThread = ThreadManager.makeThread(name + level.dimension.id, this::checkedUpdate);
 				time = System.currentTimeMillis();
 				if (!updatingThread.isAlive()) updatingThread.start();
 			}
@@ -34,11 +34,17 @@ public abstract class ThreadedUpdater {
 		else update();
 	}
 	
+	private final void checkedUpdate() {
+		update();
+		check();
+		delay();
+	}
+	
 	protected abstract void update();
 	
 	protected void onFinish() {}
 	
-	protected void delay() {
+	private void delay() {
 		if (!useThreads) return;
 		long t = System.currentTimeMillis();
 		int delta = (int) (t - time);
@@ -54,7 +60,7 @@ public abstract class ThreadedUpdater {
 		}
 	}
 	
-	protected void check() {
+	private void check() {
 		if (useThreads && BHAPI.isClient()) {
 			boolean empty = BHAPIClient.getMinecraft().viewEntity == null;
 			if (!isEmpty && empty) {

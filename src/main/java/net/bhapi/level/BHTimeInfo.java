@@ -1,7 +1,6 @@
 package net.bhapi.level;
 
 import net.bhapi.blockstate.BlockState;
-import net.bhapi.storage.Vec3F;
 import net.bhapi.storage.Vec3I;
 
 public class BHTimeInfo {

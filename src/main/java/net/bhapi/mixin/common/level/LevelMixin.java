@@ -4,10 +4,10 @@ import net.bhapi.BHAPI;
 import net.bhapi.blockstate.BlockState;
 import net.bhapi.level.BHTimeInfo;
 import net.bhapi.level.BlockStateProvider;
-import net.bhapi.level.updaters.LevelChunkUpdater;
 import net.bhapi.level.LevelHeightProvider;
-import net.bhapi.level.updaters.LevelTicksUpdater;
 import net.bhapi.level.PlaceChecker;
+import net.bhapi.level.updaters.LevelChunkUpdater;
+import net.bhapi.level.updaters.LevelTicksUpdater;
 import net.bhapi.registry.CommonRegistries;
 import net.bhapi.storage.Vec3I;
 import net.bhapi.util.BlockDirection;
@@ -56,36 +56,25 @@ public abstract class LevelMixin implements LevelHeightProvider, BlockStateProvi
 	@Shadow @Final public BaseDimension dimension;
 	@Shadow @Final protected DimensionData dimensionData;
 	@Shadow protected LevelProperties properties;
-	//@Shadow private Set tickNextTick;
-	//@Shadow private TreeSet treeSet;
 	@Shadow public boolean forceBlockUpdate;
+	@Shadow private int lightUpdateTicks;
+	@Shadow private List lightingUpdates;
+	@Shadow private static int areaUpdates;
+	@Shadow private ArrayList collidingEntitySearchCache;
+	@Shadow public boolean stopPhysics;
 	
 	@Shadow public abstract Chunk getChunkFromCache(int i, int j);
 	@Shadow public abstract boolean isAreaLoaded(int i, int j, int k, int l, int m, int n);
 	@Shadow public abstract void updateListenersLight(int i, int j, int k);
 	@Shadow public abstract void updateAdjacentBlocks(int i, int j, int k, int l);
-	
 	@Shadow public abstract Chunk getChunk(int i, int j);
-	
-	@Shadow private int lightUpdateTicks;
-	@Shadow private List lightingUpdates;
-	@Shadow private static int areaUpdates;
-	
 	@Shadow public abstract boolean isBlockLoaded(int i, int j, int k);
-	
 	@Shadow public abstract void callAreaEvents(int i, int j, int k, int l, int m, int n);
-	
 	@Shadow public abstract int getBlockMeta(int i, int j, int k);
-	
-	@Shadow private ArrayList collidingEntitySearchCache;
-	
 	@Shadow public abstract List getEntities(BaseEntity arg, Box arg2);
-	
 	@Shadow public abstract boolean canSuffocate(int i, int j, int k);
-	
 	@Shadow public abstract boolean hasInderectPower(int i, int j, int k);
 	
-	@Shadow public boolean stopPhysics;
 	@Unique private LevelChunkUpdater bhapi_chunksUpdater;
 	@Unique private LevelTicksUpdater bhapi_ticksUpdater;
 	
@@ -177,56 +166,15 @@ public abstract class LevelMixin implements LevelHeightProvider, BlockStateProvi
 			if (!state.isAir()) {
 				info.setTime((long) m + this.properties.getTime());
 			}
-			/*if (!this.tickNextTick.contains(info)) {
-				synchronized (this) {
-					this.tickNextTick.add(info);
-					this.treeSet.add(info);
-				}
-			}*/
 			bhapi_ticksUpdater.addInfo(info);
 		}
 	}
 	
-	@SuppressWarnings("unchecked")
 	@Inject(method = "processBlockTicks", at = @At("HEAD"), cancellable = true)
 	private void bhapi_processBlockTicks(boolean flag, CallbackInfoReturnable<Boolean> cir) {
-		/*int n = this.treeSet.size();
-		if (n != this.tickNextTick.size()) {
-			//throw new IllegalStateException("TickNextTick list out of synch");
-			synchronized (this) {
-				//this.treeSet.stream().filter(o -> !this.tickNextTick.contains(o)).forEach(this.tickNextTick::add);
-				//this.tickNextTick.stream().filter(o -> !this.treeSet.contains(o)).forEach(this.treeSet::add);
-				Set<TimeInfo> set = new HashSet<>();
-				synchronized (treeSet) {
-					set.addAll(this.treeSet);
-				}
-				synchronized (tickNextTick) {
-					set.addAll(this.tickNextTick);
-				}
-				synchronized (treeSet) {
-					this.treeSet.addAll(set);
-				}
-				synchronized (tickNextTick) {
-					this.tickNextTick.addAll(set);
-				}
-			}
-		}
-		if (n > 1000) {
-			n = 1000;
-		}
-		final int side = 8;
-		for (int i = 0; i < n; ++i) {
-			TimeInfo info = (TimeInfo) this.treeSet.first();
-			if (!flag && info.time > this.properties.getTime()) break;
-			this.treeSet.remove(info);
-			this.tickNextTick.remove(info);
-			if (!this.isAreaLoaded(info.posX - side, info.posY - side, info.posZ - side, info.posX + side, info.posY + side, info.posZ + side)) continue;
-			BlockState state = getBlockState(info.posX, info.posY, info.posZ);
-			state.onScheduledTick(Level.class.cast(this), info.posX, info.posY, info.posZ, this.random);
-		}
-		cir.setReturnValue(this.treeSet.size() != 0);*/
 		cir.setReturnValue(false);
-		bhapi_ticksUpdater.update(flag);
+		bhapi_ticksUpdater.setFlag(flag);
+		bhapi_ticksUpdater.process();
 	}
 	
 	@Inject(method = "updateLight()Z", at = @At("HEAD"), cancellable = true)
