@@ -2,7 +2,6 @@ package net.bhapi.level.updaters;
 
 import net.bhapi.BHAPI;
 import net.bhapi.blockstate.BlockState;
-import net.bhapi.client.BHAPIClient;
 import net.bhapi.config.BHConfigs;
 import net.bhapi.level.BlockStateProvider;
 import net.bhapi.level.ChunkSection;
@@ -14,8 +13,6 @@ import net.bhapi.storage.IncrementalPermutationTable;
 import net.bhapi.storage.PermutationTable;
 import net.bhapi.storage.Vec2I;
 import net.bhapi.storage.Vec3I;
-import net.bhapi.util.ThreadManager;
-import net.bhapi.util.ThreadManager.RunnableThread;
 import net.minecraft.block.BaseBlock;
 import net.minecraft.entity.LightningEntity;
 import net.minecraft.entity.player.PlayerBase;
@@ -33,7 +30,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-public class LevelChunkUpdater {
+public class LevelChunkUpdater extends ThreadedUpdater {
 	private static final BiomeSource FAIL_SOURCE = new FixedBiomeSource(BaseBiome.PLAINS, 0.5F, 0.5F);
 	private final List<PlayerBase> playersList = new ArrayList<>();
 	private final ExpandableCache<Vec3I> cache3D = new ExpandableCache<>(Vec3I::new);
@@ -43,26 +40,21 @@ public class LevelChunkUpdater {
 	private final BaseBiome[] biomes = new BaseBiome[1];
 	private final PermutationTable random = new IncrementalPermutationTable();
 	private final BiomeSource biomeSource;
-	private final Level level;
 	private final int height;
 	private int caveSoundTicks;
-	private RunnableThread updatingThread;
-	private boolean isEmpty = true;
-	private long time;
 	
-	private final boolean useThreads;
 	private final int updatesVertical;
 	private final int updatesHorizontal;
 	
 	public LevelChunkUpdater(Level level) {
-		this.level = level;
+		super("chunk_updater_", level);
 		LevelHeightProvider heightProvider = LevelHeightProvider.cast(level);
 		height = heightProvider.getSectionsCount();
 		caveSoundTicks = random.getInt(12000) + 6000;
 		
 		// TODO Replace this with reading biomes from chunk cache
 		if (BHAPI.isClient()) {
-			BiomeSource source = null;
+			BiomeSource source;
 			BiomeSource levelSource = level.getBiomeSource();
 			try {
 				if (levelSource instanceof FixedBiomeSource) {
@@ -79,57 +71,22 @@ public class LevelChunkUpdater {
 		}
 		else biomeSource = level.getBiomeSource(); // Weird behavior on server, missing constructors
 		
-		useThreads = BHConfigs.GENERAL.getBool("multithreading.useThreads", true);
 		updatesVertical = BHConfigs.GENERAL.getInt("updates.verticalChunks", 8);
 		updatesHorizontal = BHConfigs.GENERAL.getInt("updates.horizontalChunks", 8);
 		BHConfigs.GENERAL.save();
 	}
 	
+	@Override
 	public void process() {
 		synchronized (playersList) {
 			playersList.clear();
 			playersList.addAll(level.players);
 		}
-		if (useThreads) {
-			if (updatingThread == null) {
-				updatingThread = ThreadManager.makeThread("chunk_updater_" + level.dimension.id, this::processChunks);
-				time = System.currentTimeMillis();
-				if (!updatingThread.isAlive()) updatingThread.start();
-			}
-		}
-		else {
-			processChunks();
-		}
+		super.process();
 	}
 	
-	private void check() {
-		if (useThreads && BHAPI.isClient()) {
-			boolean empty = BHAPIClient.getMinecraft().viewEntity == null;
-			if (!isEmpty && empty) {
-				ThreadManager.stopThread(updatingThread);
-				updatingThread = null;
-			}
-			isEmpty = empty;
-		}
-	}
-	
-	private void delay() {
-		if (!useThreads) return;
-		long t = System.currentTimeMillis();
-		int delta = (int) (t - time);
-		time = t;
-		if (delta < 50) {
-			delta = 50 - delta;
-			try {
-				Thread.sleep(delta);
-			}
-			catch (InterruptedException e) {
-				e.printStackTrace();
-			}
-		}
-	}
-	
-	private void processChunks() {
+	@Override
+	protected void update() {
 		cache3D.clear();
 		cache2D.clear();
 		loadedSections.clear();
@@ -251,9 +208,6 @@ public class LevelChunkUpdater {
 				}
 			}
 		});
-		
-		check();
-		delay();
 	}
 	
 	public int getUpdatesVertical() {
