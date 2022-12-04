@@ -1,9 +1,13 @@
-package net.bhapi.level;
+package net.bhapi.level.updaters;
 
 import net.bhapi.BHAPI;
 import net.bhapi.blockstate.BlockState;
 import net.bhapi.client.BHAPIClient;
 import net.bhapi.config.BHConfigs;
+import net.bhapi.level.BlockStateProvider;
+import net.bhapi.level.ChunkSection;
+import net.bhapi.level.ChunkSectionProvider;
+import net.bhapi.level.LevelHeightProvider;
 import net.bhapi.mixin.common.level.LevelAccessor;
 import net.bhapi.storage.ExpandableCache;
 import net.bhapi.storage.IncrementalPermutationTable;
@@ -38,7 +42,6 @@ public class LevelChunkUpdater {
 	private final Set<Vec2I> loadedChunks = new HashSet<>();
 	private final BaseBiome[] biomes = new BaseBiome[1];
 	private final PermutationTable random = new IncrementalPermutationTable();
-	//private final XorShift128 random = new XorShift128();
 	private final BiomeSource biomeSource;
 	private final Level level;
 	private final int height;

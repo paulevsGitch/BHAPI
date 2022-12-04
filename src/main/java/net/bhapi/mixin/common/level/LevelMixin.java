@@ -2,9 +2,11 @@ package net.bhapi.mixin.common.level;
 
 import net.bhapi.BHAPI;
 import net.bhapi.blockstate.BlockState;
+import net.bhapi.level.BHTimeInfo;
 import net.bhapi.level.BlockStateProvider;
-import net.bhapi.level.LevelChunkUpdater;
+import net.bhapi.level.updaters.LevelChunkUpdater;
 import net.bhapi.level.LevelHeightProvider;
+import net.bhapi.level.updaters.LevelTicksUpdater;
 import net.bhapi.level.PlaceChecker;
 import net.bhapi.registry.CommonRegistries;
 import net.bhapi.storage.Vec3I;
@@ -14,7 +16,6 @@ import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
 import net.minecraft.block.BaseBlock;
 import net.minecraft.block.material.Material;
-import net.minecraft.block.technical.TimeInfo;
 import net.minecraft.entity.BaseEntity;
 import net.minecraft.level.Level;
 import net.minecraft.level.LevelProperties;
@@ -46,11 +47,8 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Random;
-import java.util.Set;
-import java.util.TreeSet;
 
 @Mixin(Level.class)
 public abstract class LevelMixin implements LevelHeightProvider, BlockStateProvider, PlaceChecker {
@@ -58,8 +56,8 @@ public abstract class LevelMixin implements LevelHeightProvider, BlockStateProvi
 	@Shadow @Final public BaseDimension dimension;
 	@Shadow @Final protected DimensionData dimensionData;
 	@Shadow protected LevelProperties properties;
-	@Shadow private Set tickNextTick;
-	@Shadow private TreeSet treeSet;
+	//@Shadow private Set tickNextTick;
+	//@Shadow private TreeSet treeSet;
 	@Shadow public boolean forceBlockUpdate;
 	
 	@Shadow public abstract Chunk getChunkFromCache(int i, int j);
@@ -88,7 +86,8 @@ public abstract class LevelMixin implements LevelHeightProvider, BlockStateProvi
 	@Shadow public abstract boolean hasInderectPower(int i, int j, int k);
 	
 	@Shadow public boolean stopPhysics;
-	@Unique private LevelChunkUpdater bhapi_updater;
+	@Unique private LevelChunkUpdater bhapi_chunksUpdater;
+	@Unique private LevelTicksUpdater bhapi_ticksUpdater;
 	
 	@Inject(
 		method = "<init>(Lnet/minecraft/level/dimension/DimensionData;Ljava/lang/String;Lnet/minecraft/level/dimension/BaseDimension;J)V",
@@ -141,7 +140,7 @@ public abstract class LevelMixin implements LevelHeightProvider, BlockStateProvi
 	@Inject(method = "processLoadedChunks", at = @At("HEAD"), cancellable = true)
 	private void bhapi_processLoadedChunks(CallbackInfo info) {
 		info.cancel();
-		bhapi_updater.process();
+		bhapi_chunksUpdater.process();
 	}
 	
 	@SuppressWarnings("unchecked")
@@ -149,22 +148,21 @@ public abstract class LevelMixin implements LevelHeightProvider, BlockStateProvi
 	private void bhapi_scheduleTick(int x, int y, int z, int id, int m, CallbackInfo ci) {
 		ci.cancel();
 		
-		final int updatesVertical = bhapi_updater.getUpdatesVertical();
-		final int updatesHorizontal = bhapi_updater.getUpdatesHorizontal();
+		final int updatesVertical = bhapi_chunksUpdater.getUpdatesVertical();
+		final int updatesHorizontal = bhapi_chunksUpdater.getUpdatesHorizontal();
 		
-		TimeInfo info = new TimeInfo(x, y, z, id);
+		BlockState state = getBlockState(x, y, z);
 		
 		if (this.forceBlockUpdate) {
 			if (this.isAreaLoaded(
-				info.posX - updatesHorizontal,
-				info.posY - updatesVertical,
-				info.posZ - updatesHorizontal,
-				info.posX + updatesHorizontal,
-				info.posY + updatesVertical,
-				info.posZ + updatesHorizontal)
+				x - updatesHorizontal,
+				y - updatesVertical,
+				z - updatesHorizontal,
+				x + updatesHorizontal,
+				y + updatesVertical,
+				z + updatesHorizontal)
 			) {
-				BlockState state = getBlockState(info.posX, info.posY, info.posZ);
-				state.onScheduledTick(Level.class.cast(this), info.posX, info.posY, info.posZ, this.random);
+				state.onScheduledTick(Level.class.cast(this), x, y, z, this.random);
 			}
 		}
 		else if (this.isAreaLoaded(
@@ -175,23 +173,24 @@ public abstract class LevelMixin implements LevelHeightProvider, BlockStateProvi
 			y + updatesVertical,
 			z + updatesHorizontal)
 		) {
-			BlockState state = getBlockState(x, y, z);
+			BHTimeInfo info = new BHTimeInfo(x, y, z, state);
 			if (!state.isAir()) {
 				info.setTime((long) m + this.properties.getTime());
 			}
-			if (!this.tickNextTick.contains(info)) {
+			/*if (!this.tickNextTick.contains(info)) {
 				synchronized (this) {
 					this.tickNextTick.add(info);
 					this.treeSet.add(info);
 				}
-			}
+			}*/
+			bhapi_ticksUpdater.addInfo(info);
 		}
 	}
 	
 	@SuppressWarnings("unchecked")
 	@Inject(method = "processBlockTicks", at = @At("HEAD"), cancellable = true)
 	private void bhapi_processBlockTicks(boolean flag, CallbackInfoReturnable<Boolean> cir) {
-		int n = this.treeSet.size();
+		/*int n = this.treeSet.size();
 		if (n != this.tickNextTick.size()) {
 			//throw new IllegalStateException("TickNextTick list out of synch");
 			synchronized (this) {
@@ -225,7 +224,9 @@ public abstract class LevelMixin implements LevelHeightProvider, BlockStateProvi
 			BlockState state = getBlockState(info.posX, info.posY, info.posZ);
 			state.onScheduledTick(Level.class.cast(this), info.posX, info.posY, info.posZ, this.random);
 		}
-		cir.setReturnValue(this.treeSet.size() != 0);
+		cir.setReturnValue(this.treeSet.size() != 0);*/
+		cir.setReturnValue(false);
+		bhapi_ticksUpdater.update(flag);
 	}
 	
 	@Inject(method = "updateLight()Z", at = @At("HEAD"), cancellable = true)
@@ -646,8 +647,11 @@ public abstract class LevelMixin implements LevelHeightProvider, BlockStateProvi
 	
 	@Unique
 	private void initUpdater() {
-		if (bhapi_updater == null) {
-			bhapi_updater = new LevelChunkUpdater(Level.class.cast(this));
+		if (bhapi_chunksUpdater == null) {
+			bhapi_chunksUpdater = new LevelChunkUpdater(Level.class.cast(this));
+		}
+		if (bhapi_ticksUpdater == null) {
+			bhapi_ticksUpdater = new LevelTicksUpdater(Level.class.cast(this), this.properties);
 		}
 	}
 	
