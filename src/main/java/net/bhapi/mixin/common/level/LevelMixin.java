@@ -46,6 +46,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Random;
 import java.util.Set;
@@ -193,8 +194,13 @@ public abstract class LevelMixin implements LevelHeightProvider, BlockStateProvi
 		if (n != this.tickNextTick.size()) {
 			//throw new IllegalStateException("TickNextTick list out of synch");
 			synchronized (this) {
-				this.treeSet.stream().filter(o -> !this.tickNextTick.contains(o)).forEach(this.tickNextTick::add);
-				this.tickNextTick.stream().filter(o -> !this.treeSet.contains(o)).forEach(this.treeSet::add);
+				//this.treeSet.stream().filter(o -> !this.tickNextTick.contains(o)).forEach(this.tickNextTick::add);
+				//this.tickNextTick.stream().filter(o -> !this.treeSet.contains(o)).forEach(this.treeSet::add);
+				Set<TimeInfo> set = new HashSet<>();
+				set.addAll(this.treeSet);
+				set.addAll(this.tickNextTick);
+				this.treeSet.addAll(set);
+				this.tickNextTick.addAll(set);
 			}
 		}
 		if (n > 1000) {
