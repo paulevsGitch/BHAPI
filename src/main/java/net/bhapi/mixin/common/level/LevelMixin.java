@@ -198,10 +198,18 @@ public abstract class LevelMixin implements LevelHeightProvider, BlockStateProvi
 				//this.treeSet.stream().filter(o -> !this.tickNextTick.contains(o)).forEach(this.tickNextTick::add);
 				//this.tickNextTick.stream().filter(o -> !this.treeSet.contains(o)).forEach(this.treeSet::add);
 				Set<TimeInfo> set = new HashSet<>();
-				set.addAll(this.treeSet);
-				set.addAll(this.tickNextTick);
-				this.treeSet.addAll(set);
-				this.tickNextTick.addAll(set);
+				synchronized (treeSet) {
+					set.addAll(this.treeSet);
+				}
+				synchronized (tickNextTick) {
+					set.addAll(this.tickNextTick);
+				}
+				synchronized (treeSet) {
+					this.treeSet.addAll(set);
+				}
+				synchronized (tickNextTick) {
+					this.tickNextTick.addAll(set);
+				}
 			}
 		}
 		if (n > 1000) {
