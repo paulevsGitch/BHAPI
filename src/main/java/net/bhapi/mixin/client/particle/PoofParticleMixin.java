@@ -48,8 +48,10 @@ public abstract class PoofParticleMixin extends BaseParticle implements TextureS
 		TextureSample sample = getTextureSample();
 		if (sample == null) return;
 		
-		Vec2F uv1 = sample.getUV(0, 0);
-		Vec2F uv2 = sample.getUV(1, 1);
+		float u1 = this.deltaU / 16F;
+		float v1 = this.deltaV / 16F;
+		Vec2F uv1 = sample.getUV(u1, v1);
+		Vec2F uv2 = sample.getUV(u1 + 0.25F, v1 + 0.25F);
 		float scale = 0.1F * this.size;
 		
 		float x = (float) (this.prevX + (this.x - this.prevX) * delta - posX);
