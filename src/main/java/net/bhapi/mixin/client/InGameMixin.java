@@ -3,10 +3,13 @@ package net.bhapi.mixin.client;
 import net.bhapi.blockstate.BlockState;
 import net.bhapi.blockstate.properties.StateProperty;
 import net.bhapi.client.gui.DebugAllItems;
+import net.bhapi.client.render.block.BHBlockRender;
+import net.bhapi.client.render.texture.TextureSample;
 import net.bhapi.client.render.texture.Textures;
 import net.bhapi.event.TestEvent;
 import net.bhapi.level.BlockStateProvider;
 import net.bhapi.registry.CommonRegistries;
+import net.bhapi.storage.Vec2F;
 import net.bhapi.util.BlockUtil;
 import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.block.BaseBlock;
@@ -24,6 +27,7 @@ import net.minecraft.util.hit.HitResult;
 import net.minecraft.util.hit.HitType;
 import net.minecraft.util.maths.MathHelper;
 import org.lwjgl.input.Keyboard;
+import org.lwjgl.opengl.GL11;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.Unique;
@@ -39,6 +43,8 @@ import java.util.Locale;
 @Mixin(InGame.class)
 public abstract class InGameMixin extends DrawableHelper {
 	@Shadow private Minecraft minecraft;
+	
+	@Unique private TextureSample bhapi_portalSample;
 	
 	@Inject(method = "renderHud(FZII)V", at = @At("HEAD"))
 	private void bhapi_openItemsGUI(float bl, boolean i, int j, int par4, CallbackInfo ci) {
@@ -136,5 +142,38 @@ public abstract class InGameMixin extends DrawableHelper {
 		}
 		
 		return py;
+	}
+	
+	@Inject(method = "renderPortalOverlay", at = @At("HEAD"), cancellable = true)
+	private void bhapi_renderPortalOverlay(float alpha, int x, int y, CallbackInfo info) {
+		info.cancel();
+		if (alpha < 1.0f) {
+			alpha *= alpha;
+			alpha *= alpha;
+			alpha = alpha * 0.8f + 0.2f;
+		}
+		GL11.glDisable(3008);
+		GL11.glDisable(2929);
+		GL11.glDepthMask(false);
+		GL11.glBlendFunc(770, 771);
+		GL11.glColor4f(1.0f, 1.0f, 1.0f, alpha);
+		Textures.getAtlas().bind();
+		if (bhapi_portalSample == null) {
+			BlockState state = BlockState.getDefaultState(BaseBlock.PORTAL);
+			bhapi_portalSample = BHBlockRender.cast(BaseBlock.PORTAL).getTextureForIndex(this.minecraft.level, 0, 0, 0, state, 0);
+		}
+		Vec2F uv1 = bhapi_portalSample.getUV(0, 0);
+		Vec2F uv2 = bhapi_portalSample.getUV(1, 1);
+		Tessellator tessellator = Tessellator.INSTANCE;
+		tessellator.start();
+		tessellator.vertex(0.0, y, -90.0, uv1.x, uv2.y);
+		tessellator.vertex(x, y, -90.0, uv2.x, uv2.y);
+		tessellator.vertex(x, 0.0, -90.0, uv2.x, uv1.y);
+		tessellator.vertex(0.0, 0.0, -90.0, uv1.x, uv1.y);
+		tessellator.draw();
+		GL11.glDepthMask(true);
+		GL11.glEnable(2929);
+		GL11.glEnable(3008);
+		GL11.glColor4f(1.0f, 1.0f, 1.0f, 1.0f);
 	}
 }
