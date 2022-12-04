@@ -30,6 +30,7 @@ import java.util.List;
 import java.util.Set;
 
 public class LevelChunkUpdater {
+	private static final BiomeSource FAIL_SOURCE = new FixedBiomeSource(BaseBiome.PLAINS, 0.5F, 0.5F);
 	private final List<PlayerBase> playersList = new ArrayList<>();
 	private final ExpandableCache<Vec3I> cache3D = new ExpandableCache<>(Vec3I::new);
 	private final ExpandableCache<Vec2I> cache2D = new ExpandableCache<>(Vec2I::new);
@@ -46,9 +47,9 @@ public class LevelChunkUpdater {
 	private boolean isEmpty = true;
 	private long time;
 	
-	private boolean useThreads;
-	private int updatesVertical;
-	private int updatesHorizontal;
+	private final boolean useThreads;
+	private final int updatesVertical;
+	private final int updatesHorizontal;
 	
 	public LevelChunkUpdater(Level level) {
 		this.level = level;
@@ -62,14 +63,14 @@ public class LevelChunkUpdater {
 			BiomeSource levelSource = level.getBiomeSource();
 			try {
 				if (levelSource instanceof FixedBiomeSource) {
-					Class[] args = new Class[] {BaseBiome.class, Double.class, Double.class};
 					BaseBiome[] biome = levelSource.getBiomes(biomes, 0, 0, 1, 1);
-					source = levelSource.getClass().getConstructor(args).newInstance(biome, 1.0, 0.0);
+					source = new FixedBiomeSource(biome[0], 1.0, 0.0);
 				}
 				else source = levelSource.getClass().getConstructor(Level.class).newInstance(level);
 			}
 			catch (InstantiationException | IllegalAccessException | InvocationTargetException | NoSuchMethodException e) {
-				e.printStackTrace();
+				BHAPI.warn("Failed to load biome source " + levelSource + " on client");
+				source = FAIL_SOURCE;
 			}
 			biomeSource = source;
 		}
