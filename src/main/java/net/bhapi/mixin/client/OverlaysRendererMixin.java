@@ -220,8 +220,10 @@ public abstract class OverlaysRendererMixin {
 		if (item instanceof BHBlockItem && !BHBlockItem.cast(item).isFlat()) {
 			BlockState state = BHBlockItem.cast(item).getState();
 			BHBlockRenderer renderer = BHAPIClient.getBlockRenderer();
+			bhapi_itemView.setBlockState(state);
 			renderer.setView(bhapi_itemView);
-			renderer.renderItem(state, false, entity.getBrightnessAtEyes(1.0f));
+			int color = state.getBlock().getColorMultiplier(bhapi_itemView, 0, 0, 0);
+			renderer.renderItem(state, color != 0xFFFFFF, entity.getBrightnessAtEyes(1.0f));
 		}
 		else {
 			float u22;

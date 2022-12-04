@@ -128,12 +128,9 @@ public abstract class ItemRendererMixin extends EntityRenderer {
 		if (item instanceof BHBlockItem && !BHBlockItem.cast(item).isFlat()) {
 			GL11.glRotatef(angle, 0.0f, 1.0f, 0.0f);
 			Textures.getAtlas().bind();
-			float scale = 0.25f;
+			final float scale = 0.25f;
 			
 			BlockState state = BHBlockItem.cast(item).getState();
-			if (!state.getBlock().isFullCube() && !state.is(BaseBlock.STONE_SLAB)) {
-				scale = 0.5f;
-			}
 			
 			GL11.glScalef(scale, scale, scale);
 			for (int i = 0; i < count; ++i) {
