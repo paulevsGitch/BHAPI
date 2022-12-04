@@ -134,38 +134,21 @@ public abstract class LevelMixin implements LevelHeightProvider, BlockStateProvi
 	
 	@SuppressWarnings("unchecked")
 	@Inject(method = "scheduleTick", at = @At("HEAD"), cancellable = true)
-	private void bhapi_scheduleTick(int x, int y, int z, int id, int m, CallbackInfo ci) {
+	private void bhapi_scheduleTick(int x, int y, int z, int id, int time, CallbackInfo ci) {
 		ci.cancel();
 		
-		final int updatesVertical = bhapi_chunksUpdater.getUpdatesVertical();
-		final int updatesHorizontal = bhapi_chunksUpdater.getUpdatesHorizontal();
+		final int uv = bhapi_chunksUpdater.getUpdatesVertical();
+		final int uh = bhapi_chunksUpdater.getUpdatesHorizontal();
 		
 		BlockState state = getBlockState(x, y, z);
+		if (state.isAir()) return;
+		BHTimeInfo info = new BHTimeInfo(x, y, z, state);
 		
-		if (this.forceBlockUpdate) {
-			if (this.isAreaLoaded(
-				x - updatesHorizontal,
-				y - updatesVertical,
-				z - updatesHorizontal,
-				x + updatesHorizontal,
-				y + updatesVertical,
-				z + updatesHorizontal)
-			) {
-				state.onScheduledTick(Level.class.cast(this), x, y, z, this.random);
-			}
+		if (!this.forceBlockUpdate) {
+			info.setTime(time + this.properties.getTime());
 		}
-		else if (this.isAreaLoaded(
-			x - updatesHorizontal,
-			y - updatesVertical,
-			z - updatesHorizontal,
-			x + updatesHorizontal,
-			y + updatesVertical,
-			z + updatesHorizontal)
-		) {
-			BHTimeInfo info = new BHTimeInfo(x, y, z, state);
-			if (!state.isAir()) {
-				info.setTime((long) m + this.properties.getTime());
-			}
+		
+		if (this.isAreaLoaded(x - uh, y - uv, z - uh, x + uh, y + uv, z + uh)) {
 			bhapi_ticksUpdater.addInfo(info);
 		}
 	}

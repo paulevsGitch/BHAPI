@@ -7,6 +7,8 @@ import net.bhapi.util.ThreadManager;
 import net.bhapi.util.ThreadManager.RunnableThread;
 import net.minecraft.level.Level;
 
+import java.util.Locale;
+
 public abstract class ThreadedUpdater {
 	protected final boolean useThreads;
 	private RunnableThread updatingThread;
@@ -57,6 +59,16 @@ public abstract class ThreadedUpdater {
 			catch (InterruptedException e) {
 				e.printStackTrace();
 			}
+		}
+		else if (delta > 100) {
+			StringBuilder builder = new StringBuilder("Update in thread ");
+			builder.append(Thread.currentThread().getName());
+			builder.append(" take ");
+			builder.append(delta);
+			builder.append("ms instead of 50 (");
+			builder.append(String.format(Locale.ROOT, "%.1f", (float) delta / 50F));
+			builder.append(" ticks)");
+			BHAPI.warn(builder.toString());
 		}
 	}
 	
