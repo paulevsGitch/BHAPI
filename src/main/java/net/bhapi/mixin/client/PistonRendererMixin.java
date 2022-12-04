@@ -5,7 +5,6 @@ import net.bhapi.blockstate.BlockStateContainer;
 import net.bhapi.client.BHAPIClient;
 import net.bhapi.client.render.block.BHBlockRenderer;
 import net.bhapi.client.render.texture.Textures;
-import net.bhapi.registry.CommonRegistries;
 import net.minecraft.block.BaseBlock;
 import net.minecraft.block.PistonBlock;
 import net.minecraft.block.entity.PistonBlockEntity;

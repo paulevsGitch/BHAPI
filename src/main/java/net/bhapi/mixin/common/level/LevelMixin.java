@@ -87,6 +87,7 @@ public abstract class LevelMixin implements LevelHeightProvider, BlockStateProvi
 	
 	@Shadow public abstract boolean hasInderectPower(int i, int j, int k);
 	
+	@Shadow public boolean stopPhysics;
 	@Unique private LevelChunkUpdater bhapi_updater;
 	
 	@Inject(
@@ -677,6 +678,7 @@ public abstract class LevelMixin implements LevelHeightProvider, BlockStateProvi
 	@Inject(method = "updateAdjacentBlocks", at = @At("HEAD"), cancellable = true)
 	private void bhapi_updateAdjacentBlocks(int x, int y, int z, int id, CallbackInfo info) {
 		info.cancel();
+		if (this.stopPhysics) return;
 		final BlockState neighbour = getBlockState(x, y, z);
 		final Vec3I pos = new Vec3I();
 		final Level level = Level.class.cast(this);

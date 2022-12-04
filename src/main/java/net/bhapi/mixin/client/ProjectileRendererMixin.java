@@ -2,13 +2,11 @@ package net.bhapi.mixin.client;
 
 import net.bhapi.client.render.texture.TextureSample;
 import net.bhapi.client.render.texture.Textures;
-import net.bhapi.item.BHItemRender;
 import net.bhapi.storage.Vec2F;
 import net.minecraft.client.render.Tessellator;
 import net.minecraft.client.render.entity.EntityRenderer;
 import net.minecraft.client.render.entity.ProjectileRenderer;
 import net.minecraft.entity.BaseEntity;
-import net.minecraft.item.BaseItem;
 import org.lwjgl.opengl.GL11;
 import org.lwjgl.opengl.GL12;
 import org.spongepowered.asm.mixin.Mixin;
