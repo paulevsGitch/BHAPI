@@ -36,7 +36,11 @@ public abstract class BaseItemMixin implements BHItemRender {
 	@Override
 	@Environment(EnvType.CLIENT)
 	public TextureSample getTexture(@Nullable ItemStack stack) {
-		if (this.id == ItemUtil.MOD_ITEM_ID) return Textures.getVanillaItemSample(0);
-		else return Textures.getVanillaItemSample(getTexturePosition(stack));
+		int index = 0;
+		if (this.id != ItemUtil.MOD_ITEM_ID) {
+			if (stack == null) index = this.texturePosition;
+			else index = getTexturePosition(stack);
+		}
+		return Textures.getVanillaItemSample(index);
 	}
 }
