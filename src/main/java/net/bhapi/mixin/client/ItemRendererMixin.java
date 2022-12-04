@@ -72,16 +72,22 @@ public abstract class ItemRendererMixin extends EntityRenderer {
 			GL11.glPopMatrix();
 		}
 		else if (texture >= 0) {
-			GL11.glDisable(2896);
+			GL11.glDisable(0xb50);
 			Textures.getAtlas().bind();
 			
 			if (this.coloriseItem) {
 				int color = item.getColorMultiplier(j);
-				if (item instanceof BHBlockItem && color == 0xFFFFFF) {
+				/*if (item instanceof BHBlockItem && color == 0xFFFFFF) {
 					BlockState state = BHBlockItem.cast(item).getState();
-					if (state.is(BaseBlock.TALLGRASS)) {
+					if (state.is(BaseBlock.TALLGRASS) && state.getMeta() > 0) {
 						int meta = state.getMeta();
 						color = meta > 0 ? FoliageColor.getFoliageColor(0.5, 0.5) : 0xFFFFFF;
+					}
+				}*/
+				if (item instanceof BHBlockItem) {
+					BlockState state = BHBlockItem.cast(item).getState();
+					if (state.is(BaseBlock.TALLGRASS)) {
+						color = state.getMeta() > 0 ? FoliageColor.getFoliageColor(0.5, 0.5) : 0xFFFFFF;
 					}
 				}
 				float r = (float) (color >> 16 & 0xFF) / 255.0F;
@@ -93,9 +99,9 @@ public abstract class ItemRendererMixin extends EntityRenderer {
 			TextureSample sample = BHItemRender.cast(item).getTexture(bhapi_renderingStack);
 			
 			bhapi_renderRectangle(x, y, sample);
-			GL11.glEnable(2896);
+			GL11.glEnable(0xb50);
 		}
-		GL11.glEnable(2884);
+		GL11.glEnable(0xb44);
 	}
 	
 	@Inject(method = "render(Lnet/minecraft/entity/ItemEntity;DDDFF)V", at = @At("HEAD"), cancellable = true)

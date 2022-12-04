@@ -15,6 +15,7 @@ import net.bhapi.event.StartupEvent;
 import net.bhapi.item.BHBlockItem;
 import net.bhapi.mixin.common.recipe.RecipeRegistryAccessor;
 import net.bhapi.util.BlockUtil;
+import net.bhapi.util.DyeUtil;
 import net.bhapi.util.Identifier;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
@@ -166,28 +167,33 @@ public class CommonRegistries {
 			ITEM_REGISTRY.register(id, item);
 		});
 		
-		addVariants("sapling", BaseBlock.SAPLING, 3);
-		addVariants("log", BaseBlock.LOG, 3);
-		addVariants("leaves", BaseBlock.LEAVES, 3);
-		addVariants("slab", BaseBlock.STONE_SLAB, 4);
-		addVariants("wool", BaseBlock.WOOL, 16);
+		String[] names = new String[] {"oak", "spruce", "birch"};
+		for (byte i = 0; i < 3; i++) {
+			addVariant(names[i] + "_sapling", BaseBlock.SAPLING, i);
+			addVariant(names[i] + "_log", BaseBlock.LOG, i);
+			addVariant(names[i] + "_leaves", BaseBlock.LEAVES, i);
+		}
 		
-		BlockState state = BlockState.getDefaultState(BaseBlock.TALLGRASS);
-		ITEM_REGISTRY.register(
-			Identifier.make("tall_grass"),
-			new BHBlockItem(state.withMeta(1), true)
-		);
-		ITEM_REGISTRY.register(
-			Identifier.make("fern"),
-			new BHBlockItem(state.withMeta(2), true)
-		);
+		for (byte i = 0; i < 16; i++) {
+			String name = DyeUtil.BLOCK_NAMES[i] + "_wool";
+			addVariant(name, BaseBlock.WOOL, i);
+		}
+		
+		addVariant("stone_slab", BaseBlock.STONE_SLAB, 0);
+		addVariant("sandstone_slab", BaseBlock.STONE_SLAB, 1);
+		addVariant("wooden_slab", BaseBlock.STONE_SLAB, 2);
+		addVariant("cobblestone_slab", BaseBlock.STONE_SLAB, 3);
+		
+		addVariant("dead_bush", BaseBlock.TALLGRASS, 0);
+		addVariant("tall_grass", BaseBlock.TALLGRASS, 1);
+		addVariant("fern", BaseBlock.TALLGRASS, 2);
 	}
 	
-	private static void addVariants(String id, BaseBlock block, int count) {
-		BlockState state = BlockState.getDefaultState(block);
-		for (int meta = 1; meta < count; meta++) {
-			ITEM_REGISTRY.register(Identifier.make(id + "_" + meta), new BHBlockItem(state.withMeta(meta), false));
-		}
+	private static void addVariant(String name, BaseBlock block, int meta) {
+		BlockState state = BlockState.getDefaultState(block).withMeta(meta);
+		Identifier id = Identifier.make(name);
+		boolean isFlat = itemIsFlat(block);
+		ITEM_REGISTRY.register(id, new BHBlockItem(state, isFlat));
 	}
 	
 	private static boolean itemIsFlat(BaseBlock block) {

@@ -17,9 +17,11 @@ import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 @Mixin(BaseItem.class)
-public class BaseItemMixin implements BHItemRender {
+public abstract class BaseItemMixin implements BHItemRender {
 	@Shadow @Final public int id;
 	@Shadow protected int texturePosition;
+	
+	@Shadow public abstract int getTexturePosition(ItemStack arg);
 	
 	// Reset block and all its values to default
 	// Allows to register same block multiple times
@@ -35,6 +37,6 @@ public class BaseItemMixin implements BHItemRender {
 	@Environment(EnvType.CLIENT)
 	public TextureSample getTexture(@Nullable ItemStack stack) {
 		if (this.id == ItemUtil.MOD_ITEM_ID) return Textures.getVanillaItemSample(0);
-		else return Textures.getVanillaItemSample(this.texturePosition);
+		else return Textures.getVanillaItemSample(getTexturePosition(stack));
 	}
 }

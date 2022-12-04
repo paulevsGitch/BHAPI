@@ -12,6 +12,7 @@ import net.bhapi.item.BHBlockItem;
 import net.bhapi.item.BHItemRender;
 import net.bhapi.level.BlockStateProvider;
 import net.bhapi.storage.Vec2F;
+import net.bhapi.util.MathUtil;
 import net.minecraft.block.BaseBlock;
 import net.minecraft.block.material.Material;
 import net.minecraft.client.Minecraft;
@@ -223,7 +224,6 @@ public abstract class OverlaysRendererMixin {
 			renderer.renderItem(state, false, entity.getBrightnessAtEyes(1.0f));
 		}
 		else {
-			float f;
 			float u22;
 			float delta;
 			int count;
@@ -232,18 +232,18 @@ public abstract class OverlaysRendererMixin {
 			Vec2F uv1 = sample.getUV(0, 0);
 			Vec2F uv2 = sample.getUV(1, 1);
 			
-			/*float u1 = sample.getU(0);
-			float u2 = sample.getU(1);
-			float v1 = sample.getV(0);
-			float v2 = sample.getV(1);*/
+			int color = item.getColorMultiplier(stack.getDamage());
+			if (color != 0xFFFFFF) {
+				float light = entity.getBrightnessAtEyes(entity.getEyeHeight());
+				float r = ((color >> 16) & 255) / 255F;
+				float g = ((color >> 8) & 255) / 255F;
+				float b = (color & 255) / 255F;
+				GL11.glColor3f(r * light, g * light, b * light);
+			}
 			
-			float f8 = 1.0f;
-			float f9 = 0.0f;
-			float f10 = 0.3f;
-			GL11.glEnable(32826);
-			GL11.glTranslatef(-f9, -f10, 0.0f);
-			float f11 = 1.5f;
-			GL11.glScalef(f11, f11, f11);
+			GL11.glEnable(0x803a);
+			GL11.glTranslatef(0.0f, -0.3f, 0.0f);
+			GL11.glScalef(1.5f, 1.5f, 1.5f);
 			GL11.glRotatef(50.0f, 0.0f, 1.0f, 0.0f);
 			GL11.glRotatef(335.0f, 0.0f, 0.0f, 1.0f);
 			GL11.glTranslatef(-0.9375f, -0.0625f, 0.0f);
@@ -253,40 +253,48 @@ public abstract class OverlaysRendererMixin {
 			tessellator.start();
 			tessellator.setNormal(0.0f, 0.0f, 1.0f);
 			tessellator.vertex(0.0, 0.0, 0.0, uv2.x, uv2.y);
-			tessellator.vertex(f8, 0.0, 0.0, uv1.x, uv2.y);
-			tessellator.vertex(f8, 1.0, 0.0, uv1.x, uv1.y);
+			tessellator.vertex(1.0, 0.0, 0.0, uv1.x, uv2.y);
+			tessellator.vertex(1.0, 1.0, 0.0, uv1.x, uv1.y);
 			tessellator.vertex(0.0, 1.0, 0.0, uv2.x, uv1.y);
-			//tessellator.draw();
 			
-			//tessellator.start();
 			tessellator.setNormal(0.0f, 0.0f, -1.0f);
 			tessellator.vertex(0.0, 1.0, 0.0f - 0.0625f, uv2.x, uv1.y);
-			tessellator.vertex(f8, 1.0, 0.0f - 0.0625f, uv1.x, uv1.y);
-			tessellator.vertex(f8, 0.0, 0.0f - 0.0625f, uv1.x, uv2.y);
+			tessellator.vertex(1.0, 1.0, 0.0f - 0.0625f, uv1.x, uv1.y);
+			tessellator.vertex(1.0, 0.0, 0.0f - 0.0625f, uv1.x, uv2.y);
 			tessellator.vertex(0.0, 0.0, 0.0f - 0.0625f, uv2.x, uv2.y);
 			
-			// TODO check this - same coordinate U
-			/*tessellator.setNormal(-1.0f, 0.0f, 0.0f);
+			tessellator.setNormal(-1.0f, 0.0f, 0.0f);
 			for (count = 0; count < sample.getWidth(); ++count) {
 				delta = (float) count / sample.getWidth();
-				u22 = sample.getU(0.999F - delta);
-				f = f8 * delta;
-				tessellator.vertex(f, 0.0, 0.0f - 0.0625f, u22, v2);
-				tessellator.vertex(f, 0.0, 0.0, u22, v2);
-				tessellator.vertex(f, 1.0, 0.0, u22, v1);
-				tessellator.vertex(f, 1.0, 0.0f - 0.0625f, u22, v1);
+				u22 = MathUtil.lerp(uv1.x, uv2.x, 0.999F - delta);
+				tessellator.vertex(delta, 0.0, 0.0f - 0.0625f, u22, uv2.y);
+				tessellator.vertex(delta, 0.0, 0.0, u22, uv2.y);
+				tessellator.vertex(delta, 1.0, 0.0, u22, uv1.y);
+				tessellator.vertex(delta, 1.0, 0.0f - 0.0625f, u22, uv1.y);
 			}
 			
 			tessellator.setNormal(0.0f, -1.0f, 0.0f);
 			for (count = 0; count < sample.getHeight(); ++count) {
 				delta = (float) count / sample.getHeight();
-				u22 = sample.getV(0.999F - delta);
-				f = f8 * delta;
-				tessellator.vertex(f8, f, 0.0, u1, u22);
-				tessellator.vertex(0.0, f, 0.0, u2, u22);
-				tessellator.vertex(0.0, f, 0.0f - 0.0625f, u2, u22);
-				tessellator.vertex(f8, f, 0.0f - 0.0625f, u1, u22);
-			}*/
+				u22 = MathUtil.lerp(uv1.y, uv2.y, 0.999F - delta);
+				tessellator.vertex(1.0, delta, 0.0, uv1.x, u22);
+				tessellator.vertex(0.0, delta, 0.0, uv2.x, u22);
+				tessellator.vertex(0.0, delta, 0.0f - 0.0625f, uv2.x, u22);
+				tessellator.vertex(1.0, delta, 0.0f - 0.0625f, uv1.x, u22);
+			}
+			
+			float offset = 1F / sample.getHeight();
+			tessellator.setNormal(0.0f, 1.0f, 0.0f);
+			for (count = 0; count < sample.getHeight(); ++count) {
+				delta = (float) count / sample.getHeight();
+				u22 = MathUtil.lerp(uv1.y, uv2.y, 0.999F - delta);
+				float y = delta + offset;
+				tessellator.vertex(1.0, y, 0.0f - 0.0625f, uv1.x, u22);
+				tessellator.vertex(0.0, y, 0.0f - 0.0625f, uv2.x, u22);
+				tessellator.vertex(0.0, y, 0.0, uv2.x, u22);
+				tessellator.vertex(1.0, y, 0.0, uv1.x, u22);
+			}
+			
 			tessellator.draw();
 			
 			GL11.glDisable(32826);

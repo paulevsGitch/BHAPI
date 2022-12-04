@@ -1,8 +1,6 @@
 package net.bhapi.mixin.client;
 
 import net.bhapi.item.BHBlockItem;
-import net.minecraft.block.BaseBlock;
-import net.minecraft.client.render.block.BlockRenderer;
 import net.minecraft.client.render.entity.LivingEntityRenderer;
 import net.minecraft.client.render.entity.PlayerRenderer;
 import net.minecraft.client.render.entity.model.BipedModel;
@@ -30,20 +28,19 @@ public abstract class PlayerRendererMixin extends LivingEntityRenderer {
 	protected void bhapi_renderPlayerAdditions(PlayerBase player, float delta, CallbackInfo info) {
 		info.cancel();
 		
-		//ItemStack itemStack;
 		float scale;
-		ItemStack itemStack2 = player.inventory.getArmourItem(3);
+		ItemStack itemStack = player.inventory.getArmourItem(3);
 		
-		if (itemStack2 != null && itemStack2.getType().id < 256) {
+		if (itemStack != null && itemStack.getType() instanceof BHBlockItem) {
 			GL11.glPushMatrix();
 			this.playerModel.field_619.method_1820(0.0625f);
-			if (BlockRenderer.isSpecificRenderType(BaseBlock.BY_ID[itemStack2.itemId].getRenderType())) {
+			if (BHBlockItem.cast(itemStack.getType()).isFlat()) {
 				float f3 = 0.625f;
 				GL11.glTranslatef(0.0f, -0.25f, 0.0f);
 				GL11.glRotatef(180.0f, 0.0f, 1.0f, 0.0f);
 				GL11.glScalef(f3, -f3, f3);
 			}
-			this.dispatcher.overlayRenderer.renderHand(player, itemStack2);
+			this.dispatcher.overlayRenderer.renderHand(player, itemStack);
 			GL11.glPopMatrix();
 		}
 		
@@ -109,7 +106,7 @@ public abstract class PlayerRendererMixin extends LivingEntityRenderer {
 			}
 			BaseItem item = handItem.getType();
 			// TODO make 2D item models
-			if (item instanceof BHBlockItem /*handItem.itemId < 256 && BlockRenderer.isSpecificRenderType(BaseBlock.BY_ID[handItem.itemId].getRenderType())*/) {
+			if (item instanceof BHBlockItem) {
 				scale = 0.5f;
 				GL11.glTranslatef(0.0f, 0.1875f, -0.3125f);
 				GL11.glRotatef(20.0f, 1.0f, 0.0f, 0.0f);

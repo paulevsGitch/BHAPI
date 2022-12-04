@@ -13,6 +13,7 @@ public abstract class ThreadedUpdater {
 	protected final boolean useThreads;
 	private RunnableThread updatingThread;
 	private boolean isEmpty = true;
+	private final boolean isClient;
 	protected final Level level;
 	private final String name;
 	private long time;
@@ -23,6 +24,7 @@ public abstract class ThreadedUpdater {
 		useThreads = BHConfigs.GENERAL.getBool("multithreading.useThreads", true);
 		BHConfigs.GENERAL.save();
 		this.level = level;
+		this.isClient = BHAPI.isClient();
 	}
 	
 	public void process() {
@@ -36,9 +38,11 @@ public abstract class ThreadedUpdater {
 		else update();
 	}
 	
-	private final void checkedUpdate() {
-		update();
-		check();
+	private void checkedUpdate() {
+		if (canUpdate()) {
+			update();
+			check();
+		}
 		delay();
 	}
 	
@@ -72,8 +76,12 @@ public abstract class ThreadedUpdater {
 		}
 	}
 	
+	private boolean canUpdate() {
+		return !isClient || !BHAPIClient.getMinecraft().paused;
+	}
+	
 	private void check() {
-		if (useThreads && BHAPI.isClient()) {
+		if (useThreads && isClient) {
 			boolean empty = BHAPIClient.getMinecraft().viewEntity == null;
 			if (!isEmpty && empty) {
 				ThreadManager.stopThread(updatingThread);

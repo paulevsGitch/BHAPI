@@ -6,11 +6,13 @@ import net.bhapi.storage.Vec3I;
 public class BHTimeInfo {
 	private final Vec3I pos = new Vec3I();
 	private final BlockState state;
+	private final int hash;
 	private long time;
 	
 	public BHTimeInfo(int x, int y, int z, BlockState state) {
 		this.state = state;
 		this.pos.set(x, y, z);
+		this.hash = this.pos.hashCode();
 	}
 	
 	public void setTime(long time) {
@@ -39,7 +41,7 @@ public class BHTimeInfo {
 	
 	@Override
 	public int hashCode() {
-		return pos.hashCode();
+		return this.hash;
 	}
 	
 	@Override
