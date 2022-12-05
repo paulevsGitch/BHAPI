@@ -4,9 +4,15 @@ import net.bhapi.blockstate.BlockState;
 import net.bhapi.blockstate.BlockStateContainer;
 import net.bhapi.blockstate.properties.LegacyProperties;
 import net.bhapi.blockstate.properties.StateProperty;
+import net.bhapi.client.render.block.BHBlockRender;
+import net.bhapi.client.render.block.BlockItemView;
+import net.bhapi.client.render.texture.TextureSample;
+import net.bhapi.client.render.texture.Textures;
 import net.bhapi.level.BlockStateProvider;
 import net.bhapi.level.LevelHeightProvider;
 import net.bhapi.util.BlockUtil;
+import net.fabricmc.api.EnvType;
+import net.fabricmc.api.Environment;
 import net.minecraft.block.BaseBlock;
 import net.minecraft.block.MovingPistonBlock;
 import net.minecraft.block.PistonBlock;
@@ -14,6 +20,7 @@ import net.minecraft.block.entity.BaseBlockEntity;
 import net.minecraft.block.entity.PistonBlockEntity;
 import net.minecraft.block.material.Material;
 import net.minecraft.block.technical.PistonDataValues;
+import net.minecraft.level.BlockView;
 import net.minecraft.level.Level;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
@@ -28,7 +35,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 import java.util.List;
 
 @Mixin(PistonBlock.class)
-public abstract class PistonBlockMixin extends BaseBlock implements BlockStateContainer {
+public abstract class PistonBlockMixin extends BaseBlock implements BlockStateContainer, BHBlockRender {
 	@Shadow private boolean updateBlock;
 	@Shadow private boolean actionByRotation;
 	
@@ -250,6 +257,21 @@ public abstract class PistonBlockMixin extends BaseBlock implements BlockStateCo
 			if (!flag && state.getBlock().getPistonPushMode() == 1) return false;
 		}
 		return level.getBlockEntity(x, y, z) == null;
+	}
+	
+	@Override
+	@Environment(EnvType.CLIENT)
+	public TextureSample getTextureForIndex(BlockView view, int x, int y, int z, BlockState state, int index) {
+		if (view instanceof BlockItemView) {
+			BaseBlock block = state.getBlock();
+			int texture = block.getTextureForSide(index, 1);
+			TextureSample sample = Textures.getVanillaBlockSample(texture);
+			sample.setRotation(0);
+			return sample;
+		}
+		BaseBlock block = state.getBlock();
+		int texture = block.getTextureForSide(view, x, y, z, index);
+		return Textures.getVanillaBlockSample(texture);
 	}
 }
 
