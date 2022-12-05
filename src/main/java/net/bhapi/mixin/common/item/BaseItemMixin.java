@@ -1,5 +1,6 @@
 package net.bhapi.mixin.common.item;
 
+import net.bhapi.BHAPI;
 import net.bhapi.client.render.texture.TextureSample;
 import net.bhapi.client.render.texture.Textures;
 import net.bhapi.item.BHItemRender;
@@ -21,6 +22,7 @@ public abstract class BaseItemMixin implements BHItemRender {
 	@Shadow @Final public int id;
 	@Shadow protected int texturePosition;
 	
+	@Environment(EnvType.CLIENT)
 	@Shadow public abstract int getTexturePosition(ItemStack arg);
 	
 	// Reset block and all its values to default
