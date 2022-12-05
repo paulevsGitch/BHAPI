@@ -1,4 +1,4 @@
-package net.bhapi.mixin.common;
+package net.bhapi.mixin.client;
 
 import net.minecraft.level.Level;
 import net.minecraft.level.chunk.Chunk;

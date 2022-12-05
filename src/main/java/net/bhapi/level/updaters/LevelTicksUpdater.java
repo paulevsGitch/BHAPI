@@ -25,12 +25,9 @@ public class LevelTicksUpdater extends ThreadedUpdater {
 	}
 	
 	public void addInfo(BHTimeInfo info) {
-		if (useThreads) {
-			synchronized (updateRequests) {
-				updateRequests.add(info);
-			}
+		synchronized (updateRequests) {
+			updateRequests.add(info);
 		}
-		else updateInfos.add(info);
 	}
 	
 	public void setFlag(boolean flag) {

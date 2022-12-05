@@ -9,6 +9,7 @@
 		"BaseClientInteractionManagerMixin",
 		"BlockEntityRenderDispatcherMixin",
 		"ClientPlayNetworkHandlerMixin",
+		"MultiplayerChunkCacheMixin",
 		"AbstractClientPlayerMixin",
 		"BlockEntityRendererMixin",
 		"ProjectileRendererMixin",
