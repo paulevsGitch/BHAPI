@@ -48,7 +48,6 @@ public abstract class PistonBlockMixin extends BaseBlock implements BlockStateCo
 	}
 	
 	@ModifyConstant(method = {
-		"pushByPiston",
 		"canMoveBlock(Lnet/minecraft/level/Level;IIII)Z"
 	}, constant = @Constant(intValue = 127))
 	private static int bhapi_changeMaxBlockHeight(int value) {
@@ -144,7 +143,7 @@ public abstract class PistonBlockMixin extends BaseBlock implements BlockStateCo
 		BlockStateProvider provider = BlockStateProvider.cast(level);
 		
 		for (x3 = 0; x3 < 13; ++x3) {
-			if (y2 <= 0 || y2 >= 127) {
+			if (y2 <= 0 || y2 >= getLevelHeight()) {
 				info.setReturnValue(false);
 				return;
 			}
@@ -182,7 +181,11 @@ public abstract class PistonBlockMixin extends BaseBlock implements BlockStateCo
 			
 			if (state.is(this) && x3 == x && y3 == y && z3 == z) {
 				level.setBlockInChunk(x2, y2, z2, BaseBlock.MOVING_PISTON.id, meta | (this.actionByRotation ? 8 : 0));
-				level.setBlockEntity(x2, y2, z2, MovingPistonBlock.createEntity(BaseBlock.PISTON_HEAD.id, meta | (this.actionByRotation ? 8 : 0), meta, true, false));
+				int meta2 = meta | (this.actionByRotation ? 8 : 0);
+				BlockState head = BlockState.getDefaultState(BaseBlock.PISTON_HEAD).withMeta(meta2);
+				PistonBlockEntity entity = (PistonBlockEntity) MovingPistonBlock.createEntity(0, 0, meta, true, false);
+				BlockStateContainer.cast(entity).setDefaultState(head);
+				level.setBlockEntity(x2, y2, z2, entity);
 			}
 			else {
 				BlockState state2 = BlockState.getDefaultState(BaseBlock.MOVING_PISTON).withMeta(state.getMeta());

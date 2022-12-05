@@ -19,12 +19,14 @@ public abstract class PistonBlockEntityMixin extends BaseBlockEntity implements 
 	@Shadow private float progress;
 	@Shadow private float maxProgress;
 	@Shadow private boolean isExtended;
+	@Shadow private int yPos;
 	
 	@Shadow protected abstract void moveBlocks(float f, float g);
 	
 	@Override
 	public void setDefaultState(BlockState state) {
 		this.xPos = state.getID();
+		this.yPos = state.getMeta();
 	}
 	
 	@Override

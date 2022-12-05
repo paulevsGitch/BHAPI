@@ -51,16 +51,20 @@ public abstract class ParticleManagerMixin {
 	private void bhapi_addParticle(BaseParticle particle, CallbackInfo info) {
 		info.cancel();
 		if (particle.getRenderType() == 3) {
-			if (bhapi_items.size() >= 15) {
-				bhapi_items.remove(0);
+			synchronized (bhapi_items) {
+				if (bhapi_items.size() >= 15) {
+					bhapi_items.remove(0);
+				}
+				bhapi_items.add(particle);
 			}
-			bhapi_items.add(particle);
 		}
 		else {
-			if (bhapi_particles.size() >= 4095) {
-				bhapi_particles.remove(0);
+			synchronized (bhapi_particles) {
+				if (bhapi_particles.size() >= 4095) {
+					bhapi_particles.remove(0);
+				}
+				bhapi_particles.add(particle);
 			}
-			bhapi_particles.add(particle);
 		}
 	}
 	
@@ -88,44 +92,48 @@ public abstract class ParticleManagerMixin {
 	@Inject(method = "renderAll", at = @At("HEAD"), cancellable = true)
 	private void bhapi_renderAll(BaseEntity entity, float delta, CallbackInfo info) {
 		info.cancel();
-		if (bhapi_particles.isEmpty()) return;
-		
-		float coef = (float) Math.PI / 180.0F;
-		float dx = MathHelper.cos(entity.yaw * coef);
-		float dz = MathHelper.sin(entity.yaw * coef);
-		float width = -dz * MathHelper.sin(entity.pitch * coef);
-		float height = dx * MathHelper.sin(entity.pitch *coef);
-		float dy = MathHelper.cos(entity.pitch * coef);
-		
-		BaseParticle.posX = entity.prevRenderX + (entity.x - entity.prevRenderX) * delta;
-		BaseParticle.posY = entity.prevRenderY + (entity.y - entity.prevRenderY) * delta;
-		BaseParticle.posZ = entity.prevRenderZ + (entity.z - entity.prevRenderZ) * delta;
-		
-		if (bhapi_sortTicks++ > 4) {
-			bhapi_sortTicks = 0;
-			bhapi_particles.sort((p1, p2) -> {
-				double d1 = p1.getDistanceSqr(entity);
-				double d2 = p2.getDistanceSqr(entity);
-				return Double.compare(d2, d1);
-			});
+		synchronized (bhapi_particles) {
+			if (bhapi_particles.isEmpty()) return;
+			
+			float coef = (float) Math.PI / 180.0F;
+			float dx = MathHelper.cos(entity.yaw * coef);
+			float dz = MathHelper.sin(entity.yaw * coef);
+			float width = -dz * MathHelper.sin(entity.pitch * coef);
+			float height = dx * MathHelper.sin(entity.pitch * coef);
+			float dy = MathHelper.cos(entity.pitch * coef);
+			
+			BaseParticle.posX = entity.prevRenderX + (entity.x - entity.prevRenderX) * delta;
+			BaseParticle.posY = entity.prevRenderY + (entity.y - entity.prevRenderY) * delta;
+			BaseParticle.posZ = entity.prevRenderZ + (entity.z - entity.prevRenderZ) * delta;
+			
+			if (bhapi_sortTicks++ > 4) {
+				bhapi_sortTicks = 0;
+				bhapi_particles.sort((p1, p2) -> {
+					double d1 = p1.getDistanceSqr(entity);
+					double d2 = p2.getDistanceSqr(entity);
+					return Double.compare(d2, d1);
+				});
+			}
+			
+			Textures.getAtlas().bind();
+			Tessellator tessellator = Tessellator.INSTANCE;
+			GL11.glEnable(GL11.GL_BLEND);
+			GL11.glEnable(GL11.GL_ALPHA_TEST);
+			GL11.glBlendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE_MINUS_SRC_ALPHA);
+			tessellator.start();
+			bhapi_particles.forEach(p -> p.render(tessellator, delta, dx, dy, dz, width, height));
+			tessellator.draw();
+			GL11.glDisable(GL11.GL_BLEND);
 		}
-		
-		Textures.getAtlas().bind();
-		Tessellator tessellator = Tessellator.INSTANCE;
-		GL11.glEnable(GL11.GL_BLEND);
-		GL11.glEnable(GL11.GL_ALPHA_TEST);
-		GL11.glBlendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE_MINUS_SRC_ALPHA);
-		tessellator.start();
-		bhapi_particles.forEach(p -> p.render(tessellator, delta, dx, dy, dz, width, height));
-		tessellator.draw();
-		GL11.glDisable(GL11.GL_BLEND);
 	}
 	
 	@Inject(method = "render", at = @At("HEAD"), cancellable = true)
 	private void bhapi_render(BaseEntity entity, float delta, CallbackInfo info) {
 		info.cancel();
 		Tessellator tessellator = Tessellator.INSTANCE;
-		bhapi_items.forEach(p -> p.render(tessellator, delta, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f));
+		synchronized (bhapi_items) {
+			bhapi_items.forEach(p -> p.render(tessellator, delta, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f));
+		}
 	}
 	
 	@Inject(method = "setLevel", at = @At("HEAD"), cancellable = true)

@@ -59,10 +59,10 @@ public class PistonRendererMixin {
 				if (bhapi_headState == null) {
 					bhapi_headState = BlockState.getDefaultState(BaseBlock.PISTON_HEAD);
 				}
+				bhapi_headState = bhapi_headState.withMeta(entity.getFacing());
 				renderer.renderPistonHeadAllSides(bhapi_headState, entity.x, entity.y, entity.z, entity.getProgress(delta) < 0.5f);
 				BaseBlock.PISTON_HEAD.resetTexture();
 				tessellator.setOffset(x - entity.x, y - entity.y, z - entity.z);
-				//state = state.withMeta(entity.level.getBlockMeta(entity.x, entity.y, entity.z));
 				renderer.renderPistonExtended(state, entity.x, entity.y, entity.z);
 			}
 			else {
