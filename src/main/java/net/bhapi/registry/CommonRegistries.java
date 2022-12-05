@@ -36,7 +36,9 @@ import net.minecraft.server.ServerPlayerConnectionManager;
 import net.minecraft.server.command.CommandSource;
 
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
 import java.util.function.Supplier;
 
 public class CommonRegistries {
@@ -159,10 +161,21 @@ public class CommonRegistries {
 		BLOCK_REGISTRY.register(Identifier.make("locked_chest"), BaseBlock.LOCKED_CHEST);
 		BLOCK_REGISTRY.register(Identifier.make("trapdoor"), BaseBlock.TRAPDOOR);
 		
+		Set<Identifier> customNames = new HashSet<>();
+		customNames.add(Identifier.make("sapling"));
+		customNames.add(Identifier.make("log"));
+		customNames.add(Identifier.make("leaves"));
+		customNames.add(Identifier.make("wool"));
+		customNames.add(Identifier.make("slab"));
+		customNames.add(Identifier.make("redstone_torch"));
+		customNames.add(Identifier.make("redstone_torch_lit"));
+		customNames.add(Identifier.make("tall_grass"));
+		
 		BLOCK_REGISTRY.forEach(block -> {
 			BlockState state = BlockStateContainer.cast(block).getDefaultState();
 			state.getPossibleStates(); // Make sure that all vanilla blocks are generated on startup
 			Identifier id = BLOCK_REGISTRY.getID(block);
+			if (customNames.contains(id)) return;
 			BHBlockItem item = new BHBlockItem(state, itemIsFlat(block));
 			ITEM_REGISTRY.register(id, item);
 		});
@@ -178,6 +191,10 @@ public class CommonRegistries {
 			String name = DyeUtil.BLOCK_NAMES[i] + "_wool";
 			addVariant(name, BaseBlock.WOOL, i);
 		}
+		
+		addVariant("redstone_torch", BaseBlock.STONE_SLAB, 0);
+		BlockState state = BlockState.getDefaultState(BaseBlock.REDSTONE_TORCH_LIT);
+		ITEM_REGISTRY.register(Identifier.make("redstone_torch"), new BHBlockItem(state, true));
 		
 		addVariant("stone_slab", BaseBlock.STONE_SLAB, 0);
 		addVariant("sandstone_slab", BaseBlock.STONE_SLAB, 1);

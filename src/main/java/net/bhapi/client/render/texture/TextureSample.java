@@ -1,13 +1,13 @@
 package net.bhapi.client.render.texture;
 
+import net.bhapi.storage.CircleCache;
 import net.bhapi.storage.Vec2F;
 
 public class TextureSample {
-	private static final Vec2F[] UV_CACHE;
+	private static final CircleCache<Vec2F> UV_CACHE = new CircleCache<Vec2F>(4).fill(Vec2F::new);
 	private final TextureAtlas atlas;
 	private final int id;
 	private byte rotation;
-	private byte index;
 	private boolean mirrorU;
 	private boolean mirrorV;
 	
@@ -21,9 +21,11 @@ public class TextureSample {
 	}
 	
 	public Vec2F getUV(float u, float v) {
-		Vec2F uv = UV_CACHE[index];
-		index = (byte) ((index + 1) & 3);
-		return getUV(uv.set(u, v));
+		return getUV(u, v, UV_CACHE.get());
+	}
+	
+	public Vec2F getUV(float u, float v, Vec2F out) {
+		return getUV(out.set(u, v));
 	}
 	
 	public Vec2F getUV(Vec2F out) {
@@ -76,12 +78,5 @@ public class TextureSample {
 	
 	public int getY() {
 		return atlas.getUV(id).getY();
-	}
-	
-	static {
-		UV_CACHE = new Vec2F[4];
-		for (byte i = 0; i < 4; i++) {
-			UV_CACHE[i] = new Vec2F();
-		}
 	}
 }
