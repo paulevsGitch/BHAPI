@@ -68,8 +68,8 @@ public class BHBlockRenderer {
 	private int westFaceRotation = 0;
 	private int southFaceRotation = 0;
 	private int northFaceRotation = 0;
-	private int topFaceRotation = 0;
-	private int bottomFaceRotation = 0;
+	private int faceRotationPosY = 0;
+	private int faceRotationNegY = 0;
 	private boolean shadeTopFace;
 	private float brightnessMiddle;
 	private float brightnessNorth;
@@ -313,7 +313,7 @@ public class BHBlockRenderer {
 			colorRed10 *= f5;
 			colorGreen10 *= f5;
 			colorBlue10 *= f5;
-			renderBottomFace(block, x, y, z, state.getTextureForIndex(blockView, x, y, z, 0));
+			renderNegYFace(block, x, y, z, state.getTextureForIndex(blockView, x, y, z, 0));
 			result = true;
 		}
 		
@@ -355,7 +355,7 @@ public class BHBlockRenderer {
 			colorRed10 *= f5;
 			colorGreen10 *= f5;
 			colorBlue10 *= f5;
-			renderTopFace(block, x, y, z, state.getTextureForIndex(blockView, x, y, z, 1));
+			renderPosYFace(block, x, y, z, state.getTextureForIndex(blockView, x, y, z, 1));
 			result = true;
 		}
 		
@@ -639,7 +639,7 @@ public class BHBlockRenderer {
 			light = getBrightness(block, x, y - 1, z);
 			tessellator.color(bR * light, bG * light, bB * light);
 			if (item) tessellator.setNormal(0.0f, -1.0f, 0.0f);
-			renderBottomFace(block, x, y, z, state.getTextureForIndex(blockView, x, y, z, 0));
+			renderNegYFace(block, x, y, z, state.getTextureForIndex(blockView, x, y, z, 0));
 			result = true;
 		}
 		
@@ -650,7 +650,7 @@ public class BHBlockRenderer {
 			}
 			tessellator.color(tR * light, tG * light, tB * light);
 			if (item) tessellator.setNormal(0.0f, 1.0f, 0.0f);
-			renderTopFace(block, x, y, z, state.getTextureForIndex(blockView, x, y, z, 1));
+			renderPosYFace(block, x, y, z, state.getTextureForIndex(blockView, x, y, z, 1));
 			result = true;
 		}
 		
@@ -720,67 +720,33 @@ public class BHBlockRenderer {
 		return result;
 	}
 	
-	private void renderBottomFace(BaseBlock block, double x, double y, double z, TextureSample sample) {
+	private void renderNegYFace(BaseBlock block, double x, double y, double z, TextureSample sample) {
 		Tessellator tessellator = Tessellator.INSTANCE;
-		
 		float u11, u12, v11, v12;
 		
+		u11 = 1F - (float) block.minX;
+		u12 = 1F - (float) block.maxX;
+		v11 = (float) block.maxZ;
+		v12 = (float) block.minZ;
+		
+		if (!breaking) {
+			u11 = MathUtil.clamp(u11, 0, 1);
+			u12 = MathUtil.clamp(u12, 0, 1);
+			v11 = MathUtil.clamp(v11, 0, 1);
+			v12 = MathUtil.clamp(v12, 0, 1);
+		}
+		
+		sample.setRotation(faceRotationNegY);
+		Vec2F u1v1 = sample.getUV(u11, v11);
+		Vec2F u2v1 = sample.getUV(u12, v11);
+		Vec2F u1v2 = sample.getUV(u11, v12);
+		Vec2F u2v2 = sample.getUV(u12, v12);
 		if (breaking) {
-			u11 = (float) block.minX;
-			u12 = (float) block.maxX;
-			v11 = (float) block.maxZ;
-			v12 = (float) block.minZ;
+			u1v1.set(u11, v11);
+			u2v1.set(u12, v11);
+			u1v2.set(u11, v12);
+			u2v2.set(u12, v12);
 		}
-		else {
-			u11 = sample.getU(MathUtil.clamp((float) block.minX, 0, 1));
-			u12 = sample.getU(MathUtil.clamp((float) block.maxX, 0, 1));
-			v11 = sample.getV(MathUtil.clamp(1F - (float) block.minZ, 0, 1));
-			v12 = sample.getV(MathUtil.clamp(1F - (float) block.maxZ, 0, 1));
-		}
-		
-		float u22 = u12;
-		float u21 = u11;
-		float v21 = v11;
-		float v22 = v12;
-		
-		/*if (bottomFaceRotation == 2) {
-			u11 = ((double)n + arg.minZ * 16.0) / 256.0;
-			v11 = ((double)(n2 + 16) - arg.maxX * 16.0) / 256.0;
-			u12 = ((double)n + arg.maxZ * 16.0) / 256.0;
-			v12 = ((double)(n2 + 16) - arg.minX * 16.0) / 256.0;
-			u22 = u12;
-			u21 = u11;
-			v21 = v11;
-			v22 = v12;
-			u22 = u11;
-			u21 = u12;
-			v11 = v12;
-			v12 = v21;
-		}
-		else if (bottomFaceRotation == 1) {
-			u11 = ((double)(n + 16) - arg.maxZ * 16.0) / 256.0;
-			v11 = ((double)n2 + arg.minX * 16.0) / 256.0;
-			u12 = ((double)(n + 16) - arg.minZ * 16.0) / 256.0;
-			v12 = ((double)n2 + arg.maxX * 16.0) / 256.0;
-			u22 = u12;
-			u21 = u11;
-			v21 = v11;
-			v22 = v12;
-			u11 = u22;
-			u12 = u21;
-			v21 = v12;
-			v22 = v11;
-		}
-		else if (bottomFaceRotatioblock == BaseBlock.GRASS) {
-			u11 = ((double)(n + 16) - arg.minX * 16.0) / 256.0;
-			u12 = ((double)(n + 16) - arg.maxX * 16.0 - 0.01) / 256.0;
-			v11 = ((double)(n2 + 16) - arg.minZ * 16.0) / 256.0;
-			v12 = ((double)(n2 + 16) - arg.maxZ * 16.0 - 0.01) / 256.0;
-			u22 = u12;
-			u21 = u11;
-			v21 = v11;
-			v22 = v12;
-		}*/
 		
 		double x1 = x + block.minX;
 		double x2 = x + block.maxX;
@@ -790,40 +756,39 @@ public class BHBlockRenderer {
 		
 		if (shadeTopFace) {
 			tessellator.color(colorRed00, colorGreen00, colorBlue00);
-			tessellator.vertex(x1, y1, z2, u21, v22);
+			tessellator.vertex(x1, y1, z2, u1v1.x, u1v1.y);
 			tessellator.color(colorRed01, colorGreen01, colorBlue01);
-			tessellator.vertex(x1, y1, z1, u11, v11);
+			tessellator.vertex(x1, y1, z1, u1v2.x, u1v2.y);
 			tessellator.color(colurRed11, colorGreen11, colorBlue11);
-			tessellator.vertex(x2, y1, z1, u22, v21);
+			tessellator.vertex(x2, y1, z1, u2v2.x, u2v2.y);
 			tessellator.color(colorRed10, colorGreen10, colorBlue10);
-			tessellator.vertex(x2, y1, z2, u12, v12);
+			tessellator.vertex(x2, y1, z2, u2v1.x, u2v1.y);
 		}
 		else {
-			tessellator.vertex(x1, y1, z2, u21, v22);
-			tessellator.vertex(x1, y1, z1, u11, v11);
-			tessellator.vertex(x2, y1, z1, u22, v21);
-			tessellator.vertex(x2, y1, z2, u12, v12);
+			tessellator.vertex(x1, y1, z2, u1v1.x, u1v1.y);
+			tessellator.vertex(x1, y1, z1, u1v2.x, u1v2.y);
+			tessellator.vertex(x2, y1, z1, u2v2.x, u2v2.y);
+			tessellator.vertex(x2, y1, z2, u2v1.x, u2v1.y);
 		}
 	}
 	
-	private void renderTopFace(BaseBlock block, double x, double y, double z, TextureSample sample) {
+	private void renderPosYFace(BaseBlock block, double x, double y, double z, TextureSample sample) {
 		Tessellator tessellator = Tessellator.INSTANCE;
 		float u11, u12, v11, v12;
 		
-		if (breaking) {
-			u11 = (float) block.minX;
-			u12 = (float) block.maxX;
-			v11 = (float) block.minZ;
-			v12 = (float) block.maxZ;
-		}
-		else {
-			u11 = MathUtil.clamp(1 - (float) block.maxX, 0, 1);
-			u12 = MathUtil.clamp(1 - (float) block.minX, 0, 1);
-			v11 = MathUtil.clamp(1 - (float) block.maxZ, 0, 1);
-			v12 = MathUtil.clamp(1 - (float) block.minZ, 0, 1);
+		u11 = 1 - (float) block.maxX;
+		u12 = 1 - (float) block.minX;
+		v11 = 1 - (float) block.maxZ;
+		v12 = 1 - (float) block.minZ;
+		
+		if (!breaking) {
+			u11 = MathUtil.clamp(u11, 0, 1);
+			u12 = MathUtil.clamp(u12, 0, 1);
+			v11 = MathUtil.clamp(v11, 0, 1);
+			v12 = MathUtil.clamp(v12, 0, 1);
 		}
 		
-		sample.setRotation(topFaceRotation);
+		sample.setRotation(faceRotationPosY);
 		Vec2F u1v1 = sample.getUV(u11, v11);
 		Vec2F u2v1 = sample.getUV(u12, v11);
 		Vec2F u1v2 = sample.getUV(u11, v12);
@@ -1668,7 +1633,7 @@ public class BHBlockRenderer {
 		if (renderAllSides || renderBottom) {
 			float light = getBrightness(block, x, y - 1, z) * 0.5F;
 			tessellator.color(light, light, light);
-			renderBottomFace(block, x, y, z, state.getTextureForIndex(blockView, x, y, z, 0));
+			renderNegYFace(block, x, y, z, state.getTextureForIndex(blockView, x, y, z, 0));
 			result = true;
 		}
 		
@@ -2007,7 +1972,7 @@ public class BHBlockRenderer {
 		
 		tessellator.color(f * lightB, f * lightB, f * lightB);
 		TextureSample sample = state.getTextureForIndex(blockView, x, y, z, 0);
-		renderBottomFace(block, x, y, z, sample);
+		renderNegYFace(block, x, y, z, sample);
 		
 		lightB = block.getBrightness(blockView, x, y + 1, z);
 		
@@ -2021,7 +1986,7 @@ public class BHBlockRenderer {
 		
 		tessellator.color(f2 * lightB, f2 * lightB, f2 * lightB);
 		sample = state.getTextureForIndex(blockView, x, y, z, 1);
-		renderTopFace(block, x, y, z, sample);
+		renderPosYFace(block, x, y, z, sample);
 		lightB = block.getBrightness(blockView, x, y, z - 1);
 		
 		if (doorBlock.minZ > 0.0) {
@@ -2540,7 +2505,7 @@ public class BHBlockRenderer {
 			light = getBrightness(block, x, y - 1, z);
 			if (item) tessellator.setNormal(0.0f, -1.0f, 0.0f);
 			tessellator.color(r1 * light, g1 * light, b1 * light);
-			renderBottomFace(block, x, y, z, state.getTextureForIndex(blockView, x, y, z, 0));
+			renderNegYFace(block, x, y, z, state.getTextureForIndex(blockView, x, y, z, 0));
 			result = true;
 		}
 		
@@ -2551,7 +2516,7 @@ public class BHBlockRenderer {
 			}
 			if (item) tessellator.setNormal(0.0f, 1.0f, 0.0f);
 			tessellator.color(r * light, g * light, b * light);
-			renderTopFace(block, x, y, z, state.getTextureForIndex(blockView, x, y, z, 1));
+			renderPosYFace(block, x, y, z, state.getTextureForIndex(blockView, x, y, z, 1));
 			result = true;
 		}
 		
@@ -2878,27 +2843,27 @@ public class BHBlockRenderer {
 				case 2 -> {
 					southFaceRotation = 1;
 					northFaceRotation = 2;
-					topFaceRotation = 2;
+					faceRotationPosY = 3;
 					block.setBoundingBox(0.0f, 0.0f, 0.25f, 1.0f, 1.0f, 1.0f);
 				}
 				case 3 -> {
 					southFaceRotation = 2;
 					northFaceRotation = 1;
-					bottomFaceRotation = 3;
+					faceRotationNegY = 2;
 					block.setBoundingBox(0.0f, 0.0f, 0.0f, 1.0f, 1.0f, 0.75f);
 				}
 				case 4 -> {
 					eastFaceRotation = 1;
 					westFaceRotation = 2;
-					topFaceRotation = 1;
-					bottomFaceRotation = 1;
+					faceRotationPosY = 1;
+					faceRotationNegY = 1;
 					block.setBoundingBox(0.25f, 0.0f, 0.0f, 1.0f, 1.0f, 1.0f);
 				}
 				case 5 -> {
 					eastFaceRotation = 2;
 					westFaceRotation = 1;
-					topFaceRotation = 3;
-					bottomFaceRotation = 2;
+					faceRotationPosY = 3;
+					faceRotationNegY = 3;
 					block.setBoundingBox(0.0f, 0.0f, 0.0f, 0.75f, 1.0f, 1.0f);
 				}
 			}
@@ -2908,8 +2873,8 @@ public class BHBlockRenderer {
 			westFaceRotation = 0;
 			southFaceRotation = 0;
 			northFaceRotation = 0;
-			topFaceRotation = 0;
-			bottomFaceRotation = 0;
+			faceRotationPosY = 0;
+			faceRotationNegY = 0;
 			block.setBoundingBox(0.0f, 0.0f, 0.0f, 1.0f, 1.0f, 1.0f);
 		}
 		else {
@@ -2923,24 +2888,24 @@ public class BHBlockRenderer {
 				case 2 -> {
 					southFaceRotation = 1;
 					northFaceRotation = 2;
-					topFaceRotation = 2;
+					faceRotationPosY = 2;
 				}
 				case 3 -> {
 					southFaceRotation = 2;
 					northFaceRotation = 1;
-					bottomFaceRotation = 3;
+					faceRotationNegY = 2;
 				}
 				case 4 -> {
 					eastFaceRotation = 1;
 					westFaceRotation = 2;
-					topFaceRotation = 1;
-					bottomFaceRotation = 1;
+					faceRotationPosY = 1;
+					faceRotationNegY = 1;
 				}
 				case 5 -> {
 					eastFaceRotation = 2;
 					westFaceRotation = 1;
-					topFaceRotation = 3;
-					bottomFaceRotation = 2;
+					faceRotationPosY = 3;
+					faceRotationNegY = 3;
 				}
 			}
 			
@@ -2949,8 +2914,8 @@ public class BHBlockRenderer {
 			westFaceRotation = 0;
 			southFaceRotation = 0;
 			northFaceRotation = 0;
-			topFaceRotation = 0;
-			bottomFaceRotation = 0;
+			faceRotationPosY = 0;
+			faceRotationNegY = 0;
 		}
 		
 		return true;
@@ -2991,7 +2956,7 @@ public class BHBlockRenderer {
 			case 2 -> {
 				southFaceRotation = 1;
 				northFaceRotation = 2;
-				//topFaceRotation = 2;
+				faceRotationPosY = 2;
 				block.setBoundingBox(0.0f, 0.0f, 0.0f, 1.0f, 1.0f, 0.25f);
 				renderFullCube(state, x, y, z);
 				renderPistonHead(x + 0.375f, x + 0.375f, y + 0.625f, y + 0.375f, z + 0.25f, z + 0.25f + delta, light * 0.6f, scale, 1);
@@ -3002,8 +2967,7 @@ public class BHBlockRenderer {
 			case 3 -> {
 				southFaceRotation = 2;
 				northFaceRotation = 1;
-				topFaceRotation = 2;
-				bottomFaceRotation = 3;
+				faceRotationNegY = 3;
 				block.setBoundingBox(0.0f, 0.0f, 0.75f, 1.0f, 1.0f, 1.0f);
 				renderFullCube(state, x, y, z);
 				renderPistonHead(x + 0.375f, x + 0.375f, y + 0.625f, y + 0.375f, z - 0.25f + 1.0f - delta, z - 0.25f + 1.0f, light * 0.6f, scale, 1);
@@ -3014,8 +2978,8 @@ public class BHBlockRenderer {
 			case 4 -> {
 				eastFaceRotation = 1;
 				westFaceRotation = 2;
-				topFaceRotation = 3;
-				bottomFaceRotation = 1;
+				faceRotationPosY = 1;
+				faceRotationNegY = 1;
 				block.setBoundingBox(0.0f, 0.0f, 0.0f, 0.25f, 1.0f, 1.0f);
 				renderFullCube(state, x, y, z);
 				renderPistonHead(x + 0.25f, x + 0.25f + delta, y + 0.375f, y + 0.375f, z + 0.625f, z + 0.375f, light * 0.5f, scale, 2);
@@ -3026,8 +2990,8 @@ public class BHBlockRenderer {
 			case 5 -> {
 				eastFaceRotation = 2;
 				westFaceRotation = 1;
-				topFaceRotation = 1;
-				bottomFaceRotation = 2;
+				faceRotationPosY = 3;
+				faceRotationNegY = 2;
 				block.setBoundingBox(0.75f, 0.0f, 0.0f, 1.0f, 1.0f, 1.0f);
 				renderFullCube(state, x, y, z);
 				renderPistonHead(x - 0.25f + 1.0f - delta, x - 0.25f + 1.0f, y + 0.375f, y + 0.375f, z + 0.625f, z + 0.375f, light * 0.5f, scale, 2);
@@ -3040,8 +3004,8 @@ public class BHBlockRenderer {
 		westFaceRotation = 0;
 		southFaceRotation = 0;
 		northFaceRotation = 0;
-		topFaceRotation = 0;
-		bottomFaceRotation = 0;
+		faceRotationPosY = 0;
+		faceRotationNegY = 0;
 		block.setBoundingBox(0.0f, 0.0f, 0.0f, 1.0f, 1.0f, 1.0f);
 		return true;
 	}
