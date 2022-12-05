@@ -8,6 +8,8 @@ public class TextureSample {
 	private final int id;
 	private byte rotation;
 	private byte index;
+	private boolean mirrorU;
+	private boolean mirrorV;
 	
 	protected TextureSample(TextureAtlas atlas, int id) {
 		this.atlas = atlas;
@@ -30,6 +32,8 @@ public class TextureSample {
 			out.rotateCW(rotation);
 			out.add(0.5F);
 		}
+		if (mirrorU) out.x = 1 - out.x;
+		if (mirrorV) out.y = 1 - out.y;
 		UVPair pair = atlas.getUV(id);
 		out.x = pair.getU(out.x);
 		out.y = pair.getV(out.y);
@@ -48,6 +52,14 @@ public class TextureSample {
 	
 	public void setRotation(int rotation) {
 		this.rotation = (byte) (rotation & 3);
+	}
+	
+	public void setMirrorU(boolean mirror) {
+		mirrorU = mirror;
+	}
+	
+	public void setMirrorV(boolean mirror) {
+		mirrorV = mirror;
 	}
 	
 	public int getWidth() {

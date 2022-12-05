@@ -5,6 +5,7 @@ import net.bhapi.blockstate.BlockStateContainer;
 import net.bhapi.blockstate.properties.LegacyProperties;
 import net.bhapi.blockstate.properties.StateProperty;
 import net.bhapi.level.BlockStateProvider;
+import net.bhapi.level.LevelHeightProvider;
 import net.bhapi.util.BlockDirection;
 import net.bhapi.util.BlockUtil;
 import net.minecraft.block.BaseBlock;
@@ -13,6 +14,9 @@ import net.minecraft.block.material.Material;
 import net.minecraft.level.Level;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
+import org.spongepowered.asm.mixin.injection.At;
+import org.spongepowered.asm.mixin.injection.Inject;
+import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 import java.util.List;
 
@@ -66,6 +70,18 @@ public abstract class DoorBlockMixin extends BaseBlock implements BlockStateCont
 				this.method_837(level, x, y, z, power);
 			}
 		}
+	}
+	
+	@Inject(method = "canPlaceAt", at = @At("HEAD"), cancellable = true)
+	private void bhapi_canPlaceAt(Level arg, int x, int y, int z, CallbackInfoReturnable<Boolean> info) {
+		if (y >= LevelHeightProvider.cast(arg).getLevelHeight()) {
+			info.setReturnValue(false);
+		}
+		info.setReturnValue(
+			arg.canSuffocate(x, y - 1, z) &&
+			super.canPlaceAt(arg, x, y, z) &&
+			super.canPlaceAt(arg, x, y + 1, z)
+		);
 	}
 }
 
