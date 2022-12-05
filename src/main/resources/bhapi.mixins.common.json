@@ -39,7 +39,6 @@
 		"packet.MultiBlockChangePacketMixin",
 		"packet.InventoryUpdatePacketMixin",
 		"packet.ItemEntitySpawnPacketMixin",
-		"packet.ServerPacketHandlerMixin",
 		"packet.AbstractPackerAccessor",
 		"packet.BlockChangePacketMixin",
 		"packet.SlotUpdatePacketMixin",

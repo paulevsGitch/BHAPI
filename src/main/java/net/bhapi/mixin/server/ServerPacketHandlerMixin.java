@@ -1,4 +1,4 @@
-package net.bhapi.mixin.common.packet;
+package net.bhapi.mixin.server;
 
 import net.bhapi.packet.BlockStatesPacket;
 import net.minecraft.entity.player.ServerPlayer;
