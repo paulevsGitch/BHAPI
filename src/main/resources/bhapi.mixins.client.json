@@ -30,6 +30,7 @@
 		"MinecraftAccessor",
 		"BaseItemAccessor",
 		"ClientLevelMixin",
+		"PlayerBaseMixin",
 		"MinecraftMixin",
 		"MainMenuMixin",
 		"InGameMixin",
