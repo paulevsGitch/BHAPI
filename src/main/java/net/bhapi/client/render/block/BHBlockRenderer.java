@@ -1182,9 +1182,21 @@ public class BHBlockRenderer {
 		
 		TextureSample uv1 = state.getTextureForIndex(blockView, x, y, z, 0);
 		TextureSample uv2 = state.getTextureForIndex(blockView, x, y, z, 1);
-		float u1, u2, v1, v2;
+		Vec2F u1v1 = uv1.getUV(0, 0, uvCache.get());
+		Vec2F u1v2 = uv1.getUV(0, 1, uvCache.get());
+		Vec2F u2v1 = uv1.getUV(1, 0, uvCache.get());
+		Vec2F u2v2 = uv1.getUV(1, 1, uvCache.get());
 		
 		if (breaking) {
+			u1v1.set(0, 0);
+			u1v2.set(0, 1);
+			u2v1.set(1, 0);
+			u2v2.set(1, 1);
+		}
+		
+		//float u1, u2, v1, v2;
+		
+		/*if (breaking) {
 			u1 = 0; u2 = 1;
 			v1 = 0; v2 = 1;
 		}
@@ -1193,7 +1205,7 @@ public class BHBlockRenderer {
 			u2 = uv1.getU(1);
 			v1 = uv1.getV(0);
 			v2 = uv1.getV(1);
-		}
+		}*/
 		
 		float size = 1.4f;
 		if (blockView.canSuffocate(x, y - 1, z) || BaseBlock.FIRE.method_1824(blockView, x, y - 1, z)) {
@@ -1206,28 +1218,28 @@ public class BHBlockRenderer {
 			double z3 = z + 0.5 - 0.3;
 			double z4 = z + 0.5 + 0.3;
 			
-			tessellator.vertex(x3, y + size, z + 1, u2, v1);
-			tessellator.vertex(x2, y, z + 1, u2, v2);
-			tessellator.vertex(x2, y, z, u1, v2);
-			tessellator.vertex(x3, y + size, z, u1, v1);
-			tessellator.vertex(x4, y + size, z, u2, v1);
-			tessellator.vertex(x1, y, z, u2, v2);
-			tessellator.vertex(x1, y, z + 1, u1, v2);
-			tessellator.vertex(x4, y + size, z + 1, u1, v1);
+			tessellator.vertex(x3, y + size, z + 1, u2v1.x, u2v1.y);
+			tessellator.vertex(x2, y, z + 1, u2v2.x, u2v2.y);
+			tessellator.vertex(x2, y, z, u1v2.x, u1v2.y);
+			tessellator.vertex(x3, y + size, z, u1v1.x, u1v1.y);
+			tessellator.vertex(x4, y + size, z, u2v1.x, u2v1.y);
+			tessellator.vertex(x1, y, z, u2v2.x, u2v2.y);
+			tessellator.vertex(x1, y, z + 1, u1v2.x, u1v2.y);
+			tessellator.vertex(x4, y + size, z + 1, u1v1.x, u1v1.y);
 			
-			u1 = uv2.getU(0);
-			u2 = uv2.getU(1);
-			v1 = uv2.getV(0);
-			v2 = uv2.getV(1);
+			u1v1 = uv2.getUV(0, 0, u1v1);
+			u1v2 = uv2.getUV(0, 1, u1v2);
+			u2v1 = uv2.getUV(1, 0, u2v1);
+			u2v2 = uv2.getUV(1, 1, u2v2);
 			
-			tessellator.vertex(x + 1, y + size, z4, u2, v1);
-			tessellator.vertex(x + 1, y, z1, u2, v2);
-			tessellator.vertex(x, y, z1, u1, v2);
-			tessellator.vertex(x, y + size, z4, u1, v1);
-			tessellator.vertex(x, y + size, z3, u2, v1);
-			tessellator.vertex(x, y, z2, u2, v2);
-			tessellator.vertex(x + 1, y, z2, u1, v2);
-			tessellator.vertex(x + 1, y + size, z3, u1, v1);
+			tessellator.vertex(x + 1, y + size, z4, u2v1.x, u2v1.y);
+			tessellator.vertex(x + 1, y, z1, u2v2.x, u2v2.y);
+			tessellator.vertex(x, y, z1, u1v2.x, u1v2.y);
+			tessellator.vertex(x, y + size, z4, u1v1.x, u1v1.y);
+			tessellator.vertex(x, y + size, z3, u2v1.x, u2v1.y);
+			tessellator.vertex(x, y, z2, u2v2.x, u2v2.y);
+			tessellator.vertex(x + 1, y, z2, u1v2.x, u1v2.y);
+			tessellator.vertex(x + 1, y + size, z3, u1v1.x, u1v1.y);
 			
 			x2 = x + 0.5 - 0.5;
 			x1 = x + 0.5 + 0.5;
@@ -1238,88 +1250,94 @@ public class BHBlockRenderer {
 			z3 = z + 0.5 - 0.4;
 			z4 = z + 0.5 + 0.4;
 			
-			tessellator.vertex(x3, y + size, z, u1, v1);
-			tessellator.vertex(x2, y, z, u1, v2);
-			tessellator.vertex(x2, y, z + 1, u2, v2);
-			tessellator.vertex(x3, y + size, z + 1, u2, v1);
-			tessellator.vertex(x4, y + size, z + 1, u1, v1);
-			tessellator.vertex(x1, y, z + 1, u1, v2);
-			tessellator.vertex(x1, y, z, u2, v2);
-			tessellator.vertex(x4, y + size, z, u2, v1);
+			tessellator.vertex(x3, y + size, z, u1v1.x, u1v1.y);
+			tessellator.vertex(x2, y, z, u1v2.x, u1v2.y);
+			tessellator.vertex(x2, y, z + 1, u2v2.x, u2v2.y);
+			tessellator.vertex(x3, y + size, z + 1, u2v1.x, u2v1.y);
+			tessellator.vertex(x4, y + size, z + 1, u1v1.x, u1v1.y);
+			tessellator.vertex(x1, y, z + 1, u1v2.x, u1v2.y);
+			tessellator.vertex(x1, y, z, u2v2.x, u2v2.y);
+			tessellator.vertex(x4, y + size, z, u2v1.x, u2v1.y);
 			
-			u1 = uv1.getU(0);
-			u2 = uv1.getU(1);
-			v1 = uv1.getV(0);
-			v2 = uv1.getV(1);
+			u1v1 = uv1.getUV(0, 0, u1v1);
+			u1v2 = uv1.getUV(0, 1, u1v2);
+			u2v1 = uv1.getUV(1, 0, u2v1);
+			u2v2 = uv1.getUV(1, 1, u2v2);
 			
-			tessellator.vertex(x, y + size, z4, u1, v1);
-			tessellator.vertex(x, y, z1, u1, v2);
-			tessellator.vertex(x + 1, y, z1, u2, v2);
-			tessellator.vertex(x + 1, y + size, z4, u2, v1);
-			tessellator.vertex(x + 1, y + size, z3, u1, v1);
-			tessellator.vertex(x + 1, y, z2, u1, v2);
-			tessellator.vertex(x, y, z2, u2, v2);
-			tessellator.vertex(x, y + size, z3, u2, v1);
+			tessellator.vertex(x, y + size, z4, u1v1.x, u1v1.y);
+			tessellator.vertex(x, y, z1, u1v2.x, u1v2.y);
+			tessellator.vertex(x + 1, y, z1, u2v2.x, u2v2.y);
+			tessellator.vertex(x + 1, y + size, z4, u2v1.x, u2v1.y);
+			tessellator.vertex(x + 1, y + size, z3, u1v1.x, u1v1.y);
+			tessellator.vertex(x + 1, y, z2, u1v2.x, u1v2.y);
+			tessellator.vertex(x, y, z2, u2v2.x, u2v2.y);
+			tessellator.vertex(x, y + size, z3, u2v1.x, u2v1.y);
 		}
 		else {
 			float f3 = 0.2f;
 			float f4 = 0.0625f;
 			
+			if ((x / 2 + y / 2 + z / 2 & 1) == 1) {
+				uv2.setMirrorU(true);
+			}
+			
 			if ((x + y + z & 1) == 1) {
-				u1 = uv2.getU(0);
-				u2 = uv2.getU(1);
-				v1 = uv2.getV(0);
-				v2 = uv2.getV(1);
+				u1v1 = uv2.getUV(0, 0, u1v1);
+				u1v2 = uv2.getUV(0, 1, u1v2);
+				u2v1 = uv2.getUV(1, 0, u2v1);
+				u2v2 = uv2.getUV(1, 1, u2v2);
 			}
 			
 			if ((x / 2 + y / 2 + z / 2 & 1) == 1) {
-				float u = u2;
-				u2 = u1;
-				u1 = u;
+				float u = u1v1.x;
+				u1v1.x = u2v1.x;
+				u1v2.x = u2v1.x;
+				u2v1.x = u;
+				u2v2.x = u;
 			}
 			
 			if (BaseBlock.FIRE.method_1824(blockView, x - 1, y, z)) {
-				tessellator.vertex(x + f3, y + size + f4, z + 1, u2, v1);
-				tessellator.vertex(x, y + f4, z + 1, u2, v2);
-				tessellator.vertex(x, y + f4, z, u1, v2);
-				tessellator.vertex(x + f3, y + size + f4, z, u1, v1);
-				tessellator.vertex(x + f3, y + size + f4, z, u1, v1);
-				tessellator.vertex(x, y + f4, z, u1, v2);
-				tessellator.vertex(x, y + f4, z + 1, u2, v2);
-				tessellator.vertex(x + f3, y + size + f4, z + 1, u2, v1);
+				tessellator.vertex(x + f3, y + size + f4, z + 1, u2v1.x, u2v1.y);
+				tessellator.vertex(x, y + f4, z + 1, u2v2.x, u2v2.y);
+				tessellator.vertex(x, y + f4, z, u1v2.x, u1v2.y);
+				tessellator.vertex(x + f3, y + size + f4, z, u1v1.x, u1v1.y);
+				tessellator.vertex(x + f3, y + size + f4, z, u1v1.x, u1v1.y);
+				tessellator.vertex(x, y + f4, z, u1v2.x, u1v2.y);
+				tessellator.vertex(x, y + f4, z + 1, u2v2.x, u2v2.y);
+				tessellator.vertex(x + f3, y + size + f4, z + 1, u2v1.x, u2v1.y);
 			}
 			
 			if (BaseBlock.FIRE.method_1824(blockView, x + 1, y, z)) {
-				tessellator.vertex(x + 1 - f3, y + size + f4, z, u1, v1);
-				tessellator.vertex(x + 1, y + f4, z, u1, v2);
-				tessellator.vertex(x + 1, y + f4, z + 1, u2, v2);
-				tessellator.vertex(x + 1 - f3, y + size + f4, z + 1, u2, v1);
-				tessellator.vertex(x + 1 - f3, y + size + f4, z + 1, u2, v1);
-				tessellator.vertex(x + 1, y + f4, z + 1, u2, v2);
-				tessellator.vertex(x + 1, y + f4, z, u1, v2);
-				tessellator.vertex(x + 1 - f3, y + size + f4, z, u1, v1);
+				tessellator.vertex(x + 1 - f3, y + size + f4, z, u1v1.x, u1v1.y);
+				tessellator.vertex(x + 1, y + f4, z, u1v2.x, u1v2.y);
+				tessellator.vertex(x + 1, y + f4, z + 1, u2v2.x, u2v2.y);
+				tessellator.vertex(x + 1 - f3, y + size + f4, z + 1, u2v1.x, u2v1.y);
+				tessellator.vertex(x + 1 - f3, y + size + f4, z + 1, u2v1.x, u2v1.y);
+				tessellator.vertex(x + 1, y + f4, z + 1, u2v2.x, u2v2.y);
+				tessellator.vertex(x + 1, y + f4, z, u1v2.x, u1v2.y);
+				tessellator.vertex(x + 1 - f3, y + size + f4, z, u1v1.x, u1v1.y);
 			}
 			
 			if (BaseBlock.FIRE.method_1824(blockView, x, y, z - 1)) {
-				tessellator.vertex(x, y + size + f4, z + f3, u2, v1);
-				tessellator.vertex(x, y + f4, z, u2, v2);
-				tessellator.vertex(x + 1, y + f4, z, u1, v2);
-				tessellator.vertex(x + 1, y + size + f4, z + f3, u1, v1);
-				tessellator.vertex(x + 1, y + size + f4, z + f3, u1, v1);
-				tessellator.vertex(x + 1, y + f4, z, u1, v2);
-				tessellator.vertex(x, y + f4, z, u2, v2);
-				tessellator.vertex(x, y + size + f4, z + f3, u2, v1);
+				tessellator.vertex(x, y + size + f4, z + f3, u2v1.x, u2v1.y);
+				tessellator.vertex(x, y + f4, z, u2v2.x, u2v2.y);
+				tessellator.vertex(x + 1, y + f4, z, u1v2.x, u1v2.y);
+				tessellator.vertex(x + 1, y + size + f4, z + f3, u1v1.x, u1v1.y);
+				tessellator.vertex(x + 1, y + size + f4, z + f3, u1v1.x, u1v1.y);
+				tessellator.vertex(x + 1, y + f4, z, u1v2.x, u1v2.y);
+				tessellator.vertex(x, y + f4, z, u2v2.x, u2v2.y);
+				tessellator.vertex(x, y + size + f4, z + f3, u2v1.x, u2v1.y);
 			}
 			
 			if (BaseBlock.FIRE.method_1824(blockView, x, y, z + 1)) {
-				tessellator.vertex(x + 1, y + size + f4, z + 1 - f3, u1, v1);
-				tessellator.vertex(x + 1, y + f4, z + 1, u1, v2);
-				tessellator.vertex(x, y + f4, z + 1, u2, v2);
-				tessellator.vertex(x, y + size + f4, z + 1 - f3, u2, v1);
-				tessellator.vertex(x, y + size + f4, z + 1 - f3, u2, v1);
-				tessellator.vertex(x, y + f4, z + 1, u2, v2);
-				tessellator.vertex(x + 1, y + f4, z + 1, u1, v2);
-				tessellator.vertex(x + 1, y + size + f4, z + 1 - f3, u1, v1);
+				tessellator.vertex(x + 1, y + size + f4, z + 1 - f3, u1v1.x, u1v1.y);
+				tessellator.vertex(x + 1, y + f4, z + 1, u1v2.x, u1v2.y);
+				tessellator.vertex(x, y + f4, z + 1, u2v2.x, u2v2.y);
+				tessellator.vertex(x, y + size + f4, z + 1 - f3, u2v1.x, u2v1.y);
+				tessellator.vertex(x, y + size + f4, z + 1 - f3, u2v1.x, u2v1.y);
+				tessellator.vertex(x, y + f4, z + 1, u2v2.x, u2v2.y);
+				tessellator.vertex(x + 1, y + f4, z + 1, u1v2.x, u1v2.y);
+				tessellator.vertex(x + 1, y + size + f4, z + 1 - f3, u1v1.x, u1v1.y);
 			}
 			
 			if (BaseBlock.FIRE.method_1824(blockView, x, y + 1, z)) {
@@ -1334,36 +1352,36 @@ public class BHBlockRenderer {
 				
 				size = -0.2f;
 				if ((x + ++y + z & 1) == 0) {
-					tessellator.vertex(x7, y + size, z, u2, v1);
-					tessellator.vertex(x6, y, z, u2, v2);
-					tessellator.vertex(x6, y, z + 1, u1, v2);
-					tessellator.vertex(x7, y + size, z + 1, u1, v1);
+					tessellator.vertex(x7, y + size, z, u2v1.x, u2v1.y);
+					tessellator.vertex(x6, y, z, u2v2.x, u2v2.y);
+					tessellator.vertex(x6, y, z + 1, u1v2.x, u1v2.y);
+					tessellator.vertex(x7, y + size, z + 1, u1v1.x, u1v1.y);
 					
-					u1 = uv2.getU(0);
-					u2 = uv2.getU(1);
-					v1 = uv2.getV(0);
-					v2 = uv2.getV(1);
+					u1v1 = uv2.getUV(0, 0, u1v1);
+					u1v2 = uv2.getUV(0, 1, u1v2);
+					u2v1 = uv2.getUV(1, 0, u2v1);
+					u2v2 = uv2.getUV(1, 1, u2v2);
 					
-					tessellator.vertex(x8, y + size, z + 1, u2, v1);
-					tessellator.vertex(x5, y, z + 1, u2, v2);
-					tessellator.vertex(x5, y, z, u1, v2);
-					tessellator.vertex(x8, y + size, z, u1, v1);
+					tessellator.vertex(x8, y + size, z + 1, u2v1.x, u2v1.y);
+					tessellator.vertex(x5, y, z + 1, u2v2.x, u2v2.y);
+					tessellator.vertex(x5, y, z, u1v2.x, u1v2.y);
+					tessellator.vertex(x8, y + size, z, u1v1.x, u1v1.y);
 				}
 				else {
-					tessellator.vertex(x, y + size, z8, u2, v1);
-					tessellator.vertex(x, y, z5, u2, v2);
-					tessellator.vertex(x + 1, y, z5, u1, v2);
-					tessellator.vertex(x + 1, y + size, z8, u1, v1);
+					tessellator.vertex(x, y + size, z8, u2v1.x, u2v1.y);
+					tessellator.vertex(x, y, z5, u2v2.x, u2v2.y);
+					tessellator.vertex(x + 1, y, z5, u1v2.x, u1v2.y);
+					tessellator.vertex(x + 1, y + size, z8, u1v1.x, u1v1.y);
 					
-					u1 = uv2.getU(0);
-					u2 = uv2.getU(1);
-					v1 = uv2.getV(0);
-					v2 = uv2.getV(1);
+					u1v1 = uv2.getUV(0, 0, u1v1);
+					u1v2 = uv2.getUV(0, 1, u1v2);
+					u2v1 = uv2.getUV(1, 0, u2v1);
+					u2v2 = uv2.getUV(1, 1, u2v2);
 					
-					tessellator.vertex(x + 1, y + size, z7, u2, v1);
-					tessellator.vertex(x + 1, y, z6, u2, v2);
-					tessellator.vertex(x, y, z6, u1, v2);
-					tessellator.vertex(x, y + size, z7, u1, v1);
+					tessellator.vertex(x + 1, y + size, z7, u2v1.x, u2v1.y);
+					tessellator.vertex(x + 1, y, z6, u2v2.x, u2v2.y);
+					tessellator.vertex(x, y, z6, u1v2.x, u1v2.y);
+					tessellator.vertex(x, y + size, z7, u1v1.x, u1v1.y);
 				}
 			}
 		}
@@ -1396,8 +1414,8 @@ public class BHBlockRenderer {
 		}
 		
 		boolean result = false;
-		double d = 0.0;
-		double d2 = 1.0;
+		double minY = 0.0;
+		double maxY = 1.0;
 		
 		Material material = block.material;
 		float h1 = getFluidHeight(x, y, z, material);
@@ -1428,10 +1446,16 @@ public class BHBlockRenderer {
 			float light = block.getBrightness(blockView, x, y, z);
 			tessellator.color(light * r, light * g, light * b);
 			
-			tessellator.vertex(x, y + h1, z, sample.getU(u1 - cos - sin), sample.getV(v1 - cos + sin));
-			tessellator.vertex(x, y + h2, z + 1, sample.getU(u1 - cos + sin), sample.getV(v1 + cos + sin));
-			tessellator.vertex(x + 1, y + h3, z + 1, sample.getU(u1 + cos + sin), sample.getV(v1 + cos - sin));
-			tessellator.vertex(x + 1, y + h4, z, sample.getU(u1 + cos - sin), sample.getV(v1 - cos - sin));
+			Vec2F uv1 = sample.getUV(u1 - cos - sin, v1 - cos + sin, uvCache.get());
+			Vec2F uv2 = sample.getUV(u1 - cos + sin, v1 + cos + sin, uvCache.get());
+			Vec2F uv3 = sample.getUV(u1 + cos + sin, v1 + cos - sin, uvCache.get());
+			Vec2F uv4 = sample.getUV(u1 + cos - sin, v1 - cos - sin, uvCache.get());
+			
+			tessellator.vertex(x, y + h1, z, uv1.x, uv1.y);
+			tessellator.vertex(x, y + h2, z + 1, uv2.x, uv2.y);
+			tessellator.vertex(x + 1, y + h3, z + 1, uv3.x, uv3.y);
+			tessellator.vertex(x + 1, y + h4, z, uv4.x, uv4.y);
+			
 			result = true;
 		}
 		
@@ -1452,10 +1476,6 @@ public class BHBlockRenderer {
 			if (side == 1) ++dz;
 			if (side == 2) --dx;
 			if (side == 3) ++dx;
-			
-			/*int n7 = block.getTextureForSide(side + 2, meta);
-			int n8 = (n7 & 0xF) << 4;
-			int n9 = n7 & 0xF0;*/
 			
 			if (!renderAllSides && !renderSides[side]) continue;
 			
@@ -1494,26 +1514,26 @@ public class BHBlockRenderer {
 			
 			TextureSample sample = state.getTextureForIndex(blockView, x, y, z, side + 2);
 			
-			double u1 = sample.getU(0);
-			double u2 = sample.getU(0.5F);
-			double v1 = sample.getV(0.5F - py1 * 0.5F);
-			double v2 = sample.getV(0.5F - py2 * 0.5F);
-			double v3 = sample.getV(0.5F);
+			Vec2F u1v1 = sample.getUV(0, 0.5F - py1 * 0.5F, uvCache.get());
+			Vec2F u2v2 = sample.getUV(0.5F, 0.5F - py2 * 0.5F, uvCache.get());
+			Vec2F u2v3 = sample.getUV(0.5F, 0.5F, uvCache.get());
+			Vec2F u1v3 = sample.getUV(0, 0.5F, uvCache.get());
+			
 			float light = block.getBrightness(blockView, dx, dy, dz);
 			
 			light = side < 2 ? (light * 0.8f) : (light * 0.6f);
 			
 			tessellator.color(light * r, light * g, light * b);
 			
-			tessellator.vertex(px1, y + py1, pz1, u1, v1);
-			tessellator.vertex(px2, y + py2, pz2, u2, v2);
-			tessellator.vertex(px2, y, pz2, u2, v3);
-			tessellator.vertex(px1, y, pz1, u1, v3);
+			tessellator.vertex(px1, y + py1, pz1, u1v1.x, u1v1.y);
+			tessellator.vertex(px2, y + py2, pz2, u2v2.x, u2v2.y);
+			tessellator.vertex(px2, y, pz2, u2v3.x, u2v3.y);
+			tessellator.vertex(px1, y, pz1, u1v3.x, u1v3.y);
 			result = true;
 		}
 		
-		block.minY = d;
-		block.maxY = d2;
+		block.minY = minY;
+		block.maxY = maxY;
 		
 		return result;
 	}
@@ -1524,17 +1544,16 @@ public class BHBlockRenderer {
 		
 		for (int i2 = 0; i2 < 4; ++i2) {
 			int px = x - (i2 & 1);
-			int py = y;
 			int pz = z - (i2 >> 1 & 1);
 			
-			if (blockView.getMaterial(px, py + 1, pz) == material) {
+			if (blockView.getMaterial(px, y + 1, pz) == material) {
 				return 1.0f;
 			}
 			
-			Material levelMaterial = blockView.getMaterial(px, py, pz);
+			Material levelMaterial = blockView.getMaterial(px, y, pz);
 			
 			if (material == levelMaterial) {
-				int meta = blockView.getBlockMeta(px, py, pz);
+				int meta = blockView.getBlockMeta(px, y, pz);
 				if (meta >= 8 || meta == 0) {
 					offset += FluidBlock.getVisualHeight(meta) * 10.0f;
 					iteration += 10;
