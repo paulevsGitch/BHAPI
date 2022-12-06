@@ -1,6 +1,7 @@
 package net.bhapi.level;
 
 import net.bhapi.blockstate.BlockState;
+import net.bhapi.config.BHConfigs;
 import net.bhapi.interfaces.NBTSerializable;
 import net.bhapi.registry.CommonRegistries;
 import net.bhapi.storage.MultiThreadStorage;
@@ -20,6 +21,7 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.CopyOnWriteArrayList;
 
 public class ChunkSection implements NBTSerializable {
 	public static final ChunkSection EMPTY = new ChunkSection();
@@ -27,8 +29,12 @@ public class ChunkSection implements NBTSerializable {
 	private final Map<Vec3I, BaseBlockEntity> blockEntities = new ConcurrentHashMap<>();
 	private final BlockState[] states = new BlockState[4096];
 	private final byte[] light = new byte[4096];
+	public final List<BaseEntity> entities;
 	
-	public final List<BaseEntity> entities = new ArrayList<>();
+	public ChunkSection() {
+		boolean useThreads = BHConfigs.GENERAL.getBool("multithreading.useThreads", true);
+		entities = useThreads ? new CopyOnWriteArrayList<>() : new ArrayList<>();
+	}
 	
 	private int getIndex(int x, int y, int z) {
 		return x << 8 | y << 4 | z;
