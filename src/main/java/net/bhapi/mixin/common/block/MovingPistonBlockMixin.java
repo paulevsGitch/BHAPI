@@ -2,6 +2,8 @@ package net.bhapi.mixin.common.block;
 
 import net.bhapi.blockstate.BlockState;
 import net.bhapi.blockstate.BlockStateContainer;
+import net.bhapi.blockstate.properties.LegacyProperties;
+import net.bhapi.blockstate.properties.StateProperty;
 import net.bhapi.registry.CommonRegistries;
 import net.minecraft.block.BaseBlock;
 import net.minecraft.block.MovingPistonBlock;
@@ -18,10 +20,17 @@ import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
+import java.util.List;
+
 @Mixin(MovingPistonBlock.class)
-public abstract class MovingPistonBlockMixin extends BaseBlock {
+public abstract class MovingPistonBlockMixin extends BaseBlock implements BlockStateContainer {
 	protected MovingPistonBlockMixin(int i, Material arg) {
 		super(i, arg);
+	}
+	
+	@Override
+	public void appendProperties(List<StateProperty<?>> properties) {
+		properties.add(LegacyProperties.META_16);
 	}
 	
 	@Shadow protected abstract PistonBlockEntity method_1535(BlockView arg, int i, int j, int k);

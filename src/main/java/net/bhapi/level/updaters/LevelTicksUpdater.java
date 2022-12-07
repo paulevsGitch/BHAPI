@@ -61,6 +61,7 @@ public class LevelTicksUpdater extends ThreadedUpdater {
 	@Override
 	protected void onFinish() {
 		synchronized (updateInfos) {
+			updateRequests.clear();
 			updateInfos.clear();
 		}
 	}

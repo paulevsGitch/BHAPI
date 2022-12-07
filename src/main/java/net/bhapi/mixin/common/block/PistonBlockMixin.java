@@ -41,8 +41,6 @@ public abstract class PistonBlockMixin extends BaseBlock implements BlockStateCo
 	
 	@Shadow protected abstract boolean pushByPiston(Level arg, int i, int j, int k, int l);
 	
-	//@Shadow protected abstract boolean canMoveBlock(int i, Level arg, int j, int k, int l, boolean bl);
-	
 	@Unique private static Level bhapi_level;
 	
 	protected PistonBlockMixin(int i, Material arg) {
@@ -66,6 +64,11 @@ public abstract class PistonBlockMixin extends BaseBlock implements BlockStateCo
 		return LevelHeightProvider.cast(bhapi_level).getLevelHeight();
 	}
 	
+	@Inject(method = "onBlockPlaced", at = @At("HEAD"), cancellable = true)
+	private void bhapi_onBlockPlaced(Level level, int x, int y, int z, CallbackInfo info) {
+		info.cancel();
+	}
+	
 	@Inject(method = "onBlockAction", at = @At("HEAD"), cancellable = true)
 	private void bhapi_onBlockAction(Level level, int x, int y, int z, int flag, int meta, CallbackInfo info) {
 		info.cancel();
@@ -82,7 +85,7 @@ public abstract class PistonBlockMixin extends BaseBlock implements BlockStateCo
 				((PistonBlockEntity) entity).resetBlock();
 			}
 			BlockStateProvider provider = BlockStateProvider.cast(level);
-			provider.setBlockState(x, y, z, BlockState.getDefaultState(BaseBlock.MOVING_PISTON));
+			provider.setBlockState(x, y, z, BlockState.getDefaultState(BaseBlock.MOVING_PISTON).withMeta(meta));
 			PistonBlockEntity pistonEntity = (PistonBlockEntity) MovingPistonBlock.createEntity(this.id, meta, meta, false, true);
 			BlockStateContainer.cast(pistonEntity).setDefaultState(BlockUtil.getLegacyBlock(this.id, meta));
 			level.setBlockEntity(x, y, z, pistonEntity);
@@ -107,7 +110,7 @@ public abstract class PistonBlockMixin extends BaseBlock implements BlockStateCo
 						x += PistonDataValues.OFFSET_X[meta],
 						y += PistonDataValues.OFFSET_Y[meta],
 						z += PistonDataValues.OFFSET_Z[meta],
-						BlockState.getDefaultState(BaseBlock.MOVING_PISTON)
+						BlockState.getDefaultState(BaseBlock.MOVING_PISTON).withMeta(meta)
 					);
 					pistonEntity = (PistonBlockEntity) MovingPistonBlock.createEntity(0, 0, meta, false, false);
 					BlockStateContainer.cast(pistonEntity).setDefaultState(state);
@@ -187,8 +190,9 @@ public abstract class PistonBlockMixin extends BaseBlock implements BlockStateCo
 			BlockState state = provider.getBlockState(x3, y3, z3);
 			
 			if (state.is(this) && x3 == x && y3 == y && z3 == z) {
-				level.setBlockInChunk(x2, y2, z2, BaseBlock.MOVING_PISTON.id, meta | (this.actionByRotation ? 8 : 0));
 				int meta2 = meta | (this.actionByRotation ? 8 : 0);
+				BlockState piston = BlockState.getDefaultState(BaseBlock.MOVING_PISTON).withMeta(meta2);
+				provider.setBlockState(x2, y2, z2, piston);
 				BlockState head = BlockState.getDefaultState(BaseBlock.PISTON_HEAD).withMeta(meta2);
 				PistonBlockEntity entity = (PistonBlockEntity) MovingPistonBlock.createEntity(0, 0, meta, true, false);
 				BlockStateContainer.cast(entity).setDefaultState(head);

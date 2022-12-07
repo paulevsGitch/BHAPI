@@ -11,9 +11,10 @@ import java.util.Locale;
 
 public abstract class ThreadedUpdater {
 	protected final boolean useThreads;
+	protected final boolean isClient;
+	
 	private RunnableThread updatingThread;
 	private boolean isEmpty = true;
-	private final boolean isClient;
 	protected final Level level;
 	private final String name;
 	private long time;

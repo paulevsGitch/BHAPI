@@ -2665,7 +2665,7 @@ public class BHBlockRenderer {
 					block.setBoundingBox(0.0f, 0.0f, 0.25f, 1.0f, 1.0f, 1.0f);
 				}
 				case 3 -> {
-					faceRotationPosX = 2;
+					faceRotationPosX = 3;
 					faceRotationNegX = 1;
 					faceRotationNegY = 2;
 					block.setBoundingBox(0.0f, 0.0f, 0.0f, 1.0f, 1.0f, 0.75f);
@@ -2710,7 +2710,7 @@ public class BHBlockRenderer {
 						faceRotationPosY = 2;
 					}
 					case 3 -> {
-						faceRotationPosX = 2;
+						faceRotationPosX = 3;
 						faceRotationNegX = 1;
 						faceRotationNegY = 2;
 					}
@@ -2785,7 +2785,7 @@ public class BHBlockRenderer {
 				renderPistonHead(x + 0.625f, x + 0.375f, y + 0.625f, y + 0.625f, z + 0.25f, z + 0.25f + delta, light, scale, 1);
 			}
 			case 3 -> {
-				faceRotationPosX = 2;
+				faceRotationPosX = 3;
 				faceRotationNegX = 1;
 				faceRotationNegY = 3;
 				block.setBoundingBox(0.0f, 0.0f, 0.75f, 1.0f, 1.0f, 1.0f);

@@ -1,6 +1,5 @@
 package net.bhapi.level.updaters;
 
-import net.bhapi.BHAPI;
 import net.bhapi.blockstate.BlockState;
 import net.bhapi.level.BlockStateProvider;
 import net.bhapi.storage.Vec3I;
@@ -38,7 +37,7 @@ public class LevelBlocksUpdater extends ThreadedUpdater {
 			updateRequests.clear();
 		}
 		
-		if (BHAPI.isClient()) {
+		if (isClient) {
 			synchronized (updateAreas) {
 				Iterator<Vec3I> iterator = updateAreas.iterator();
 				for (short i = 0; i < 64 && iterator.hasNext(); i++) {
@@ -57,9 +56,10 @@ public class LevelBlocksUpdater extends ThreadedUpdater {
 			Vec3I pos = info.pos();
 			BlockDirection facing = info.facing();
 			BlockState a = provider.getBlockState(pos);
+			if (a.isAir()) continue;
 			BlockState b = provider.getBlockState(pos2.set(pos).move(facing));
 			a.onNeighbourBlockUpdate(level, pos.x, pos.y, pos.z, facing, b);
-			if (BHAPI.isClient()) {
+			if (isClient) {
 				synchronized (updateAreas) {
 					updateAreas.add(pos.set(pos.x >> 4 | 8, pos.y >> 4 | 8, pos.z >> 4 | 8));
 				}
@@ -70,6 +70,8 @@ public class LevelBlocksUpdater extends ThreadedUpdater {
 	@Override
 	protected void onFinish() {
 		synchronized (updateInfos) {
+			updateRequests.clear();
+			updateAreas.clear();
 			updateInfos.clear();
 		}
 	}
