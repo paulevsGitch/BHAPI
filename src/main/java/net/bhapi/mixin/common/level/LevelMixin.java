@@ -6,6 +6,7 @@ import net.bhapi.level.BHTimeInfo;
 import net.bhapi.level.BlockStateProvider;
 import net.bhapi.level.LevelHeightProvider;
 import net.bhapi.level.PlaceChecker;
+import net.bhapi.level.updaters.LevelBlocksUpdater;
 import net.bhapi.level.updaters.LevelChunkUpdater;
 import net.bhapi.level.updaters.LevelTicksUpdater;
 import net.bhapi.registry.CommonRegistries;
@@ -46,7 +47,6 @@ import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Random;
 
@@ -75,6 +75,11 @@ public abstract class LevelMixin implements LevelHeightProvider, BlockStateProvi
 	@Shadow public abstract boolean canSuffocate(int i, int j, int k);
 	@Shadow public abstract boolean hasInderectPower(int i, int j, int k);
 	
+	@Shadow public boolean isClientSide;
+	
+	@Shadow public abstract boolean hasRedstonePower(int i, int j, int k);
+	
+	@Unique private LevelBlocksUpdater bhapi_blocksUpdater;
 	@Unique private LevelChunkUpdater bhapi_chunksUpdater;
 	@Unique private LevelTicksUpdater bhapi_ticksUpdater;
 	
@@ -130,6 +135,7 @@ public abstract class LevelMixin implements LevelHeightProvider, BlockStateProvi
 	private void bhapi_processLoadedChunks(CallbackInfo info) {
 		info.cancel();
 		bhapi_chunksUpdater.process();
+		bhapi_blocksUpdater.process();
 	}
 	
 	@SuppressWarnings("unchecked")
@@ -579,10 +585,10 @@ public abstract class LevelMixin implements LevelHeightProvider, BlockStateProvi
 	@Unique
 	private void initUpdater() {
 		if (bhapi_chunksUpdater == null) {
-			bhapi_chunksUpdater = new LevelChunkUpdater(Level.class.cast(this));
-		}
-		if (bhapi_ticksUpdater == null) {
-			bhapi_ticksUpdater = new LevelTicksUpdater(Level.class.cast(this), this.properties);
+			Level level = Level.class.cast(this);
+			bhapi_chunksUpdater = new LevelChunkUpdater(level);
+			bhapi_ticksUpdater = new LevelTicksUpdater(level, this.properties);
+			bhapi_blocksUpdater = new LevelBlocksUpdater(level);
 		}
 	}
 	
@@ -621,15 +627,19 @@ public abstract class LevelMixin implements LevelHeightProvider, BlockStateProvi
 	@Inject(method = "updateAdjacentBlocks", at = @At("HEAD"), cancellable = true)
 	private void bhapi_updateAdjacentBlocks(int x, int y, int z, int id, CallbackInfo info) {
 		info.cancel();
-		if (this.stopPhysics) return;
-		final BlockState neighbour = getBlockState(x, y, z);
-		final Vec3I pos = new Vec3I();
-		final Level level = Level.class.cast(this);
-		Arrays.stream(BlockDirection.VALUES).forEach(facing -> {
+		if (this.stopPhysics || this.isClientSide) return;
+		//final BlockState neighbour = getBlockState(x, y, z);
+		//final Vec3I pos = new Vec3I();
+		//final Level level = Level.class.cast(this);
+		/*Arrays.stream(BlockDirection.VALUES).forEach(facing -> {
 			facing.move(pos.set(x, y, z));
 			BlockState state = getBlockState(pos.x, pos.y, pos.z);
 			state.onNeighbourBlockUpdate(level, pos.x, pos.y, pos.z, facing.invert(), neighbour);
-		});
+		});*/
+		
+		for (BlockDirection dir: BlockDirection.VALUES) {
+			bhapi_blocksUpdater.add(new Vec3I(x, y, z).move(dir), dir.invert());
+		}
 	}
 	
 	@Inject(method = "hasRedstonePower", at = @At("HEAD"), cancellable = true)

@@ -1,6 +1,5 @@
 package net.bhapi.mixin.common.item;
 
-import net.bhapi.BHAPI;
 import net.bhapi.client.render.texture.TextureSample;
 import net.bhapi.client.render.texture.Textures;
 import net.bhapi.item.BHItemRender;

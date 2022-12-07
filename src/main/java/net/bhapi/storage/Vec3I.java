@@ -1,5 +1,7 @@
 package net.bhapi.storage;
 
+import net.bhapi.util.BlockDirection;
+
 import java.util.Locale;
 
 public class Vec3I {
@@ -50,6 +52,10 @@ public class Vec3I {
 	
 	public Vec3I subtract(Vec3I vector) {
 		return subtract(vector.x, vector.y, vector.z);
+	}
+	
+	public Vec3I move(BlockDirection direction) {
+		return direction.move(this);
 	}
 	
 	@Override

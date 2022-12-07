@@ -170,6 +170,20 @@ public class CommonRegistries {
 		customNames.add(Identifier.make("redstone_torch"));
 		customNames.add(Identifier.make("redstone_torch_lit"));
 		customNames.add(Identifier.make("tall_grass"));
+		customNames.add(Identifier.make("air"));
+		customNames.add(Identifier.make("flowing_water"));
+		customNames.add(Identifier.make("static_water"));
+		customNames.add(Identifier.make("flowing_lava"));
+		customNames.add(Identifier.make("static_lava"));
+		customNames.add(Identifier.make("deadbush"));
+		customNames.add(Identifier.make("piston_head"));
+		customNames.add(Identifier.make("moving_piston"));
+		customNames.add(Identifier.make("double_slab"));
+		customNames.add(Identifier.make("fire"));
+		customNames.add(Identifier.make("furnace_lit"));
+		customNames.add(Identifier.make("wall_sign"));
+		customNames.add(Identifier.make("standing_sign"));
+		customNames.add(Identifier.make("repeater_lit"));
 		
 		BLOCK_REGISTRY.forEach(block -> {
 			BlockState state = BlockStateContainer.cast(block).getDefaultState();

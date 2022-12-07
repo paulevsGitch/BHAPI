@@ -16,11 +16,9 @@ import net.minecraft.block.BaseBlock;
 import net.minecraft.block.BlockSounds;
 import net.minecraft.block.material.Material;
 import net.minecraft.level.BlockView;
-import net.minecraft.level.Level;
 
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Random;
 import java.util.function.BiConsumer;
 
 // TODO remove this
@@ -70,7 +68,7 @@ public class TestEvent {
 			super(material);
 			setHardness(0.1F);
 			setBlastResistance(0.1F);
-			setBoundingBox(0.25F, 0, 0, 1, 1, 1);
+			//setBoundingBox(0.25F, 0, 0, 1, 1, 1);
 			setSounds(sounds);
 		}
 		
@@ -89,7 +87,7 @@ public class TestEvent {
 			return true;
 		}
 		
-		@Override
+		/*@Override
 		public void randomDisplayTick(Level level, int x, int y, int z, Random random) {
 			super.randomDisplayTick(level, x, y, z, random);
 			level.addParticle(
@@ -99,6 +97,6 @@ public class TestEvent {
 				z + random.nextFloat() * 1.2F - 0.1F,
 				random.nextFloat() * 0.1F, random.nextFloat() * 0.1F, random.nextFloat() * 0.1F
 			);
-		}
+		}*/
 	}
 }
