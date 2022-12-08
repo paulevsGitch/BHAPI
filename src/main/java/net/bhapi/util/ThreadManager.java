@@ -27,6 +27,10 @@ public class ThreadManager {
 		}
 	}
 	
+	public static void remove(String name) {
+		THREADS.remove(name);
+	}
+	
 	public static class RunnableThread extends Thread {
 		private final Runnable function;
 		private boolean run = true;

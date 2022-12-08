@@ -49,7 +49,7 @@ public class PermutationTable implements RandomGenerator {
 		return getInt(getInt(x) + y);
 	}
 	
-	public float getInt(int x, int y, int z) {
+	public int getInt(int x, int y, int z) {
 		return getInt(getInt(x, y) + z);
 	}
 	

@@ -2781,7 +2781,7 @@ public class BHBlockRenderer {
 			}
 			case 2 -> {
 				this.rotation.set(BlockDirection.POS_X, 1);
-				this.rotation.set(BlockDirection.NEG_X, 2);
+				this.rotation.set(BlockDirection.NEG_X, 3);
 				this.rotation.set(BlockDirection.POS_Y, 2);
 				block.setBoundingBox(0.0f, 0.0f, 0.0f, 1.0f, 1.0f, 0.25f);
 				renderFullCube(state, x, y, z);
@@ -2793,7 +2793,7 @@ public class BHBlockRenderer {
 			case 3 -> {
 				this.rotation.set(BlockDirection.POS_X, 3);
 				this.rotation.set(BlockDirection.NEG_X, 1);
-				this.rotation.set(BlockDirection.NEG_Y, 3);
+				this.rotation.set(BlockDirection.NEG_Y, 2);
 				block.setBoundingBox(0.0f, 0.0f, 0.75f, 1.0f, 1.0f, 1.0f);
 				renderFullCube(state, x, y, z);
 				renderPistonHead(x + 0.375f, x + 0.375f, y + 0.625f, y + 0.375f, z - 0.25f + 1.0f - delta, z - 0.25f + 1.0f, light * 0.6f, scale, 1);
@@ -2814,10 +2814,10 @@ public class BHBlockRenderer {
 				renderPistonHead(x + 0.25f, x + 0.25f + delta, y + 0.625f, y + 0.375f, z + 0.625f, z + 0.625f, light * 0.6f, scale, 2);
 			}
 			case 5 -> {
-				this.rotation.set(BlockDirection.NEG_Z, 2);
+				this.rotation.set(BlockDirection.NEG_Z, 3);
 				this.rotation.set(BlockDirection.POS_Z, 1);
 				this.rotation.set(BlockDirection.POS_Y, 3);
-				this.rotation.set(BlockDirection.NEG_Y, 2);
+				this.rotation.set(BlockDirection.NEG_Y, 3);
 				block.setBoundingBox(0.75f, 0.0f, 0.0f, 1.0f, 1.0f, 1.0f);
 				renderFullCube(state, x, y, z);
 				renderPistonHead(x - 0.25f + 1.0f - delta, x - 0.25f + 1.0f, y + 0.375f, y + 0.375f, z + 0.625f, z + 0.375f, light * 0.5f, scale, 2);

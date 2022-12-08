@@ -20,8 +20,8 @@ public abstract class ThreadedUpdater {
 	private long time;
 	
 	public ThreadedUpdater(String name, Level level) {
-		if (name.endsWith("_")) this.name = name;
-		else this.name = name + "_";
+		if (name.endsWith("_")) this.name = name + level.dimension.id;
+		else this.name = name + "_" + level.dimension.id;
 		useThreads = BHConfigs.GENERAL.getBool("multithreading.useThreads", true);
 		BHConfigs.GENERAL.save();
 		this.level = level;
@@ -31,7 +31,8 @@ public abstract class ThreadedUpdater {
 	public void process() {
 		if (useThreads) {
 			if (updatingThread == null) {
-				updatingThread = ThreadManager.makeThread(name + level.dimension.id, this::checkedUpdate);
+				BHAPI.log("Start thread: " + name);
+				updatingThread = ThreadManager.makeThread(name, this::checkedUpdate);
 				time = System.currentTimeMillis();
 				if (!updatingThread.isAlive()) updatingThread.start();
 			}
@@ -42,8 +43,8 @@ public abstract class ThreadedUpdater {
 	private void checkedUpdate() {
 		if (canUpdate()) {
 			update();
-			check();
 		}
+		check();
 		delay();
 	}
 	
@@ -82,14 +83,22 @@ public abstract class ThreadedUpdater {
 	}
 	
 	private void check() {
-		if (useThreads && isClient) {
-			boolean empty = BHAPIClient.getMinecraft().viewEntity == null;
-			if (!isEmpty && empty) {
-				ThreadManager.stopThread(updatingThread);
+		if (useThreads) {
+			if (updatingThread != null && !updatingThread.isAlive()) {
+				BHAPI.log("Thread " + name + " is inactive, marked to restart");
+				ThreadManager.remove(name);
 				updatingThread = null;
-				onFinish();
 			}
-			isEmpty = empty;
+			else if (isClient) {
+				boolean empty = BHAPIClient.getMinecraft().viewEntity == null;
+				if (!isEmpty && empty) {
+					BHAPI.log("Stop thread: " + name);
+					ThreadManager.stopThread(updatingThread);
+					updatingThread = null;
+					onFinish();
+				}
+				isEmpty = empty;
+			}
 		}
 	}
 }
