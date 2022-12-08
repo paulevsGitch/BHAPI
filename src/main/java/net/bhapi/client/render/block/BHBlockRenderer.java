@@ -6,9 +6,11 @@ import net.bhapi.client.render.texture.TextureSample;
 import net.bhapi.client.render.texture.Textures;
 import net.bhapi.level.BlockStateProvider;
 import net.bhapi.storage.CircleCache;
+import net.bhapi.storage.EnumArray;
 import net.bhapi.storage.PermutationTable;
 import net.bhapi.storage.Vec2F;
 import net.bhapi.storage.Vec3F;
+import net.bhapi.util.BlockDirection;
 import net.bhapi.util.MathUtil;
 import net.minecraft.block.BaseBlock;
 import net.minecraft.block.BedBlock;
@@ -62,16 +64,16 @@ public class BHBlockRenderer {
 		renderingFunctions.add(this::renderPistonHead);
 	}
 	
-	private boolean requireMirror = false;
-	private boolean mirrorTexture = false;
+	private final EnumArray<Integer, BlockDirection> rotation = new EnumArray<>(BlockDirection.class);
+	private boolean forceRotation = false;
 	private boolean renderAllSides = false;
 	public boolean itemColorEnabled = true;
-	private int faceRotationNegZ = 0;
+	/*private int faceRotationNegZ = 0;
 	private int faceRotationPosZ = 0;
 	private int faceRotationPosX = 0;
 	private int faceRotationNegX = 0;
 	private int faceRotationPosY = 0;
-	private int faceRotationNegY = 0;
+	private int faceRotationNegY = 0;*/
 	private boolean shadeTopFace;
 	private float brightnessMiddle;
 	private float brightnessNorth;
@@ -726,6 +728,8 @@ public class BHBlockRenderer {
 		Tessellator tessellator = Tessellator.INSTANCE;
 		float u11, u12, v11, v12;
 		
+		if (forceRotation) sample.setRotation(rotation.get(BlockDirection.NEG_Y));
+		
 		u11 = 1F - (float) block.minX;
 		u12 = 1F - (float) block.maxX;
 		v11 = (float) block.maxZ;
@@ -738,7 +742,6 @@ public class BHBlockRenderer {
 			v12 = MathUtil.clamp(v12, 0, 1);
 		}
 		
-		sample.setRotation(faceRotationNegY);
 		Vec2F u1v1 = sample.getUV(u11, v11, uvCache.get());
 		Vec2F u2v1 = sample.getUV(u12, v11, uvCache.get());
 		Vec2F u1v2 = sample.getUV(u11, v12, uvCache.get());
@@ -778,6 +781,8 @@ public class BHBlockRenderer {
 		Tessellator tessellator = Tessellator.INSTANCE;
 		float u11, u12, v11, v12;
 		
+		if (forceRotation) sample.setRotation(rotation.get(BlockDirection.POS_Y));
+		
 		u11 = 1 - (float) block.maxX;
 		u12 = 1 - (float) block.minX;
 		v11 = 1 - (float) block.maxZ;
@@ -790,7 +795,6 @@ public class BHBlockRenderer {
 			v12 = MathUtil.clamp(v12, 0, 1);
 		}
 		
-		sample.setRotation(faceRotationPosY);
 		Vec2F u1v1 = sample.getUV(u11, v11, uvCache.get());
 		Vec2F u2v1 = sample.getUV(u12, v11, uvCache.get());
 		Vec2F u1v2 = sample.getUV(u11, v12, uvCache.get());
@@ -830,6 +834,8 @@ public class BHBlockRenderer {
 		Tessellator tessellator = Tessellator.INSTANCE;
 		float u11, u12, v11, v12;
 		
+		if (forceRotation) sample.setRotation(rotation.get(BlockDirection.NEG_Z));
+		
 		u11 = 1F - (float) block.maxX;
 		u12 = 1F - (float) block.minX;
 		v11 = 1F - (float) block.maxY;
@@ -842,8 +848,6 @@ public class BHBlockRenderer {
 			v12 = MathUtil.clamp(v12, 0, 1);
 		}
 		
-		if (requireMirror) sample.setMirrorU(mirrorTexture);
-		sample.setRotation(faceRotationNegZ);
 		Vec2F u1v1 = sample.getUV(u11, v11, uvCache.get());
 		Vec2F u2v1 = sample.getUV(u12, v11, uvCache.get());
 		Vec2F u1v2 = sample.getUV(u11, v12, uvCache.get());
@@ -883,6 +887,8 @@ public class BHBlockRenderer {
 		Tessellator tessellator = Tessellator.INSTANCE;
 		float u11, u12, v11, v12;
 		
+		if (forceRotation) sample.setRotation(rotation.get(BlockDirection.POS_Z));
+		
 		u11 = (float) block.minX;
 		u12 = (float) block.maxX;
 		v11 = 1F - (float) block.maxY;
@@ -895,8 +901,6 @@ public class BHBlockRenderer {
 			v12 = MathUtil.clamp(v12, 0, 1);
 		}
 		
-		if (requireMirror) sample.setMirrorU(mirrorTexture);
-		sample.setRotation(faceRotationPosZ);
 		Vec2F u1v1 = sample.getUV(u11, v11, uvCache.get());
 		Vec2F u2v1 = sample.getUV(u12, v11, uvCache.get());
 		Vec2F u1v2 = sample.getUV(u11, v12, uvCache.get());
@@ -936,6 +940,8 @@ public class BHBlockRenderer {
 		Tessellator tessellator = Tessellator.INSTANCE;
 		float u11, u12, v11, v12;
 		
+		if (forceRotation) sample.setRotation(rotation.get(BlockDirection.NEG_X));
+		
 		u11 = (float) block.maxZ;
 		u12 = (float) block.minZ;
 		v11 = 1F - (float) block.minY;
@@ -948,8 +954,6 @@ public class BHBlockRenderer {
 			v12 = MathUtil.clamp(v12, 0, 1);
 		}
 		
-		if (requireMirror) sample.setMirrorU(mirrorTexture);
-		sample.setRotation(faceRotationNegX);
 		Vec2F u1v1 = sample.getUV(u11, v11, uvCache.get());
 		Vec2F u2v1 = sample.getUV(u12, v11, uvCache.get());
 		Vec2F u1v2 = sample.getUV(u11, v12, uvCache.get());
@@ -989,6 +993,8 @@ public class BHBlockRenderer {
 		Tessellator tessellator = Tessellator.INSTANCE;
 		float u11, u12, v11, v12;
 		
+		if (forceRotation) sample.setRotation(rotation.get(BlockDirection.POS_X));
+		
 		u11 = 1F - (float) block.maxZ;
 		u12 = 1F - (float) block.minZ;
 		v11 = 1F - (float) block.maxY;
@@ -1001,8 +1007,6 @@ public class BHBlockRenderer {
 			v12 = MathUtil.clamp(v12, 0, 1);
 		}
 		
-		if (requireMirror) sample.setMirrorU(mirrorTexture);
-		sample.setRotation(faceRotationPosX);
 		Vec2F u1v1 = sample.getUV(u11, v11, uvCache.get());
 		Vec2F u2v1 = sample.getUV(u12, v11, uvCache.get());
 		Vec2F u1v2 = sample.getUV(u11, v12, uvCache.get());
@@ -2501,15 +2505,16 @@ public class BHBlockRenderer {
 			case 1 -> face = 3;
 		}
 		
-		requireMirror = true;
+		TextureSample sample;
 		if (magic != 2 && (renderAllSides || arg.isSideRendered(blockView, x, y, z - 1, 2))) {
 			float f19 = arg.getBrightness(blockView, x, y, z - 1);
 			if (arg.minZ > 0.0) {
 				f19 = light;
 			}
 			tessellator.color(f9 * f19, f12 * f19, f15 * f19);
-			mirrorTexture = face == 2;
-			renderNegZFace(arg, x, y, z, state.getTextureForIndex(blockView, x, y, z, 2));
+			sample = state.getTextureForIndex(blockView, x, y, z, 2);
+			sample.setMirrorU(face == 2);
+			renderNegZFace(arg, x, y, z, sample);
 		}
 		
 		if (magic != 3 && (renderAllSides || arg.isSideRendered(blockView, x, y, z + 1, 3))) {
@@ -2518,8 +2523,9 @@ public class BHBlockRenderer {
 				f20 = light;
 			}
 			tessellator.color(f9 * f20, f12 * f20, f15 * f20);
-			mirrorTexture = face == 3;
-			renderPosZFace(arg, x, y, z, state.getTextureForIndex(blockView, x, y, z, 3));
+			sample = state.getTextureForIndex(blockView, x, y, z, 3);
+			sample.setMirrorU(face == 3);
+			renderPosZFace(arg, x, y, z, sample);
 		}
 		
 		if (magic != 4 && (renderAllSides || arg.isSideRendered(blockView, x - 1, y, z, 4))) {
@@ -2528,8 +2534,9 @@ public class BHBlockRenderer {
 				f21 = light;
 			}
 			tessellator.color(f10 * f21, f13 * f21, f16 * f21);
-			mirrorTexture = face == 4;
-			renderNegXFace(arg, x, y, z, state.getTextureForIndex(blockView, x, y, z, 4));
+			sample = state.getTextureForIndex(blockView, x, y, z, 3);
+			sample.setMirrorU(face == 4);
+			renderNegXFace(arg, x, y, z, sample);
 		}
 		
 		if (magic != 5 && (renderAllSides || arg.isSideRendered(blockView, x + 1, y, z, 5))) {
@@ -2538,12 +2545,11 @@ public class BHBlockRenderer {
 				f22 = light;
 			}
 			tessellator.color(f10 * f22, f13 * f22, f16 * f22);
-			mirrorTexture = face == 5;
-			renderPosXFace(arg, x, y, z, state.getTextureForIndex(blockView, x, y, z, 5));
+			sample = state.getTextureForIndex(blockView, x, y, z, 3);
+			sample.setMirrorU(face == 5);
+			renderPosXFace(arg, x, y, z, sample);
 		}
 		
-		mirrorTexture = false;
-		requireMirror = false;
 		return true;
 	}
 	
@@ -2641,101 +2647,99 @@ public class BHBlockRenderer {
 		return renderPiston(state, x, y, z, false);
 	}
 	
+	private void resetSamplesRotation() {
+		for (BlockDirection d: BlockDirection.VALUES) this.rotation.set(d, 0);
+	}
+	
 	private boolean renderPiston(BlockState state, int x, int y, int z, boolean extend) {
 		BaseBlock block = state.getBlock();
 		int meta = state.getMeta();
 		boolean extended = extend || (meta & 8) != 0;
 		int rotation = PistonBlock.getRotationByMeta(meta);
 		if (extended) {
+			resetSamplesRotation();
+			forceRotation = true;
 			switch (rotation) {
 				case 0 -> {
-					faceRotationNegZ = 2;
-					faceRotationPosZ = 2;
-					faceRotationPosX = 2;
-					faceRotationNegX = 2;
+					this.rotation.set(BlockDirection.NEG_Z, 2);
+					this.rotation.set(BlockDirection.POS_Z, 2);
+					this.rotation.set(BlockDirection.POS_X, 2);
+					this.rotation.set(BlockDirection.NEG_X, 2);
 					block.setBoundingBox(0.0f, 0.25f, 0.0f, 1.0f, 1.0f, 1.0f);
 				}
 				case 1 -> {
 					block.setBoundingBox(0.0f, 0.0f, 0.0f, 1.0f, 0.75f, 1.0f);
 				}
 				case 2 -> {
-					faceRotationPosX = 1;
-					faceRotationNegX = 3;
-					faceRotationPosY = 3;
+					this.rotation.set(BlockDirection.POS_X, 1);
+					this.rotation.set(BlockDirection.NEG_X, 3);
+					this.rotation.set(BlockDirection.POS_Y, 2);
 					block.setBoundingBox(0.0f, 0.0f, 0.25f, 1.0f, 1.0f, 1.0f);
 				}
 				case 3 -> {
-					faceRotationPosX = 3;
-					faceRotationNegX = 1;
-					faceRotationNegY = 2;
+					this.rotation.set(BlockDirection.POS_X, 3);
+					this.rotation.set(BlockDirection.NEG_X, 1);
+					this.rotation.set(BlockDirection.NEG_Y, 2);
 					block.setBoundingBox(0.0f, 0.0f, 0.0f, 1.0f, 1.0f, 0.75f);
 				}
 				case 4 -> {
-					faceRotationNegZ = 1;
-					faceRotationPosZ = 3;
-					faceRotationPosY = 1;
-					faceRotationNegY = 1;
+					this.rotation.set(BlockDirection.NEG_Z, 1);
+					this.rotation.set(BlockDirection.POS_Z, 3);
+					this.rotation.set(BlockDirection.POS_Y, 1);
+					this.rotation.set(BlockDirection.NEG_Y, 1);
 					block.setBoundingBox(0.25f, 0.0f, 0.0f, 1.0f, 1.0f, 1.0f);
 				}
 				case 5 -> {
-					faceRotationPosZ = 1;
-					faceRotationPosY = 3;
-					faceRotationNegY = 3;
-					faceRotationNegZ = 3;
+					this.rotation.set(BlockDirection.POS_Z, 1);
+					this.rotation.set(BlockDirection.POS_Y, 3);
+					this.rotation.set(BlockDirection.NEG_Y, 3);
+					this.rotation.set(BlockDirection.NEG_Z, 3);
 					block.setBoundingBox(0.0f, 0.0f, 0.0f, 0.75f, 1.0f, 1.0f);
 				}
 			}
 			
 			renderFullCube(state, x, y, z);
-			faceRotationNegZ = 0;
-			faceRotationPosZ = 0;
-			faceRotationPosX = 0;
-			faceRotationNegX = 0;
-			faceRotationPosY = 0;
-			faceRotationNegY = 0;
 			block.setBoundingBox(0.0f, 0.0f, 0.0f, 1.0f, 1.0f, 1.0f);
+			forceRotation = false;
 		}
 		else {
 			if (!item) {
+				resetSamplesRotation();
+				forceRotation = true;
 				switch (rotation) {
 					case 0 -> {
-						faceRotationNegZ = 2;
-						faceRotationPosZ = 2;
-						faceRotationPosX = 2;
-						faceRotationNegX = 2;
+						this.rotation.set(BlockDirection.NEG_Z, 2);
+						this.rotation.set(BlockDirection.POS_Z, 2);
+						this.rotation.set(BlockDirection.POS_X, 2);
+						this.rotation.set(BlockDirection.NEG_X, 2);
 					}
 					case 2 -> {
-						faceRotationPosX = 1;
-						faceRotationNegX = 3;
-						faceRotationPosY = 2;
+						this.rotation.set(BlockDirection.POS_X, 1);
+						this.rotation.set(BlockDirection.NEG_X, 3);
+						this.rotation.set(BlockDirection.POS_Y, 2);
 					}
 					case 3 -> {
-						faceRotationPosX = 3;
-						faceRotationNegX = 1;
-						faceRotationNegY = 2;
+						this.rotation.set(BlockDirection.POS_X, 3);
+						this.rotation.set(BlockDirection.NEG_X, 1);
+						this.rotation.set(BlockDirection.NEG_Y, 2);
 					}
 					case 4 -> {
-						faceRotationNegZ = 1;
-						faceRotationPosZ = 3;
-						faceRotationPosY = 1;
-						faceRotationNegY = 1;
+						this.rotation.set(BlockDirection.NEG_Z, 1);
+						this.rotation.set(BlockDirection.POS_Z, 3);
+						this.rotation.set(BlockDirection.POS_Y, 1);
+						this.rotation.set(BlockDirection.NEG_Y, 1);
 					}
 					case 5 -> {
-						faceRotationPosZ = 1;
-						faceRotationPosY = 3;
-						faceRotationNegY = 3;
-						faceRotationNegZ = 3;
+						this.rotation.set(BlockDirection.POS_Z, 1);
+						this.rotation.set(BlockDirection.POS_Y, 3);
+						this.rotation.set(BlockDirection.NEG_Y, 3);
+						this.rotation.set(BlockDirection.NEG_Z, 3);
 					}
 				}
 			}
 			
 			renderFullCube(state, x, y, z);
-			faceRotationNegZ = 0;
-			faceRotationPosZ = 0;
-			faceRotationPosX = 0;
-			faceRotationNegX = 0;
-			faceRotationPosY = 0;
-			faceRotationNegY = 0;
+			forceRotation = false;
 		}
 		
 		return true;
@@ -2752,12 +2756,14 @@ public class BHBlockRenderer {
 		float light = block.getBrightness(blockView, x, y, z);
 		float delta = extended ? 1.0F : 0.5F;
 		float scale = extended ? 16.0F : 8.0F;
+		resetSamplesRotation();
+		forceRotation = true;
 		switch (offset) {
 			case 0 -> {
-				faceRotationNegZ = 2;
-				faceRotationPosZ = 2;
-				faceRotationPosX = 2;
-				faceRotationNegX = 2;
+				this.rotation.set(BlockDirection.NEG_Z, 2);
+				this.rotation.set(BlockDirection.POS_Z, 2);
+				this.rotation.set(BlockDirection.POS_X, 2);
+				this.rotation.set(BlockDirection.NEG_X, 2);
 				block.setBoundingBox(0.0f, 0.0f, 0.0f, 1.0f, 0.25f, 1.0f);
 				renderFullCube(state, x, y, z);
 				renderPistonHead(x + 0.375f, x + 0.625f, y + 0.25f, y + 0.25f + delta, z + 0.625f, z + 0.625f, light * 0.8f, scale, 0);
@@ -2774,9 +2780,9 @@ public class BHBlockRenderer {
 				renderPistonHead(x + 0.625f, x + 0.625f, y - 0.25f + 1.0f - delta, y - 0.25f + 1.0f, z + 0.625f, z + 0.375f, light * 0.6f, scale, 0);
 			}
 			case 2 -> {
-				faceRotationPosX = 1;
-				faceRotationNegX = 2;
-				faceRotationPosY = 2;
+				this.rotation.set(BlockDirection.POS_X, 1);
+				this.rotation.set(BlockDirection.NEG_X, 2);
+				this.rotation.set(BlockDirection.POS_Y, 2);
 				block.setBoundingBox(0.0f, 0.0f, 0.0f, 1.0f, 1.0f, 0.25f);
 				renderFullCube(state, x, y, z);
 				renderPistonHead(x + 0.375f, x + 0.375f, y + 0.625f, y + 0.375f, z + 0.25f, z + 0.25f + delta, light * 0.6f, scale, 1);
@@ -2785,9 +2791,9 @@ public class BHBlockRenderer {
 				renderPistonHead(x + 0.625f, x + 0.375f, y + 0.625f, y + 0.625f, z + 0.25f, z + 0.25f + delta, light, scale, 1);
 			}
 			case 3 -> {
-				faceRotationPosX = 3;
-				faceRotationNegX = 1;
-				faceRotationNegY = 3;
+				this.rotation.set(BlockDirection.POS_X, 3);
+				this.rotation.set(BlockDirection.NEG_X, 1);
+				this.rotation.set(BlockDirection.NEG_Y, 3);
 				block.setBoundingBox(0.0f, 0.0f, 0.75f, 1.0f, 1.0f, 1.0f);
 				renderFullCube(state, x, y, z);
 				renderPistonHead(x + 0.375f, x + 0.375f, y + 0.625f, y + 0.375f, z - 0.25f + 1.0f - delta, z - 0.25f + 1.0f, light * 0.6f, scale, 1);
@@ -2796,10 +2802,10 @@ public class BHBlockRenderer {
 				renderPistonHead(x + 0.625f, x + 0.375f, y + 0.625f, y + 0.625f, z - 0.25f + 1.0f - delta, z - 0.25f + 1.0f, light, scale, 1);
 			}
 			case 4 -> {
-				faceRotationNegZ = 1;
-				faceRotationPosZ = 3;
-				faceRotationPosY = 1;
-				faceRotationNegY = 1;
+				this.rotation.set(BlockDirection.NEG_Z, 1);
+				this.rotation.set(BlockDirection.POS_Z, 3);
+				this.rotation.set(BlockDirection.POS_Y, 1);
+				this.rotation.set(BlockDirection.NEG_Y, 1);
 				block.setBoundingBox(0.0f, 0.0f, 0.0f, 0.25f, 1.0f, 1.0f);
 				renderFullCube(state, x, y, z);
 				renderPistonHead(x + 0.25f, x + 0.25f + delta, y + 0.375f, y + 0.375f, z + 0.625f, z + 0.375f, light * 0.5f, scale, 2);
@@ -2808,10 +2814,10 @@ public class BHBlockRenderer {
 				renderPistonHead(x + 0.25f, x + 0.25f + delta, y + 0.625f, y + 0.375f, z + 0.625f, z + 0.625f, light * 0.6f, scale, 2);
 			}
 			case 5 -> {
-				faceRotationNegZ = 2;
-				faceRotationPosZ = 1;
-				faceRotationPosY = 3;
-				faceRotationNegY = 2;
+				this.rotation.set(BlockDirection.NEG_Z, 2);
+				this.rotation.set(BlockDirection.POS_Z, 1);
+				this.rotation.set(BlockDirection.POS_Y, 3);
+				this.rotation.set(BlockDirection.NEG_Y, 2);
 				block.setBoundingBox(0.75f, 0.0f, 0.0f, 1.0f, 1.0f, 1.0f);
 				renderFullCube(state, x, y, z);
 				renderPistonHead(x - 0.25f + 1.0f - delta, x - 0.25f + 1.0f, y + 0.375f, y + 0.375f, z + 0.625f, z + 0.375f, light * 0.5f, scale, 2);
@@ -2820,13 +2826,8 @@ public class BHBlockRenderer {
 				renderPistonHead(x - 0.25f + 1.0f - delta, x - 0.25f + 1.0f, y + 0.625f, y + 0.375f, z + 0.625f, z + 0.625f, light * 0.6f, scale, 2);
 			}
 		}
-		faceRotationNegZ = 0;
-		faceRotationPosZ = 0;
-		faceRotationPosX = 0;
-		faceRotationNegX = 0;
-		faceRotationPosY = 0;
-		faceRotationNegY = 0;
 		block.setBoundingBox(0.0f, 0.0f, 0.0f, 1.0f, 1.0f, 1.0f);
+		forceRotation = false;
 		return true;
 	}
 	

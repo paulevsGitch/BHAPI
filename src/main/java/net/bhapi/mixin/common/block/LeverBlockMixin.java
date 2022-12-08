@@ -80,7 +80,9 @@ public abstract class LeverBlockMixin extends BaseBlock implements BlockStateCon
 			provider.setBlockState(x, y, z, BlockUtil.AIR_STATE);
 			return;
 		}
-		Vec3I offset = OFFSETS[state.getMeta() & 7];
+		int wrapped = state.getMeta() & 7;
+		if (wrapped > 5) wrapped = 0;
+		Vec3I offset = OFFSETS[wrapped];
 		if (!level.canSuffocate(x + offset.x, y + offset.y, z + offset.z)) {
 			BlockUtil.brokenBlock = state;
 			this.drop(level, x, y, z, state.getMeta());
@@ -125,7 +127,9 @@ public abstract class LeverBlockMixin extends BaseBlock implements BlockStateCon
 			dir.move(pos.set(x, y, z).add(offset));
 			level.updateAdjacentBlocks(pos.x, pos.y, pos.z, state.getBlock().id);
 		}*/
-		Vec3I offset = OFFSETS[state.getMeta() & 7];
+		int wrapped = state.getMeta() & 7;
+		if (wrapped > 5) wrapped = 0;
+		Vec3I offset = OFFSETS[wrapped];
 		level.updateAdjacentBlocks(x + offset.x, y + offset.y, z + offset.z, state.getBlock().id);
 		info.setReturnValue(true);
 	}

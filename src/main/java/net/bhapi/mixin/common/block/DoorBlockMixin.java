@@ -16,6 +16,7 @@ import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
+import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 import java.util.List;
@@ -36,15 +37,16 @@ public abstract class DoorBlockMixin extends BaseBlock implements BlockStateCont
 	@Override
 	public void onNeighbourBlockUpdate(Level level, int x, int y, int z, BlockDirection facing, BlockState state, BlockState neighbour) {
 		BlockStateProvider provider = BlockStateProvider.cast(level);
-		int meta = state.getValue(LegacyProperties.META_16);
 		DoorBlock block = DoorBlock.class.cast(this);
+		int meta = state.getMeta();
+		
 		if ((meta & 8) != 0) {
 			if (!provider.getBlockState(x, y - 1, z).is(block)) {
 				provider.setBlockState(x, y, z, BlockUtil.AIR_STATE);
 			}
 			if (!neighbour.isAir() && neighbour.emitsPower()) {
 				BlockState bottom = provider.getBlockState(x, y - 1, z);
-				onNeighbourBlockUpdate(level, x, y - 1, z, facing, bottom, neighbour);
+				onNeighbourBlockUpdate(level, x, y - 1, z, BlockDirection.POS_Y, bottom, neighbour);
 			}
 		}
 		else {
@@ -53,6 +55,7 @@ public abstract class DoorBlockMixin extends BaseBlock implements BlockStateCont
 				provider.setBlockState(x, y, z, BlockUtil.AIR_STATE);
 				drop = true;
 			}
+			
 			if (!level.canSuffocate(x, y - 1, z)) {
 				provider.setBlockState(x, y, z, BlockUtil.AIR_STATE);
 				drop = true;
@@ -60,6 +63,7 @@ public abstract class DoorBlockMixin extends BaseBlock implements BlockStateCont
 					provider.setBlockState(x, y + 1, z, BlockUtil.AIR_STATE);
 				}
 			}
+			
 			if (drop) {
 				if (!level.isClientSide) {
 					this.drop(level, x, y, z, meta);
@@ -67,6 +71,7 @@ public abstract class DoorBlockMixin extends BaseBlock implements BlockStateCont
 			}
 			else if (!neighbour.isAir() && neighbour.emitsPower()) {
 				boolean power = level.hasRedstonePower(x, y, z) || level.hasRedstonePower(x, y + 1, z);
+				System.out.println(power);
 				this.method_837(level, x, y, z, power);
 			}
 		}
@@ -82,6 +87,28 @@ public abstract class DoorBlockMixin extends BaseBlock implements BlockStateCont
 			super.canPlaceAt(arg, x, y, z) &&
 			super.canPlaceAt(arg, x, y + 1, z)
 		);
+	}
+	
+	@Inject(method = "method_837", at = @At("HEAD"), cancellable = true)
+	public void bhapi_method_837(Level level, int x, int y, int z, boolean power, CallbackInfo info) {
+		info.cancel();
+		BlockStateProvider provider = BlockStateProvider.cast(level);
+		BlockState state = provider.getBlockState(x, y, z);
+		int meta = state.getMeta();
+		if ((meta & 8) != 0) {
+			if (provider.getBlockState(x, y - 1, z).is(this)) {
+				this.method_837(level, x, y - 1, z, power);
+			}
+			return;
+		}
+		boolean metaPower = (meta & 4) > 0;
+		if (metaPower == power) return;
+		if (provider.getBlockState(x, y + 1, z).is(this)) {
+			provider.setBlockState(x, y + 1, z, state.withMeta((meta ^ 4) + 8));
+		}
+		provider.setBlockState(x, y, z, state.withMeta(meta ^ 4));
+		level.callAreaEvents(x, y - 1, z, x, y, z);
+		level.playLevelEvent(null, 1003, x, y, z, 0);
 	}
 }
 

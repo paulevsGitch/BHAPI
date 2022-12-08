@@ -36,4 +36,8 @@ public enum BlockDirection {
 	public Vec3I move(Vec3I vec) {
 		return vec.add(x, y, z);
 	}
+	
+	public int getFacing() {
+		return facing;
+	}
 }
