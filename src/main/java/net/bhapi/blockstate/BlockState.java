@@ -4,6 +4,7 @@ import net.bhapi.block.BHAirBlock;
 import net.bhapi.blockstate.properties.IntegerProperty;
 import net.bhapi.blockstate.properties.StateProperty;
 import net.bhapi.client.render.block.BHBlockRender;
+import net.bhapi.client.render.model.CustomModel;
 import net.bhapi.client.render.texture.TextureSample;
 import net.bhapi.interfaces.IDProvider;
 import net.bhapi.registry.CommonRegistries;
@@ -437,6 +438,11 @@ public final class BlockState implements IDProvider {
 			}
 		}
 		return this;
+	}
+	
+	@Environment(EnvType.CLIENT)
+	public CustomModel getModel(BlockView view, int x, int y, int z) {
+		return BHBlockRender.cast(getBlock()).getModel(view, x, y, z, this);
 	}
 	
 	@Override

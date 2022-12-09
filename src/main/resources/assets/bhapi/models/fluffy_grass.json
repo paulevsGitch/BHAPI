@@ -1,0 +1,12 @@
+{
+    "linkedOBJ": "fluffy_grass",
+    "offset": [0.5, 0.0, 0.5],
+    "materials": {
+        "Grass": {
+            "textureIndex": 0,
+            "culling": "none",
+            "useAO": false,
+            "tintIndex": 0
+        }
+    }
+}

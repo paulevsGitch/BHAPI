@@ -97,6 +97,19 @@ public class Vec3F {
 		return divide(vector.x, vector.y, vector.z);
 	}
 	
+	public Vec3F normalise() {
+		float l = lengthSqr();
+		if (l > 0) divide((float) Math.sqrt(l));
+		return this;
+	}
+	
+	public Vec3F cross(Vec3F vector) {
+		float nx = this.y * vector.z - this.z * vector.y;
+		float ny = this.z * vector.x - this.x * vector.z;
+		float nz = this.x * vector.y - this.y * vector.x;
+		return set(nx, ny, nz);
+	}
+	
 	@Override
 	public Vec3F clone() {
 		return new Vec3F(x, y, z);

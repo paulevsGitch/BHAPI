@@ -78,7 +78,7 @@ public class BHAPI implements ModInitializer {
 	}
 	
 	public static void warn(String message) {
-		LOGGER.warn(message);
+		LOGGER.warn("[WARN] " + message);
 	}
 	
 	public static boolean isClient() {

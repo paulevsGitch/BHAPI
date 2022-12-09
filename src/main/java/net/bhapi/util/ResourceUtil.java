@@ -30,7 +30,8 @@ public class ResourceUtil {
 	private static final ImmutableList<File> MODS;
 	
 	public static Resource getResource(String resource, String extension) {
-		return getResources(resource, extension).get(0);
+		List<Resource> resources = getResources(resource, extension);
+		return resources.size() > 0 ? resources.get(0) : null;
 	}
 	
 	public static List<Resource> getResources(String resource, String extension) {

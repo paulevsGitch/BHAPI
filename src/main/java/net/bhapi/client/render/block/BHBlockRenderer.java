@@ -2,6 +2,8 @@ package net.bhapi.client.render.block;
 
 import net.bhapi.blockstate.BlockState;
 import net.bhapi.client.BHAPIClient;
+import net.bhapi.client.render.model.CustomModel;
+import net.bhapi.client.render.model.ModelRenderingContext;
 import net.bhapi.client.render.texture.TextureSample;
 import net.bhapi.client.render.texture.Textures;
 import net.bhapi.level.BlockStateProvider;
@@ -39,69 +41,14 @@ public class BHBlockRenderer {
 		new PermutationTable(1),
 		new PermutationTable(2)
 	};
+	private final EnumArray<BlockDirection, Integer> rotation = new EnumArray<>(BlockDirection.class);
 	private final List<BlockRenderingFunction> renderingFunctions = new ArrayList<>();
 	private final CircleCache<Vec2F> uvCache = new CircleCache<Vec2F>(8).fill(Vec2F::new);
-	private BlockView blockView;
+	private final ModelRenderingContext context = new ModelRenderingContext();
 	
-	public BHBlockRenderer() {
-		renderingFunctions.add(this::renderFullCube);
-		renderingFunctions.add(this::renderCross);
-		renderingFunctions.add(this::renderTorch);
-		renderingFunctions.add(this::renderFire);
-		renderingFunctions.add(this::renderFluid);
-		renderingFunctions.add(this::renderRedstoneDust);
-		renderingFunctions.add(this::renderCrops);
-		renderingFunctions.add(this::renderDoor);
-		renderingFunctions.add(this::renderLadder);
-		renderingFunctions.add(this::renderRails);
-		renderingFunctions.add(this::renderStairs);
-		renderingFunctions.add(this::renderFence);
-		renderingFunctions.add(this::renderLever);
-		renderingFunctions.add(this::renderCactus);
-		renderingFunctions.add(this::renderBed);
-		renderingFunctions.add(this::renderRedstoneRepeater);
-		renderingFunctions.add(this::renderPiston);
-		renderingFunctions.add(this::renderPistonHead);
-	}
-	
-	private final EnumArray<Integer, BlockDirection> rotation = new EnumArray<>(BlockDirection.class);
 	private boolean forceRotation = false;
 	private boolean renderAllSides = false;
-	public boolean itemColorEnabled = true;
-	/*private int faceRotationNegZ = 0;
-	private int faceRotationPosZ = 0;
-	private int faceRotationPosX = 0;
-	private int faceRotationNegX = 0;
-	private int faceRotationPosY = 0;
-	private int faceRotationNegY = 0;*/
 	private boolean shadeTopFace;
-	private float brightnessMiddle;
-	private float brightnessNorth;
-	private float brightnessBottom;
-	private float brightnessEast;
-	private float brightnessSouth;
-	private float brightnessTop;
-	private float brightnessWest;
-	private float brightnessBottomNorthEast;
-	private float brightnessBottomNorth;
-	private float brightnessBottomNorthWest;
-	private float brightnessBottomEast;
-	private float brightnessBottomWest;
-	private float brightnessBottomSouthEast;
-	private float brightnessBottomSouth;
-	private float brightnessBottomSouthWest;
-	private float brightnessTopNorthEast;
-	private float brightnessTopNorth;
-	private float brightnessTopNorthWest;
-	private float brightnessTopEast;
-	private float brightnessTopSouthEast;
-	private float brightnessTopSouth;
-	private float brightnessTopWest;
-	private float brightnessTopSouthWest;
-	private float brightnessNorthEast;
-	private float brightnessSouthEast;
-	private float brightnessNorthWest;
-	private float brightnessSouthWest;
 	private float colorRed00;
 	private float colorRed01;
 	private float colurRed11;
@@ -128,8 +75,31 @@ public class BHBlockRenderer {
 	private boolean allowsGrassUnderBottomWest;
 	private boolean breaking = false;
 	private boolean item = false;
+	private BlockView blockView;
 	
 	private final Vec3F itemColor = new Vec3F();
+	
+	public BHBlockRenderer() {
+		renderingFunctions.add(this::renderFullCube);
+		renderingFunctions.add(this::renderCross);
+		renderingFunctions.add(this::renderTorch);
+		renderingFunctions.add(this::renderFire);
+		renderingFunctions.add(this::renderFluid);
+		renderingFunctions.add(this::renderRedstoneDust);
+		renderingFunctions.add(this::renderCrops);
+		renderingFunctions.add(this::renderDoor);
+		renderingFunctions.add(this::renderLadder);
+		renderingFunctions.add(this::renderRails);
+		renderingFunctions.add(this::renderStairs);
+		renderingFunctions.add(this::renderFence);
+		renderingFunctions.add(this::renderLever);
+		renderingFunctions.add(this::renderCactus);
+		renderingFunctions.add(this::renderBed);
+		renderingFunctions.add(this::renderRedstoneRepeater);
+		renderingFunctions.add(this::renderPiston);
+		renderingFunctions.add(this::renderPistonHead);
+		context.setTessellator(Tessellator.INSTANCE);
+	}
 	
 	public void setView(BlockView view) {
 		this.blockView = view;
@@ -183,13 +153,22 @@ public class BHBlockRenderer {
 	}
 	
 	public boolean render(BlockState state, int x, int y, int z) {
-		state.getBlock().updateBoundingBox(blockView, x, y, z);
 		byte type = state.getRenderType(blockView, x, y, z);
 		if (type == BlockRenderTypes.EMPTY) return false;
+		state.getBlock().updateBoundingBox(blockView, x, y, z);
+		if (type == BlockRenderTypes.CUSTOM) {
+			CustomModel model = state.getModel(blockView, x, y, z);
+			if (model == null) return false;
+			if (renderAllSides) context.setRenderAllFaces(true);
+			context.setBlockView(blockView);
+			context.setState(state);
+			context.setPosition(x, y, z);
+			model.render(context, uvCache);
+			return true;
+		}
 		if (type < renderingFunctions.size()) {
 			return renderingFunctions.get(type).render(state, x, y, z);
 		}
-		if (type == BlockRenderTypes.CUSTOM) return true; // TODO make custom rendering
 		return false;
 	}
 	
@@ -242,13 +221,13 @@ public class BHBlockRenderer {
 		boolean bl6 = true;
 		boolean bl7 = true;
 		
-		brightnessMiddle = getBrightness(block, x, y, z);
-		brightnessNorth = getBrightness(block, x - 1, y, z);
-		brightnessBottom = getBrightness(block, x, y - 1, z);
-		brightnessEast = getBrightness(block, x, y, z - 1);
-		brightnessSouth = getBrightness(block, x + 1, y, z);
-		brightnessTop = getBrightness(block, x, y + 1, z);
-		brightnessWest = getBrightness(block, x, y, z + 1);
+		float brightnessMiddle = getBrightness(block, x, y, z);
+		float brightnessNorth = getBrightness(block, x - 1, y, z);
+		float brightnessBottom = getBrightness(block, x, y - 1, z);
+		float brightnessEast = getBrightness(block, x, y, z - 1);
+		float brightnessSouth = getBrightness(block, x + 1, y, z);
+		float brightnessTop = getBrightness(block, x, y + 1, z);
+		float brightnessWest = getBrightness(block, x, y, z + 1);
 		
 		if (blockView instanceof BlockStateProvider) {
 			BlockStateProvider provider = BlockStateProvider.cast(blockView);
@@ -282,6 +261,14 @@ public class BHBlockRenderer {
 			bl2 = false;
 		}
 		
+		float brightnessBottomSouthWest;
+		float brightnessBottomSouth;
+		float brightnessBottomSouthEast;
+		float brightnessBottomWest;
+		float brightnessBottomEast;
+		float brightnessBottomNorthWest;
+		float brightnessBottomNorth;
+		float brightnessBottomNorthEast;
 		if (renderAllSides || block.isSideRendered(blockView, x, y - 1, z, 0)) {
 			brightnessBottomNorth = getBrightness(block, x - 1, --y, z);
 			brightnessBottomEast = getBrightness(block, x, y, z - 1);
@@ -321,6 +308,14 @@ public class BHBlockRenderer {
 			result = true;
 		}
 		
+		float brightnessTopSouthWest;
+		float brightnessTopWest;
+		float brightnessTopSouth;
+		float brightnessTopSouthEast;
+		float brightnessTopEast;
+		float brightnessTopNorthWest;
+		float brightnessTopNorth;
+		float brightnessTopNorthEast;
 		if (renderAllSides || block.isSideRendered(blockView, x, y + 1, z, 1)) {
 			brightnessTopNorth = getBrightness(block, x - 1, ++y, z);
 			brightnessTopSouth = getBrightness(block, x + 1, y, z);
@@ -363,6 +358,8 @@ public class BHBlockRenderer {
 			result = true;
 		}
 		
+		float brightnessSouthEast;
+		float brightnessNorthEast;
 		if (renderAllSides || block.isSideRendered(blockView, x, y, z - 1, 2)) {
 			brightnessNorthEast = getBrightness(block, x - 1, y, --z);
 			brightnessBottomEast = getBrightness(block, x, y - 1, z);
@@ -421,6 +418,8 @@ public class BHBlockRenderer {
 			result = true;
 		}
 		
+		float brightnessSouthWest;
+		float brightnessNorthWest;
 		if (renderAllSides || block.isSideRendered(blockView, x, y, z + 1, 3)) {
 			brightnessNorthWest = getBrightness(block, x - 1, y, ++z);
 			brightnessSouthWest = getBrightness(block, x + 1, y, z);
@@ -1197,19 +1196,6 @@ public class BHBlockRenderer {
 			u2v1.set(1, 0);
 			u2v2.set(1, 1);
 		}
-		
-		//float u1, u2, v1, v2;
-		
-		/*if (breaking) {
-			u1 = 0; u2 = 1;
-			v1 = 0; v2 = 1;
-		}
-		else {
-			u1 = uv1.getU(0);
-			u2 = uv1.getU(1);
-			v1 = uv1.getV(0);
-			v2 = uv1.getV(1);
-		}*/
 		
 		float size = 1.4f;
 		if (blockView.canSuffocate(x, y - 1, z) || BaseBlock.FIRE.method_1824(blockView, x, y - 1, z)) {

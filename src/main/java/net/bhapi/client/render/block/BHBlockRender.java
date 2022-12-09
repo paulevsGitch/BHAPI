@@ -1,6 +1,7 @@
 package net.bhapi.client.render.block;
 
 import net.bhapi.blockstate.BlockState;
+import net.bhapi.client.render.model.CustomModel;
 import net.bhapi.client.render.texture.TextureSample;
 import net.bhapi.client.render.texture.Textures;
 import net.fabricmc.api.EnvType;
@@ -19,6 +20,11 @@ public interface BHBlockRender {
 		BaseBlock block = state.getBlock();
 		int texture = block.getTextureForSide(view, x, y, z, index);
 		return Textures.getVanillaBlockSample(texture);
+	}
+	
+	@Environment(EnvType.CLIENT)
+	default CustomModel getModel(BlockView view, int x, int y, int z, BlockState state) {
+		return null;
 	}
 	
 	static BHBlockRender cast(Object obj) {

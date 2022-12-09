@@ -5,6 +5,8 @@ import net.bhapi.block.BHBaseBlock;
 import net.bhapi.blockstate.BlockState;
 import net.bhapi.client.TestClientEvent;
 import net.bhapi.client.render.block.BHBlockRender;
+import net.bhapi.client.render.block.BlockRenderTypes;
+import net.bhapi.client.render.model.CustomModel;
 import net.bhapi.client.render.texture.TextureSample;
 import net.bhapi.item.BHBlockItem;
 import net.bhapi.item.BHSimpleItem;
@@ -12,6 +14,8 @@ import net.bhapi.recipe.RecipeBuilder;
 import net.bhapi.registry.CommonRegistries;
 import net.bhapi.util.Identifier;
 import net.bhapi.util.ItemUtil;
+import net.fabricmc.api.EnvType;
+import net.fabricmc.api.Environment;
 import net.minecraft.block.BaseBlock;
 import net.minecraft.block.BlockSounds;
 import net.minecraft.block.material.Material;
@@ -85,6 +89,18 @@ public class TestEvent {
 		@Override
 		public boolean hasRandomTicks(BlockState state) {
 			return true;
+		}
+		
+		@Override
+		@Environment(EnvType.CLIENT)
+		public byte getRenderType(BlockView view, int x, int y, int z, BlockState state) {
+			return BlockRenderTypes.CUSTOM;
+		}
+		
+		@Override
+		@Environment(EnvType.CLIENT)
+		public CustomModel getModel(BlockView view, int x, int y, int z, BlockState state) {
+			return TestClientEvent.testModel;
 		}
 		
 		/*@Override
