@@ -59,16 +59,16 @@ public class ModelQuad {
 	}
 	
 	public void finalise() {
-		if (normal != null) return;
-		
-		Vec3F a = positions[1].clone().subtract(positions[0]).normalise();
-		Vec3F b = positions[2].clone().subtract(positions[0]).normalise();
-		
-		normal = a.cross(b).normalise();
+		if (normal == null) {
+			Vec3F a = positions[1].clone().subtract(positions[0]).normalise();
+			Vec3F b = positions[2].clone().subtract(positions[0]).normalise();
+			normal = a.cross(b).normalise();
+		}
 		
 		if (normal.x > 0.99 || normal.x < -0.99) brightness = 0.6F;
 		else if (normal.z > 0.99 || normal.z < -0.99) brightness = 0.8F;
-		else if (normal.y > 0.99 || normal.y < -0.99) brightness = 1.0F;
+		else if (normal.y < -0.99) brightness = 0.5F;
+		else if (normal.y > 0.99) brightness = 1.0F;
 		else {
 			float abs = Math.abs(normal.x);
 			float l = abs + Math.abs(normal.z);

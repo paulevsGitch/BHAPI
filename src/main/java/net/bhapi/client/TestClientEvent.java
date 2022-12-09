@@ -15,7 +15,9 @@ import net.fabricmc.api.Environment;
 @Environment(EnvType.CLIENT)
 public class TestClientEvent {
 	public static TextureSample[] samples;
+	public static TextureSample[] samplesFar;
 	public static CustomModel testModel;
+	public static CustomModel testModel2;
 	
 	@EventListener
 	public void testClientEvent(AfterTextureLoadedEvent event) {
@@ -36,6 +38,13 @@ public class TestClientEvent {
 		face[0].setVertex(0, 0, 0.5F, 1, 1, 0);
 		testModel = new CustomModel(quads);*/
 		
+		samplesFar = new TextureSample[] {
+			Textures.getAtlas().getSample(Identifier.make("bhapi", "block/farlandsSide")),
+			Textures.getAtlas().getSample(Identifier.make("bhapi", "block/farlandsBottom")),
+			Textures.getAtlas().getSample(Identifier.make("bhapi", "block/farlandsTop")),
+		};
+		
 		testModel = new OBJModel(Identifier.make("bhapi", "models/sphere"));
+		testModel2 = new OBJModel(Identifier.make("bhapi", "models/farlandsBlock"));
 	}
 }

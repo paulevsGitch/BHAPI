@@ -108,7 +108,7 @@ public class OBJModel extends CustomModel {
 			MaterialInfo activeMaterial = STARTING_MATERIAL;
 			if (materials.size() == 1) activeMaterial = materials.values().stream().findFirst().get();
 			while ((string = bufferedReader.readLine()) != null) {
-				if (string.startsWith("usemtl")) {
+				if (string.startsWith("usemtl ")) {
 					String materialName = string.substring(7);
 					activeMaterial = materials.get(materialName);
 					if (activeMaterial == null) {
@@ -116,18 +116,18 @@ public class OBJModel extends CustomModel {
 						activeMaterial = STARTING_MATERIAL;
 					}
 				}
-				else if (string.startsWith("vt")) {
+				else if (string.startsWith("vt ")) {
 					String[] uv = string.split(" ");
 					uvData.add(Float.parseFloat(uv[1]));
 					uvData.add(Float.parseFloat(uv[2]));
 				}
-				else if (string.startsWith("v")) {
+				else if (string.startsWith("v ")) {
 					String[] vert = string.split(" ");
 					for (int i = 1; i < 4; i++) {
 						vertexData.add(Float.parseFloat(vert[i]));
 					}
 				}
-				else if (string.startsWith("f")) {
+				else if (string.startsWith("f ")) {
 					String[] members = string.split(" ");
 					if (members.length != 5) {
 						String type = members.length < 5 ? "triangles" : "n-gons";

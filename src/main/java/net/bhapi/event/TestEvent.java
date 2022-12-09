@@ -10,10 +10,12 @@ import net.bhapi.client.render.model.CustomModel;
 import net.bhapi.client.render.texture.TextureSample;
 import net.bhapi.item.BHBlockItem;
 import net.bhapi.item.BHSimpleItem;
+import net.bhapi.level.BlockStateProvider;
 import net.bhapi.recipe.RecipeBuilder;
 import net.bhapi.registry.CommonRegistries;
 import net.bhapi.util.Identifier;
 import net.bhapi.util.ItemUtil;
+import net.bhapi.util.MathUtil;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
 import net.minecraft.block.BaseBlock;
@@ -31,9 +33,10 @@ public class TestEvent {
 	
 	@EventListener // Test Blocks
 	public void registerBlocks(BlockRegistryEvent event) {
-		registerBlock("testblock", new TestBlock(Material.WOOD, BaseBlock.WOOD_SOUNDS), event::register);
+		registerBlock("testblock", new TestBlock2(Material.WOOD, BaseBlock.WOOD_SOUNDS), event::register);
 		registerBlock("testblock2", new TestBlock(Material.DIRT, BaseBlock.GRASS_SOUNDS), event::register);
 		registerBlock("testblock3", new TestBlock(Material.GLASS, BaseBlock.GLASS_SOUNDS), event::register);
+		registerBlock("farlands", new FarBlock(Material.WOOD, BaseBlock.STONE_SOUNDS), event::register);
 	}
 	
 	private void registerBlock(String name, BaseBlock block, BiConsumer<Identifier, BaseBlock> register) {
@@ -64,6 +67,38 @@ public class TestEvent {
 			.build(event.getRegistry());
 	}
 	
+	private class FarBlock extends TestBlock {
+		public FarBlock(Material material, BlockSounds sounds) {
+			super(material, sounds);
+		}
+		
+		@Override
+		@Environment(EnvType.CLIENT)
+		public TextureSample getTextureForIndex(BlockView view, int x, int y, int z, BlockState state, int index) {
+			return TestClientEvent.samplesFar[MathUtil.clamp(index, 0, 2)];
+		}
+		
+		@Override
+		@Environment(EnvType.CLIENT)
+		public CustomModel getModel(BlockView view, int x, int y, int z, BlockState state) {
+			return TestClientEvent.testModel2;
+		}
+	}
+	
+	private class TestBlock2 extends TestBlock {
+		public TestBlock2(Material material, BlockSounds sounds) {
+			super(material, sounds);
+		}
+		
+		@Override
+		@Environment(EnvType.CLIENT)
+		public TextureSample getTextureForIndex(BlockView view, int x, int y, int z, BlockState state, int index) {
+			state = BlockStateProvider.cast(view).getBlockState(x, y - 1, z);
+			if (state.isAir() || state.is(this)) return super.getTextureForIndex(view, x, y, z, state, index);
+			return state.getTextureForIndex(view, x, y - 1, z, index);
+		}
+	}
+	
 	private class TestBlock extends BHBaseBlock implements BHBlockRender {
 		private static int textureID = 0;
 		private final int texID = textureID++;
@@ -72,7 +107,6 @@ public class TestEvent {
 			super(material);
 			setHardness(0.1F);
 			setBlastResistance(0.1F);
-			//setBoundingBox(0.25F, 0, 0, 1, 1, 1);
 			setSounds(sounds);
 		}
 		
@@ -82,6 +116,7 @@ public class TestEvent {
 		}
 		
 		@Override
+		@Environment(EnvType.CLIENT)
 		public TextureSample getTextureForIndex(BlockView view, int x, int y, int z, BlockState state, int index) {
 			return TestClientEvent.samples[texID];
 		}
