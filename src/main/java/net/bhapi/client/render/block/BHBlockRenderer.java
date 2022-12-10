@@ -161,8 +161,9 @@ public class BHBlockRenderer {
 			if (model == null) return false;
 			if (renderAllSides) context.setRenderAllFaces(true);
 			context.setBlockView(blockView);
-			context.setState(state);
+			context.setBreaking(breaking);
 			context.setPosition(x, y, z);
+			context.setState(state);
 			model.render(context, uvCache);
 			return true;
 		}

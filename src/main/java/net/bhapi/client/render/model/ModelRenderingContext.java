@@ -11,6 +11,7 @@ public class ModelRenderingContext {
 	private Tessellator tessellator;
 	private BlockView blockView;
 	private BlockState state;
+	private boolean breaking;
 	private double x;
 	private double y;
 	private double z;
@@ -68,6 +69,14 @@ public class ModelRenderingContext {
 	
 	public void setRenderFace(BlockDirection dir, boolean render) {
 		renderFaces.set(dir, render);
+	}
+	
+	public void setBreaking(boolean breaking) {
+		this.breaking = breaking;
+	}
+	
+	public boolean isBreaking() {
+		return breaking;
 	}
 	
 	public boolean renderFace(BlockDirection dir) {

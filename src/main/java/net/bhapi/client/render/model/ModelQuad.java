@@ -100,7 +100,9 @@ public class ModelQuad {
 		for (byte i = 0; i < 4; i++) {
 			Vec3F pos = positions[i];
 			Vec2F uv = uvs[i];
-			uv = sample.getUV(uv.x, uv.y, uvCache.get());
+			if (!context.isBreaking()) {
+				uv = sample.getUV(uv.x, uv.y, uvCache.get());
+			}
 			tessellator.vertex(x + pos.x, y + pos.y, z + pos.z, uv.x, uv.y);
 		}
 	}
