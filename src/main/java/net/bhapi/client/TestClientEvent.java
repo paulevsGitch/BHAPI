@@ -18,6 +18,7 @@ public class TestClientEvent {
 	public static TextureSample[] samplesFar;
 	public static CustomModel testModel;
 	public static CustomModel testModel2;
+	public static CustomModel testModel3;
 	
 	@EventListener
 	public void testClientEvent(AfterTextureLoadedEvent event) {
@@ -46,5 +47,6 @@ public class TestClientEvent {
 		
 		testModel = new OBJModel(Identifier.make("bhapi", "models/sphere"));
 		testModel2 = new OBJModel(Identifier.make("bhapi", "models/farlandsBlock"));
+		testModel3 = new OBJModel(Identifier.make("bhapi", "models/sphere_big"));
 	}
 }

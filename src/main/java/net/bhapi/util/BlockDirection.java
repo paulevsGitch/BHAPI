@@ -32,6 +32,16 @@ public enum BlockDirection {
 		return VALUES[facing];
 	}
 	
+	public static BlockDirection getFromVector(Vec3F dir) {
+		float ax = Math.abs(dir.x);
+		float ay = Math.abs(dir.y);
+		float az = Math.abs(dir.z);
+		float max = Math.max(ax, Math.max(ay, az));
+		if (max == ax) return dir.x < 0 ? NEG_X : POS_X;
+		if (max == ay) return dir.y < 0 ? NEG_Y : POS_Y;
+		else return dir.z < 0 ? NEG_Z : POS_Z;
+	}
+	
 	public BlockDirection invert() {
 		return (facing & 1) == 0 ? VALUES[facing + 1] : VALUES[facing - 1];
 	}

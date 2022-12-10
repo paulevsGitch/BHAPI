@@ -94,6 +94,12 @@ public abstract class LevelPopulationRegionMixin implements BlockStateProvider, 
 		info.setReturnValue(this.chunks[cx][cz].getLight(x & 15, y, z & 15, this.level.correctLightValue));
 	}
 	
+	@Environment(value=EnvType.CLIENT)
+	@Inject(method = "isFullOpaque", at = @At("HEAD"), cancellable = true)
+	private void bhapi_isFullOpaque(int x, int y, int z, CallbackInfoReturnable<Boolean> info) {
+		info.setReturnValue(getBlockState(x, y, z).isFullOpaque());
+	}
+	
 	@Unique
 	@Override
 	public short getLevelHeight() {

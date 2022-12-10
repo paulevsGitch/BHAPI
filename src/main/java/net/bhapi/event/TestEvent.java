@@ -8,6 +8,7 @@ import net.bhapi.client.render.block.BHBlockRender;
 import net.bhapi.client.render.block.BlockRenderTypes;
 import net.bhapi.client.render.model.CustomModel;
 import net.bhapi.client.render.texture.TextureSample;
+import net.bhapi.client.render.texture.Textures;
 import net.bhapi.item.BHBlockItem;
 import net.bhapi.item.BHSimpleItem;
 import net.bhapi.level.BlockStateProvider;
@@ -34,9 +35,12 @@ public class TestEvent {
 	@EventListener // Test Blocks
 	public void registerBlocks(BlockRegistryEvent event) {
 		registerBlock("testblock", new TestBlock2(Material.WOOD, BaseBlock.WOOD_SOUNDS), event::register);
-		registerBlock("testblock2", new TestBlock(Material.DIRT, BaseBlock.GRASS_SOUNDS), event::register);
-		registerBlock("testblock3", new TestBlock(Material.GLASS, BaseBlock.GLASS_SOUNDS), event::register);
+		registerBlock("testblock2", new TestBlock3(Material.DIRT, BaseBlock.GRASS_SOUNDS), event::register);
+		registerBlock("testblock3", new TestBlock3(Material.GLASS, BaseBlock.GLASS_SOUNDS), event::register);
 		registerBlock("farlands", new FarBlock(Material.WOOD, BaseBlock.STONE_SOUNDS), event::register);
+		registerBlock("testblock4", new TestBlock(Material.WOOD, BaseBlock.WOOD_SOUNDS), event::register);
+		
+		System.out.println(CommonRegistries.BLOCK_REGISTRY.get(Identifier.make("farlands")).isFullOpaque());
 	}
 	
 	private void registerBlock(String name, BaseBlock block, BiConsumer<Identifier, BaseBlock> register) {
@@ -97,6 +101,34 @@ public class TestEvent {
 			if (state.isAir() || state.is(this)) return super.getTextureForIndex(view, x, y, z, state, index);
 			return state.getTextureForIndex(view, x, y - 1, z, index);
 		}
+		
+		@Override
+		@Environment(EnvType.CLIENT)
+		public CustomModel getModel(BlockView view, int x, int y, int z, BlockState state) {
+			return TestClientEvent.testModel;
+		}
+	}
+	
+	private class TestBlock3 extends TestBlock {
+		public TestBlock3(Material material, BlockSounds sounds) {
+			super(material, sounds);
+		}
+		
+		@Environment(value=EnvType.CLIENT)
+		public boolean isSideRendered(BlockView arg, int i, int j, int k, int l) {
+			return true;
+		}
+		
+		@Override
+		public boolean isFullOpaque() {
+			return false;
+		}
+		
+		@Override
+		@Environment(EnvType.CLIENT)
+		public CustomModel getModel(BlockView view, int x, int y, int z, BlockState state) {
+			return TestClientEvent.testModel;
+		}
 	}
 	
 	private class TestBlock extends BHBaseBlock implements BHBlockRender {
@@ -118,7 +150,7 @@ public class TestEvent {
 		@Override
 		@Environment(EnvType.CLIENT)
 		public TextureSample getTextureForIndex(BlockView view, int x, int y, int z, BlockState state, int index) {
-			return TestClientEvent.samples[texID];
+			return texID < 3 ? TestClientEvent.samples[texID] : Textures.getVanillaBlockSample(4);
 		}
 		
 		@Override
@@ -135,19 +167,7 @@ public class TestEvent {
 		@Override
 		@Environment(EnvType.CLIENT)
 		public CustomModel getModel(BlockView view, int x, int y, int z, BlockState state) {
-			return TestClientEvent.testModel;
+			return TestClientEvent.testModel3;
 		}
-		
-		/*@Override
-		public void randomDisplayTick(Level level, int x, int y, int z, Random random) {
-			super.randomDisplayTick(level, x, y, z, random);
-			level.addParticle(
-				"snowballpoof",
-				x + random.nextFloat() * 1.2F - 0.1F,
-				y + random.nextFloat() * 1.2F - 0.1F,
-				z + random.nextFloat() * 1.2F - 0.1F,
-				random.nextFloat() * 0.1F, random.nextFloat() * 0.1F, random.nextFloat() * 0.1F
-			);
-		}*/
 	}
 }

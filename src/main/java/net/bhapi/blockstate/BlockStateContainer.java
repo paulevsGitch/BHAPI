@@ -3,9 +3,12 @@ package net.bhapi.blockstate;
 import net.bhapi.blockstate.properties.StateProperty;
 import net.bhapi.util.BlockDirection;
 import net.bhapi.util.BlockUtil;
+import net.fabricmc.api.EnvType;
+import net.fabricmc.api.Environment;
 import net.minecraft.block.BlockSounds;
 import net.minecraft.entity.BaseEntity;
 import net.minecraft.entity.player.PlayerBase;
+import net.minecraft.level.BlockView;
 import net.minecraft.level.Level;
 
 import java.util.List;
@@ -203,6 +206,22 @@ public interface BlockStateContainer {
 	 */
 	default boolean isPowered(Level level, int x, int y, int z, BlockDirection facing, BlockState state) {
 		return state.getBlock().isPowered(level, x, y, z, facing.ordinal());
+	}
+	
+	/**
+	 * Check if that state will block face rendering from target blockstate or not.
+	 * @param blockView {@link BlockView} as a block getter
+	 * @param x X coordinate
+	 * @param y Y coordinate
+	 * @param z Z coordinate
+	 * @param facing {@link BlockDirection} from target to this block
+	 * @param state self {@link BlockState}
+	 * @param target {@link BlockState} target to check rendering
+	 * @return {@code true} if face should be rendered and {@code false} if not
+	 */
+	@Environment(EnvType.CLIENT)
+	default boolean isSideRendered(BlockView blockView, int x, int y, int z, BlockDirection facing, BlockState state, BlockState target) {
+		return target.getBlock().isSideRendered(blockView, x, y, z, facing.getFacing());
 	}
 	
 	static BlockStateContainer cast(Object obj) {

@@ -170,13 +170,14 @@ public class OBJModel extends CustomModel {
 						}
 					}
 					
-					/*FaceGroup dir = quad.getCullingGroup();
-					if (dir != null && activeMaterial.culling.get(dir)) {
+					FaceGroup dir = quad.getCullingGroup();
+					quads.getOrCreate(dir, key -> new ArrayList<>()).add(quad);
+					/*if (dir != null && activeMaterial.culling.get(dir)) {
 						quads.getOrCreate(dir, key -> new ArrayList<>()).add(quad);
 					}
-					else {*/
+					else {
 						quads.getOrCreate(FaceGroup.NONE, key -> new ArrayList<>()).add(quad);
-					//}
+					}*/
 				}
 			}
 			

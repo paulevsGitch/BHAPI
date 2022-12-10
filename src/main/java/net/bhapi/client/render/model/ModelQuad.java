@@ -123,6 +123,51 @@ public class ModelQuad {
 		}
 	}
 	
+	public FaceGroup getCullingGroup() {
+		Vec3F center = new Vec3F();
+		boolean isInside = false;
+		for (byte i = 0; i < 4; i++) {
+			Vec3F pos = positions[i];
+			center.add(pos);
+			isInside |= pos.x > 0.01F && pos.x < 0.99F && pos.y > 0.01F && pos.y < 0.99F && pos.z > 0.01F && pos.z < 0.99F;
+		}
+		
+		if (isInside) return FaceGroup.NONE;
+		
+		center.multiply(0.25F);
+		Vec3F[] posMoved = new Vec3F[4];
+		for (byte i = 0; i < 4; i++) {
+			posMoved[i] = MathUtil.lerp(positions[i], center, 0.01F).subtract(0.5F);
+		}
+		
+		BlockDirection dir = BlockDirection.getFromVector(posMoved[0]);
+		for (byte i = 1; i < 4; i++) {
+			BlockDirection dir2 = BlockDirection.getFromVector(posMoved[i]);
+			if (dir != dir2) return FaceGroup.NONE;
+		}
+		
+		if (dir == BlockDirection.NEG_X || dir == BlockDirection.POS_X) {
+			for (byte i = 0; i < 4; i++) {
+				Vec3F pos = positions[i];
+				if (pos.y < 0 || pos.y > 1 || pos.z < 0 || pos.z > 1) return FaceGroup.NONE;
+			}
+		}
+		else if (dir == BlockDirection.NEG_Y || dir == BlockDirection.POS_Y) {
+			for (byte i = 0; i < 4; i++) {
+				Vec3F pos = positions[i];
+				if (pos.x < 0 || pos.x > 1 || pos.z < 0 || pos.z > 1) return FaceGroup.NONE;
+			}
+		}
+		else {
+			for (byte i = 0; i < 4; i++) {
+				Vec3F pos = positions[i];
+				if (pos.x < 0 || pos.x > 1 || pos.y < 0 || pos.y > 1) return FaceGroup.NONE;
+			}
+		}
+		
+		return FaceGroup.getFromFacing(dir);
+	}
+	
 	static {
 		NORMAL_BRIGHTNESS.set(BlockDirection.NEG_Y, 0.5F);
 		NORMAL_BRIGHTNESS.set(BlockDirection.POS_Y, 1.0F);

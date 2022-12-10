@@ -7,6 +7,7 @@ import net.bhapi.client.render.block.BHBlockRender;
 import net.bhapi.client.render.model.CustomModel;
 import net.bhapi.client.render.texture.TextureSample;
 import net.bhapi.interfaces.IDProvider;
+import net.bhapi.level.BlockStateProvider;
 import net.bhapi.registry.CommonRegistries;
 import net.bhapi.util.BlockDirection;
 import net.bhapi.util.Identifier;
@@ -443,6 +444,27 @@ public final class BlockState implements IDProvider {
 	@Environment(EnvType.CLIENT)
 	public CustomModel getModel(BlockView view, int x, int y, int z) {
 		return BHBlockRender.cast(getBlock()).getModel(view, x, y, z, this);
+	}
+	
+	/**
+	 * Check if that state will block face rendering from target blockstate or not.
+	 * @param blockView {@link BlockView} as a block getter
+	 * @param x X coordinate
+	 * @param y Y coordinate
+	 * @param z Z coordinate
+	 * @param facing {@link BlockDirection} from target to this block
+	 * @param target {@link BlockState} target to check rendering
+	 * @return {@code true} if face should be rendered and {@code false} if not
+	 */
+	@Environment(EnvType.CLIENT)
+	public boolean isSideRendered(BlockView blockView, int x, int y, int z, BlockDirection facing, BlockState target) {
+		return getContainer().isSideRendered(blockView, x, y, z, facing, this, target);
+	}
+	
+	@Environment(EnvType.CLIENT)
+	public boolean isSideRendered(BlockView blockView, int x, int y, int z, BlockDirection facing) {
+		BlockState neighbour = BlockStateProvider.cast(blockView).getBlockState(x, y, z);
+		return neighbour.isSideRendered(blockView, x, y, z, facing, this);
 	}
 	
 	@Override

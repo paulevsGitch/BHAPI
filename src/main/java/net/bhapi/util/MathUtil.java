@@ -1,6 +1,7 @@
 package net.bhapi.util;
 
 import net.bhapi.storage.Vec2F;
+import net.bhapi.storage.Vec3F;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -47,6 +48,13 @@ public class MathUtil {
 		float x = lerp(a.x, b.x, delta);
 		float y = lerp(a.y, b.y, delta);
 		return new Vec2F(x, y);
+	}
+	
+	public static Vec3F lerp(Vec3F a, Vec3F b, float delta) {
+		float x = lerp(a.x, b.x, delta);
+		float y = lerp(a.y, b.y, delta);
+		float z = lerp(a.z, b.z, delta);
+		return new Vec3F(x, y, z);
 	}
 	
 	/**

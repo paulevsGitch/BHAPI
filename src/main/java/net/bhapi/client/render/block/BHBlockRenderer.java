@@ -12,6 +12,7 @@ import net.bhapi.storage.EnumArray;
 import net.bhapi.storage.PermutationTable;
 import net.bhapi.storage.Vec2F;
 import net.bhapi.storage.Vec3F;
+import net.bhapi.storage.Vec3I;
 import net.bhapi.util.BlockDirection;
 import net.bhapi.util.MathUtil;
 import net.minecraft.block.BaseBlock;
@@ -45,6 +46,7 @@ public class BHBlockRenderer {
 	private final List<BlockRenderingFunction> renderingFunctions = new ArrayList<>();
 	private final CircleCache<Vec2F> uvCache = new CircleCache<Vec2F>(8).fill(Vec2F::new);
 	private final ModelRenderingContext context = new ModelRenderingContext();
+	private final Vec3I pos = new Vec3I();
 	
 	private boolean forceRotation = false;
 	private boolean renderAllSides = false;
@@ -160,6 +162,10 @@ public class BHBlockRenderer {
 			CustomModel model = state.getModel(blockView, x, y, z);
 			if (model == null) return false;
 			if (renderAllSides) context.setRenderAllFaces(true);
+			else for (BlockDirection dir : BlockDirection.VALUES) {
+				boolean renderSide = state.isSideRendered(blockView, pos.x, pos.y, pos.z, dir);
+				context.setRenderFace(dir, renderSide);
+			}
 			context.setBlockView(blockView);
 			context.setBreaking(breaking);
 			context.setPosition(x, y, z);
@@ -270,7 +276,7 @@ public class BHBlockRenderer {
 		float brightnessBottomNorthWest;
 		float brightnessBottomNorth;
 		float brightnessBottomNorthEast;
-		if (renderAllSides || block.isSideRendered(blockView, x, y - 1, z, 0)) {
+		if (renderAllSides || state.isSideRendered(blockView, x, y - 1, z, BlockDirection.NEG_Y)) {
 			brightnessBottomNorth = getBrightness(block, x - 1, --y, z);
 			brightnessBottomEast = getBrightness(block, x, y, z - 1);
 			brightnessBottomWest = getBrightness(block, x, y, z + 1);
@@ -317,7 +323,7 @@ public class BHBlockRenderer {
 		float brightnessTopNorthWest;
 		float brightnessTopNorth;
 		float brightnessTopNorthEast;
-		if (renderAllSides || block.isSideRendered(blockView, x, y + 1, z, 1)) {
+		if (renderAllSides || state.isSideRendered(blockView, x, y + 1, z, BlockDirection.POS_Y)) {
 			brightnessTopNorth = getBrightness(block, x - 1, ++y, z);
 			brightnessTopSouth = getBrightness(block, x + 1, y, z);
 			brightnessTopEast = getBrightness(block, x, y, z - 1);
@@ -361,7 +367,7 @@ public class BHBlockRenderer {
 		
 		float brightnessSouthEast;
 		float brightnessNorthEast;
-		if (renderAllSides || block.isSideRendered(blockView, x, y, z - 1, 2)) {
+		if (renderAllSides || state.isSideRendered(blockView, x, y, z - 1, BlockDirection.NEG_Z)) {
 			brightnessNorthEast = getBrightness(block, x - 1, y, --z);
 			brightnessBottomEast = getBrightness(block, x, y - 1, z);
 			brightnessTopEast = getBrightness(block, x, y + 1, z);
@@ -421,7 +427,7 @@ public class BHBlockRenderer {
 		
 		float brightnessSouthWest;
 		float brightnessNorthWest;
-		if (renderAllSides || block.isSideRendered(blockView, x, y, z + 1, 3)) {
+		if (renderAllSides || state.isSideRendered(blockView, x, y, z + 1, BlockDirection.POS_Z)) {
 			brightnessNorthWest = getBrightness(block, x - 1, y, ++z);
 			brightnessSouthWest = getBrightness(block, x + 1, y, z);
 			brightnessBottomWest = getBrightness(block, x, y - 1, z);
@@ -479,7 +485,7 @@ public class BHBlockRenderer {
 			result = true;
 		}
 		
-		if (renderAllSides || block.isSideRendered(blockView, x - 1, y, z, 4)) {
+		if (renderAllSides || state.isSideRendered(blockView, x - 1, y, z, BlockDirection.NEG_X)) {
 			brightnessBottomNorth = getBrightness(block, --x, y - 1, z);
 			brightnessNorthEast = getBrightness(block, x, y, z - 1);
 			brightnessNorthWest = getBrightness(block, x, y, z + 1);
@@ -537,7 +543,7 @@ public class BHBlockRenderer {
 			result = true;
 		}
 		
-		if (renderAllSides || block.isSideRendered(blockView, x + 1, y, z, 5)) {
+		if (renderAllSides || state.isSideRendered(blockView, x + 1, y, z, BlockDirection.POS_X)) {
 			brightnessBottomSouth = getBrightness(block, ++x, y - 1, z);
 			brightnessSouthEast = getBrightness(block, x, y, z - 1);
 			brightnessSouthWest = getBrightness(block, x, y, z + 1);
@@ -639,7 +645,7 @@ public class BHBlockRenderer {
 		
 		float light2 = getBrightness(block, x, y, z);
 		
-		if (renderAllSides || block.isSideRendered(blockView, x, y - 1, z, 0)) {
+		if (renderAllSides || state.isSideRendered(blockView, x, y - 1, z, BlockDirection.NEG_Y)) {
 			light = getBrightness(block, x, y - 1, z);
 			tessellator.color(bR * light, bG * light, bB * light);
 			if (item) tessellator.setNormal(0.0f, -1.0f, 0.0f);
@@ -647,7 +653,7 @@ public class BHBlockRenderer {
 			result = true;
 		}
 		
-		if (renderAllSides || block.isSideRendered(blockView, x, y + 1, z, 1)) {
+		if (renderAllSides || state.isSideRendered(blockView, x, y + 1, z, BlockDirection.POS_Y)) {
 			light = getBrightness(block, x, y + 1, z);
 			if (block.maxY != 1.0 && !block.material.isLiquid()) {
 				light = light2;
@@ -658,7 +664,7 @@ public class BHBlockRenderer {
 			result = true;
 		}
 		
-		if (renderAllSides || block.isSideRendered(blockView, x, y, z - 1, 2)) {
+		if (renderAllSides || state.isSideRendered(blockView, x, y, z - 1, BlockDirection.NEG_Z)) {
 			light = block.getBrightness(blockView, x, y, z - 1);
 			if (block.minZ > 0.0) {
 				light = light2;
@@ -673,7 +679,7 @@ public class BHBlockRenderer {
 			result = true;
 		}
 		
-		if (renderAllSides || block.isSideRendered(blockView, x, y, z + 1, 3)) {
+		if (renderAllSides || state.isSideRendered(blockView, x, y, z + 1, BlockDirection.POS_Z)) {
 			light = getBrightness(block, x, y, z + 1);
 			if (block.maxZ < 1.0) {
 				light = light2;
@@ -691,7 +697,7 @@ public class BHBlockRenderer {
 			result = true;
 		}
 		
-		if (renderAllSides || block.isSideRendered(blockView, x - 1, y, z, 4)) {
+		if (renderAllSides || state.isSideRendered(blockView, x - 1, y, z, BlockDirection.NEG_X)) {
 			light = getBrightness(block, x - 1, y, z);
 			if (block.minX > 0.0) {
 				light = light2;
@@ -706,7 +712,7 @@ public class BHBlockRenderer {
 			result = true;
 		}
 		
-		if (renderAllSides || block.isSideRendered(blockView, x + 1, y, z, 5)) {
+		if (renderAllSides || state.isSideRendered(blockView, x + 1, y, z, BlockDirection.POS_X)) {
 			light = getBrightness(block, x + 1, y, z);
 			if (block.maxX < 1.0) {
 				light = light2;
@@ -1390,14 +1396,14 @@ public class BHBlockRenderer {
 		float g = (float) (color >> 8 & 0xFF) / 255.0f;
 		float b = (float) (color & 0xFF) / 255.0f;
 		
-		boolean renderTop = block.isSideRendered(blockView, x, y + 1, z, 1);
-		boolean renderBottom = block.isSideRendered(blockView, x, y - 1, z, 0);
+		boolean renderTop = state.isSideRendered(blockView, x, y + 1, z, BlockDirection.POS_Y);
+		boolean renderBottom = state.isSideRendered(blockView, x, y - 1, z, BlockDirection.NEG_Y);
 		
 		boolean[] renderSides = new boolean[] {
-			block.isSideRendered(blockView, x, y, z - 1, 2),
-			block.isSideRendered(blockView, x, y, z + 1, 3),
-			block.isSideRendered(blockView, x - 1, y, z, 4),
-			block.isSideRendered(blockView, x + 1, y, z, 5)
+			state.isSideRendered(blockView, x, y, z - 1, BlockDirection.NEG_Z),
+			state.isSideRendered(blockView, x, y, z + 1, BlockDirection.POS_Z),
+			state.isSideRendered(blockView, x - 1, y, z, BlockDirection.NEG_X),
+			state.isSideRendered(blockView, x + 1, y, z, BlockDirection.POS_X)
 		};
 		
 		if (!(renderTop || renderBottom || renderSides[0] || renderSides[1] || renderSides[2] || renderSides[3])) {
@@ -2308,7 +2314,7 @@ public class BHBlockRenderer {
 		Tessellator tessellator = Tessellator.INSTANCE;
 		boolean result = false;
 		
-		if (renderAllSides || block.isSideRendered(blockView, x, y - 1, z, 0)) {
+		if (renderAllSides || state.isSideRendered(blockView, x, y - 1, z, BlockDirection.NEG_Y)) {
 			light = getBrightness(block, x, y - 1, z);
 			if (item) tessellator.setNormal(0.0f, -1.0f, 0.0f);
 			tessellator.color(r1 * light, g1 * light, b1 * light);
@@ -2316,7 +2322,7 @@ public class BHBlockRenderer {
 			result = true;
 		}
 		
-		if (renderAllSides || block.isSideRendered(blockView, x, y + 1, z, 1)) {
+		if (renderAllSides || state.isSideRendered(blockView, x, y + 1, z, BlockDirection.POS_Y)) {
 			light = getBrightness(block, x, y + 1, z);
 			if (block.maxY != 1.0 && !block.material.isLiquid()) {
 				light = blockLight;
@@ -2327,7 +2333,7 @@ public class BHBlockRenderer {
 			result = true;
 		}
 		
-		if (renderAllSides || block.isSideRendered(blockView, x, y, z - 1, 2)) {
+		if (renderAllSides || state.isSideRendered(blockView, x, y, z - 1, BlockDirection.NEG_Z)) {
 			light = getBrightness(block, x, y, z - 1);
 			if (block.minZ > 0.0) {
 				light = blockLight;
@@ -2340,7 +2346,7 @@ public class BHBlockRenderer {
 			result = true;
 		}
 		
-		if (renderAllSides || block.isSideRendered(blockView, x, y, z + 1, 3)) {
+		if (renderAllSides || state.isSideRendered(blockView, x, y, z + 1, BlockDirection.POS_Z)) {
 			light = getBrightness(block, x, y, z + 1);
 			if (block.maxZ < 1.0) {
 				light = blockLight;
@@ -2353,7 +2359,7 @@ public class BHBlockRenderer {
 			result = true;
 		}
 		
-		if (renderAllSides || block.isSideRendered(blockView, x - 1, y, z, 4)) {
+		if (renderAllSides || state.isSideRendered(blockView, x - 1, y, z, BlockDirection.NEG_X)) {
 			light = getBrightness(block, x - 1, y, z);
 			if (block.minX > 0.0) {
 				light = blockLight;
@@ -2366,7 +2372,7 @@ public class BHBlockRenderer {
 			result = true;
 		}
 		
-		if (renderAllSides || block.isSideRendered(blockView, x + 1, y, z, 5)) {
+		if (renderAllSides || state.isSideRendered(blockView, x + 1, y, z, BlockDirection.POS_X)) {
 			light = getBrightness(block, x + 1, y, z);
 			if (block.maxX < 1.0) {
 				light = blockLight;
@@ -2383,7 +2389,7 @@ public class BHBlockRenderer {
 	}
 	
 	private boolean renderBed(BlockState state, int x, int y, int z) {
-		BaseBlock arg = state.getBlock();
+		BaseBlock block = state.getBlock();
 		Tessellator tessellator = Tessellator.INSTANCE;
 		
 		int meta = state.getMeta();
@@ -2408,7 +2414,7 @@ public class BHBlockRenderer {
 		float f15 = f3;
 		float f16 = f4;
 		
-		float light = arg.getBrightness(blockView, x, y, z);
+		float light = block.getBrightness(blockView, x, y, z);
 		tessellator.color(r * light, g * light, b * light);
 		
 		TextureSample uv = state.getTextureForIndex(blockView, x, y, z, 0);
@@ -2417,18 +2423,18 @@ public class BHBlockRenderer {
 		float v11 = uv.getV(0);
 		float v12 = uv.getV(1);
 		
-		double x1 = x + arg.minX;
-		double x2 = x + arg.maxX;
-		double y2 = y + arg.minY + 0.1875;
-		double z1 = z + arg.minZ;
-		double z2 = z + arg.maxZ;
+		double x1 = x + block.minX;
+		double x2 = x + block.maxX;
+		double y2 = y + block.minY + 0.1875;
+		double z1 = z + block.minZ;
+		double z2 = z + block.maxZ;
 		
 		tessellator.vertex(x1, y2, z2, u11, v12);
 		tessellator.vertex(x1, y2, z1, u11, v11);
 		tessellator.vertex(x2, y2, z1, u12, v11);
 		tessellator.vertex(x2, y2, z2, u12, v12);
 		
-		float light2 = arg.getBrightness(blockView, x, y + 1, z);
+		float light2 = block.getBrightness(blockView, x, y + 1, z);
 		tessellator.color(r2 * light2, g2 * light2, b2 * light2);
 		
 		uv = state.getTextureForIndex(blockView, x, y, z, 1);
@@ -2469,11 +2475,11 @@ public class BHBlockRenderer {
 			d21 = v21;
 		}
 		
-		double d22 = (double) x + arg.minX;
-		double d23 = (double) x + arg.maxX;
-		double d24 = (double) y + arg.maxY;
-		double d25 = (double) z + arg.minZ;
-		double d26 = (double) z + arg.maxZ;
+		double d22 = (double) x + block.minX;
+		double d23 = (double) x + block.maxX;
+		double d24 = (double) y + block.maxY;
+		double d25 = (double) z + block.minZ;
+		double d26 = (double) z + block.maxZ;
 		
 		tessellator.vertex(d23, d24, d26, d18, d20);
 		tessellator.vertex(d23, d24, d25, d14, d16);
@@ -2493,48 +2499,48 @@ public class BHBlockRenderer {
 		}
 		
 		TextureSample sample;
-		if (magic != 2 && (renderAllSides || arg.isSideRendered(blockView, x, y, z - 1, 2))) {
-			float f19 = arg.getBrightness(blockView, x, y, z - 1);
-			if (arg.minZ > 0.0) {
+		if (magic != 2 && (renderAllSides || state.isSideRendered(blockView, x, y, z - 1, BlockDirection.NEG_Z))) {
+			float f19 = block.getBrightness(blockView, x, y, z - 1);
+			if (block.minZ > 0.0) {
 				f19 = light;
 			}
 			tessellator.color(f9 * f19, f12 * f19, f15 * f19);
 			sample = state.getTextureForIndex(blockView, x, y, z, 2);
 			sample.setMirrorU(face == 2);
-			renderNegZFace(arg, x, y, z, sample);
+			renderNegZFace(block, x, y, z, sample);
 		}
 		
-		if (magic != 3 && (renderAllSides || arg.isSideRendered(blockView, x, y, z + 1, 3))) {
-			float f20 = arg.getBrightness(blockView, x, y, z + 1);
-			if (arg.maxZ < 1.0) {
+		if (magic != 3 && (renderAllSides || state.isSideRendered(blockView, x, y, z + 1, BlockDirection.POS_Z))) {
+			float f20 = block.getBrightness(blockView, x, y, z + 1);
+			if (block.maxZ < 1.0) {
 				f20 = light;
 			}
 			tessellator.color(f9 * f20, f12 * f20, f15 * f20);
 			sample = state.getTextureForIndex(blockView, x, y, z, 3);
 			sample.setMirrorU(face == 3);
-			renderPosZFace(arg, x, y, z, sample);
+			renderPosZFace(block, x, y, z, sample);
 		}
 		
-		if (magic != 4 && (renderAllSides || arg.isSideRendered(blockView, x - 1, y, z, 4))) {
-			float f21 = arg.getBrightness(blockView, x - 1, y, z);
-			if (arg.minX > 0.0) {
+		if (magic != 4 && (renderAllSides || state.isSideRendered(blockView, x - 1, y, z, BlockDirection.NEG_X))) {
+			float f21 = block.getBrightness(blockView, x - 1, y, z);
+			if (block.minX > 0.0) {
 				f21 = light;
 			}
 			tessellator.color(f10 * f21, f13 * f21, f16 * f21);
 			sample = state.getTextureForIndex(blockView, x, y, z, 3);
 			sample.setMirrorU(face == 4);
-			renderNegXFace(arg, x, y, z, sample);
+			renderNegXFace(block, x, y, z, sample);
 		}
 		
-		if (magic != 5 && (renderAllSides || arg.isSideRendered(blockView, x + 1, y, z, 5))) {
-			float f22 = arg.getBrightness(blockView, x + 1, y, z);
-			if (arg.maxX < 1.0) {
+		if (magic != 5 && (renderAllSides || state.isSideRendered(blockView, x + 1, y, z, BlockDirection.POS_X))) {
+			float f22 = block.getBrightness(blockView, x + 1, y, z);
+			if (block.maxX < 1.0) {
 				f22 = light;
 			}
 			tessellator.color(f10 * f22, f13 * f22, f16 * f22);
 			sample = state.getTextureForIndex(blockView, x, y, z, 3);
 			sample.setMirrorU(face == 5);
-			renderPosXFace(arg, x, y, z, sample);
+			renderPosXFace(block, x, y, z, sample);
 		}
 		
 		return true;
