@@ -617,8 +617,8 @@ public class BHBlockRenderer {
 		float ewR, ewG, ewB, nsR, nsG, nsB;
 		
 		if (item) {
-			ewR = 0.7F; ewG = 0.7F; ewB = 0.7F;
-			nsR = 0.9F; nsG = 0.9F; nsB = 0.9F;
+			ewR = 0.6F; ewG = 0.6F; ewB = 0.6F;
+			nsR = 0.8F; nsG = 0.8F; nsB = 0.8F;
 		}
 		else {
 			ewR = 0.8F; ewG = 0.8F; ewB = 0.8F;

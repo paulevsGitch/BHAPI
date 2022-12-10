@@ -128,7 +128,7 @@ public abstract class ParticleManagerMixin {
 	}
 	
 	@Inject(method = "render", at = @At("HEAD"), cancellable = true)
-	private void bhapi_render(BaseEntity entity, float delta, CallbackInfo info) {
+	private void bhapi_renderPickup(BaseEntity entity, float delta, CallbackInfo info) {
 		info.cancel();
 		Tessellator tessellator = Tessellator.INSTANCE;
 		synchronized (bhapi_items) {

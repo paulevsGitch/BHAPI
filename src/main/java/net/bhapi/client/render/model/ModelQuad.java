@@ -21,6 +21,7 @@ public class ModelQuad {
 	private final Vec2F[] uvs = new Vec2F[4];
 	private final int index;
 	private float brightness;
+	private float guiLight;
 	private boolean useAO;
 	private int tintIndex;
 	private Vec3F normal;
@@ -65,18 +66,32 @@ public class ModelQuad {
 			normal = a.cross(b).normalise();
 		}
 		
-		if (normal.x > 0.99 || normal.x < -0.99) brightness = 0.6F;
-		else if (normal.z > 0.99 || normal.z < -0.99) brightness = 0.8F;
-		else if (normal.y < -0.99) brightness = 0.5F;
-		else if (normal.y > 0.99) brightness = 1.0F;
+		if (normal.x > 0.99 || normal.x < -0.99) {
+			brightness = 0.6F;
+			guiLight = 0.8F;
+		}
+		else if (normal.z > 0.99 || normal.z < -0.99) {
+			brightness = 0.8F;
+			guiLight = 0.6F;
+		}
+		else if (normal.y < -0.99) {
+			brightness = 0.5F;
+			guiLight = 0.5F;
+		}
+		else if (normal.y > 0.99) {
+			brightness = 1.0F;
+			guiLight = 1.0F;
+		}
 		else {
 			float abs = Math.abs(normal.x);
 			float l = abs + Math.abs(normal.z);
 			brightness = MathUtil.lerp(0.8F, 0.6F, abs / l);
+			guiLight = MathUtil.lerp(0.6F, 0.8F, abs / l);
 			
 			abs = Math.abs(normal.y);
 			float lightY = normal.y < 0 ? 0.5F : 1.0F;
 			brightness = MathUtil.lerp(brightness, lightY, abs * abs);
+			guiLight = MathUtil.lerp(guiLight, lightY, abs * abs);
 		}
 	}
 	
@@ -91,12 +106,13 @@ public class ModelQuad {
 		double z = context.getZ();
 		tessellator.setNormal(normal.x, normal.y, normal.z);
 		BlockView view = context.getBlockView();
-		float light = 1.0F;
+		float light = brightness;
 		if (!(view instanceof BlockItemView)) {
 			BaseBlock block = context.getState().getBlock();
-			light = block.getBrightness(view, (int) x, (int) y, (int) z);
+			light *= block.getBrightness(view, (int) x, (int) y, (int) z);
 		}
-		tessellator.color(brightness * light, brightness * light, brightness * light);
+		else light = guiLight;
+		tessellator.color(light, light, light);
 		for (byte i = 0; i < 4; i++) {
 			Vec3F pos = positions[i];
 			Vec2F uv = uvs[i];

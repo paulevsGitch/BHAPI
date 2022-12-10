@@ -3,6 +3,7 @@ package net.bhapi.mixin.client.particle;
 import net.bhapi.client.render.texture.TextureSample;
 import net.bhapi.client.render.texture.TextureSampleProvider;
 import net.bhapi.storage.Vec2F;
+import net.bhapi.util.MathUtil;
 import net.minecraft.client.render.Tessellator;
 import net.minecraft.client.render.particle.DiggingParticle;
 import net.minecraft.entity.BaseParticle;
@@ -31,16 +32,16 @@ public abstract class DiggingParticleMixin extends BaseParticle implements Textu
 		Vec2F uv2 = sample.getUV(u + 0.25F, v + 0.25F);
 		float scale = 0.1f * this.size;
 		
-		float f7 = (float) (this.prevX + (this.x - this.prevX) * delta - posX);
-		float f8 = (float) (this.prevY + (this.y - this.prevY) * delta - posY);
-		float f9 = (float) (this.prevZ + (this.z - this.prevZ) * delta - posZ);
+		float dx = (float) (MathUtil.lerp(this.prevX, this.x, delta) - posX);
+		float dy = (float) (MathUtil.lerp(this.prevY, this.y, delta) - posY);
+		float dz = (float) (MathUtil.lerp(this.prevZ, this.z, delta) - posZ);
 		
 		float light = this.getBrightnessAtEyes(delta);
 		
 		tessellator.color(light * this.colorR, light * this.colorG, light * this.colorB);
-		tessellator.vertex(f7 - x * scale - width * scale, f8 - y * scale, f9 - z * scale - height * scale, uv1.x, uv2.y);
-		tessellator.vertex(f7 - x * scale + width * scale, f8 + y * scale, f9 - z * scale + height * scale, uv1.x, uv1.y);
-		tessellator.vertex(f7 + x * scale + width * scale, f8 + y * scale, f9 + z * scale + height * scale, uv2.x, uv1.y);
-		tessellator.vertex(f7 + x * scale - width * scale, f8 - y * scale, f9 + z * scale - height * scale, uv2.x, uv2.y);
+		tessellator.vertex(dx - x * scale - width * scale, dy - y * scale, dz - z * scale - height * scale, uv1.x, uv2.y);
+		tessellator.vertex(dx - x * scale + width * scale, dy + y * scale, dz - z * scale + height * scale, uv1.x, uv1.y);
+		tessellator.vertex(dx + x * scale + width * scale, dy + y * scale, dz + z * scale + height * scale, uv2.x, uv1.y);
+		tessellator.vertex(dx + x * scale - width * scale, dy - y * scale, dz + z * scale - height * scale, uv2.x, uv2.y);
 	}
 }

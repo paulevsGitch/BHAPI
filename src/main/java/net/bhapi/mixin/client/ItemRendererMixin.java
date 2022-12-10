@@ -9,7 +9,9 @@ import net.bhapi.client.render.texture.Textures;
 import net.bhapi.item.BHBlockItem;
 import net.bhapi.item.BHItemRender;
 import net.bhapi.storage.Vec2F;
+import net.bhapi.util.BufferUtil;
 import net.minecraft.block.BaseBlock;
+import net.minecraft.client.render.RenderHelper;
 import net.minecraft.client.render.Tessellator;
 import net.minecraft.client.render.TextRenderer;
 import net.minecraft.client.render.block.FoliageColor;
@@ -28,6 +30,7 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
+import java.nio.FloatBuffer;
 import java.util.Random;
 
 @Mixin(ItemRenderer.class)
@@ -36,7 +39,16 @@ public abstract class ItemRendererMixin extends EntityRenderer {
 	@Shadow private Random rand;
 	
 	@Unique private BlockItemView bhapi_itemView = new BlockItemView();
+	@Unique private FloatBuffer bhapi_buffer = BufferUtil.createFloatBuffer(4);
 	@Unique private ItemStack bhapi_renderingStack;
+	
+	@Inject(method = "<init>", at = @At("TAIL"))
+	private void bhapi_onInit(CallbackInfo info) {
+		bhapi_buffer.put(1.0F);
+		bhapi_buffer.put(0.8F);
+		bhapi_buffer.put(0.6F);
+		bhapi_buffer.position(0);
+	}
 	
 	@Inject(method = "renderItemInGUI", at = @At("HEAD"), cancellable = true)
 	private void bhapi_renderItemInGUI(TextRenderer textRenderer, TextureManager manager, int id, int j, int texture, int x, int y, CallbackInfo info) {
@@ -49,7 +61,7 @@ public abstract class ItemRendererMixin extends EntityRenderer {
 			Textures.getAtlas().bind();
 			BlockState state = BHBlockItem.cast(item).getState();
 			GL11.glPushMatrix();
-			GL11.glTranslatef(x - 2, y + 3, -3.0f);
+			GL11.glTranslatef(x - 2, y + 3, 0.0f);
 			GL11.glScalef(10.0f, 10.0f, 10.0f);
 			GL11.glTranslatef(1.0f, 0.5f, 1.0f);
 			GL11.glScalef(1.0f, 1.0f, -1.0f);
@@ -64,10 +76,16 @@ public abstract class ItemRendererMixin extends EntityRenderer {
 				GL11.glColor4f(r, g, b, 1.0F);
 			}
 			
+			//RenderHelper.enableLighting();
+			//GL11.glLightModel(2899, bhapi_buffer);
+			
+			RenderHelper.disableLighting();
 			BHBlockRenderer renderer = BHAPIClient.getBlockRenderer();
 			bhapi_itemView.setBlockState(state);
 			renderer.setView(bhapi_itemView);
 			renderer.renderItem(state, this.coloriseItem, 1.0f);
+			
+			//RenderHelper.disableLighting();
 			
 			GL11.glPopMatrix();
 		}
@@ -128,17 +146,16 @@ public abstract class ItemRendererMixin extends EntityRenderer {
 		if (item instanceof BHBlockItem && !BHBlockItem.cast(item).isFlat()) {
 			GL11.glRotatef(angle, 0.0f, 1.0f, 0.0f);
 			Textures.getAtlas().bind();
-			final float scale = 0.25f;
 			
 			BlockState state = BHBlockItem.cast(item).getState();
 			
-			GL11.glScalef(scale, scale, scale);
+			GL11.glScalef(0.25f, 0.25f, 0.25f);
 			for (int i = 0; i < count; ++i) {
 				GL11.glPushMatrix();
 				if (i > 0) {
-					float dx = (this.rand.nextFloat() * 2.0f - 1.0f) * 0.2f / scale;
-					float dy = (this.rand.nextFloat() * 2.0f - 1.0f) * 0.2f / scale;
-					float dz = (this.rand.nextFloat() * 2.0f - 1.0f) * 0.2f / scale;
+					float dx = (this.rand.nextFloat() * 2.0f - 1.0f) * 0.2f / 0.25f;
+					float dy = (this.rand.nextFloat() * 2.0f - 1.0f) * 0.2f / 0.25f;
+					float dz = (this.rand.nextFloat() * 2.0f - 1.0f) * 0.2f / 0.25f;
 					GL11.glTranslatef(dx, dy, dz);
 				}
 				
