@@ -42,12 +42,12 @@ public class TextureSample {
 		return out;
 	}
 	
-	//@Deprecated(forRemoval = true)
+	@Deprecated(forRemoval = true)
 	public float getU(float delta) {
 		return atlas.getUV(id).getU(delta);
 	}
 	
-	//@Deprecated(forRemoval = true)
+	@Deprecated(forRemoval = true)
 	public float getV(float delta) {
 		return atlas.getUV(id).getV(delta);
 	}

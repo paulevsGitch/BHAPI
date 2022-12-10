@@ -1,22 +1,18 @@
 package net.bhapi.client.render.model;
 
-import net.bhapi.client.render.block.BlockItemView;
 import net.bhapi.client.render.texture.TextureSample;
 import net.bhapi.storage.CircleCache;
-import net.bhapi.storage.EnumArray;
 import net.bhapi.storage.Vec2F;
 import net.bhapi.storage.Vec3F;
 import net.bhapi.util.BlockDirection;
 import net.bhapi.util.MathUtil;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
-import net.minecraft.block.BaseBlock;
 import net.minecraft.client.render.Tessellator;
 import net.minecraft.level.BlockView;
 
 @Environment(EnvType.CLIENT)
 public class ModelQuad {
-	private static final EnumArray<BlockDirection, Float> NORMAL_BRIGHTNESS = new EnumArray<>(BlockDirection.class);
 	private final Vec3F[] positions = new Vec3F[4];
 	private final Vec2F[] uvs = new Vec2F[4];
 	private final int index;
@@ -106,10 +102,9 @@ public class ModelQuad {
 		double z = context.getZ();
 		tessellator.setNormal(normal.x, normal.y, normal.z);
 		BlockView view = context.getBlockView();
-		float light = brightness;
-		if (!(view instanceof BlockItemView)) {
-			BaseBlock block = context.getState().getBlock();
-			light *= block.getBrightness(view, (int) x, (int) y, (int) z);
+		float light;
+		if (!context.isInGUI()) {
+			light = brightness * context.getLight() * view.getBrightness((int) x, (int) y, (int) z);
 		}
 		else light = guiLight;
 		tessellator.color(light, light, light);
@@ -166,14 +161,5 @@ public class ModelQuad {
 		}
 		
 		return FaceGroup.getFromFacing(dir);
-	}
-	
-	static {
-		NORMAL_BRIGHTNESS.set(BlockDirection.NEG_Y, 0.5F);
-		NORMAL_BRIGHTNESS.set(BlockDirection.POS_Y, 1.0F);
-		NORMAL_BRIGHTNESS.set(BlockDirection.NEG_Z, 0.8F);
-		NORMAL_BRIGHTNESS.set(BlockDirection.POS_Z, 0.8F);
-		NORMAL_BRIGHTNESS.set(BlockDirection.NEG_X, 0.6F);
-		NORMAL_BRIGHTNESS.set(BlockDirection.POS_X, 0.6F);
 	}
 }

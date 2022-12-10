@@ -12,6 +12,8 @@ public class ModelRenderingContext {
 	private BlockView blockView;
 	private BlockState state;
 	private boolean breaking;
+	private boolean isInGUI;
+	private float light;
 	private double x;
 	private double y;
 	private double z;
@@ -77,6 +79,22 @@ public class ModelRenderingContext {
 	
 	public boolean isBreaking() {
 		return breaking;
+	}
+	
+	public boolean isInGUI() {
+		return isInGUI;
+	}
+	
+	public void setInGUI(boolean inGUI) {
+		isInGUI = inGUI;
+	}
+	
+	public float getLight() {
+		return light;
+	}
+	
+	public void setLight(float light) {
+		this.light = light;
 	}
 	
 	public boolean renderFace(BlockDirection dir) {

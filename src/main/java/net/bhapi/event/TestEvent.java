@@ -14,6 +14,7 @@ import net.bhapi.item.BHSimpleItem;
 import net.bhapi.level.BlockStateProvider;
 import net.bhapi.recipe.RecipeBuilder;
 import net.bhapi.registry.CommonRegistries;
+import net.bhapi.util.BlockDirection;
 import net.bhapi.util.Identifier;
 import net.bhapi.util.ItemUtil;
 import net.bhapi.util.MathUtil;
@@ -107,6 +108,12 @@ public class TestEvent {
 		public CustomModel getModel(BlockView view, int x, int y, int z, BlockState state) {
 			return TestClientEvent.testModel;
 		}
+		
+		@Override
+		@Environment(EnvType.CLIENT)
+		public boolean isSideRendered(BlockView blockView, int x, int y, int z, BlockDirection facing, BlockState state, BlockState target) {
+			return true;
+		}
 	}
 	
 	private class TestBlock3 extends TestBlock {
@@ -128,6 +135,12 @@ public class TestEvent {
 		@Environment(EnvType.CLIENT)
 		public CustomModel getModel(BlockView view, int x, int y, int z, BlockState state) {
 			return TestClientEvent.testModel;
+		}
+		
+		@Override
+		@Environment(EnvType.CLIENT)
+		public boolean isSideRendered(BlockView blockView, int x, int y, int z, BlockDirection facing, BlockState state, BlockState target) {
+			return true;
 		}
 	}
 	
@@ -168,6 +181,12 @@ public class TestEvent {
 		@Environment(EnvType.CLIENT)
 		public CustomModel getModel(BlockView view, int x, int y, int z, BlockState state) {
 			return TestClientEvent.testModel3;
+		}
+		
+		@Override
+		@Environment(EnvType.CLIENT)
+		public boolean isSideRendered(BlockView blockView, int x, int y, int z, BlockDirection facing, BlockState state, BlockState target) {
+			return false;
 		}
 	}
 }
