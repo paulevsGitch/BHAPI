@@ -5,6 +5,7 @@ import net.bhapi.block.BHAirBlock;
 import net.bhapi.blockstate.BlockState;
 import net.bhapi.interfaces.NBTSerializable;
 import net.bhapi.level.BlockStateProvider;
+import net.bhapi.level.ChunkHeightProvider;
 import net.bhapi.level.ChunkSection;
 import net.bhapi.level.ChunkSectionProvider;
 import net.bhapi.level.LevelHeightProvider;
@@ -39,7 +40,7 @@ import java.util.List;
 import java.util.Map;
 
 @Mixin(Chunk.class)
-public abstract class ChunkMixin implements NBTSerializable, LevelHeightProvider, ChunkSectionProvider, BlockStateProvider {
+public abstract class ChunkMixin implements NBTSerializable, LevelHeightProvider, ChunkSectionProvider, BlockStateProvider, ChunkHeightProvider {
 	@Shadow public boolean needUpdate;
 	@Shadow public Map blockEntities;
 	@Shadow public byte[] heightmap;
@@ -200,7 +201,7 @@ public abstract class ChunkMixin implements NBTSerializable, LevelHeightProvider
 		
 		int h, wz, wx;
 		short h1, h2;
-		h1 = h2 = (short) Math.max(bhapi_getHeight(x, z), getLevelHeight() - 1);
+		h1 = h2 = (short) Math.max(getHeightmapData(x, z), getLevelHeight() - 1);
 		
 		if (y > h2) {
 			h1 = (short) y;
@@ -224,7 +225,7 @@ public abstract class ChunkMixin implements NBTSerializable, LevelHeightProvider
 			int minHeight = getLevelHeight();
 			for (wz = 0; wz < 16; ++wz) {
 				for (h = 0; h < 16; ++h) {
-					short mh = bhapi_getHeight(wz, h << 4);
+					short mh = getHeightmapData(wz, h << 4);
 					if (mh >= minHeight) continue;
 					minHeight = mh;
 				}
@@ -469,8 +470,9 @@ public abstract class ChunkMixin implements NBTSerializable, LevelHeightProvider
 		}
 		
 		ChunkSection section = bhapi_getSection(y);
+		short height = getHeightmapData(x, z);
 		
-		int light = section == null ? 15 : section.getLight(LightType.SKY, x, y & 15, z);
+		int light = y > height ? 15 : section == null ? 15 : section.getLight(LightType.SKY, x, y & 15, z);
 		if (light > 0) {
 			this.hasSkyLight = true;
 		}
@@ -485,12 +487,12 @@ public abstract class ChunkMixin implements NBTSerializable, LevelHeightProvider
 	
 	@Inject(method = "isAboveGround", at = @At("HEAD"), cancellable = true)
 	private void isAboveGround(int x, int y, int z, CallbackInfoReturnable<Boolean> info) {
-		info.setReturnValue(y >= bhapi_getHeight(x, z));
+		info.setReturnValue(y >= getHeightmapData(x, z));
 	}
 	
 	@Inject(method = "getHeight(II)I", at = @At("HEAD"), cancellable = true)
-	private void bhapi_getHeight(int x, int z, CallbackInfoReturnable<Integer> info) {
-		info.setReturnValue((int) bhapi_getHeight(x, z));
+	private void getHeightmapData(int x, int z, CallbackInfoReturnable<Integer> info) {
+		info.setReturnValue((int) getHeightmapData(x, z));
 	}
 	
 	@Environment(value=EnvType.CLIENT)
@@ -524,7 +526,8 @@ public abstract class ChunkMixin implements NBTSerializable, LevelHeightProvider
 	}
 	
 	@Unique
-	private short bhapi_getHeight(int x, int z) {
+	@Override
+	public short getHeightmapData(int x, int z) {
 		return bhapi_heightmap[x << 4 | z];
 	}
 	
@@ -713,7 +716,7 @@ public abstract class ChunkMixin implements NBTSerializable, LevelHeightProvider
 		
 		byte py = (byte) (y & 15);
 		
-		short height = bhapi_getHeight(x, z);
+		short height = getHeightmapData(x, z);
 		BlockState oldState = section.getBlockState(x, py, z);
 		if (oldState == state) {
 			return false;
