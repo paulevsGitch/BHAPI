@@ -4,6 +4,7 @@ import net.bhapi.block.BHAirBlock;
 import net.bhapi.blockstate.properties.IntegerProperty;
 import net.bhapi.blockstate.properties.StateProperty;
 import net.bhapi.client.render.block.BHBlockRender;
+import net.bhapi.client.render.block.BlockRenderTypes;
 import net.bhapi.client.render.model.CustomModel;
 import net.bhapi.client.render.texture.TextureSample;
 import net.bhapi.interfaces.IDProvider;
@@ -461,10 +462,58 @@ public final class BlockState implements IDProvider {
 		return getContainer().isSideRendered(blockView, x, y, z, facing, this, target);
 	}
 	
+	/**
+	 * Check if that state should render block face or not.
+	 * @param blockView {@link BlockView} as a block getter
+	 * @param x X coordinate
+	 * @param y Y coordinate
+	 * @param z Z coordinate
+	 * @param facing {@link BlockDirection} face direction
+	 * @return {@code true} if face should be rendered and {@code false} if not
+	 */
 	@Environment(EnvType.CLIENT)
 	public boolean isSideRendered(BlockView blockView, int x, int y, int z, BlockDirection facing) {
 		BlockState neighbour = BlockStateProvider.cast(blockView).getBlockState(x, y, z);
 		return neighbour.isSideRendered(blockView, x, y, z, facing, this);
+	}
+	
+	/**
+	 * Get render type for this block, full cube by default.
+	 * @see BlockRenderTypes
+	 * @param view {@link BlockView}
+	 * @param x X block coordinate
+	 * @param y Y block coordinate
+	 * @param z Z block coordinate
+	 */
+	@Environment(EnvType.CLIENT)
+	public byte getRenderType(BlockView view, int x, int y, int z) {
+		return BHBlockRender.cast(getBlock()).getRenderType(view, x, y, z, this);
+	}
+	
+	/**
+	 * Get texture for current model index. Vanilla blocks have indexes equal to quad face directions, custom models
+	 * can have any indexes.
+	 * @see net.bhapi.util.BlockDirection
+	 * @param view {@link BlockView}
+	 * @param x X block coordinate
+	 * @param y Y block coordinate
+	 * @param z Z block coordinate
+	 * @param textureIndex current texture index
+	 * @param overlayIndex current overlay index
+	 * @return {@link TextureSample} or null
+	 */
+	@Environment(EnvType.CLIENT)
+	public TextureSample getTextureForIndex(BlockView view, int x, int y, int z, int textureIndex, int overlayIndex) {
+		return BHBlockRender.cast(getBlock()).getTextureForIndex(view, x, y, z, this, textureIndex, overlayIndex);
+	}
+	
+	/**
+	 * Get count of overlay textures for this blockstate.
+	 * Each overlay will be rendered as same model, but with different textures.
+	 */
+	@Environment(EnvType.CLIENT)
+	public int getOverlayCount(BlockView view, int x, int y, int z) {
+		return BHBlockRender.cast(getBlock()).getOverlayCount(view, x, y, z, this);
 	}
 	
 	@Override
@@ -497,15 +546,5 @@ public final class BlockState implements IDProvider {
 			}
 		}
 		return true;
-	}
-	
-	@Environment(EnvType.CLIENT)
-	public byte getRenderType(BlockView view, int x, int y, int z) {
-		return BHBlockRender.cast(getBlock()).getRenderType(view, x, y, z, this);
-	}
-	
-	@Environment(EnvType.CLIENT)
-	public TextureSample getTextureForIndex(BlockView view, int x, int y, int z, int index) {
-		return BHBlockRender.cast(getBlock()).getTextureForIndex(view, x, y, z, this, index);
 	}
 }

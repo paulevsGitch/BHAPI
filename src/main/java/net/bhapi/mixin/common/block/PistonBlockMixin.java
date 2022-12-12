@@ -265,16 +265,16 @@ public abstract class PistonBlockMixin extends BaseBlock implements BlockStateCo
 	
 	@Override
 	@Environment(EnvType.CLIENT)
-	public TextureSample getTextureForIndex(BlockView view, int x, int y, int z, BlockState state, int index) {
+	public TextureSample getTextureForIndex(BlockView view, int x, int y, int z, BlockState state, int textureIndex, int overlayIndex) {
 		if (view instanceof BlockItemView) {
 			BaseBlock block = state.getBlock();
-			int texture = block.getTextureForSide(index, 1);
+			int texture = block.getTextureForSide(textureIndex, 1);
 			TextureSample sample = Textures.getVanillaBlockSample(texture);
 			sample.setRotation(0);
 			return sample;
 		}
 		BaseBlock block = state.getBlock();
-		int texture = block.getTextureForSide(view, x, y, z, index);
+		int texture = block.getTextureForSide(view, x, y, z, textureIndex);
 		return Textures.getVanillaBlockSample(texture);
 	}
 }

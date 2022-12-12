@@ -9,6 +9,7 @@ import net.bhapi.client.render.block.BlockRenderTypes;
 import net.bhapi.client.render.model.CustomModel;
 import net.bhapi.client.render.texture.TextureSample;
 import net.bhapi.client.render.texture.Textures;
+import net.bhapi.interfaces.ClientPostInit;
 import net.bhapi.item.BHBlockItem;
 import net.bhapi.item.BHSimpleItem;
 import net.bhapi.level.BlockStateProvider;
@@ -36,7 +37,7 @@ public class TestEvent {
 	@EventListener // Test Blocks
 	public void registerBlocks(BlockRegistryEvent event) {
 		registerBlock("testblock", new TestBlock2(Material.WOOD, BaseBlock.WOOD_SOUNDS), event::register);
-		registerBlock("testblock2", new TestBlock3(Material.DIRT, BaseBlock.GRASS_SOUNDS), event::register);
+		registerBlock("testblock2", new TestBlock4(Material.DIRT, BaseBlock.GRASS_SOUNDS), event::register);
 		registerBlock("testblock3", new TestBlock3(Material.GLASS, BaseBlock.GLASS_SOUNDS), event::register);
 		registerBlock("farlands", new FarBlock(Material.WOOD, BaseBlock.STONE_SOUNDS), event::register);
 		registerBlock("testblock4", new TestBlock(Material.WOOD, BaseBlock.WOOD_SOUNDS), event::register);
@@ -79,8 +80,8 @@ public class TestEvent {
 		
 		@Override
 		@Environment(EnvType.CLIENT)
-		public TextureSample getTextureForIndex(BlockView view, int x, int y, int z, BlockState state, int index) {
-			return TestClientEvent.samplesFar[MathUtil.clamp(index, 0, 2)];
+		public TextureSample getTextureForIndex(BlockView view, int x, int y, int z, BlockState state, int textureIndex, int overlayIndex) {
+			return TestClientEvent.samplesFar[MathUtil.clamp(textureIndex, 0, 2)];
 		}
 		
 		@Override
@@ -97,10 +98,10 @@ public class TestEvent {
 		
 		@Override
 		@Environment(EnvType.CLIENT)
-		public TextureSample getTextureForIndex(BlockView view, int x, int y, int z, BlockState state, int index) {
+		public TextureSample getTextureForIndex(BlockView view, int x, int y, int z, BlockState state, int textureIndex, int overlayIndex) {
 			state = BlockStateProvider.cast(view).getBlockState(x, y - 1, z);
-			if (state.isAir() || state.is(this)) return super.getTextureForIndex(view, x, y, z, state, index);
-			return state.getTextureForIndex(view, x, y - 1, z, index);
+			if (state.isAir() || state.is(this)) return super.getTextureForIndex(view, x, y, z, state, textureIndex, overlayIndex);
+			return state.getTextureForIndex(view, x, y - 1, z, textureIndex, overlayIndex);
 		}
 		
 		@Override
@@ -116,11 +117,58 @@ public class TestEvent {
 		}
 	}
 	
+	private class TestBlock4 extends TestBlock3 implements ClientPostInit {
+		@Environment(value=EnvType.CLIENT)
+		private TextureSample fire;
+		
+		public TestBlock4(Material material, BlockSounds sounds) {
+			super(material, sounds);
+		}
+		
+		@Override
+		@Environment(value=EnvType.CLIENT)
+		public int getOverlayCount(BlockView view, int x, int y, int z, BlockState state) {
+			BlockState below = BlockStateProvider.cast(view).getBlockState(x, y - 1, z);
+			return below.is(BaseBlock.GRASS) || below.getMaterial() == Material.LAVA || below.getMaterial() == Material.WATER ? 2 : 1;
+		}
+		
+		@Override
+		@Environment(EnvType.CLIENT)
+		public TextureSample getTextureForIndex(BlockView view, int x, int y, int z, BlockState state, int textureIndex, int overlayIndex) {
+			TextureSample sample = null;
+			switch (overlayIndex) {
+				case 0 -> sample = super.getTextureForIndex(view, x, y, z, state, textureIndex, overlayIndex);
+				case 1 -> {
+					state = BlockStateProvider.cast(view).getBlockState(x, y - 1, z);
+					if (state.is(BaseBlock.GRASS)) {
+						sample = Textures.getVanillaBlockSample(BaseBlock.SUGAR_CANES.texture);
+					}
+					else if (state.getMaterial() == Material.LAVA) {
+						sample = fire;
+					}
+					else {
+						sample = Textures.getVanillaBlockSample(BaseBlock.STILL_WATER.texture);
+					}
+				}
+			}
+			return sample;
+		}
+		
+		@Override
+		@Environment(EnvType.CLIENT)
+		public void afterClientInit() {
+			if (fire != null) return;
+			fire = Textures.getVanillaBlockSample(BaseBlock.FIRE.texture).clone();
+			fire.setLight(1F);
+		}
+	}
+	
 	private class TestBlock3 extends TestBlock {
 		public TestBlock3(Material material, BlockSounds sounds) {
 			super(material, sounds);
 		}
 		
+		@Override
 		@Environment(value=EnvType.CLIENT)
 		public boolean isSideRendered(BlockView arg, int i, int j, int k, int l) {
 			return true;
@@ -162,7 +210,7 @@ public class TestEvent {
 		
 		@Override
 		@Environment(EnvType.CLIENT)
-		public TextureSample getTextureForIndex(BlockView view, int x, int y, int z, BlockState state, int index) {
+		public TextureSample getTextureForIndex(BlockView view, int x, int y, int z, BlockState state, int textureIndex, int overlayIndex) {
 			return texID < 3 ? TestClientEvent.samples[texID] : Textures.getVanillaBlockSample(4);
 		}
 		

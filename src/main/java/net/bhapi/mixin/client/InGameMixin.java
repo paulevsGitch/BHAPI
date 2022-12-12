@@ -3,7 +3,6 @@ package net.bhapi.mixin.client;
 import net.bhapi.blockstate.BlockState;
 import net.bhapi.blockstate.properties.StateProperty;
 import net.bhapi.client.gui.DebugAllItems;
-import net.bhapi.client.render.block.BHBlockRender;
 import net.bhapi.client.render.texture.TextureSample;
 import net.bhapi.client.render.texture.Textures;
 import net.bhapi.event.TestEvent;
@@ -160,7 +159,7 @@ public abstract class InGameMixin extends DrawableHelper {
 		Textures.getAtlas().bind();
 		if (bhapi_portalSample == null) {
 			BlockState state = BlockState.getDefaultState(BaseBlock.PORTAL);
-			bhapi_portalSample = BHBlockRender.cast(BaseBlock.PORTAL).getTextureForIndex(this.minecraft.level, 0, 0, 0, state, 0);
+			bhapi_portalSample = state.getTextureForIndex(this.minecraft.level, 0, 0, 0, 0, 0);
 		}
 		Vec2F uv1 = bhapi_portalSample.getUV(0, 0);
 		Vec2F uv2 = bhapi_portalSample.getUV(1, 1);

@@ -43,8 +43,8 @@ public abstract class RedstoneDustBlockMixin implements BlockStateContainer, Cli
 	
 	@Override
 	@Environment(EnvType.CLIENT)
-	public TextureSample getTextureForIndex(BlockView view, int x, int y, int z, BlockState state, int index) {
-		return BHAPI_SAMPLES[index & 1];
+	public TextureSample getTextureForIndex(BlockView view, int x, int y, int z, BlockState state, int textureIndex, int overlayIndex) {
+		return BHAPI_SAMPLES[textureIndex & 1];
 	}
 	
 	@Inject(method = "canConnect", at = @At("HEAD"), cancellable = true)

@@ -10,21 +10,62 @@ import net.minecraft.block.BaseBlock;
 import net.minecraft.level.BlockView;
 
 public interface BHBlockRender {
+	/**
+	 * Get render type for this block, full cube by default.
+	 * @see BlockRenderTypes
+	 * @param view {@link BlockView}
+	 * @param x X block coordinate
+	 * @param y Y block coordinate
+	 * @param z Z block coordinate
+	 * @param state current {@link BlockState}
+	 */
 	@Environment(EnvType.CLIENT)
 	default byte getRenderType(BlockView view, int x, int y, int z, BlockState state) {
 		return (byte) state.getBlock().getRenderType();
 	}
 	
+	/**
+	 * Get texture for current model index. Vanilla blocks have indexes equal to quad face directions, custom models
+	 * can have any indexes.
+	 * @see net.bhapi.util.BlockDirection
+	 * @param view {@link BlockView}
+	 * @param x X block coordinate
+	 * @param y Y block coordinate
+	 * @param z Z block coordinate
+	 * @param state current {@link BlockState}
+	 * @param textureIndex current texture index
+	 * @param overlayIndex current overlay index
+	 * @return {@link TextureSample} or null
+	 */
 	@Environment(EnvType.CLIENT)
-	default TextureSample getTextureForIndex(BlockView view, int x, int y, int z, BlockState state, int index) {
+	default TextureSample getTextureForIndex(BlockView view, int x, int y, int z, BlockState state, int textureIndex, int overlayIndex) {
 		BaseBlock block = state.getBlock();
-		int texture = block.getTextureForSide(view, x, y, z, index);
+		int texture = block.getTextureForSide(view, x, y, z, textureIndex);
 		return Textures.getVanillaBlockSample(texture);
 	}
 	
+	/**
+	 * Get custom block model. Will be used only with BlockRenderTypes.CUSTOM.
+	 * @see BlockRenderTypes
+	 * @param view {@link BlockView}
+	 * @param x X block coordinate
+	 * @param y Y block coordinate
+	 * @param z Z block coordinate
+	 * @param state current {@link BlockState}
+	 * @return {@link CustomModel}
+	 */
 	@Environment(EnvType.CLIENT)
 	default CustomModel getModel(BlockView view, int x, int y, int z, BlockState state) {
 		return null;
+	}
+	
+	/**
+	 * Get count of overlay textures for this block.
+	 * Each overlay will be rendered as same model, but with different textures.
+	 */
+	@Environment(EnvType.CLIENT)
+	default int getOverlayCount(BlockView view, int x, int y, int z, BlockState state) {
+		return 1;
 	}
 	
 	static BHBlockRender cast(Object obj) {

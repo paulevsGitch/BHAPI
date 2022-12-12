@@ -10,6 +10,7 @@ public class TextureSample {
 	private byte rotation;
 	private boolean mirrorU;
 	private boolean mirrorV;
+	private float light;
 	
 	protected TextureSample(TextureAtlas atlas, int id) {
 		this.atlas = atlas;
@@ -78,5 +79,18 @@ public class TextureSample {
 	
 	public int getY() {
 		return atlas.getUV(id).getY();
+	}
+	
+	public float getLight() {
+		return light;
+	}
+	
+	public void setLight(float light) {
+		this.light = light;
+	}
+	
+	@Override
+	public TextureSample clone() {
+		return new TextureSample(atlas, id);
 	}
 }

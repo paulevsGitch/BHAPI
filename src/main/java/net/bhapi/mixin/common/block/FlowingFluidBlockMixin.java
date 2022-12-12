@@ -29,10 +29,10 @@ public abstract class FlowingFluidBlockMixin implements BlockStateContainer, Cli
 	
 	@Override
 	@Environment(EnvType.CLIENT)
-	public TextureSample getTextureForIndex(BlockView view, int x, int y, int z, BlockState state, int index) {
-		index = index > 1 ? 1 : 0;
-		if (FlowingFluidBlock.class.cast(this).material == Material.LAVA) index += 2;
-		return BHAPI_SAMPLES[index];
+	public TextureSample getTextureForIndex(BlockView view, int x, int y, int z, BlockState state, int textureIndex, int overlayIndex) {
+		textureIndex = textureIndex > 1 ? 1 : 0;
+		if (FlowingFluidBlock.class.cast(this).material == Material.LAVA) textureIndex += 2;
+		return BHAPI_SAMPLES[textureIndex];
 	}
 	
 	@Override

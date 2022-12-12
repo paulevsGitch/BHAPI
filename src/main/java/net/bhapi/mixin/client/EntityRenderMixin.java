@@ -48,7 +48,7 @@ public class EntityRenderMixin {
 		int index = 0;
 		while (height > 0.0f) {
 			BlockState state = BlockState.getDefaultState(BaseBlock.FIRE);
-			TextureSample sample = state.getTextureForIndex(arg.level, 0, 0, 0, index);
+			TextureSample sample = state.getTextureForIndex(arg.level, 0, 0, 0, index, 0);
 			
 			boolean flip = ((index >> 1) & 1) == 0;
 			Vec2F uv1 = sample.getUV(flip ? 1 : 0, 0);

@@ -42,8 +42,8 @@ public abstract class RedstoneRepeaterBlockMixin implements BlockStateContainer,
 	
 	@Override
 	@Environment(EnvType.CLIENT)
-	public TextureSample getTextureForIndex(BlockView view, int x, int y, int z, BlockState state, int index) {
-		int i = index < 6 ? 0 : 2;
+	public TextureSample getTextureForIndex(BlockView view, int x, int y, int z, BlockState state, int textureIndex, int overlayIndex) {
+		int i = textureIndex < 6 ? 0 : 2;
 		if (this.powered) i ++;
 		return BHAPI_SAMPLES[i];
 	}

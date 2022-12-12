@@ -37,8 +37,8 @@ public abstract class FireBlockMixin implements BlockStateContainer, ClientPostI
 	
 	@Override
 	@Environment(EnvType.CLIENT)
-	public TextureSample getTextureForIndex(BlockView view, int x, int y, int z, BlockState state, int index) {
-		return BHAPI_SAMPLES[index & 1];
+	public TextureSample getTextureForIndex(BlockView view, int x, int y, int z, BlockState state, int textureIndex, int overlayIndex) {
+		return BHAPI_SAMPLES[textureIndex & 1];
 	}
 }
 

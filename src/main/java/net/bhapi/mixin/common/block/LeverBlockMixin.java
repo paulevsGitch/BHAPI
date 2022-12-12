@@ -65,9 +65,9 @@ public abstract class LeverBlockMixin extends BaseBlock implements BlockStateCon
 	
 	@Override
 	@Environment(EnvType.CLIENT)
-	public TextureSample getTextureForIndex(BlockView view, int x, int y, int z, BlockState state, int index) {
+	public TextureSample getTextureForIndex(BlockView view, int x, int y, int z, BlockState state, int textureIndex, int overlayIndex) {
 		if (view instanceof BlockItemView) return BHAPI_SAMPLES[0];
-		return BHAPI_SAMPLES[index < 6 ? 1 : 0];
+		return BHAPI_SAMPLES[textureIndex < 6 ? 1 : 0];
 	}
 	
 	@Override

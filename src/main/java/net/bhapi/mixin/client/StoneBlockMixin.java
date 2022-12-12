@@ -20,9 +20,9 @@ public class StoneBlockMixin implements BHBlockRender {
 	
 	@Override
 	@Environment(EnvType.CLIENT)
-	public TextureSample getTextureForIndex(BlockView view, int x, int y, int z, BlockState state, int index) {
+	public TextureSample getTextureForIndex(BlockView view, int x, int y, int z, BlockState state, int textureIndex, int overlayIndex) {
 		BaseBlock block = state.getBlock();
-		int texture = block.getTextureForSide(view, x, y, z, index);
+		int texture = block.getTextureForSide(view, x, y, z, textureIndex);
 		TextureSample sample = Textures.getVanillaBlockSample(texture);
 		if (view instanceof BlockItemView) {
 			sample.setRotation(0);

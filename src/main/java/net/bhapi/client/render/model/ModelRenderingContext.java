@@ -11,6 +11,7 @@ public class ModelRenderingContext {
 	private Tessellator tessellator;
 	private BlockView blockView;
 	private BlockState state;
+	private int overlayIndex;
 	private boolean breaking;
 	private boolean isInGUI;
 	private float light;
@@ -95,6 +96,14 @@ public class ModelRenderingContext {
 	
 	public void setLight(float light) {
 		this.light = light;
+	}
+	
+	public int getOverlayIndex() {
+		return overlayIndex;
+	}
+	
+	public void setOverlayIndex(int overlayIndex) {
+		this.overlayIndex = overlayIndex;
 	}
 	
 	public boolean renderFace(BlockDirection dir) {

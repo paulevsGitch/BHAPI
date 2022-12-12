@@ -38,9 +38,10 @@ public class CustomModel {
 	private void renderQuads(ModelRenderingContext context, ModelQuad[] quads, int x, int y, int z, CircleCache<Vec2F> uvCache) {
 		BlockView view = context.getBlockView();
 		BlockState state = context.getState();
+		int index = context.getOverlayIndex();
 		for (ModelQuad quad: quads) {
-			TextureSample sample = state.getTextureForIndex(view, x, y, z, quad.getIndex());
-			quad.apply(context, sample, uvCache);
+			TextureSample sample = state.getTextureForIndex(view, x, y, z, quad.getTextureIndex(), index);
+			if (sample != null) quad.apply(context, sample, uvCache);
 		}
 	}
 }

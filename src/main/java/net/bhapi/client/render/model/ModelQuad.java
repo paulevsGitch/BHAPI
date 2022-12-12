@@ -91,7 +91,7 @@ public class ModelQuad {
 		}
 	}
 	
-	public int getIndex() {
+	public int getTextureIndex() {
 		return index;
 	}
 	
@@ -102,12 +102,17 @@ public class ModelQuad {
 		double z = context.getZ();
 		tessellator.setNormal(normal.x, normal.y, normal.z);
 		BlockView view = context.getBlockView();
-		float light;
-		if (!context.isInGUI()) {
-			light = brightness * context.getLight() * view.getBrightness((int) x, (int) y, (int) z);
+		float textureLight = sample.getLight();
+		if (textureLight == 1) tessellator.color(1F, 1F, 1F);
+		else {
+			float light;
+			if (!context.isInGUI()) {
+				light = brightness * context.getLight() * view.getBrightness((int) x, (int) y, (int) z);
+			}
+			else light = guiLight;
+			if (light < textureLight) light = textureLight;
+			tessellator.color(light, light, light);
 		}
-		else light = guiLight;
-		tessellator.color(light, light, light);
 		for (byte i = 0; i < 4; i++) {
 			Vec3F pos = positions[i];
 			Vec2F uv = uvs[i];

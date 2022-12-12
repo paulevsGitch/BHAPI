@@ -127,7 +127,7 @@ public class BHBlockItem extends BHItem {
 	@Environment(EnvType.CLIENT)
 	public TextureSample getTexture(ItemStack stack) {
 		VIEW.setBlockState(state);
-		return state.getTextureForIndex(VIEW, 0, 0, 0, 0);
+		return state.getTextureForIndex(VIEW, 0, 0, 0, 0, 0);
 	}
 	
 	@Override

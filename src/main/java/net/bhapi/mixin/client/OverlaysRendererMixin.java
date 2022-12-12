@@ -322,7 +322,7 @@ public abstract class OverlaysRendererMixin {
 			Textures.getAtlas().bind();
 			BlockState state = BlockStateProvider.cast(this.minecraft.level).getBlockState(x, y, z);
 			if (this.minecraft.level.canSuffocate(x, y, z)) {
-				int texture = state.getTextureForIndex(this.minecraft.level, x, y, z, 2).getTextureID();
+				int texture = state.getTextureForIndex(this.minecraft.level, x, y, z, 2, 0).getTextureID();
 				this.renderSuffocateOverlay(delta, texture);
 			}
 			else {
@@ -338,7 +338,7 @@ public abstract class OverlaysRendererMixin {
 				}
 			}
 			if (!state.isAir()) {
-				int texture = state.getTextureForIndex(this.minecraft.level, x, y, z, 2).getTextureID();
+				int texture = state.getTextureForIndex(this.minecraft.level, x, y, z, 2, 0).getTextureID();
 				this.renderSuffocateOverlay(delta, texture);
 			}
 		}
@@ -364,7 +364,7 @@ public abstract class OverlaysRendererMixin {
 		for (int i = 0; i < 2; ++i) {
 			GL11.glPushMatrix();
 			
-			TextureSample sample = BlockState.getDefaultState(BaseBlock.FIRE).getTextureForIndex(bhapi_itemView, 0, 0, 0, i);
+			TextureSample sample = BlockState.getDefaultState(BaseBlock.FIRE).getTextureForIndex(bhapi_itemView, 0, 0, 0, i, 0);
 			Vec2F uv1 = sample.getUV(0, 0);
 			Vec2F uv2 = sample.getUV(1, 1);
 			

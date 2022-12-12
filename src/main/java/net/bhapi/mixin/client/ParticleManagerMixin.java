@@ -163,7 +163,7 @@ public abstract class ParticleManagerMixin {
 						state.getBlock(),
 						side, meta
 					).applyColor(x, y, z);
-					TextureSample sample = state.getTextureForIndex(this.level, x, y, z, side);
+					TextureSample sample = state.getTextureForIndex(this.level, x, y, z, side, 0);
 					TextureSampleProvider.cast(particle).setTextureSample(sample);
 					this.addParticle(particle);
 				}
@@ -197,7 +197,7 @@ public abstract class ParticleManagerMixin {
 			0.0, 0.0, 0.0,
 			block, side, 0
 		).applyColor(x, y, z).scaleVelocity(0.2f).scaleSize(0.6f);
-		TextureSample sample = state.getTextureForIndex(this.level, x, y, z, side);
+		TextureSample sample = state.getTextureForIndex(this.level, x, y, z, side, 0);
 		TextureSampleProvider.cast(particle).setTextureSample(sample);
 		this.addParticle(particle);
 	}
