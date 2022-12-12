@@ -33,6 +33,7 @@ import org.spongepowered.asm.mixin.injection.Constant;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.ModifyConstant;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
+import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 @Mixin(LevelRenderer.class)
 public abstract class LevelRendererMixin implements LevelHeightProvider {
@@ -215,5 +216,10 @@ public abstract class LevelRendererMixin implements LevelHeightProvider {
 		}
 		
 		GL11.glEnable(GL11.GL_TEXTURE_2D);
+	}
+	
+	@Inject(method = "method_1549", at = @At("HEAD"), cancellable = true)
+	private void bhapi_method_1549(LivingEntity arg, boolean bl, CallbackInfoReturnable<Boolean> info) {
+		if (arg == null) info.setReturnValue(false);
 	}
 }

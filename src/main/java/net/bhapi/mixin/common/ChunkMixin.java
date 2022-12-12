@@ -14,7 +14,6 @@ import net.bhapi.util.BlockUtil;
 import net.bhapi.util.MathUtil;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
-import net.minecraft.block.BaseBlock;
 import net.minecraft.block.BlockWithEntity;
 import net.minecraft.block.entity.BaseBlockEntity;
 import net.minecraft.entity.BaseEntity;
@@ -67,7 +66,8 @@ public abstract class ChunkMixin implements NBTSerializable, LevelHeightProvider
 	@Shadow public abstract void updateHeightmap();
 	
 	@Unique private ChunkSection[] bhapi_sections;
-	@Unique private short[] bhapi_heightmap = new short[256];
+	@Unique private final short[] bhapi_heightmap = new short[256];
+	@Unique private boolean bhapi_hasSkyLight;
 	
 	@Inject(method = "<init>(Lnet/minecraft/level/Level;[BII)V", at = @At("TAIL"))
 	private void bhapi_onChunkInit(Level level, byte[] blocks, int x, int z, CallbackInfo info) {
@@ -83,6 +83,7 @@ public abstract class ChunkMixin implements NBTSerializable, LevelHeightProvider
 		this.skyLight = null;
 		this.blockLight = null;
 		this.heightmap = null;
+		bhapi_hasSkyLight = !level.dimension.noSkyLight;
 	}
 	
 	@Inject(method = "<init>(Lnet/minecraft/level/Level;II)V", at = @At("TAIL"))
@@ -94,6 +95,7 @@ public abstract class ChunkMixin implements NBTSerializable, LevelHeightProvider
 		this.skyLight = null;
 		this.blockLight = null;
 		this.heightmap = null;
+		bhapi_hasSkyLight = !level.dimension.noSkyLight;
 	}
 	
 	@Inject(method = "setBlock(IIIII)Z", at = @At("HEAD"), cancellable = true)
@@ -116,7 +118,7 @@ public abstract class ChunkMixin implements NBTSerializable, LevelHeightProvider
 		if (y >= getLevelHeight()) {
 			return;
 		}
-		ChunkSection section = bhapi_getOrCreateSection(y);
+		ChunkSection section = bhapi_getOrCreateSection(y, true);
 		if (section != null) {
 			section.setMeta(x & 15, y & 15, z & 15, meta);
 			this.needUpdate = true;
@@ -145,17 +147,19 @@ public abstract class ChunkMixin implements NBTSerializable, LevelHeightProvider
 	@Inject(method = "updateHeightmap", at = @At("HEAD"), cancellable = true)
 	private void bhapi_updateHeightmap(CallbackInfo info) {
 		info.cancel();
-		short minHeight = getLevelHeight();
+		short maxY = getLevelHeight();
+		while (bhapi_getSection(maxY) == null && maxY > 0) maxY -= 16;
+		this.minHeight = maxY;
 		for (byte x = 0; x < 16; ++x) {
 			for (byte z = 0; z < 16; ++z) {
 				short y;
-				for (y = getLevelHeight(); y > 0 && BaseBlock.LIGHT_OPACITY[this.getBlockId(x, y - 1, z)] == 0; --y) {} // TODO change to blockstates
+				for (y = maxY; y > 0; y--) {
+					if (getBlockState(x, y, z).getLightOpacity() == 0) break;
+				}
 				bhapi_setHeight(x, z, y);
-				if (y >= minHeight) continue;
-				minHeight = y;
+				if (y < minHeight) this.minHeight = y;
 			}
 		}
-		this.minHeight = minHeight;
 		this.needUpdate = true;
 	}
 	
@@ -165,26 +169,28 @@ public abstract class ChunkMixin implements NBTSerializable, LevelHeightProvider
 		bhapi_fillBlocks();
 		
 		byte x, z;
-		short minHeight = getLevelHeight();
+		short maxY = getLevelHeight();
+		while (bhapi_getSection(maxY) == null && maxY > 0) maxY -= 16;
+		this.minHeight = maxY;
 		for (x = 0; x < 16; ++x) {
 			for (z = 0; z < 16; ++z) {
 				short y;
-				for (y = getLevelHeight(); y > 0 && getBlockState(x, y - 1, z).getLightOpacity() == 0; --y) {}
-				bhapi_setHeight(x, z, y);
-				if (y < minHeight) {
-					minHeight = y;
+				for (y = maxY; y > 0; y--) {
+					if (getBlockState(x, y, z).getLightOpacity() > 0) break;
 				}
+				bhapi_setHeight(x, z, y);
+				if (y < minHeight) this.minHeight = y;
 				if (this.level.dimension.noSkyLight) continue;
-				int light = 15;
-				for (short h = getLevelHeight(); h >= 0; --h) {
-					if ((light -= getBlockState(x, h, z).getLightOpacity()) <= 0) continue;
+				short light = 15;
+				for (short h = maxY; h > y; --h) {
+					light -= (short) getBlockState(x, h, z).getLightOpacity();
+					if (light < 1) break;
 					ChunkSection section = bhapi_getSection(h);
 					if (section != null) section.setLight(LightType.SKY, x, h & 15, z, light);
 				}
 			}
 		}
 		
-		this.minHeight = minHeight;
 		for (x = 0; x < 16; ++x) {
 			for (z = 0; z < 16; ++z) {
 				this.fillSkyLight(x, z);
@@ -292,7 +298,7 @@ public abstract class ChunkMixin implements NBTSerializable, LevelHeightProvider
 		sectionY = (short) MathUtil.clamp(sectionY, 0, bhapi_sections.length - 1);
 		ChunkSection section = bhapi_sections[sectionY];
 		if (section == null) {
-			section = bhapi_getOrCreateSection(sectionY << 4);
+			section = bhapi_getOrCreateSection(sectionY << 4, true);
 			if (section == null) return;
 		}
 		
@@ -438,13 +444,13 @@ public abstract class ChunkMixin implements NBTSerializable, LevelHeightProvider
 	
 	@Inject(method = "getLight(Lnet/minecraft/level/LightType;III)I", at = @At("HEAD"), cancellable = true)
 	private void bhapi_getLight(LightType type, int x, int y, int z, CallbackInfoReturnable<Integer> info) {
-		if (type == LightType.SKY && y >= getLevelHeight()) {
-			info.setReturnValue(15);
+		if (type == LightType.SKY && y >= getHeightmapData(x, z)) {
+			info.setReturnValue(bhapi_hasSkyLight ? 15 : 0);
 		}
 		else {
 			ChunkSection section = bhapi_getSection(y);
 			if (section == null) {
-				info.setReturnValue(type == LightType.SKY ? 15 : 0);
+				info.setReturnValue(type == LightType.SKY ? (bhapi_hasSkyLight ? 15 : 0) : 0);
 			}
 			else {
 				info.setReturnValue(section.getLight(type, x, y & 15, z));
@@ -455,7 +461,7 @@ public abstract class ChunkMixin implements NBTSerializable, LevelHeightProvider
 	@Inject(method = "setLight", at = @At("HEAD"), cancellable = true)
 	private void bhapi_setLight(LightType type, int x, int y, int z, int value, CallbackInfo info) {
 		info.cancel();
-		ChunkSection section = bhapi_getOrCreateSection(y);
+		ChunkSection section = bhapi_getOrCreateSection(y, true);
 		if (section != null) {
 			section.setLight(type, x, y & 15, z, value);
 			this.needUpdate = true;
@@ -464,17 +470,17 @@ public abstract class ChunkMixin implements NBTSerializable, LevelHeightProvider
 	
 	@Inject(method = "getLight(IIII)I", at = @At("HEAD"), cancellable = true)
 	private void bhapi_getLight(int x, int y, int z, int value, CallbackInfoReturnable<Integer> info) {
-		if (y >= getLevelHeight()) {
-			info.setReturnValue(15);
-			return;
-		}
-		
 		ChunkSection section = bhapi_getSection(y);
-		short height = getHeightmapData(x, z);
 		
-		int light = y > height ? 15 : section == null ? 15 : section.getLight(LightType.SKY, x, y & 15, z);
-		if (light > 0) {
-			this.hasSkyLight = true;
+		int light = 0;
+		if (bhapi_hasSkyLight) {
+			if (y >= getHeightmapData(x, z)) {
+				light = 15;
+			}
+			else {
+				light = section == null ? 15 : section.getLight(LightType.SKY, x, y & 15, z);
+				if (light > 0) hasSkyLight = true;
+			}
 		}
 		
 		int blockLight = section == null ? 0 : section.getLight(LightType.BLOCK, x, y & 15, z);
@@ -499,7 +505,7 @@ public abstract class ChunkMixin implements NBTSerializable, LevelHeightProvider
 	@Inject(method = "setClientBlockData", at = @At("HEAD"), cancellable = true)
 	private void bhapi_setClientBlockData(byte[] data, int x1, int y1, int z1, int x2, int y2, int z2, int index, CallbackInfoReturnable<Integer> info) {
 		for (int y = y1; y < y2; y++) {
-			ChunkSection section = bhapi_getOrCreateSection(y);
+			ChunkSection section = bhapi_getOrCreateSection(y, false);
 			for (int x = x1; x < x2; x++) {
 				for (int z = z1; z < z2; z++) {
 					index = section.readData(data, x, y & 15, z, index);
@@ -543,24 +549,26 @@ public abstract class ChunkMixin implements NBTSerializable, LevelHeightProvider
 	}
 	
 	@Unique
-	private ChunkSection bhapi_getOrCreateSection(int y) {
+	private ChunkSection bhapi_getOrCreateSection(int y, boolean fillSkyLight) {
 		byte sectionY = (byte) (y >> 4);
 		if (sectionY < 0 || sectionY >= bhapi_sections.length) return null;
 		ChunkSection section = bhapi_sections[sectionY];
 		if (section == null) {
 			section = new ChunkSection();
 			bhapi_sections[sectionY] = section;
-			/*int offset = sectionY << 4;
-			for (short i = 0; i < 16; i++) {
-				byte x = (byte) (i & 15);
-				byte z = (byte) (i >> 4);
-				short height = (short) (bhapi_getHeight(x, z) - offset);
-				if (height > 15) continue;
-				if (height < 0) height = 0;
-				for (byte h = (byte) height; h < 16; h++) {
-					section.setLight(LightType.SKY, x, h, z, 15);
+			if (this.bhapi_hasSkyLight && fillSkyLight) {
+				short posY = (short) (sectionY << 4);
+				for (short i = 0; i < 256; i++) {
+					byte x = (byte) (i >> 4);
+					byte z = (byte) (i & 15);
+					short height = bhapi_heightmap[i];
+					short minY = (short) (height - posY);
+					minY = (short) MathUtil.clamp(minY, 0, 16);
+					for (byte py = (byte) minY; py < 16; py++) {
+						section.setLight(LightType.SKY, x, py, z, 15);
+					}
 				}
-			}*/
+			}
 		}
 		return section;
 	}
@@ -619,6 +627,10 @@ public abstract class ChunkMixin implements NBTSerializable, LevelHeightProvider
 		for (int i = 0; i < 256; i++) {
 			int i2 = i << 1;
 			bhapi_heightmap[i] = (short) ((data[i2 | 1] & 255) << 8 | (data[i2] & 255));
+		}
+		this.minHeight = bhapi_heightmap[0];
+		for (short i = 1; i < 256; i++) {
+			if (bhapi_heightmap[i] < this.minHeight) this.minHeight = bhapi_heightmap[i];
 		}
 	}
 	
@@ -709,7 +721,7 @@ public abstract class ChunkMixin implements NBTSerializable, LevelHeightProvider
 			return false;
 		}
 		
-		ChunkSection section = bhapi_getOrCreateSection(y);
+		ChunkSection section = bhapi_getOrCreateSection(y, true);
 		if (section == null) {
 			return false;
 		}
@@ -764,7 +776,7 @@ public abstract class ChunkMixin implements NBTSerializable, LevelHeightProvider
 	public BlockState getBlockState(int x, int y, int z) {
 		if (y < 0 || y >= getLevelHeight()) return BlockUtil.AIR_STATE;
 		
-		ChunkSection section = bhapi_getOrCreateSection(y);
+		ChunkSection section = bhapi_getSection(y);
 		if (section == null) return BlockUtil.AIR_STATE;
 		
 		return section.getBlockState(x, y & 15, z);

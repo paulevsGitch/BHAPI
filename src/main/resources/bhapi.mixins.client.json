@@ -25,6 +25,7 @@
 		"PlayerRendererMixin",
 		"LevelRendererMixin",
 		"EntityRenderMixin",
+		"GameRendererMixin",
 		"ItemRendererMixin",
 		"AreaRendererMixin",
 		"MinecraftAccessor",

@@ -4,6 +4,7 @@ import net.bhapi.BHAPI;
 import net.bhapi.blockstate.BlockState;
 import net.bhapi.config.BHConfigs;
 import net.bhapi.level.BlockStateProvider;
+import net.bhapi.level.ChunkHeightProvider;
 import net.bhapi.level.ChunkSection;
 import net.bhapi.level.ChunkSectionProvider;
 import net.bhapi.level.LevelHeightProvider;
@@ -185,7 +186,7 @@ public class LevelChunkUpdater extends ThreadedUpdater {
 			if (level.isRaining() && level.isThundering() && random.getInt(100000) == 0) {
 				px = random.nextInt(16);
 				pz = random.nextInt(16);
-				py = level.getHeightIterating(px | chunkX, pz | chunkZ);
+				py = ChunkHeightProvider.cast(chunk).getHeightmapData(px, pz);
 				if (level.canRainAt(px, py, pz)) {
 					level.addEntity(new LightningEntity(level, px, py, pz));
 					LevelAccessor.class.cast(level).setLightingTicks(2);
@@ -193,16 +194,18 @@ public class LevelChunkUpdater extends ThreadedUpdater {
 			}
 			
 			// Cover areas with snow during rain
-			if (biomeSource != null && random.getInt(16) == 0) {
+			if (level.isRaining() && biomeSource != null && random.getInt(16) == 0) {
+				System.out.println("Try to snow!");
 				px = random.nextInt(16);
 				pz = random.nextInt(16);
-				py = level.getHeightIterating(px | chunkX, pz | chunkZ);
+				py = ChunkHeightProvider.cast(chunk).getHeightmapData(px, pz);
 				biomeSource.getBiomes(biomes, px | chunkX, pz | chunkZ, 1, 1);
+				System.out.println(biomes[0] + " " + biomes[0].canSnow() + " " + chunk.getLight(LightType.BLOCK, px, py, pz));
 				if (biomes[0].canSnow() && chunk.getLight(LightType.BLOCK, px, py, pz) < 10) {
 					BlockStateProvider provider = BlockStateProvider.cast(chunk);
 					BlockState block = provider.getBlockState(px, py - 1, pz);
 					BlockState up = provider.getBlockState(px, py, pz);
-					if (level.isRaining() && up.isAir() && BaseBlock.SNOW.canPlaceAt(level, px | chunkX, py, pz | chunkZ) && !block.isAir() && !block.is(BaseBlock.ICE) && block.getBlock().material.blocksMovement()) {
+					if (up.isAir() && BaseBlock.SNOW.canPlaceAt(level, px | chunkX, py, pz | chunkZ) && !block.is(BaseBlock.ICE) && block.getBlock().material.blocksMovement()) {
 						levelProvider.setBlockState(px | chunkX, py, pz | chunkZ, BlockState.getDefaultState(BaseBlock.SNOW));
 					}
 				}
