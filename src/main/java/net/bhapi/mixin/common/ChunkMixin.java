@@ -209,17 +209,13 @@ public abstract class ChunkMixin implements NBTSerializable, LevelHeightProvider
 		short h1, h2;
 		h1 = h2 = (short) Math.max(getHeightmapData(x, z), getLevelHeight() - 1);
 		
-		if (y > h2) {
-			h1 = (short) y;
-		}
+		if (y > h2) h1 = (short) y;
 		
 		while (h1 > 0 && getBlockState(x, h1 - 1, z).getLightOpacity() == 0) {
 			--h1;
 		}
 		
-		if (h1 == h2) {
-			return;
-		}
+		if (h1 == h2) return;
 		
 		this.level.callColumnAreaEvent(x, z, h1, h2);
 		bhapi_setHeight(x, z, h1);
@@ -717,22 +713,16 @@ public abstract class ChunkMixin implements NBTSerializable, LevelHeightProvider
 	@Unique
 	@Override
 	public boolean setBlockState(int x, int y, int z, BlockState state, boolean update) {
-		if (y < 0 || y >= getLevelHeight()) {
-			return false;
-		}
+		if (y < 0 || y >= getLevelHeight()) return false;
 		
 		ChunkSection section = bhapi_getOrCreateSection(y, true);
-		if (section == null) {
-			return false;
-		}
+		if (section == null) return false;
 		
 		byte py = (byte) (y & 15);
 		
 		short height = getHeightmapData(x, z);
 		BlockState oldState = section.getBlockState(x, py, z);
-		if (oldState == state) {
-			return false;
-		}
+		if (oldState == state) return false;
 		
 		int wx = this.x << 4 | x;
 		int wz = this.z << 4 | z;
