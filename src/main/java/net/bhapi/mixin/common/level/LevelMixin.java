@@ -62,6 +62,7 @@ public abstract class LevelMixin implements LevelHeightProvider, BlockStateProvi
 	@Shadow private static int areaUpdates;
 	@Shadow private ArrayList collidingEntitySearchCache;
 	@Shadow public boolean stopPhysics;
+	@Shadow public boolean isClientSide;
 	
 	@Shadow public abstract Chunk getChunkFromCache(int i, int j);
 	@Shadow public abstract boolean isAreaLoaded(int i, int j, int k, int l, int m, int n);
@@ -74,10 +75,9 @@ public abstract class LevelMixin implements LevelHeightProvider, BlockStateProvi
 	@Shadow public abstract List getEntities(BaseEntity arg, Box arg2);
 	@Shadow public abstract boolean canSuffocate(int i, int j, int k);
 	@Shadow public abstract boolean hasInderectPower(int i, int j, int k);
-	
-	@Shadow public boolean isClientSide;
-	
-	@Shadow public abstract boolean hasRedstonePower(int i, int j, int k);
+	@Shadow public abstract boolean isAboveGround(int i, int j, int k);
+	@Shadow public abstract int getLight(LightType arg, int i, int j, int k);
+	@Shadow public abstract void updateLight(LightType arg, int i, int j, int k, int l, int m, int n);
 	
 	@Unique private LevelBlocksUpdater bhapi_blocksUpdater;
 	@Unique private LevelChunkUpdater bhapi_chunksUpdater;
@@ -628,15 +628,6 @@ public abstract class LevelMixin implements LevelHeightProvider, BlockStateProvi
 	private void bhapi_updateAdjacentBlocks(int x, int y, int z, int id, CallbackInfo info) {
 		info.cancel();
 		if (this.stopPhysics || this.isClientSide) return;
-		//final BlockState neighbour = getBlockState(x, y, z);
-		//final Vec3I pos = new Vec3I();
-		//final Level level = Level.class.cast(this);
-		/*Arrays.stream(BlockDirection.VALUES).forEach(facing -> {
-			facing.move(pos.set(x, y, z));
-			BlockState state = getBlockState(pos.x, pos.y, pos.z);
-			state.onNeighbourBlockUpdate(level, pos.x, pos.y, pos.z, facing.invert(), neighbour);
-		});*/
-		
 		for (BlockDirection dir: BlockDirection.VALUES) {
 			bhapi_blocksUpdater.add(new Vec3I(x, y, z).move(dir), dir.invert());
 		}
@@ -650,6 +641,29 @@ public abstract class LevelMixin implements LevelHeightProvider, BlockStateProvi
 		else {
 			Level level = Level.class.cast(this);
 			info.setReturnValue(getBlockState(x, y, z).isPowered(level, x, y, z, BlockDirection.getFromFacing(facing)));
+		}
+	}
+	
+	@Inject(method = "updateLightIfNecessary", at = @At("HEAD"), cancellable = true)
+	private void bhapi_updateLightIfNecessary(LightType type, int x, int y, int z, int light, CallbackInfo info) {
+		info.cancel();
+		
+		if (this.dimension.noSkyLight && type == LightType.SKY) return;
+		if (!this.isBlockLoaded(x, y, z)) return;
+		
+		if (type == LightType.SKY) {
+			if (this.isAboveGround(x, y, z)) light = 15;
+		}
+		else if (type == LightType.BLOCK) {
+			BlockState state = getBlockState(x, y, z);
+			int blockLight = state.getEmittance();
+			if (blockLight > light) {
+				light = blockLight;
+			}
+		}
+		
+		if (this.getLight(type, x, y, z) != light) {
+			this.updateLight(type, x, y, z, x, y, z);
 		}
 	}
 	

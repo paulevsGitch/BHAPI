@@ -31,12 +31,10 @@ import java.util.Random;
 public abstract class BaseBlockMixin implements BlockStateContainer, BHBlockRender {
 	@Shadow protected abstract void drop(Level arg, int i, int j, int k, ItemStack arg2);
 	@Shadow public abstract int getDropCount(Random random);
-	
 	@Shadow public abstract int getDropId(int i, Random random);
+	@Shadow protected abstract int getDropMeta(int i);
 	
 	@Shadow @Final public int id;
-	
-	@Shadow protected abstract int getDropMeta(int i);
 	
 	@Unique	private BlockState defaultState;
 	
@@ -55,8 +53,12 @@ public abstract class BaseBlockMixin implements BlockStateContainer, BHBlockRend
 	
 	@Environment(value= EnvType.CLIENT)
 	@Inject(method = "getBrightness", at = @At("HEAD"), cancellable = true)
-	private void bhapi_getBrightness(BlockView arg, int i, int j, int k, CallbackInfoReturnable<Float> info) {
-		if (arg == null) info.setReturnValue(1F);
+	private void bhapi_getBrightness(BlockView blockView, int x, int y, int z, CallbackInfoReturnable<Float> info) {
+		if (blockView == null) info.setReturnValue(1F);
+		else {
+			int light = BlockStateProvider.cast(blockView).getBlockState(x, y, z).getEmittance();
+			info.setReturnValue(blockView.getLight(x, y, z, light));
+		}
 	}
 	
 	@Unique

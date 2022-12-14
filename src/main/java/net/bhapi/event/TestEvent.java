@@ -134,6 +134,11 @@ public class TestEvent {
 		public TextureSample getTextureForIndex(BlockView view, int x, int y, int z, BlockState state, int textureIndex, int overlayIndex) {
 			return TestClientEvent.samples[3];
 		}
+		
+		@Override
+		public int getEmittance(BlockState state) {
+			return 15;
+		}
 	}
 	
 	private class TestBlock4 extends TestBlock3 implements ClientPostInit {
