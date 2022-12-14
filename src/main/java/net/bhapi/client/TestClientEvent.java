@@ -8,6 +8,7 @@ import net.bhapi.client.render.model.builder.ModelBuilder;
 import net.bhapi.client.render.texture.TextureSample;
 import net.bhapi.client.render.texture.Textures;
 import net.bhapi.event.EventListener;
+import net.bhapi.util.BlockDirection;
 import net.bhapi.util.Identifier;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
@@ -53,10 +54,22 @@ public class TestClientEvent {
 		
 		testModel4 = ModelBuilder
 			.start()
-			.cuboid().setMinPos(0.25F, 0.25F, 0.25F).setMaxPos(0.75F, 0.75F, 0.75F).allFaces().build()
-			.cuboid().setMinPos(0.125F, 0.375F, 0.375F).setMaxPos(0.875F, 0.625F, 0.625F).allFaces().build()
-			.cuboid().setMinPos(0.375F, 0.125F, 0.375F).setMaxPos(0.625F, 0.875F, 0.625F).allFaces().build()
-			.cuboid().setMinPos(0.375F, 0.375F, 0.125F).setMaxPos(0.625F, 0.625F, 0.875F).allFaces().build()
+			//.cuboid().setMinPos(0.25F, 0.25F, 0.25F).setMaxPos(0.75F, 0.75F, 0.75F).allFaces().build()
+			//.cuboid().setMinPos(0.125F, 0.375F, 0.375F).setMaxPos(0.875F, 0.625F, 0.625F).allFaces().build()
+			//.cuboid().setMinPos(0.375F, 0.125F, 0.375F).setMaxPos(0.625F, 0.875F, 0.625F).allFaces().build()
+			//.cuboid().setMinPos(0.375F, 0.375F, 0.125F).setMaxPos(0.625F, 0.625F, 0.875F).allFaces().build()
+			.cuboid()
+				.setMinPos(0.5F, 0, 0)
+				.setMaxPos(0.5F, 1, 1)
+				.addFaces(BlockDirection.NEG_X, BlockDirection.POS_X)
+				.setRotation(0.5F, 0, 0.5F, 'y', (float) Math.toRadians(45))
+				.build()
+			.cuboid()
+				.setMinPos(0.5F, 0, 0)
+				.setMaxPos(0.5F, 1, 1)
+				.addFaces(BlockDirection.NEG_X, BlockDirection.POS_X)
+				.setRotation(0.5F, 0, 0.5F, 'y', (float) Math.toRadians(-45))
+				.build()
 			.build();
 	}
 }

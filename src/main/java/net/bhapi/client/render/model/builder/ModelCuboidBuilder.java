@@ -3,6 +3,7 @@ package net.bhapi.client.render.model.builder;
 import net.bhapi.client.render.model.FaceGroup;
 import net.bhapi.client.render.model.ModelQuad;
 import net.bhapi.storage.EnumArray;
+import net.bhapi.storage.Matrix4x4;
 import net.bhapi.storage.Vec2F;
 import net.bhapi.storage.Vec3F;
 import net.bhapi.util.BlockDirection;
@@ -15,11 +16,16 @@ public class ModelCuboidBuilder {
 	private final EnumArray<BlockDirection, FaceGroup> culling = new EnumArray<>(BlockDirection.class);
 	private final EnumArray<BlockDirection, Boolean> faces = new EnumArray<>(BlockDirection.class);
 	private final EnumArray<BlockDirection, Pair<Vec2F, Vec2F>> uvs = new EnumArray<>(BlockDirection.class);
-	private Vec3F minPos = new Vec3F();
-	private Vec3F maxPos = new Vec3F();
+	private final Matrix4x4 rotation = new Matrix4x4();
+	private final Vec3F[] points = new Vec3F[4];
+	private final Vec3F rotCenter = new Vec3F();
+	private final Vec3F minPos = new Vec3F();
+	private final Vec3F maxPos = new Vec3F();
 	private boolean rescale;
 	
-	private ModelCuboidBuilder() {}
+	private ModelCuboidBuilder() {
+		for (byte i = 0; i < 4; i++) points[i] = new Vec3F();
+	}
 	
 	protected static ModelCuboidBuilder start() {
 		for (BlockDirection facing: BlockDirection.VALUES) {
@@ -30,6 +36,7 @@ public class ModelCuboidBuilder {
 		}
 		INSTANCE.minPos.set(0, 0, 0);
 		INSTANCE.maxPos.set(16, 16, 16);
+		INSTANCE.rotation.identity();
 		INSTANCE.rescale = false;
 		return INSTANCE;
 	}
@@ -84,6 +91,11 @@ public class ModelCuboidBuilder {
 		return this;
 	}
 	
+	public ModelCuboidBuilder addFaces(BlockDirection... facing) {
+		for (BlockDirection face: facing) addFace(face);
+		return this;
+	}
+	
 	/**
 	 * Set face group (culling) for face.
 	 */
@@ -104,6 +116,30 @@ public class ModelCuboidBuilder {
 		}
 		uvs.set(facing, Pair.of(new Vec2F(u1, v1), new Vec2F(u2, v2)));
 		return this;
+	}
+	
+	/**
+	 * Set cuboid rotation around x or y axis
+	 * @param x rotation center X
+	 * @param y rotation center Y
+	 * @param z rotation center Z
+	 * @param axis rotation axis, 'x' or 'y'
+	 * @param angle rotation angle, in radians
+	 */
+	public ModelCuboidBuilder setRotation(float x, float y, float z, char axis, float angle) {
+		switch (axis) {
+			case 'x' -> rotation.rotationX(angle);
+			case 'y' -> rotation.rotationY(angle);
+		}
+		rotCenter.set(x, y, z);
+		if (rescale) rotCenter.divide(16);
+		return this;
+	}
+	
+	private void applyRotation() {
+		for (Vec3F pos: points) {
+			rotation.multiply(pos.subtract(rotCenter)).add(rotCenter);
+		}
 	}
 	
 	/**
@@ -131,10 +167,15 @@ public class ModelCuboidBuilder {
 							v1 = MathUtil.clamp(uv1.y, 0, 1);
 							v2 = MathUtil.clamp(uv2.y, 0, 1);
 						}
-						quad.setVertex(0, minPos.x, minPos.y, maxPos.z, u1, v1);
-						quad.setVertex(1, minPos.x, minPos.y, minPos.z, u1, v2);
-						quad.setVertex(2, maxPos.x, minPos.y, minPos.z, u2, v2);
-						quad.setVertex(3, maxPos.x, minPos.y, maxPos.z, u2, v1);
+						points[0].set(minPos.x, minPos.y, maxPos.z);
+						points[1].set(minPos.x, minPos.y, minPos.z);
+						points[2].set(maxPos.x, minPos.y, minPos.z);
+						points[3].set(maxPos.x, minPos.y, maxPos.z);
+						applyRotation();
+						quad.setVertex(0, points[0].x, points[0].y, points[0].z, u1, v1);
+						quad.setVertex(1, points[1].x, points[1].y, points[1].z, u1, v2);
+						quad.setVertex(2, points[2].x, points[2].y, points[2].z, u2, v2);
+						quad.setVertex(3, points[3].x, points[3].y, points[3].z, u2, v1);
 					}
 					case POS_Y -> {
 						if (uv == null) {
@@ -151,10 +192,15 @@ public class ModelCuboidBuilder {
 							v1 = MathUtil.clamp(uv1.y, 0, 1);
 							v2 = MathUtil.clamp(uv2.y, 0, 1);
 						}
-						quad.setVertex(0, maxPos.x, maxPos.y, maxPos.z, u1, v1);
-						quad.setVertex(1, maxPos.x, maxPos.y, minPos.z, u1, v2);
-						quad.setVertex(2, minPos.x, maxPos.y, minPos.z, u2, v2);
-						quad.setVertex(3, minPos.x, maxPos.y, maxPos.z, u2, v1);
+						points[0].set(maxPos.x, maxPos.y, maxPos.z);
+						points[1].set(maxPos.x, maxPos.y, minPos.z);
+						points[2].set(minPos.x, maxPos.y, minPos.z);
+						points[3].set(minPos.x, maxPos.y, maxPos.z);
+						applyRotation();
+						quad.setVertex(0, points[0].x, points[0].y, points[0].z, u1, v1);
+						quad.setVertex(1, points[1].x, points[1].y, points[1].z, u1, v2);
+						quad.setVertex(2, points[2].x, points[2].y, points[2].z, u2, v2);
+						quad.setVertex(3, points[3].x, points[3].y, points[3].z, u2, v1);
 					}
 					case NEG_Z -> {
 						if (uv == null) {
@@ -171,10 +217,15 @@ public class ModelCuboidBuilder {
 							v1 = MathUtil.clamp(uv1.y, 0, 1);
 							v2 = MathUtil.clamp(uv2.y, 0, 1);
 						}
-						quad.setVertex(0, minPos.x, maxPos.y, minPos.z, u2, v1);
-						quad.setVertex(1, maxPos.x, maxPos.y, minPos.z, u1, v1);
-						quad.setVertex(2, maxPos.x, minPos.y, minPos.z, u1, v2);
-						quad.setVertex(3, minPos.x, minPos.y, minPos.z, u2, v2);
+						points[0].set(minPos.x, maxPos.y, minPos.z);
+						points[1].set(maxPos.x, maxPos.y, minPos.z);
+						points[2].set(maxPos.x, minPos.y, minPos.z);
+						points[3].set(minPos.x, minPos.y, minPos.z);
+						applyRotation();
+						quad.setVertex(0, points[0].x, points[0].y, points[0].z, u2, v1);
+						quad.setVertex(1, points[1].x, points[1].y, points[1].z, u1, v1);
+						quad.setVertex(2, points[2].x, points[2].y, points[2].z, u1, v2);
+						quad.setVertex(3, points[3].x, points[3].y, points[3].z, u2, v2);
 					}
 					case POS_Z -> {
 						if (uv == null) {
@@ -191,10 +242,15 @@ public class ModelCuboidBuilder {
 							v1 = MathUtil.clamp(uv1.y, 0, 1);
 							v2 = MathUtil.clamp(uv2.y, 0, 1);
 						}
-						quad.setVertex(0, minPos.x, maxPos.y, maxPos.z, u1, v1);
-						quad.setVertex(1, minPos.x, minPos.y, maxPos.z, u1, v2);
-						quad.setVertex(2, maxPos.x, minPos.y, maxPos.z, u2, v2);
-						quad.setVertex(3, maxPos.x, maxPos.y, maxPos.z, u2, v1);
+						points[0].set(minPos.x, maxPos.y, maxPos.z);
+						points[1].set(minPos.x, minPos.y, maxPos.z);
+						points[2].set(maxPos.x, minPos.y, maxPos.z);
+						points[3].set(maxPos.x, maxPos.y, maxPos.z);
+						applyRotation();
+						quad.setVertex(0, points[0].x, points[0].y, points[0].z, u1, v1);
+						quad.setVertex(1, points[1].x, points[1].y, points[1].z, u1, v2);
+						quad.setVertex(2, points[2].x, points[2].y, points[2].z, u2, v2);
+						quad.setVertex(3, points[3].x, points[3].y, points[3].z, u2, v1);
 					}
 					case NEG_X -> {
 						if (uv == null) {
@@ -211,10 +267,15 @@ public class ModelCuboidBuilder {
 							v1 = MathUtil.clamp(uv1.y, 0, 1);
 							v2 = MathUtil.clamp(uv2.y, 0, 1);
 						}
-						quad.setVertex(0, minPos.x, maxPos.y, maxPos.z, u1, v2);
-						quad.setVertex(1, minPos.x, maxPos.y, minPos.z, u2, v2);
-						quad.setVertex(2, minPos.x, minPos.y, minPos.z, u2, v1);
-						quad.setVertex(3, minPos.x, minPos.y, maxPos.z, u1, v1);
+						points[0].set(minPos.x, maxPos.y, maxPos.z);
+						points[1].set(minPos.x, maxPos.y, minPos.z);
+						points[2].set(minPos.x, minPos.y, minPos.z);
+						points[3].set(minPos.x, minPos.y, maxPos.z);
+						applyRotation();
+						quad.setVertex(0, points[0].x, points[0].y, points[0].z, u1, v2);
+						quad.setVertex(1, points[1].x, points[1].y, points[1].z, u2, v2);
+						quad.setVertex(2, points[2].x, points[2].y, points[2].z, u2, v1);
+						quad.setVertex(3, points[3].x, points[3].y, points[3].z, u1, v1);
 					}
 					case POS_X -> {
 						if (uv == null) {
@@ -231,10 +292,15 @@ public class ModelCuboidBuilder {
 							v1 = MathUtil.clamp(uv1.y, 0, 1);
 							v2 = MathUtil.clamp(uv2.y, 0, 1);
 						}
-						quad.setVertex(0, maxPos.x, minPos.y, maxPos.z, u1, v2);
-						quad.setVertex(1, maxPos.x, minPos.y, minPos.z, u2, v2);
-						quad.setVertex(2, maxPos.x, maxPos.y, minPos.z, u2, v1);
-						quad.setVertex(3, maxPos.x, maxPos.y, maxPos.z, u1, v1);
+						points[0].set(maxPos.x, minPos.y, maxPos.z);
+						points[1].set(maxPos.x, minPos.y, minPos.z);
+						points[2].set(maxPos.x, maxPos.y, minPos.z);
+						points[3].set(maxPos.x, maxPos.y, maxPos.z);
+						applyRotation();
+						quad.setVertex(0, points[0].x, points[0].y, points[0].z, u1, v2);
+						quad.setVertex(1, points[1].x, points[1].y, points[1].z, u2, v2);
+						quad.setVertex(2, points[2].x, points[2].y, points[2].z, u2, v1);
+						quad.setVertex(3, points[3].x, points[3].y, points[3].z, u1, v1);
 					}
 				}
 				ModelBuilder.INSTANCE.addQuad(quad, culling.get(facing));
