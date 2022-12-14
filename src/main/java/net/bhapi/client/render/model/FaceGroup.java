@@ -11,7 +11,7 @@ public enum FaceGroup {
 	POS_X(BlockDirection.POS_X),
 	NONE(null);
 	
-	private static final FaceGroup[] VALUES = values();
+	public static final FaceGroup[] VALUES = values();
 	private final BlockDirection direction;
 	
 	FaceGroup(BlockDirection direction) {

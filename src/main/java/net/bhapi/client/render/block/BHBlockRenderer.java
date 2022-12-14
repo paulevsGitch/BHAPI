@@ -974,6 +974,7 @@ public class BHBlockRenderer {
 			tessellator.vertex(x2, y2, z2, u2v1.x, u2v1.y);
 		}
 		else {
+			tessellator.color(cr00, cg00, cb00);
 			tessellator.vertex(x1, y2, z2, u1v1.x, u1v1.y);
 			tessellator.vertex(x1, y1, z2, u1v2.x, u1v2.y);
 			tessellator.vertex(x2, y1, z2, u2v2.x, u2v2.y);
@@ -1029,6 +1030,7 @@ public class BHBlockRenderer {
 			tessellator.vertex(x1, y1, z2, u1v1.x, u1v1.y);
 		}
 		else {
+			tessellator.color(cr00, cg00, cb00);
 			tessellator.vertex(x1, y2, z2, u1v2.x, u1v2.y);
 			tessellator.vertex(x1, y2, z1, u2v2.x, u2v2.y);
 			tessellator.vertex(x1, y1, z1, u2v1.x, u2v1.y);
@@ -1065,29 +1067,30 @@ public class BHBlockRenderer {
 			u2v2.set(u12, v12);
 		}
 		
-		double d10 = x + block.maxX;
-		double d11 = y + block.minY;
-		double d12 = y + block.maxY;
-		double d13 = z + block.minZ;
-		double d14 = z + block.maxZ;
+		double x2 = x + block.maxX;
+		double y1 = y + block.minY;
+		double y2 = y + block.maxY;
+		double z1 = z + block.minZ;
+		double z2 = z + block.maxZ;
 		
 		updateColors(sample.getLight(), shadeTopFace);
 		tessellator.setNormal(1, 0, 0);
 		if (shadeTopFace) {
 			tessellator.color(cr00, cg00, cb00);
-			tessellator.vertex(d10, d11, d14, u1v2.x, u1v2.y);
+			tessellator.vertex(x2, y1, z2, u1v2.x, u1v2.y);
 			tessellator.color(cr01, cg01, cb01);
-			tessellator.vertex(d10, d11, d13, u2v2.x, u2v2.y);
+			tessellator.vertex(x2, y1, z1, u2v2.x, u2v2.y);
 			tessellator.color(cr11, cg11, cb11);
-			tessellator.vertex(d10, d12, d13, u2v1.x, u2v1.y);
+			tessellator.vertex(x2, y2, z1, u2v1.x, u2v1.y);
 			tessellator.color(cr10, cg10, cb10);
-			tessellator.vertex(d10, d12, d14, u1v1.x, u1v1.y);
+			tessellator.vertex(x2, y2, z2, u1v1.x, u1v1.y);
 		}
 		else {
-			tessellator.vertex(d10, d11, d14, u1v2.x, u1v2.y);
-			tessellator.vertex(d10, d11, d13, u2v2.x, u2v2.y);
-			tessellator.vertex(d10, d12, d13, u2v1.x, u2v1.y);
-			tessellator.vertex(d10, d12, d14, u1v1.x, u1v1.y);
+			tessellator.color(cr00, cg00, cb00);
+			tessellator.vertex(x2, y1, z2, u1v2.x, u1v2.y);
+			tessellator.vertex(x2, y1, z1, u2v2.x, u2v2.y);
+			tessellator.vertex(x2, y2, z1, u2v1.x, u2v1.y);
+			tessellator.vertex(x2, y2, z2, u1v1.x, u1v1.y);
 		}
 	}
 	

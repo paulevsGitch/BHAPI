@@ -41,6 +41,7 @@ public class TestEvent {
 		registerBlock("testblock3", new TestBlock3(Material.GLASS, BaseBlock.GLASS_SOUNDS), event::register);
 		registerBlock("farlands", new FarBlock(Material.WOOD, BaseBlock.STONE_SOUNDS), event::register);
 		registerBlock("testblock4", new TestBlock(Material.WOOD, BaseBlock.WOOD_SOUNDS), event::register);
+		registerBlock("testblock5", new TestBlock5(Material.WOOD, BaseBlock.WOOD_SOUNDS), event::register);
 		
 		System.out.println(CommonRegistries.BLOCK_REGISTRY.get(Identifier.make("farlands")).isFullOpaque());
 	}
@@ -114,6 +115,24 @@ public class TestEvent {
 		@Environment(EnvType.CLIENT)
 		public boolean isSideRendered(BlockView blockView, int x, int y, int z, BlockDirection facing, BlockState state, BlockState target) {
 			return true;
+		}
+	}
+	
+	private class TestBlock5 extends TestBlock3 {
+		public TestBlock5(Material material, BlockSounds sounds) {
+			super(material, sounds);
+		}
+		
+		@Override
+		@Environment(EnvType.CLIENT)
+		public CustomModel getModel(BlockView view, int x, int y, int z, BlockState state) {
+			return TestClientEvent.testModel4;
+		}
+		
+		@Override
+		@Environment(EnvType.CLIENT)
+		public TextureSample getTextureForIndex(BlockView view, int x, int y, int z, BlockState state, int textureIndex, int overlayIndex) {
+			return Textures.getVanillaBlockSample(1);
 		}
 	}
 	

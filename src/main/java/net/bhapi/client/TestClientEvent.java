@@ -4,6 +4,7 @@ import net.bhapi.BHAPI;
 import net.bhapi.client.event.AfterTextureLoadedEvent;
 import net.bhapi.client.render.model.CustomModel;
 import net.bhapi.client.render.model.OBJModel;
+import net.bhapi.client.render.model.builder.ModelBuilder;
 import net.bhapi.client.render.texture.TextureSample;
 import net.bhapi.client.render.texture.Textures;
 import net.bhapi.event.EventListener;
@@ -19,6 +20,7 @@ public class TestClientEvent {
 	public static CustomModel testModel;
 	public static CustomModel testModel2;
 	public static CustomModel testModel3;
+	public static CustomModel testModel4;
 	
 	@EventListener
 	public void testClientEvent(AfterTextureLoadedEvent event) {
@@ -48,5 +50,13 @@ public class TestClientEvent {
 		testModel = new OBJModel(Identifier.make("bhapi", "models/sphere"));
 		testModel2 = new OBJModel(Identifier.make("bhapi", "models/farlandsBlock"));
 		testModel3 = new OBJModel(Identifier.make("bhapi", "models/sphere_big"));
+		
+		testModel4 = ModelBuilder
+			.start()
+			.cuboid().setMinPos(0.25F, 0.25F, 0.25F).setMaxPos(0.75F, 0.75F, 0.75F).allFaces().build()
+			.cuboid().setMinPos(0.125F, 0.375F, 0.375F).setMaxPos(0.875F, 0.625F, 0.625F).allFaces().build()
+			.cuboid().setMinPos(0.375F, 0.125F, 0.375F).setMaxPos(0.625F, 0.875F, 0.625F).allFaces().build()
+			.cuboid().setMinPos(0.375F, 0.375F, 0.125F).setMaxPos(0.625F, 0.625F, 0.875F).allFaces().build()
+			.build();
 	}
 }
