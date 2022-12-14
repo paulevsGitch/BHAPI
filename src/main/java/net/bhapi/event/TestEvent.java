@@ -132,7 +132,7 @@ public class TestEvent {
 		@Override
 		@Environment(EnvType.CLIENT)
 		public TextureSample getTextureForIndex(BlockView view, int x, int y, int z, BlockState state, int textureIndex, int overlayIndex) {
-			return Textures.getVanillaBlockSample(1);
+			return TestClientEvent.samples[3];
 		}
 	}
 	

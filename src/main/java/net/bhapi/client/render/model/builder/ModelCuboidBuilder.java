@@ -15,6 +15,7 @@ public class ModelCuboidBuilder {
 	private final EnumArray<BlockDirection, Integer> textureIndex = new EnumArray<>(BlockDirection.class);
 	private final EnumArray<BlockDirection, FaceGroup> culling = new EnumArray<>(BlockDirection.class);
 	private final EnumArray<BlockDirection, Boolean> faces = new EnumArray<>(BlockDirection.class);
+	private final EnumArray<BlockDirection, Boolean> shade = new EnumArray<>(BlockDirection.class);
 	private final EnumArray<BlockDirection, Pair<Vec2F, Vec2F>> uvs = new EnumArray<>(BlockDirection.class);
 	private final Matrix4x4 rotation = new Matrix4x4();
 	private final Vec3F[] points = new Vec3F[4];
@@ -32,6 +33,7 @@ public class ModelCuboidBuilder {
 			INSTANCE.culling.set(facing, FaceGroup.NONE);
 			INSTANCE.textureIndex.set(facing, 0);
 			INSTANCE.faces.set(facing, false);
+			INSTANCE.shade.set(facing, true);
 			INSTANCE.uvs.set(facing, null);
 		}
 		INSTANCE.minPos.set(0, 0, 0);
@@ -96,6 +98,16 @@ public class ModelCuboidBuilder {
 		return this;
 	}
 	
+	public ModelCuboidBuilder setShade(BlockDirection facing, boolean shade) {
+		this.shade.set(facing, shade);
+		return this;
+	}
+	
+	public ModelCuboidBuilder setShade(boolean shade) {
+		for (BlockDirection face: BlockDirection.VALUES) setShade(face, shade);
+		return this;
+	}
+	
 	/**
 	 * Set face group (culling) for face.
 	 */
@@ -150,6 +162,7 @@ public class ModelCuboidBuilder {
 		for (BlockDirection facing: BlockDirection.VALUES) {
 			if (faces.get(facing)) {
 				ModelQuad quad = new ModelQuad(textureIndex.get(facing));
+				quad.setAO(shade.get(facing));
 				Pair<Vec2F, Vec2F> uv = uvs.get(facing);
 				switch (facing) {
 					case NEG_Y -> {
@@ -264,8 +277,8 @@ public class ModelCuboidBuilder {
 							Vec2F uv2 = uv.second();
 							u1 = MathUtil.clamp(uv1.x, 0, 1);
 							u2 = MathUtil.clamp(uv2.x, 0, 1);
-							v1 = MathUtil.clamp(uv1.y, 0, 1);
-							v2 = MathUtil.clamp(uv2.y, 0, 1);
+							v1 = MathUtil.clamp(uv2.y, 0, 1);
+							v2 = MathUtil.clamp(uv1.y, 0, 1);
 						}
 						points[0].set(minPos.x, maxPos.y, maxPos.z);
 						points[1].set(minPos.x, maxPos.y, minPos.z);

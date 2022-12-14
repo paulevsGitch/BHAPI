@@ -110,6 +110,18 @@ public class Matrix4x4 {
 		return vector.set(x, y, z).divide(w);
 	}
 	
+	@Override
+	public String toString() {
+		StringBuilder builder = new StringBuilder("[");
+		builder.append(buffer.get(0));
+		for (byte i = 0; i < 16; i++) {
+			builder.append(", ");
+			builder.append(buffer.get(i));
+		}
+		builder.append("]");
+		return builder.toString();
+	}
+	
 	static {
 		IDENTITY.put(0, 1);
 		IDENTITY.put(5, 1);

@@ -3,6 +3,7 @@ package net.bhapi.util;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonArray;
+import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import net.bhapi.BHAPI;
 import net.bhapi.storage.Resource;
@@ -68,5 +69,35 @@ public class JsonUtil {
 	 */
 	public static Vec3F vectorFromArray(JsonArray array) {
 		return new Vec3F(array.get(0).getAsFloat(), array.get(1).getAsFloat(), array.get(2).getAsFloat());
+	}
+	
+	public static JsonObject merge(JsonObject a, JsonObject b) {
+		JsonObject result = new JsonObject();
+		put(a, result);
+		put(b, result);
+		return result;
+	}
+	
+	private static void put(JsonObject from, JsonObject to) {
+		from.keySet().forEach(key -> {
+			JsonElement element = from.get(key);
+			if (element.isJsonObject()) {
+				JsonObject copy = new JsonObject();
+				to.add(key, copy);
+				put(element.getAsJsonObject(), copy);
+			}
+			else if (element.isJsonArray()) {
+				JsonArray merged = new JsonArray();
+				element.getAsJsonArray().forEach(merged::add);
+				if (to.has(key)) {
+					element = to.get(key);
+					if (element.isJsonArray()) {
+						element.getAsJsonArray().forEach(merged::add);
+					}
+				}
+				to.add(key, merged);
+			}
+			else to.add(key, element);
+		});
 	}
 }

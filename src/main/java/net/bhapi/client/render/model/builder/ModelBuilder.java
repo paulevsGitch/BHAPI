@@ -44,6 +44,10 @@ public class ModelBuilder {
 	 * Build new {@link CustomModel} from builder data.
 	 */
 	public CustomModel build() {
+		return new CustomModel(buildGroups());
+	}
+	
+	public EnumArray<FaceGroup, ModelQuad[]> buildGroups() {
 		EnumArray<FaceGroup, ModelQuad[]> baked = new EnumArray<>(FaceGroup.class);
 		for (FaceGroup group: FaceGroup.VALUES) {
 			List<ModelQuad> list = groups.get(group);
@@ -51,6 +55,6 @@ public class ModelBuilder {
 				baked.set(group, list.toArray(new ModelQuad[0]));
 			}
 		}
-		return new CustomModel(baked);
+		return baked;
 	}
 }
