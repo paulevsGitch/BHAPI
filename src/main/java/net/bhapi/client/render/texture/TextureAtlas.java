@@ -10,6 +10,7 @@ import net.bhapi.util.MathUtil;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
 import net.fabricmc.loader.api.FabricLoader;
+import net.fabricmc.tinyremapper.extension.mixin.common.data.Pair;
 import org.lwjgl.opengl.GL11;
 
 import javax.imageio.ImageIO;
@@ -26,7 +27,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 @Environment(EnvType.CLIENT)
 public class TextureAtlas {
 	private static final Identifier EMPTY_ID = Identifier.make("empty");
-	private final Map<Identifier, Integer> textures = new HashMap<>();
+	private final Map<Identifier, Pair<Integer, RenderLayer>> textures = new HashMap<>();
 	private final UVPair[] uvs;
 	private final int glTarget;
 	
@@ -80,7 +81,8 @@ public class TextureAtlas {
 			Vec2F uv2 = new Vec2F(img.getWidth(), img.getHeight()).divide(data[1]).add(uv1);
 			int uvID = data[0]++;
 			uvs[uvID] = new UVPair(tpos, size, uv1, uv2);
-			textures.put(id, uvID);
+			RenderLayer renderLayer = ImageUtil.getLayer(img);
+			textures.put(id, Pair.of(uvID, renderLayer));
 		}));
 		
 		glTarget = BHAPIClient.getMinecraft().textureManager.bindImage(atlasImage);
@@ -132,16 +134,24 @@ public class TextureAtlas {
 			int py = pos.y << layer.index;
 			BufferedImage img = imgInfo.img();
 			Identifier id = inverted.get(img);
-			int uvID = textures.get(id);
+			int uvID = textures.get(id).first();
 			Vec2I tpos = new Vec2I(px, py);
 			Vec2I size = new Vec2I(img.getWidth(), img.getHeight());
 			Vec2F uv1 = new Vec2F(px, py).divide(data[1]);
 			Vec2F uv2 = new Vec2F(img.getWidth(), img.getHeight()).divide(data[1]).add(uv1);
 			uvs[uvID] = new UVPair(tpos, size, uv1, uv2);
-			textures.put(id, uvID);
 		}));
 		
 		BHAPIClient.getMinecraft().textureManager.bindImage(atlasImage, glTarget);
+	}
+	
+	private Pair<Integer, RenderLayer> getPair(Identifier id, boolean silent) {
+		Pair<Integer, RenderLayer> pair = textures.get(id);
+		if (pair == null) {
+			if (!silent) BHAPI.warn("No texture " + id + " in atlas");
+			return getPair(EMPTY_ID, true);
+		}
+		return pair;
 	}
 	
 	public int getTextureIndex(Identifier id) {
@@ -149,12 +159,7 @@ public class TextureAtlas {
 	}
 	
 	public int getTextureIndex(Identifier id, boolean silent) {
-		Integer i = textures.get(id);
-		if (i == null) {
-			if (!silent) BHAPI.warn("No texture " + id + " in atlas");
-			return getTextureIndex(EMPTY_ID);
-		}
-		return i;
+		return getPair(id, silent).first();
 	}
 	
 	public UVPair getUV(int index) {
@@ -166,7 +171,8 @@ public class TextureAtlas {
 	}
 	
 	public TextureSample getSample(Identifier id, boolean silent) {
-		return new TextureSample(this, getTextureIndex(id, silent));
+		Pair<Integer, RenderLayer> pair = getPair(id, silent);
+		return new TextureSample(this, pair.first(), pair.second());
 	}
 	
 	public void bind() {

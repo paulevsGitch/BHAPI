@@ -195,12 +195,10 @@ public class LevelChunkUpdater extends ThreadedUpdater {
 			
 			// Cover areas with snow during rain
 			if (level.isRaining() && biomeSource != null && random.getInt(16) == 0) {
-				System.out.println("Try to snow!");
 				px = random.nextInt(16);
 				pz = random.nextInt(16);
 				py = ChunkHeightProvider.cast(chunk).getHeightmapData(px, pz);
 				biomeSource.getBiomes(biomes, px | chunkX, pz | chunkZ, 1, 1);
-				System.out.println(biomes[0] + " " + biomes[0].canSnow() + " " + chunk.getLight(LightType.BLOCK, px, py, pz));
 				if (biomes[0].canSnow() && chunk.getLight(LightType.BLOCK, px, py, pz) < 10) {
 					BlockStateProvider provider = BlockStateProvider.cast(chunk);
 					BlockState block = provider.getBlockState(px, py - 1, pz);

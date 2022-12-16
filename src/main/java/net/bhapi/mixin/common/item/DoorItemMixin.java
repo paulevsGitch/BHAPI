@@ -26,8 +26,6 @@ public class DoorItemMixin {
 		}
 		
 		BaseBlock block = this.material == Material.WOOD ? BaseBlock.WOOD_DOOR : BaseBlock.IRON_DOOR;
-		System.out.println(block.canPlaceAt(level, x, y + 1, z));
-		System.out.println(BlockStateProvider.cast(level).getBlockState(x, y + 1, z));
 		if (!block.canPlaceAt(level, x, ++y, z)) {
 			info.setReturnValue(false);
 			return;

@@ -11,6 +11,7 @@ import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.client.render.TextureBinder;
 import org.lwjgl.opengl.GL11;
 
+import java.awt.Color;
 import java.awt.Graphics;
 import java.awt.image.BufferedImage;
 import java.nio.IntBuffer;
@@ -172,10 +173,18 @@ public class Textures {
 			byte x = (byte) (index & 15);
 			byte y = (byte) (index >> 4);
 			if (idMap == ID_BLOCK && (index == 238 || index == 206)) {
-				textures.put(id, ImageUtil.makeImage(32, 32));
+				BufferedImage img = ImageUtil.makeImage(32, 32);
+				Graphics g = img.getGraphics();
+				g.setColor(new Color(128, 128, 128, 128));
+				g.fillRect(0, 0, 32, 32);
+				textures.put(id, img);
 			}
 			else if (idMap == ID_BLOCK && (index == 31 || index == 47 || index == 205 || index == 237)) {
-				textures.put(id, ImageUtil.makeImage(16, 16));
+				BufferedImage img = ImageUtil.makeImage(16, 16);
+				Graphics g = img.getGraphics();
+				g.setColor(new Color(128, 128, 128, 128));
+				g.fillRect(0, 0, 16, 16);
+				textures.put(id, img);
 			}
 			else {
 				BufferedImage img = ImageUtil.makeImage(width, height);

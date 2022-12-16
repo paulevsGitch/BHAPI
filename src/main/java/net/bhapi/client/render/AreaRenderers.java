@@ -1,15 +1,12 @@
 package net.bhapi.client.render;
 
-import net.bhapi.BHAPI;
 import net.bhapi.client.BHAPIClient;
-import net.bhapi.mixin.client.LevelRendererAccessor;
 import net.bhapi.storage.Vec3I;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
 import net.minecraft.client.render.AreaRenderer;
 import net.minecraft.level.Level;
 
-import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 

@@ -71,7 +71,6 @@ public abstract class DoorBlockMixin extends BaseBlock implements BlockStateCont
 			}
 			else if (!neighbour.isAir() && neighbour.emitsPower()) {
 				boolean power = level.hasRedstonePower(x, y, z) || level.hasRedstonePower(x, y + 1, z);
-				System.out.println(power);
 				this.method_837(level, x, y, z, power);
 			}
 		}

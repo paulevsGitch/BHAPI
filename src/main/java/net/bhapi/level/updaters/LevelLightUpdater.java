@@ -65,7 +65,6 @@ public class LevelLightUpdater extends ThreadedUpdater {
 			updateRequests.clear();
 		}
 		
-		System.out.println("Lights: " + updateAreas.size());
 		BlockStateProvider provider = BlockStateProvider.cast(level);
 		Iterator<BHLightArea> iterator = updateAreas.iterator();
 		

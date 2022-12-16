@@ -14,7 +14,6 @@ import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.block.BaseBlock;
 import net.minecraft.block.BlockSounds;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.render.AreaRenderer;
 import net.minecraft.client.render.LevelRenderer;
 import net.minecraft.client.render.Tessellator;
 import net.minecraft.entity.LivingEntity;

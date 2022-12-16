@@ -6,6 +6,7 @@ import com.google.gson.JsonObject;
 import net.bhapi.BHAPI;
 import net.bhapi.client.BHAPIClient;
 import net.bhapi.client.render.texture.AnimationTextureBinder;
+import net.bhapi.client.render.texture.RenderLayer;
 import net.bhapi.client.render.texture.TextureAtlas;
 import net.bhapi.client.render.texture.Textures;
 import net.bhapi.mixin.client.TextureManagerAccessor;
@@ -230,6 +231,21 @@ public class ImageUtil {
 			}
 			if (!added) binders.add(binder);
 		});
+	}
+	
+	public static RenderLayer getLayer(BufferedImage img) {
+		int[] data = getPixelData(img);
+		RenderLayer layer = RenderLayer.SOLID;
+		if (data == null) return layer;
+		for (int argb: data) {
+			int a = (argb >> 24) & 255;
+			if (a == 0) layer = RenderLayer.TRANSPARENT;
+			if (a > 0 && a < 255) {
+				layer = RenderLayer.TRANSLUCENT;
+				break;
+			}
+		}
+		return layer;
 	}
 	
 	static {

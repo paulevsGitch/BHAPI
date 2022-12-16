@@ -42,8 +42,6 @@ public class TestEvent {
 		registerBlock("farlands", new FarBlock(Material.WOOD, BaseBlock.STONE_SOUNDS), event::register);
 		registerBlock("testblock4", new TestBlock(Material.WOOD, BaseBlock.WOOD_SOUNDS), event::register);
 		registerBlock("testblock5", new TestBlock5(Material.WOOD, BaseBlock.METAL_SOUNDS), event::register);
-		
-		System.out.println(CommonRegistries.BLOCK_REGISTRY.get(Identifier.make("farlands")).isFullOpaque());
 	}
 	
 	private void registerBlock(String name, BaseBlock block, BiConsumer<Identifier, BaseBlock> register) {

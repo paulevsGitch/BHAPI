@@ -24,6 +24,7 @@ Documentation is not available yet, but there are javadocs in the code.
 - Configs
 - Multithreading (Configurable)
 - Texture atlas (for blocks, items and particles)
+- Custom block rendering and models (Vanilla, Modern JSON, OBJ and procedural)
 
 ### Fixes:
 - Custom proxy ([Betacraft](https://betacraft.uk/)), should fix missing sounds (Configurable)
@@ -31,7 +32,6 @@ Documentation is not available yet, but there are javadocs in the code.
 - Fixed startup errors related to outdated controllers code and missing library path
 
 ### Planned Things:
-- Custom block rendering and models (Vanilla, Modern, OBJ and procedural)
 - Dimensions API
 - Fuel API (partially implemented)
 - Tags (postponed)

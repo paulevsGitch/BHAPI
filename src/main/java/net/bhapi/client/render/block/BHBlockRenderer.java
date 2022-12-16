@@ -2,8 +2,10 @@ package net.bhapi.client.render.block;
 
 import net.bhapi.blockstate.BlockState;
 import net.bhapi.client.BHAPIClient;
+import net.bhapi.client.render.level.LayeredMeshBuilder;
 import net.bhapi.client.render.model.CustomModel;
 import net.bhapi.client.render.model.ModelRenderingContext;
+import net.bhapi.client.render.texture.RenderLayer;
 import net.bhapi.client.render.texture.TextureSample;
 import net.bhapi.client.render.texture.Textures;
 import net.bhapi.level.BlockStateProvider;
@@ -46,6 +48,7 @@ public class BHBlockRenderer {
 	private final List<BlockRenderingFunction> renderingFunctions = new ArrayList<>();
 	private final CircleCache<Vec2F> uvCache = new CircleCache<Vec2F>(8).fill(Vec2F::new);
 	private final ModelRenderingContext context = new ModelRenderingContext();
+	private final LayeredMeshBuilder builder = new LayeredMeshBuilder();
 	private final boolean[] renderSides = new boolean[4];
 	private final Vec3F itemColor = new Vec3F();
 	private final Vec3I pos = new Vec3I();
@@ -108,6 +111,14 @@ public class BHBlockRenderer {
 		this.blockView = view;
 	}
 	
+	public void startAreaRender(int x, int y, int z) {
+		builder.start(x, y, z);
+	}
+	
+	public void buildArea(Tessellator tessellator, RenderLayer layer) {
+		builder.build(tessellator, layer);
+	}
+	
 	public void renderBlockBreak(BlockState state, int x, int y, int z) {
 		breaking = true;
 		render(state, x, y, z);
@@ -135,8 +146,8 @@ public class BHBlockRenderer {
 	public void renderItem(BlockState state, boolean colorizeItem, float light) {
 		GL11.glTranslatef(-0.5F, -0.5F, -0.5F);
 		
-		Tessellator tessellator = Tessellator.INSTANCE;
-		tessellator.start();
+		Tessellator.INSTANCE.start();
+		//builder.start();
 		item = true;
 		
 		itemColor.set(light);
@@ -152,7 +163,8 @@ public class BHBlockRenderer {
 		renderAllSides(state, 0, 0, 0);
 		
 		item = false;
-		tessellator.draw();
+		//builder.build(Tessellator.INSTANCE);
+		Tessellator.INSTANCE.draw();
 	}
 	
 	public boolean render(BlockState state, int x, int y, int z) {

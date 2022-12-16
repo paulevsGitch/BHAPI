@@ -6,14 +6,17 @@ import net.bhapi.storage.Vec2F;
 public class TextureSample {
 	private static final CircleCache<Vec2F> UV_CACHE = new CircleCache<Vec2F>(4).fill(Vec2F::new);
 	private final TextureAtlas atlas;
+	private final RenderLayer layer;
 	private final int id;
-	private byte rotation;
+	
 	private boolean mirrorU;
 	private boolean mirrorV;
+	private byte rotation;
 	private float light;
 	
-	protected TextureSample(TextureAtlas atlas, int id) {
+	protected TextureSample(TextureAtlas atlas, int id, RenderLayer layer) {
 		this.atlas = atlas;
+		this.layer = layer;
 		this.id = id;
 	}
 	
@@ -89,8 +92,12 @@ public class TextureSample {
 		this.light = light;
 	}
 	
+	public RenderLayer getLayer() {
+		return layer;
+	}
+	
 	@Override
 	public TextureSample clone() {
-		return new TextureSample(atlas, id);
+		return new TextureSample(atlas, id, layer);
 	}
 }
