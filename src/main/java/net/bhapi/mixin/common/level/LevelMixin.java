@@ -6,8 +6,10 @@ import net.bhapi.level.BHTimeInfo;
 import net.bhapi.level.BlockStateProvider;
 import net.bhapi.level.LevelHeightProvider;
 import net.bhapi.level.PlaceChecker;
+import net.bhapi.level.light.BHLightArea;
 import net.bhapi.level.updaters.LevelBlocksUpdater;
 import net.bhapi.level.updaters.LevelChunkUpdater;
+import net.bhapi.level.updaters.LevelLightUpdater;
 import net.bhapi.level.updaters.LevelTicksUpdater;
 import net.bhapi.registry.CommonRegistries;
 import net.bhapi.storage.Vec3I;
@@ -82,6 +84,7 @@ public abstract class LevelMixin implements LevelHeightProvider, BlockStateProvi
 	@Unique private LevelBlocksUpdater bhapi_blocksUpdater;
 	@Unique private LevelChunkUpdater bhapi_chunksUpdater;
 	@Unique private LevelTicksUpdater bhapi_ticksUpdater;
+	@Unique private LevelLightUpdater bhapi_lightUpdater;
 	
 	@Inject(
 		method = "<init>(Lnet/minecraft/level/dimension/DimensionData;Ljava/lang/String;Lnet/minecraft/level/dimension/BaseDimension;J)V",
@@ -136,6 +139,7 @@ public abstract class LevelMixin implements LevelHeightProvider, BlockStateProvi
 		info.cancel();
 		bhapi_chunksUpdater.process();
 		bhapi_blocksUpdater.process();
+		bhapi_lightUpdater.process();
 	}
 	
 	@SuppressWarnings("unchecked")
@@ -167,29 +171,20 @@ public abstract class LevelMixin implements LevelHeightProvider, BlockStateProvi
 	}
 	
 	@Inject(method = "updateLight()Z", at = @At("HEAD"), cancellable = true)
-	private void bhapi_updateLight(CallbackInfoReturnable<Boolean> info) {
+	private void bhapi_updateLight1(CallbackInfoReturnable<Boolean> info) {
 		Level level = Level.class.cast(this);
+		info.setReturnValue(false);
+		
+		if (this.lightUpdateTicks >= 50) return;
+		++this.lightUpdateTicks;
+		int n = 500;
 		
 		synchronized (lightingUpdates) {
-			if (this.lightUpdateTicks >= 50) {
-				info.setReturnValue(false);
-				return;
-			}
-			
-			++this.lightUpdateTicks;
 			try {
-				int n = 500;
-				
-				while (this.lightingUpdates.size() > 0) {
-					if (--n <= 0) {
-						info.setReturnValue(true);
-						return;
-					}
+				while (this.lightingUpdates.size() > 0 && --n > 0) {
 					LightUpdateArea area = (LightUpdateArea) this.lightingUpdates.remove(this.lightingUpdates.size() - 1);
 					if (area != null) area.process(level);
 				}
-				info.setReturnValue(false);
-				return;
 			}
 			finally {
 				--this.lightUpdateTicks;
@@ -198,36 +193,31 @@ public abstract class LevelMixin implements LevelHeightProvider, BlockStateProvi
 	}
 	
 	@Inject(method = "updateLight(Lnet/minecraft/level/LightType;IIIIIIZ)V", at = @At("HEAD"), cancellable = true)
-	private void bhapi_updateLight(LightType type, int i, int j, int k, int l, int m, int n, boolean bl, CallbackInfo info) {
+	private void bhapi_updateLight2(LightType type, int x1, int y1, int z1, int x2, int y2, int z2, boolean flag, CallbackInfo info) {
 		info.cancel();
 		
-		if (this.dimension.noSkyLight && type == LightType.SKY) {
+		if (this.dimension.noSkyLight && type == LightType.SKY) return;
+		
+		int x = (x2 + x1) >> 1;
+		int z = (z2 + z1) >> 1;
+		if (this.getChunk(x, z).isClient()) return;
+		if (!this.isBlockLoaded(x, 64, z)) return;
+		
+		if (type == LightType.BLOCK) {
+			bhapi_lightUpdater.addArea(new BHLightArea(type, x1, y1, z1, x2, y2, z2));
 			return;
 		}
+		
+		if (areaUpdates == 50) return;
 		
 		synchronized (lightingUpdates) {
 			++this.areaUpdates;
 			try {
 				int count;
 				
-				if (areaUpdates == 50) {
-					return;
-				}
-				
-				int x = (l + i) / 2;
-				int z = (n + k) / 2;
-				
-				if (!this.isBlockLoaded(x, 64, z)) {
-					return;
-				}
-				
-				if (this.getChunk(x, z).isClient()) {
-					return;
-				}
-				
 				int lights = this.lightingUpdates.size();
 				
-				if (bl) {
+				if (flag) {
 					count = 5;
 					if (count > lights) {
 						count = lights;
@@ -235,13 +225,13 @@ public abstract class LevelMixin implements LevelHeightProvider, BlockStateProvi
 					for (int i2 = 0; i2 < count; ++i2) {
 						LightUpdateArea lightUpdateArea = (LightUpdateArea) this.lightingUpdates.get(this.lightingUpdates.size() - i2 - 1);
 						if (lightUpdateArea == null) continue;
-						if (lightUpdateArea.lightType != type || !lightUpdateArea.checkAndUpdate(i, j, k, l, m, n)) continue;
+						if (lightUpdateArea.lightType != type || !lightUpdateArea.checkAndUpdate(x1, y1, z1, x2, y2, z2)) continue;
 						return;
 					}
 				}
 				
 				count = 1000000;
-				this.lightingUpdates.add(new LightUpdateArea(type, i, j, k, l, m, n));
+				this.lightingUpdates.add(new LightUpdateArea(type, x1, y1, z1, x2, y2, z2));
 				if (this.lightingUpdates.size() > count) {
 					BHAPI.warn("More than " + count + " updates, aborting lighting updates");
 					this.lightingUpdates.clear();
@@ -589,6 +579,7 @@ public abstract class LevelMixin implements LevelHeightProvider, BlockStateProvi
 			bhapi_chunksUpdater = new LevelChunkUpdater(level);
 			bhapi_ticksUpdater = new LevelTicksUpdater(level, this.properties);
 			bhapi_blocksUpdater = new LevelBlocksUpdater(level);
+			bhapi_lightUpdater = new LevelLightUpdater(level);
 		}
 	}
 	
@@ -648,6 +639,7 @@ public abstract class LevelMixin implements LevelHeightProvider, BlockStateProvi
 	private void bhapi_updateLightIfNecessary(LightType type, int x, int y, int z, int light, CallbackInfo info) {
 		info.cancel();
 		
+		if (type != LightType.SKY) return;
 		if (this.dimension.noSkyLight && type == LightType.SKY) return;
 		if (!this.isBlockLoaded(x, y, z)) return;
 		

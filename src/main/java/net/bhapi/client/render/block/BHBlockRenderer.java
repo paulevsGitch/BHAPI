@@ -203,7 +203,10 @@ public class BHBlockRenderer {
 			r = itemColor.x; g = itemColor.y; b = itemColor.z;
 		}
 		else {
-			int color = state.getBlock().getColorMultiplier(blockView, x, y, z);
+			int color;
+			synchronized (blockView.getBiomeSource()) {
+				color = state.getBlock().getColorMultiplier(blockView, x, y, z);
+			}
 			r = (float) (color >> 16 & 0xFF) / 255.0F;
 			g = (float) (color >> 8 & 0xFF) / 255.0F;
 			b = (float) (color & 0xFF) / 255.0F;

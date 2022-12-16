@@ -17,6 +17,10 @@ public class Vec3I {
 		this.z = z;
 	}
 	
+	public Vec3I add(int value) {
+		return add(value, value, value);
+	}
+	
 	public Vec3I add(int x, int y, int z) {
 		this.x += x;
 		this.y += y;
@@ -71,8 +75,7 @@ public class Vec3I {
 	@Override
 	public boolean equals(Object obj) {
 		if (obj == this) return true;
-		if (!(obj instanceof Vec3I)) return false;
-		Vec3I vec = (Vec3I) obj;
+		if (!(obj instanceof Vec3I vec)) return false;
 		return vec.x == x && vec.y == y && vec.z == z;
 	}
 	

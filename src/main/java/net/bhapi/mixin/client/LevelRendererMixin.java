@@ -14,6 +14,7 @@ import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.block.BaseBlock;
 import net.minecraft.block.BlockSounds;
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.render.AreaRenderer;
 import net.minecraft.client.render.LevelRenderer;
 import net.minecraft.client.render.Tessellator;
 import net.minecraft.entity.LivingEntity;
@@ -35,6 +36,8 @@ import org.spongepowered.asm.mixin.injection.ModifyConstant;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
+import java.util.List;
+
 @Mixin(LevelRenderer.class)
 public abstract class LevelRendererMixin implements LevelHeightProvider {
 	@Shadow private Level level;
@@ -42,6 +45,8 @@ public abstract class LevelRendererMixin implements LevelHeightProvider {
 	@Shadow public float blockBreakDelta;
 	
 	@Shadow protected abstract void renderBox(Box arg);
+	
+	@Shadow private List field_1807;
 	
 	@ModifyConstant(method = "method_1544(Lnet/minecraft/util/maths/Vec3f;Lnet/minecraft/class_68;F)V", constant = @Constant(intValue = 128))
 	private int bhapi_changeMaxHeight(int value) {
@@ -222,4 +227,20 @@ public abstract class LevelRendererMixin implements LevelHeightProvider {
 	private void bhapi_method_1549(LivingEntity arg, boolean bl, CallbackInfoReturnable<Boolean> info) {
 		if (arg == null) info.setReturnValue(false);
 	}
+	
+	@Inject(method = "playSound", at = @At("HEAD"), cancellable = true)
+	private void bhapi_playSound(String string, double d, double e, double f, float g, float h, CallbackInfo info) {
+		if (this.client.viewEntity == null) info.cancel();
+	}
+	
+	/*@SuppressWarnings("unchecked")
+	@Inject(method = "method_1549", at = @At(value = "INVOKE", target = "Ljava/util/List;size()I", ordinal = 4))
+	private void bhapi_cleanAreas(LivingEntity entity, boolean flag, CallbackInfoReturnable<Boolean> cir) {
+		List<AreaRenderer> areas = this.field_1807;
+		for (int i = 0; i < areas.size(); i++) {
+			if (areas.get(i) == null) {
+				areas.remove(i--);
+			}
+		}
+	}*/
 }

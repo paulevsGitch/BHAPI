@@ -15,6 +15,7 @@
 		"ProjectileRendererMixin",
 		"OverworldDimensionMixin",
 		"TextureManagerAccessor",
+		"LevelRendererAccessor",
 		"OverlaysRendererMixin",
 		"SnowballRendererMixin",
 		"BaseBlockEntityMixin",

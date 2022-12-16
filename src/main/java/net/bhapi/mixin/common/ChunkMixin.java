@@ -750,7 +750,18 @@ public abstract class ChunkMixin implements NBTSerializable, LevelHeightProvider
 			this.level.updateLight(LightType.SKY, wx, y, wz, wx, y, wz);
 		}
 		
-		this.level.updateLight(LightType.BLOCK, wx, y, wz, wx, y, wz);
+		int light = this.level.getLight(LightType.BLOCK, wx, y, wz);
+		if (light != state.getEmittance()) {
+			if (this.decorated) {
+				this.level.updateLight(LightType.BLOCK, wx, y, wz, wx, y, wz);
+			}
+			else {
+				int x1 = (wx >> 4) << 4;
+				int y1 = (y >> 4) << 4;
+				int z1 = (wz >> 4) << 4;
+				this.level.updateLight(LightType.BLOCK, x1, y1, z1, x1 + 15, y1 + 15, z1 + 15);
+			}
+		}
 		this.fillSkyLight(x, z);
 		
 		if (!state.isAir()) {
