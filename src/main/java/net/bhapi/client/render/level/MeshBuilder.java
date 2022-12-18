@@ -1,6 +1,5 @@
 package net.bhapi.client.render.level;
 
-import net.bhapi.storage.Vec3I;
 import net.minecraft.client.render.Tessellator;
 
 import java.util.ArrayList;
@@ -13,12 +12,13 @@ public class MeshBuilder {
 	private final List<Float> normalData = new ArrayList<>(2048);
 	private final List<Byte> colorData = new ArrayList<>(2048);
 	private final List<Float> uvData = new ArrayList<>(32768);
-	private final Vec3I chunkOffset = new Vec3I();
+	private double offsetX;
+	private double offsetY;
+	private double offsetZ;
 	private int normalIndex;
 	private int colorIndex;
 	
 	public void start() {
-		chunkOffset.set(0, 0, 0);
 		normalIndexes.clear();
 		colorIndexes.clear();
 		vertexData.clear();
@@ -28,6 +28,9 @@ public class MeshBuilder {
 		
 		normalIndex = 0;
 		colorIndex = 0;
+		offsetX = 0;
+		offsetY = 0;
+		offsetZ = 0;
 		
 		normalData.add(0F);
 		normalData.add(1F);
@@ -46,6 +49,18 @@ public class MeshBuilder {
 		normalIndex++;
 	}
 	
+	public void setColor(float r, float g, float b) {
+		setColor((int) (r * 255), (int) (g * 255), (int) (b * 255), 255);
+	}
+	
+	public void setColor(int r, int g, int b) {
+		setColor(r, g, b, 255);
+	}
+	
+	public void setColor(float r, float g, float b, float a) {
+		setColor((int) (r * 255), (int) (g * 255), (int) (b * 255), (int) (a * 255));
+	}
+	
 	public void setColor(int r, int g, int b, int a) {
 		colorData.add((byte) r);
 		colorData.add((byte) g);
@@ -55,7 +70,15 @@ public class MeshBuilder {
 	}
 	
 	public void setOffset(int x, int y, int z) {
-		chunkOffset.set(x, y, z);
+		offsetX = x;
+		offsetY = y;
+		offsetZ = z;
+	}
+	
+	public void addOffset(double x, double y, double z) {
+		offsetX += x;
+		offsetY += y;
+		offsetZ += z;
 	}
 	
 	public void vertex(float x, float y, float z, float u, float v) {
@@ -69,9 +92,9 @@ public class MeshBuilder {
 	}
 	
 	public void vertex(double x, double y, double z, float u, float v) {
-		float dx = (float) (x - chunkOffset.x);
-		float dy = (float) (y - chunkOffset.y);
-		float dz = (float) (z - chunkOffset.z);
+		float dx = (float) (x + offsetX);
+		float dy = (float) (y + offsetY);
+		float dz = (float) (z + offsetZ);
 		vertex(dx, dy, dz, u, v);
 	}
 	

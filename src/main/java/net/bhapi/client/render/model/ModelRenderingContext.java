@@ -1,14 +1,14 @@
 package net.bhapi.client.render.model;
 
 import net.bhapi.blockstate.BlockState;
+import net.bhapi.client.render.level.LayeredMeshBuilder;
 import net.bhapi.storage.EnumArray;
 import net.bhapi.util.BlockDirection;
-import net.minecraft.client.render.Tessellator;
 import net.minecraft.level.BlockView;
 
 public class ModelRenderingContext {
 	private final EnumArray<BlockDirection, Boolean> renderFaces;
-	private Tessellator tessellator;
+	private LayeredMeshBuilder builder;
 	private BlockView blockView;
 	private BlockState state;
 	private int overlayIndex;
@@ -24,12 +24,12 @@ public class ModelRenderingContext {
 		setRenderAllFaces(true);
 	}
 	
-	public Tessellator getTessellator() {
-		return tessellator;
+	public LayeredMeshBuilder getBuilder() {
+		return builder;
 	}
 	
-	public void setTessellator(Tessellator tessellator) {
-		this.tessellator = tessellator;
+	public void setBuilder(LayeredMeshBuilder builder) {
+		this.builder = builder;
 	}
 	
 	public BlockView getBlockView() {

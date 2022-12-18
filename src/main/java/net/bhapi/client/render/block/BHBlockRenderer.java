@@ -3,6 +3,7 @@ package net.bhapi.client.render.block;
 import net.bhapi.blockstate.BlockState;
 import net.bhapi.client.BHAPIClient;
 import net.bhapi.client.render.level.LayeredMeshBuilder;
+import net.bhapi.client.render.level.MeshBuilder;
 import net.bhapi.client.render.model.CustomModel;
 import net.bhapi.client.render.model.ModelRenderingContext;
 import net.bhapi.client.render.texture.RenderLayer;
@@ -36,14 +37,18 @@ import net.minecraft.util.maths.Vec3f;
 import org.lwjgl.opengl.GL11;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 public class BHBlockRenderer {
+	private static final Map<BlockState, Integer> ITEMS_CACHE = new HashMap<>();
 	private static final PermutationTable[] TABLES = {
 		new PermutationTable(0),
 		new PermutationTable(1),
 		new PermutationTable(2)
 	};
+	
 	private final EnumArray<BlockDirection, Integer> rotation = new EnumArray<>(BlockDirection.class);
 	private final List<BlockRenderingFunction> renderingFunctions = new ArrayList<>();
 	private final CircleCache<Vec2F> uvCache = new CircleCache<Vec2F>(8).fill(Vec2F::new);
@@ -104,18 +109,17 @@ public class BHBlockRenderer {
 		renderingFunctions.add(this::renderRedstoneRepeater);
 		renderingFunctions.add(this::renderPiston);
 		renderingFunctions.add(this::renderPistonHead);
-		context.setTessellator(Tessellator.INSTANCE);
 	}
 	
 	public void setView(BlockView view) {
 		this.blockView = view;
 	}
 	
-	public void startAreaRender(int x, int y, int z) {
+	public void startArea(int x, int y, int z) {
 		builder.start(x, y, z);
 	}
 	
-	public void buildArea(Tessellator tessellator, RenderLayer layer) {
+	public void build(Tessellator tessellator, RenderLayer layer) {
 		builder.build(tessellator, layer);
 	}
 	
@@ -146,28 +150,40 @@ public class BHBlockRenderer {
 	public void renderItem(BlockState state, boolean colorizeItem, float light) {
 		GL11.glTranslatef(-0.5F, -0.5F, -0.5F);
 		
-		Tessellator.INSTANCE.start();
-		//builder.start();
-		item = true;
+		int list = ITEMS_CACHE.computeIfAbsent(state, s -> {
+			builder.start();
+			item = true;
+			
+			itemColor.set(light);
+			if (colorizeItem) {
+				int color = s.getBlock().getBaseColor(0);
+				float r = (float) (color >> 16 & 0xFF) / 255.0F;
+				float g = (float) (color >> 8 & 0xFF) / 255.0F;
+				float b = (float) (color & 0xFF) / 255.0F;
+				itemColor.multiply(r, g, b);
+			}
+			
+			s.getBlock().updateRenderBounds();
+			renderAllSides(s, 0, 0, 0);
+			
+			item = false;
+			
+			int result = GL11.glGenLists(1);
+			GL11.glNewList(result, GL11.GL_COMPILE);
+			Tessellator tessellator = Tessellator.INSTANCE;
+			tessellator.start();
+			builder.build(tessellator);
+			tessellator.draw();
+			GL11.glEndList();
+			
+			return result;
+		});
 		
-		itemColor.set(light);
-		if (colorizeItem) {
-			int color = state.getBlock().getBaseColor(0);
-			float r = (float) (color >> 16 & 0xFF) / 255.0F;
-			float g = (float) (color >> 8 & 0xFF) / 255.0F;
-			float b = (float) (color & 0xFF) / 255.0F;
-			itemColor.multiply(r, g, b);
-		}
-		
-		state.getBlock().updateRenderBounds();
-		renderAllSides(state, 0, 0, 0);
-		
-		item = false;
-		//builder.build(Tessellator.INSTANCE);
-		Tessellator.INSTANCE.draw();
+		GL11.glCallList(list);
 	}
 	
 	public boolean render(BlockState state, int x, int y, int z) {
+		if (!item) return false;
 		byte type = state.getRenderType(blockView, x, y, z);
 		if (type == BlockRenderTypes.EMPTY) return false;
 		state.getBlock().updateBoundingBox(blockView, x, y, z);
@@ -184,6 +200,7 @@ public class BHBlockRenderer {
 					boolean renderSide = state.isSideRendered(blockView, pos.x, pos.y, pos.z, dir);
 					context.setRenderFace(dir, renderSide);
 				}
+				context.setBuilder(builder);
 				context.setOverlayIndex(overlayIndex);
 				context.setBlockView(blockView);
 				context.setBreaking(breaking);
@@ -633,7 +650,6 @@ public class BHBlockRenderer {
 		BaseBlock block = state.getBlock();
 		float light;
 		shadeTopFace = false;
-		Tessellator tessellator = Tessellator.INSTANCE;
 		boolean result = false;
 		
 		float bR = 0.5F;
@@ -696,7 +712,6 @@ public class BHBlockRenderer {
 			cb00 = ewB * light;
 			renderNegZFace(block, x, y, z, state.getTextureForIndex(blockView, x, y, z, 2, overlayIndex));
 			if (isFancy() && block == BaseBlock.GRASS && !breaking) {
-				tessellator.color(ewR * light * r, ewG * light * g, ewB * light * b);
 				renderNegZFace(block, x, y, z, Textures.getVanillaBlockSample(38));
 			}
 			result = true;
@@ -714,7 +729,6 @@ public class BHBlockRenderer {
 			renderPosZFace(block, x, y, z, state.getTextureForIndex(blockView, x, y, z, 3, overlayIndex));
 			
 			if (isFancy() && block == BaseBlock.GRASS && !breaking) {
-				tessellator.color(ewR * light * r, ewG * light * g, ewB * light * b);
 				renderPosZFace(block, x, y, z, Textures.getVanillaBlockSample(38));
 			}
 			
@@ -731,7 +745,6 @@ public class BHBlockRenderer {
 			cb00 = nsB * light;
 			renderNegXFace(block, x, y, z, state.getTextureForIndex(blockView, x, y, z, 4, overlayIndex));
 			if (isFancy() && block == BaseBlock.GRASS && !breaking) {
-				tessellator.color(nsR * light * r, nsG * light * g, nsB * light * b);
 				renderNegXFace(block, x, y, z, Textures.getVanillaBlockSample(38));
 			}
 			result = true;
@@ -747,7 +760,6 @@ public class BHBlockRenderer {
 			cb00 = nsB * light;
 			renderPosXFace(block, x, y, z, state.getTextureForIndex(blockView, x, y, z, 5, overlayIndex));
 			if (isFancy() && block == BaseBlock.GRASS && !breaking) {
-				tessellator.color(nsR * light * r, nsG * light * g, nsB * light * b);
 				renderPosXFace(block, x, y, z, Textures.getVanillaBlockSample(38));
 			}
 			result = true;
@@ -774,7 +786,6 @@ public class BHBlockRenderer {
 	}
 	
 	private void renderNegYFace(BaseBlock block, double x, double y, double z, TextureSample sample) {
-		Tessellator tessellator = Tessellator.INSTANCE;
 		float u11, u12, v11, v12;
 		
 		if (forceRotation) sample.setRotation(rotation.get(BlockDirection.NEG_Y));
@@ -809,28 +820,29 @@ public class BHBlockRenderer {
 		double z2 = z + block.maxZ;
 		
 		updateColors(sample.getLight(), shadeTopFace);
-		tessellator.setNormal(0, -1, 0);
+		MeshBuilder builder = this.builder.getBuilder(sample.getLayer());
+		
+		builder.setNormal(0, -1, 0);
 		if (shadeTopFace) {
-			tessellator.color(cr00, cg00, cb00);
-			tessellator.vertex(x1, y1, z2, u1v1.x, u1v1.y);
-			tessellator.color(cr01, cg01, cb01);
-			tessellator.vertex(x1, y1, z1, u1v2.x, u1v2.y);
-			tessellator.color(cr11, cg11, cb11);
-			tessellator.vertex(x2, y1, z1, u2v2.x, u2v2.y);
-			tessellator.color(cr10, cg10, cb10);
-			tessellator.vertex(x2, y1, z2, u2v1.x, u2v1.y);
+			builder.setColor(cr00, cg00, cb00);
+			builder.vertex(x1, y1, z2, u1v1.x, u1v1.y);
+			builder.setColor(cr01, cg01, cb01);
+			builder.vertex(x1, y1, z1, u1v2.x, u1v2.y);
+			builder.setColor(cr11, cg11, cb11);
+			builder.vertex(x2, y1, z1, u2v2.x, u2v2.y);
+			builder.setColor(cr10, cg10, cb10);
+			builder.vertex(x2, y1, z2, u2v1.x, u2v1.y);
 		}
 		else {
-			tessellator.color(cr00, cg00, cb00);
-			tessellator.vertex(x1, y1, z2, u1v1.x, u1v1.y);
-			tessellator.vertex(x1, y1, z1, u1v2.x, u1v2.y);
-			tessellator.vertex(x2, y1, z1, u2v2.x, u2v2.y);
-			tessellator.vertex(x2, y1, z2, u2v1.x, u2v1.y);
+			builder.setColor(cr00, cg00, cb00);
+			builder.vertex(x1, y1, z2, u1v1.x, u1v1.y);
+			builder.vertex(x1, y1, z1, u1v2.x, u1v2.y);
+			builder.vertex(x2, y1, z1, u2v2.x, u2v2.y);
+			builder.vertex(x2, y1, z2, u2v1.x, u2v1.y);
 		}
 	}
 	
 	private void renderPosYFace(BaseBlock block, double x, double y, double z, TextureSample sample) {
-		Tessellator tessellator = Tessellator.INSTANCE;
 		float u11, u12, v11, v12;
 		
 		if (forceRotation) sample.setRotation(rotation.get(BlockDirection.POS_Y));
@@ -865,28 +877,29 @@ public class BHBlockRenderer {
 		double z2 = z + block.maxZ;
 		
 		updateColors(sample.getLight(), shadeTopFace);
-		tessellator.setNormal(0, 1, 0);
+		MeshBuilder builder = this.builder.getBuilder(sample.getLayer());
+		
+		builder.setNormal(0, 1, 0);
 		if (shadeTopFace) {
-			tessellator.color(cr00, cg00, cb00);
-			tessellator.vertex(x2, y2, z2, u1v1.x, u1v1.y);
-			tessellator.color(cr01, cg01, cb01);
-			tessellator.vertex(x2, y2, z1, u1v2.x, u1v2.y);
-			tessellator.color(cr11, cg11, cb11);
-			tessellator.vertex(x1, y2, z1, u2v2.x, u2v2.y);
-			tessellator.color(cr10, cg10, cb10);
-			tessellator.vertex(x1, y2, z2, u2v1.x, u2v1.y);
+			builder.setColor(cr00, cg00, cb00);
+			builder.vertex(x2, y2, z2, u1v1.x, u1v1.y);
+			builder.setColor(cr01, cg01, cb01);
+			builder.vertex(x2, y2, z1, u1v2.x, u1v2.y);
+			builder.setColor(cr11, cg11, cb11);
+			builder.vertex(x1, y2, z1, u2v2.x, u2v2.y);
+			builder.setColor(cr10, cg10, cb10);
+			builder.vertex(x1, y2, z2, u2v1.x, u2v1.y);
 		}
 		else {
-			tessellator.color(cr00, cg00, cb00);
-			tessellator.vertex(x2, y2, z2, u1v1.x, u1v1.y);
-			tessellator.vertex(x2, y2, z1, u1v2.x, u1v2.y);
-			tessellator.vertex(x1, y2, z1, u2v2.x, u2v2.y);
-			tessellator.vertex(x1, y2, z2, u2v1.x, u2v1.y);
+			builder.setColor(cr00, cg00, cb00);
+			builder.vertex(x2, y2, z2, u1v1.x, u1v1.y);
+			builder.vertex(x2, y2, z1, u1v2.x, u1v2.y);
+			builder.vertex(x1, y2, z1, u2v2.x, u2v2.y);
+			builder.vertex(x1, y2, z2, u2v1.x, u2v1.y);
 		}
 	}
 	
 	private void renderNegZFace(BaseBlock block, double x, double y, double z, TextureSample sample) {
-		Tessellator tessellator = Tessellator.INSTANCE;
 		float u11, u12, v11, v12;
 		
 		if (forceRotation) sample.setRotation(rotation.get(BlockDirection.NEG_Z));
@@ -921,28 +934,29 @@ public class BHBlockRenderer {
 		double z1 = z + block.minZ;
 		
 		updateColors(sample.getLight(), shadeTopFace);
-		tessellator.setNormal(0, 0, -1);
+		MeshBuilder builder = this.builder.getBuilder(sample.getLayer());
+		
+		builder.setNormal(0, 0, -1);
 		if (shadeTopFace) {
-			tessellator.color(cr00, cg00, cb00);
-			tessellator.vertex(x1, y2, z1, u2v1.x, u2v1.y);
-			tessellator.color(cr01, cg01, cb01);
-			tessellator.vertex(x2, y2, z1, u1v1.x, u1v1.y);
-			tessellator.color(cr11, cg11, cb11);
-			tessellator.vertex(x2, y1, z1, u1v2.x, u1v2.y);
-			tessellator.color(cr10, cg10, cb10);
-			tessellator.vertex(x1, y1, z1, u2v2.x, u2v2.y);
+			builder.setColor(cr00, cg00, cb00);
+			builder.vertex(x1, y2, z1, u2v1.x, u2v1.y);
+			builder.setColor(cr01, cg01, cb01);
+			builder.vertex(x2, y2, z1, u1v1.x, u1v1.y);
+			builder.setColor(cr11, cg11, cb11);
+			builder.vertex(x2, y1, z1, u1v2.x, u1v2.y);
+			builder.setColor(cr10, cg10, cb10);
+			builder.vertex(x1, y1, z1, u2v2.x, u2v2.y);
 		}
 		else {
-			tessellator.color(cr00, cg00, cb00);
-			tessellator.vertex(x1, y2, z1, u2v1.x, u2v1.y);
-			tessellator.vertex(x2, y2, z1, u1v1.x, u1v1.y);
-			tessellator.vertex(x2, y1, z1, u1v2.x, u1v2.y);
-			tessellator.vertex(x1, y1, z1, u2v2.x, u2v2.y);
+			builder.setColor(cr00, cg00, cb00);
+			builder.vertex(x1, y2, z1, u2v1.x, u2v1.y);
+			builder.vertex(x2, y2, z1, u1v1.x, u1v1.y);
+			builder.vertex(x2, y1, z1, u1v2.x, u1v2.y);
+			builder.vertex(x1, y1, z1, u2v2.x, u2v2.y);
 		}
 	}
 	
 	private void renderPosZFace(BaseBlock block, double x, double y, double z, TextureSample sample) {
-		Tessellator tessellator = Tessellator.INSTANCE;
 		float u11, u12, v11, v12;
 		
 		if (forceRotation) sample.setRotation(rotation.get(BlockDirection.POS_Z));
@@ -977,28 +991,29 @@ public class BHBlockRenderer {
 		double z2 = z + block.maxZ;
 		
 		updateColors(sample.getLight(), shadeTopFace);
-		tessellator.setNormal(0, 0, 1);
+		MeshBuilder builder = this.builder.getBuilder(sample.getLayer());
+		
+		builder.setNormal(0, 0, 1);
 		if (shadeTopFace) {
-			tessellator.color(cr00, cg00, cb00);
-			tessellator.vertex(x1, y2, z2, u1v1.x, u1v1.y);
-			tessellator.color(cr01, cg01, cb01);
-			tessellator.vertex(x1, y1, z2, u1v2.x, u1v2.y);
-			tessellator.color(cr11, cg11, cb11);
-			tessellator.vertex(x2, y1, z2, u2v2.x, u2v2.y);
-			tessellator.color(cr10, cg10, cb10);
-			tessellator.vertex(x2, y2, z2, u2v1.x, u2v1.y);
+			builder.setColor(cr00, cg00, cb00);
+			builder.vertex(x1, y2, z2, u1v1.x, u1v1.y);
+			builder.setColor(cr01, cg01, cb01);
+			builder.vertex(x1, y1, z2, u1v2.x, u1v2.y);
+			builder.setColor(cr11, cg11, cb11);
+			builder.vertex(x2, y1, z2, u2v2.x, u2v2.y);
+			builder.setColor(cr10, cg10, cb10);
+			builder.vertex(x2, y2, z2, u2v1.x, u2v1.y);
 		}
 		else {
-			tessellator.color(cr00, cg00, cb00);
-			tessellator.vertex(x1, y2, z2, u1v1.x, u1v1.y);
-			tessellator.vertex(x1, y1, z2, u1v2.x, u1v2.y);
-			tessellator.vertex(x2, y1, z2, u2v2.x, u2v2.y);
-			tessellator.vertex(x2, y2, z2, u2v1.x, u2v1.y);
+			builder.setColor(cr00, cg00, cb00);
+			builder.vertex(x1, y2, z2, u1v1.x, u1v1.y);
+			builder.vertex(x1, y1, z2, u1v2.x, u1v2.y);
+			builder.vertex(x2, y1, z2, u2v2.x, u2v2.y);
+			builder.vertex(x2, y2, z2, u2v1.x, u2v1.y);
 		}
 	}
 	
 	private void renderNegXFace(BaseBlock block, double x, double y, double z, TextureSample sample) {
-		Tessellator tessellator = Tessellator.INSTANCE;
 		float u11, u12, v11, v12;
 		
 		if (forceRotation) sample.setRotation(rotation.get(BlockDirection.NEG_X));
@@ -1033,28 +1048,29 @@ public class BHBlockRenderer {
 		double z2 = z + block.maxZ;
 		
 		updateColors(sample.getLight(), shadeTopFace);
-		tessellator.setNormal(-1, 0, 0);
+		MeshBuilder builder = this.builder.getBuilder(sample.getLayer());
+		
+		builder.setNormal(-1, 0, 0);
 		if (shadeTopFace) {
-			tessellator.color(cr00, cg00, cb00);
-			tessellator.vertex(x1, y2, z2, u1v2.x, u1v2.y);
-			tessellator.color(cr01, cg01, cb01);
-			tessellator.vertex(x1, y2, z1, u2v2.x, u2v2.y);
-			tessellator.color(cr11, cg11, cb11);
-			tessellator.vertex(x1, y1, z1, u2v1.x, u2v1.y);
-			tessellator.color(cr10, cg10, cb10);
-			tessellator.vertex(x1, y1, z2, u1v1.x, u1v1.y);
+			builder.setColor(cr00, cg00, cb00);
+			builder.vertex(x1, y2, z2, u1v2.x, u1v2.y);
+			builder.setColor(cr01, cg01, cb01);
+			builder.vertex(x1, y2, z1, u2v2.x, u2v2.y);
+			builder.setColor(cr11, cg11, cb11);
+			builder.vertex(x1, y1, z1, u2v1.x, u2v1.y);
+			builder.setColor(cr10, cg10, cb10);
+			builder.vertex(x1, y1, z2, u1v1.x, u1v1.y);
 		}
 		else {
-			tessellator.color(cr00, cg00, cb00);
-			tessellator.vertex(x1, y2, z2, u1v2.x, u1v2.y);
-			tessellator.vertex(x1, y2, z1, u2v2.x, u2v2.y);
-			tessellator.vertex(x1, y1, z1, u2v1.x, u2v1.y);
-			tessellator.vertex(x1, y1, z2, u1v1.x, u1v1.y);
+			builder.setColor(cr00, cg00, cb00);
+			builder.vertex(x1, y2, z2, u1v2.x, u1v2.y);
+			builder.vertex(x1, y2, z1, u2v2.x, u2v2.y);
+			builder.vertex(x1, y1, z1, u2v1.x, u2v1.y);
+			builder.vertex(x1, y1, z2, u1v1.x, u1v1.y);
 		}
 	}
 	
 	private void renderPosXFace(BaseBlock block, double x, double y, double z, TextureSample sample) {
-		Tessellator tessellator = Tessellator.INSTANCE;
 		float u11, u12, v11, v12;
 		
 		if (forceRotation) sample.setRotation(rotation.get(BlockDirection.POS_X));
@@ -1089,23 +1105,25 @@ public class BHBlockRenderer {
 		double z2 = z + block.maxZ;
 		
 		updateColors(sample.getLight(), shadeTopFace);
-		tessellator.setNormal(1, 0, 0);
+		MeshBuilder builder = this.builder.getBuilder(sample.getLayer());
+		
+		builder.setNormal(1, 0, 0);
 		if (shadeTopFace) {
-			tessellator.color(cr00, cg00, cb00);
-			tessellator.vertex(x2, y1, z2, u1v2.x, u1v2.y);
-			tessellator.color(cr01, cg01, cb01);
-			tessellator.vertex(x2, y1, z1, u2v2.x, u2v2.y);
-			tessellator.color(cr11, cg11, cb11);
-			tessellator.vertex(x2, y2, z1, u2v1.x, u2v1.y);
-			tessellator.color(cr10, cg10, cb10);
-			tessellator.vertex(x2, y2, z2, u1v1.x, u1v1.y);
+			builder.setColor(cr00, cg00, cb00);
+			builder.vertex(x2, y1, z2, u1v2.x, u1v2.y);
+			builder.setColor(cr01, cg01, cb01);
+			builder.vertex(x2, y1, z1, u2v2.x, u2v2.y);
+			builder.setColor(cr11, cg11, cb11);
+			builder.vertex(x2, y2, z1, u2v1.x, u2v1.y);
+			builder.setColor(cr10, cg10, cb10);
+			builder.vertex(x2, y2, z2, u1v1.x, u1v1.y);
 		}
 		else {
-			tessellator.color(cr00, cg00, cb00);
-			tessellator.vertex(x2, y1, z2, u1v2.x, u1v2.y);
-			tessellator.vertex(x2, y1, z1, u2v2.x, u2v2.y);
-			tessellator.vertex(x2, y2, z1, u2v1.x, u2v1.y);
-			tessellator.vertex(x2, y2, z2, u1v1.x, u1v1.y);
+			builder.setColor(cr00, cg00, cb00);
+			builder.vertex(x2, y1, z2, u1v2.x, u1v2.y);
+			builder.vertex(x2, y1, z1, u2v2.x, u2v2.y);
+			builder.vertex(x2, y2, z1, u2v1.x, u2v1.y);
+			builder.vertex(x2, y2, z2, u1v1.x, u1v1.y);
 		}
 	}
 	
@@ -1113,7 +1131,6 @@ public class BHBlockRenderer {
 		TextureSample sample = state.getTextureForIndex(blockView, x, y, z, 0, overlayIndex);
 		if (sample == null) return false;
 		
-		Tessellator tessellator = Tessellator.INSTANCE;
 		BaseBlock block = state.getBlock();
 		
 		int color = block.getColorMultiplier(blockView, x, y, z);
@@ -1139,7 +1156,9 @@ public class BHBlockRenderer {
 		r = light == 1 ? 1 : Math.max(r, light);
 		g = light == 1 ? 1 : Math.max(g, light);
 		b = light == 1 ? 1 : Math.max(b, light);
-		tessellator.color(r, g, b);
+		
+		MeshBuilder builder = this.builder.getBuilder(sample.getLayer());
+		builder.setColor(r, g, b);
 		
 		double px = x;
 		double py = y;
@@ -1156,7 +1175,6 @@ public class BHBlockRenderer {
 	}
 	
 	private void renderCross(double x, double y, double z, TextureSample sample) {
-		Tessellator tessellator = Tessellator.INSTANCE;
 		Vec2F u1v1 = sample.getUV(0, 0, uvCache.get());
 		Vec2F u2v1 = sample.getUV(1, 0, uvCache.get());
 		Vec2F u1v2 = sample.getUV(0, 1, uvCache.get());
@@ -1167,22 +1185,23 @@ public class BHBlockRenderer {
 		double z1 = z + 0.5 - 0.45;
 		double z2 = z + 0.5 + 0.45;
 		
-		tessellator.vertex(x1, y + 1.0, z1, u1v1.x, u1v1.y);
-		tessellator.vertex(x1, y + 0.0, z1, u1v2.x, u1v2.y);
-		tessellator.vertex(x2, y + 0.0, z2, u2v2.x, u2v2.y);
-		tessellator.vertex(x2, y + 1.0, z2, u2v1.x, u2v1.y);
-		tessellator.vertex(x2, y + 1.0, z2, u1v1.x, u1v1.y);
-		tessellator.vertex(x2, y + 0.0, z2, u1v2.x, u1v2.y);
-		tessellator.vertex(x1, y + 0.0, z1, u2v2.x, u2v2.y);
-		tessellator.vertex(x1, y + 1.0, z1, u2v1.x, u2v1.y);
-		tessellator.vertex(x1, y + 1.0, z2, u1v1.x, u1v1.y);
-		tessellator.vertex(x1, y + 0.0, z2, u1v2.x, u1v2.y);
-		tessellator.vertex(x2, y + 0.0, z1, u2v2.x, u2v2.y);
-		tessellator.vertex(x2, y + 1.0, z1, u2v1.x, u2v1.y);
-		tessellator.vertex(x2, y + 1.0, z1, u1v1.x, u1v1.y);
-		tessellator.vertex(x2, y + 0.0, z1, u1v2.x, u1v2.y);
-		tessellator.vertex(x1, y + 0.0, z2, u2v2.x, u2v2.y);
-		tessellator.vertex(x1, y + 1.0, z2, u2v1.x, u2v1.y);
+		MeshBuilder builder = this.builder.getBuilder(sample.getLayer());
+		builder.vertex(x1, y + 1.0, z1, u1v1.x, u1v1.y);
+		builder.vertex(x1, y + 0.0, z1, u1v2.x, u1v2.y);
+		builder.vertex(x2, y + 0.0, z2, u2v2.x, u2v2.y);
+		builder.vertex(x2, y + 1.0, z2, u2v1.x, u2v1.y);
+		builder.vertex(x2, y + 1.0, z2, u1v1.x, u1v1.y);
+		builder.vertex(x2, y + 0.0, z2, u1v2.x, u1v2.y);
+		builder.vertex(x1, y + 0.0, z1, u2v2.x, u2v2.y);
+		builder.vertex(x1, y + 1.0, z1, u2v1.x, u2v1.y);
+		builder.vertex(x1, y + 1.0, z2, u1v1.x, u1v1.y);
+		builder.vertex(x1, y + 0.0, z2, u1v2.x, u1v2.y);
+		builder.vertex(x2, y + 0.0, z1, u2v2.x, u2v2.y);
+		builder.vertex(x2, y + 1.0, z1, u2v1.x, u2v1.y);
+		builder.vertex(x2, y + 1.0, z1, u1v1.x, u1v1.y);
+		builder.vertex(x2, y + 0.0, z1, u1v2.x, u1v2.y);
+		builder.vertex(x1, y + 0.0, z2, u2v2.x, u2v2.y);
+		builder.vertex(x1, y + 1.0, z2, u2v1.x, u2v1.y);
 	}
 	
 	private boolean renderTorch(BlockState state, int x, int y, int z) {
@@ -1191,7 +1210,6 @@ public class BHBlockRenderer {
 		
 		int meta = state.getMeta();
 		BaseBlock block = state.getBlock();
-		Tessellator tessellator = Tessellator.INSTANCE;
 		
 		float light = getBrightness(block, x, y, z);
 		if (state.getEmittance() > 0) {
@@ -1199,7 +1217,8 @@ public class BHBlockRenderer {
 		}
 		
 		light = Math.max(light, sample.getLight());
-		tessellator.color(light, light, light);
+		MeshBuilder builder = this.builder.getBuilder(sample.getLayer());
+		builder.setColor(light, light, light);
 		
 		double d = 0.4f;
 		double d2 = 0.5 - d;
@@ -1217,8 +1236,6 @@ public class BHBlockRenderer {
 	}
 	
 	private void renderTorchSkewed(double x, double y, double z, double dx, double dz, TextureSample sample) {
-		Tessellator tessellator = Tessellator.INSTANCE;
-		
 		Vec2F u1v1 = sample.getUV(0, 0, uvCache.get());
 		Vec2F u2v2 = sample.getUV(1, 1, uvCache.get());
 		Vec2F u3v3 = sample.getUV(0.4375F, 0.375F, uvCache.get());
@@ -1232,35 +1249,36 @@ public class BHBlockRenderer {
 		double x1 = x + dx * (1.0 - 0.625);
 		double z1 = z + dz * (1.0 - 0.625);
 		
-		tessellator.vertex(x1 - 0.0625, y + 0.625, z1 - 0.0625, u3v3.x, u3v3.y);
-		tessellator.vertex(x1 - 0.0625, y + 0.625, z1 + 0.0625, u3v3.x, u4v4.y);
-		tessellator.vertex(x1 + 0.0625, y + 0.625, z1 + 0.0625, u4v4.x, u4v4.y);
-		tessellator.vertex(x1 + 0.0625, y + 0.625, z1 - 0.0625, u4v4.x, u3v3.y);
+		MeshBuilder builder = this.builder.getBuilder(sample.getLayer());
 		
-		tessellator.vertex(x - 0.0625, y + 1.0, z2, u1v1.x, u1v1.y);
-		tessellator.vertex(x - 0.0625 + dx, y + 0.0, z2 + dz, u1v1.x, u2v2.y);
-		tessellator.vertex(x - 0.0625 + dx, y + 0.0, z3 + dz, u2v2.x, u2v2.y);
-		tessellator.vertex(x - 0.0625, y + 1.0, z3, u2v2.x, u1v1.y);
+		builder.vertex(x1 - 0.0625, y + 0.625, z1 - 0.0625, u3v3.x, u3v3.y);
+		builder.vertex(x1 - 0.0625, y + 0.625, z1 + 0.0625, u3v3.x, u4v4.y);
+		builder.vertex(x1 + 0.0625, y + 0.625, z1 + 0.0625, u4v4.x, u4v4.y);
+		builder.vertex(x1 + 0.0625, y + 0.625, z1 - 0.0625, u4v4.x, u3v3.y);
 		
-		tessellator.vertex(x + 0.0625, y + 1.0, z3, u1v1.x, u1v1.y);
-		tessellator.vertex(x + dx + 0.0625, y + 0.0, z3 + dz, u1v1.x, u2v2.y);
-		tessellator.vertex(x + dx + 0.0625, y + 0.0, z2 + dz, u2v2.x, u2v2.y);
-		tessellator.vertex(x + 0.0625, y + 1.0, z2, u2v2.x, u1v1.y);
+		builder.vertex(x - 0.0625, y + 1.0, z2, u1v1.x, u1v1.y);
+		builder.vertex(x - 0.0625 + dx, y + 0.0, z2 + dz, u1v1.x, u2v2.y);
+		builder.vertex(x - 0.0625 + dx, y + 0.0, z3 + dz, u2v2.x, u2v2.y);
+		builder.vertex(x - 0.0625, y + 1.0, z3, u2v2.x, u1v1.y);
 		
-		tessellator.vertex(x2, y + 1.0, z + 0.0625, u1v1.x, u1v1.y);
-		tessellator.vertex(x2 + dx, y + 0.0, z + 0.0625 + dz, u1v1.x, u2v2.y);
-		tessellator.vertex(x3 + dx, y + 0.0, z + 0.0625 + dz, u2v2.x, u2v2.y);
-		tessellator.vertex(x3, y + 1.0, z + 0.0625, u2v2.x, u1v1.y);
+		builder.vertex(x + 0.0625, y + 1.0, z3, u1v1.x, u1v1.y);
+		builder.vertex(x + dx + 0.0625, y + 0.0, z3 + dz, u1v1.x, u2v2.y);
+		builder.vertex(x + dx + 0.0625, y + 0.0, z2 + dz, u2v2.x, u2v2.y);
+		builder.vertex(x + 0.0625, y + 1.0, z2, u2v2.x, u1v1.y);
 		
-		tessellator.vertex(x3, y + 1.0, z - 0.0625, u1v1.x, u1v1.y);
-		tessellator.vertex(x3 + dx, y + 0.0, z - 0.0625 + dz, u1v1.x, u2v2.y);
-		tessellator.vertex(x2 + dx, y + 0.0, z - 0.0625 + dz, u2v2.x, u2v2.y);
-		tessellator.vertex(x2, y + 1.0, z - 0.0625, u2v2.x, u1v1.y);
+		builder.vertex(x2, y + 1.0, z + 0.0625, u1v1.x, u1v1.y);
+		builder.vertex(x2 + dx, y + 0.0, z + 0.0625 + dz, u1v1.x, u2v2.y);
+		builder.vertex(x3 + dx, y + 0.0, z + 0.0625 + dz, u2v2.x, u2v2.y);
+		builder.vertex(x3, y + 1.0, z + 0.0625, u2v2.x, u1v1.y);
+		
+		builder.vertex(x3, y + 1.0, z - 0.0625, u1v1.x, u1v1.y);
+		builder.vertex(x3 + dx, y + 0.0, z - 0.0625 + dz, u1v1.x, u2v2.y);
+		builder.vertex(x2 + dx, y + 0.0, z - 0.0625 + dz, u2v2.x, u2v2.y);
+		builder.vertex(x2, y + 1.0, z - 0.0625, u2v2.x, u1v1.y);
 	}
 	
 	private boolean renderFire(BlockState state, int x, int y, int z) {
 		BaseBlock block = state.getBlock();
-		Tessellator tessellator = Tessellator.INSTANCE;
 		
 		TextureSample sample1 = state.getTextureForIndex(blockView, x, y, z, 0, overlayIndex);
 		TextureSample sample2 = state.getTextureForIndex(blockView, x, y, z, 1, overlayIndex);
@@ -1269,7 +1287,8 @@ public class BHBlockRenderer {
 		
 		float light = block.getBrightness(blockView, x, y, z);
 		light = Math.max(light, Math.max(sample1.getLight(), sample2.getLight()));
-		tessellator.color(light, light, light);
+		MeshBuilder builder = this.builder.getBuilder(sample1.getLayer());
+		builder.setColor(light, light, light);
 		
 		Vec2F u1v1 = sample1.getUV(0, 0, uvCache.get());
 		Vec2F u1v2 = sample1.getUV(0, 1, uvCache.get());
@@ -1294,28 +1313,28 @@ public class BHBlockRenderer {
 			double z3 = z + 0.5 - 0.3;
 			double z4 = z + 0.5 + 0.3;
 			
-			tessellator.vertex(x3, y + size, z + 1, u2v1.x, u2v1.y);
-			tessellator.vertex(x2, y, z + 1, u2v2.x, u2v2.y);
-			tessellator.vertex(x2, y, z, u1v2.x, u1v2.y);
-			tessellator.vertex(x3, y + size, z, u1v1.x, u1v1.y);
-			tessellator.vertex(x4, y + size, z, u2v1.x, u2v1.y);
-			tessellator.vertex(x1, y, z, u2v2.x, u2v2.y);
-			tessellator.vertex(x1, y, z + 1, u1v2.x, u1v2.y);
-			tessellator.vertex(x4, y + size, z + 1, u1v1.x, u1v1.y);
+			builder.vertex(x3, y + size, z + 1, u2v1.x, u2v1.y);
+			builder.vertex(x2, y, z + 1, u2v2.x, u2v2.y);
+			builder.vertex(x2, y, z, u1v2.x, u1v2.y);
+			builder.vertex(x3, y + size, z, u1v1.x, u1v1.y);
+			builder.vertex(x4, y + size, z, u2v1.x, u2v1.y);
+			builder.vertex(x1, y, z, u2v2.x, u2v2.y);
+			builder.vertex(x1, y, z + 1, u1v2.x, u1v2.y);
+			builder.vertex(x4, y + size, z + 1, u1v1.x, u1v1.y);
 			
 			u1v1 = sample2.getUV(0, 0, u1v1);
 			u1v2 = sample2.getUV(0, 1, u1v2);
 			u2v1 = sample2.getUV(1, 0, u2v1);
 			u2v2 = sample2.getUV(1, 1, u2v2);
 			
-			tessellator.vertex(x + 1, y + size, z4, u2v1.x, u2v1.y);
-			tessellator.vertex(x + 1, y, z1, u2v2.x, u2v2.y);
-			tessellator.vertex(x, y, z1, u1v2.x, u1v2.y);
-			tessellator.vertex(x, y + size, z4, u1v1.x, u1v1.y);
-			tessellator.vertex(x, y + size, z3, u2v1.x, u2v1.y);
-			tessellator.vertex(x, y, z2, u2v2.x, u2v2.y);
-			tessellator.vertex(x + 1, y, z2, u1v2.x, u1v2.y);
-			tessellator.vertex(x + 1, y + size, z3, u1v1.x, u1v1.y);
+			builder.vertex(x + 1, y + size, z4, u2v1.x, u2v1.y);
+			builder.vertex(x + 1, y, z1, u2v2.x, u2v2.y);
+			builder.vertex(x, y, z1, u1v2.x, u1v2.y);
+			builder.vertex(x, y + size, z4, u1v1.x, u1v1.y);
+			builder.vertex(x, y + size, z3, u2v1.x, u2v1.y);
+			builder.vertex(x, y, z2, u2v2.x, u2v2.y);
+			builder.vertex(x + 1, y, z2, u1v2.x, u1v2.y);
+			builder.vertex(x + 1, y + size, z3, u1v1.x, u1v1.y);
 			
 			x2 = x + 0.5 - 0.5;
 			x1 = x + 0.5 + 0.5;
@@ -1326,28 +1345,28 @@ public class BHBlockRenderer {
 			z3 = z + 0.5 - 0.4;
 			z4 = z + 0.5 + 0.4;
 			
-			tessellator.vertex(x3, y + size, z, u1v1.x, u1v1.y);
-			tessellator.vertex(x2, y, z, u1v2.x, u1v2.y);
-			tessellator.vertex(x2, y, z + 1, u2v2.x, u2v2.y);
-			tessellator.vertex(x3, y + size, z + 1, u2v1.x, u2v1.y);
-			tessellator.vertex(x4, y + size, z + 1, u1v1.x, u1v1.y);
-			tessellator.vertex(x1, y, z + 1, u1v2.x, u1v2.y);
-			tessellator.vertex(x1, y, z, u2v2.x, u2v2.y);
-			tessellator.vertex(x4, y + size, z, u2v1.x, u2v1.y);
+			builder.vertex(x3, y + size, z, u1v1.x, u1v1.y);
+			builder.vertex(x2, y, z, u1v2.x, u1v2.y);
+			builder.vertex(x2, y, z + 1, u2v2.x, u2v2.y);
+			builder.vertex(x3, y + size, z + 1, u2v1.x, u2v1.y);
+			builder.vertex(x4, y + size, z + 1, u1v1.x, u1v1.y);
+			builder.vertex(x1, y, z + 1, u1v2.x, u1v2.y);
+			builder.vertex(x1, y, z, u2v2.x, u2v2.y);
+			builder.vertex(x4, y + size, z, u2v1.x, u2v1.y);
 			
 			u1v1 = sample1.getUV(0, 0, u1v1);
 			u1v2 = sample1.getUV(0, 1, u1v2);
 			u2v1 = sample1.getUV(1, 0, u2v1);
 			u2v2 = sample1.getUV(1, 1, u2v2);
 			
-			tessellator.vertex(x, y + size, z4, u1v1.x, u1v1.y);
-			tessellator.vertex(x, y, z1, u1v2.x, u1v2.y);
-			tessellator.vertex(x + 1, y, z1, u2v2.x, u2v2.y);
-			tessellator.vertex(x + 1, y + size, z4, u2v1.x, u2v1.y);
-			tessellator.vertex(x + 1, y + size, z3, u1v1.x, u1v1.y);
-			tessellator.vertex(x + 1, y, z2, u1v2.x, u1v2.y);
-			tessellator.vertex(x, y, z2, u2v2.x, u2v2.y);
-			tessellator.vertex(x, y + size, z3, u2v1.x, u2v1.y);
+			builder.vertex(x, y + size, z4, u1v1.x, u1v1.y);
+			builder.vertex(x, y, z1, u1v2.x, u1v2.y);
+			builder.vertex(x + 1, y, z1, u2v2.x, u2v2.y);
+			builder.vertex(x + 1, y + size, z4, u2v1.x, u2v1.y);
+			builder.vertex(x + 1, y + size, z3, u1v1.x, u1v1.y);
+			builder.vertex(x + 1, y, z2, u1v2.x, u1v2.y);
+			builder.vertex(x, y, z2, u2v2.x, u2v2.y);
+			builder.vertex(x, y + size, z3, u2v1.x, u2v1.y);
 		}
 		else {
 			float f3 = 0.2f;
@@ -1373,47 +1392,47 @@ public class BHBlockRenderer {
 			}
 			
 			if (BaseBlock.FIRE.method_1824(blockView, x - 1, y, z)) {
-				tessellator.vertex(x + f3, y + size + f4, z + 1, u2v1.x, u2v1.y);
-				tessellator.vertex(x, y + f4, z + 1, u2v2.x, u2v2.y);
-				tessellator.vertex(x, y + f4, z, u1v2.x, u1v2.y);
-				tessellator.vertex(x + f3, y + size + f4, z, u1v1.x, u1v1.y);
-				tessellator.vertex(x + f3, y + size + f4, z, u1v1.x, u1v1.y);
-				tessellator.vertex(x, y + f4, z, u1v2.x, u1v2.y);
-				tessellator.vertex(x, y + f4, z + 1, u2v2.x, u2v2.y);
-				tessellator.vertex(x + f3, y + size + f4, z + 1, u2v1.x, u2v1.y);
+				builder.vertex(x + f3, y + size + f4, z + 1, u2v1.x, u2v1.y);
+				builder.vertex(x, y + f4, z + 1, u2v2.x, u2v2.y);
+				builder.vertex(x, y + f4, z, u1v2.x, u1v2.y);
+				builder.vertex(x + f3, y + size + f4, z, u1v1.x, u1v1.y);
+				builder.vertex(x + f3, y + size + f4, z, u1v1.x, u1v1.y);
+				builder.vertex(x, y + f4, z, u1v2.x, u1v2.y);
+				builder.vertex(x, y + f4, z + 1, u2v2.x, u2v2.y);
+				builder.vertex(x + f3, y + size + f4, z + 1, u2v1.x, u2v1.y);
 			}
 			
 			if (BaseBlock.FIRE.method_1824(blockView, x + 1, y, z)) {
-				tessellator.vertex(x + 1 - f3, y + size + f4, z, u1v1.x, u1v1.y);
-				tessellator.vertex(x + 1, y + f4, z, u1v2.x, u1v2.y);
-				tessellator.vertex(x + 1, y + f4, z + 1, u2v2.x, u2v2.y);
-				tessellator.vertex(x + 1 - f3, y + size + f4, z + 1, u2v1.x, u2v1.y);
-				tessellator.vertex(x + 1 - f3, y + size + f4, z + 1, u2v1.x, u2v1.y);
-				tessellator.vertex(x + 1, y + f4, z + 1, u2v2.x, u2v2.y);
-				tessellator.vertex(x + 1, y + f4, z, u1v2.x, u1v2.y);
-				tessellator.vertex(x + 1 - f3, y + size + f4, z, u1v1.x, u1v1.y);
+				builder.vertex(x + 1 - f3, y + size + f4, z, u1v1.x, u1v1.y);
+				builder.vertex(x + 1, y + f4, z, u1v2.x, u1v2.y);
+				builder.vertex(x + 1, y + f4, z + 1, u2v2.x, u2v2.y);
+				builder.vertex(x + 1 - f3, y + size + f4, z + 1, u2v1.x, u2v1.y);
+				builder.vertex(x + 1 - f3, y + size + f4, z + 1, u2v1.x, u2v1.y);
+				builder.vertex(x + 1, y + f4, z + 1, u2v2.x, u2v2.y);
+				builder.vertex(x + 1, y + f4, z, u1v2.x, u1v2.y);
+				builder.vertex(x + 1 - f3, y + size + f4, z, u1v1.x, u1v1.y);
 			}
 			
 			if (BaseBlock.FIRE.method_1824(blockView, x, y, z - 1)) {
-				tessellator.vertex(x, y + size + f4, z + f3, u2v1.x, u2v1.y);
-				tessellator.vertex(x, y + f4, z, u2v2.x, u2v2.y);
-				tessellator.vertex(x + 1, y + f4, z, u1v2.x, u1v2.y);
-				tessellator.vertex(x + 1, y + size + f4, z + f3, u1v1.x, u1v1.y);
-				tessellator.vertex(x + 1, y + size + f4, z + f3, u1v1.x, u1v1.y);
-				tessellator.vertex(x + 1, y + f4, z, u1v2.x, u1v2.y);
-				tessellator.vertex(x, y + f4, z, u2v2.x, u2v2.y);
-				tessellator.vertex(x, y + size + f4, z + f3, u2v1.x, u2v1.y);
+				builder.vertex(x, y + size + f4, z + f3, u2v1.x, u2v1.y);
+				builder.vertex(x, y + f4, z, u2v2.x, u2v2.y);
+				builder.vertex(x + 1, y + f4, z, u1v2.x, u1v2.y);
+				builder.vertex(x + 1, y + size + f4, z + f3, u1v1.x, u1v1.y);
+				builder.vertex(x + 1, y + size + f4, z + f3, u1v1.x, u1v1.y);
+				builder.vertex(x + 1, y + f4, z, u1v2.x, u1v2.y);
+				builder.vertex(x, y + f4, z, u2v2.x, u2v2.y);
+				builder.vertex(x, y + size + f4, z + f3, u2v1.x, u2v1.y);
 			}
 			
 			if (BaseBlock.FIRE.method_1824(blockView, x, y, z + 1)) {
-				tessellator.vertex(x + 1, y + size + f4, z + 1 - f3, u1v1.x, u1v1.y);
-				tessellator.vertex(x + 1, y + f4, z + 1, u1v2.x, u1v2.y);
-				tessellator.vertex(x, y + f4, z + 1, u2v2.x, u2v2.y);
-				tessellator.vertex(x, y + size + f4, z + 1 - f3, u2v1.x, u2v1.y);
-				tessellator.vertex(x, y + size + f4, z + 1 - f3, u2v1.x, u2v1.y);
-				tessellator.vertex(x, y + f4, z + 1, u2v2.x, u2v2.y);
-				tessellator.vertex(x + 1, y + f4, z + 1, u1v2.x, u1v2.y);
-				tessellator.vertex(x + 1, y + size + f4, z + 1 - f3, u1v1.x, u1v1.y);
+				builder.vertex(x + 1, y + size + f4, z + 1 - f3, u1v1.x, u1v1.y);
+				builder.vertex(x + 1, y + f4, z + 1, u1v2.x, u1v2.y);
+				builder.vertex(x, y + f4, z + 1, u2v2.x, u2v2.y);
+				builder.vertex(x, y + size + f4, z + 1 - f3, u2v1.x, u2v1.y);
+				builder.vertex(x, y + size + f4, z + 1 - f3, u2v1.x, u2v1.y);
+				builder.vertex(x, y + f4, z + 1, u2v2.x, u2v2.y);
+				builder.vertex(x + 1, y + f4, z + 1, u1v2.x, u1v2.y);
+				builder.vertex(x + 1, y + size + f4, z + 1 - f3, u1v1.x, u1v1.y);
 			}
 			
 			if (BaseBlock.FIRE.method_1824(blockView, x, y + 1, z)) {
@@ -1428,36 +1447,36 @@ public class BHBlockRenderer {
 				
 				size = -0.2f;
 				if ((x + ++y + z & 1) == 0) {
-					tessellator.vertex(x7, y + size, z, u2v1.x, u2v1.y);
-					tessellator.vertex(x6, y, z, u2v2.x, u2v2.y);
-					tessellator.vertex(x6, y, z + 1, u1v2.x, u1v2.y);
-					tessellator.vertex(x7, y + size, z + 1, u1v1.x, u1v1.y);
+					builder.vertex(x7, y + size, z, u2v1.x, u2v1.y);
+					builder.vertex(x6, y, z, u2v2.x, u2v2.y);
+					builder.vertex(x6, y, z + 1, u1v2.x, u1v2.y);
+					builder.vertex(x7, y + size, z + 1, u1v1.x, u1v1.y);
 					
 					u1v1 = sample2.getUV(0, 0, u1v1);
 					u1v2 = sample2.getUV(0, 1, u1v2);
 					u2v1 = sample2.getUV(1, 0, u2v1);
 					u2v2 = sample2.getUV(1, 1, u2v2);
 					
-					tessellator.vertex(x8, y + size, z + 1, u2v1.x, u2v1.y);
-					tessellator.vertex(x5, y, z + 1, u2v2.x, u2v2.y);
-					tessellator.vertex(x5, y, z, u1v2.x, u1v2.y);
-					tessellator.vertex(x8, y + size, z, u1v1.x, u1v1.y);
+					builder.vertex(x8, y + size, z + 1, u2v1.x, u2v1.y);
+					builder.vertex(x5, y, z + 1, u2v2.x, u2v2.y);
+					builder.vertex(x5, y, z, u1v2.x, u1v2.y);
+					builder.vertex(x8, y + size, z, u1v1.x, u1v1.y);
 				}
 				else {
-					tessellator.vertex(x, y + size, z8, u2v1.x, u2v1.y);
-					tessellator.vertex(x, y, z5, u2v2.x, u2v2.y);
-					tessellator.vertex(x + 1, y, z5, u1v2.x, u1v2.y);
-					tessellator.vertex(x + 1, y + size, z8, u1v1.x, u1v1.y);
+					builder.vertex(x, y + size, z8, u2v1.x, u2v1.y);
+					builder.vertex(x, y, z5, u2v2.x, u2v2.y);
+					builder.vertex(x + 1, y, z5, u1v2.x, u1v2.y);
+					builder.vertex(x + 1, y + size, z8, u1v1.x, u1v1.y);
 					
 					u1v1 = sample2.getUV(0, 0, u1v1);
 					u1v2 = sample2.getUV(0, 1, u1v2);
 					u2v1 = sample2.getUV(1, 0, u2v1);
 					u2v2 = sample2.getUV(1, 1, u2v2);
 					
-					tessellator.vertex(x + 1, y + size, z7, u2v1.x, u2v1.y);
-					tessellator.vertex(x + 1, y, z6, u2v2.x, u2v2.y);
-					tessellator.vertex(x, y, z6, u1v2.x, u1v2.y);
-					tessellator.vertex(x, y + size, z7, u1v1.x, u1v1.y);
+					builder.vertex(x + 1, y + size, z7, u2v1.x, u2v1.y);
+					builder.vertex(x + 1, y, z6, u2v2.x, u2v2.y);
+					builder.vertex(x, y, z6, u1v2.x, u1v2.y);
+					builder.vertex(x, y + size, z7, u1v1.x, u1v1.y);
 				}
 			}
 		}
@@ -1467,8 +1486,6 @@ public class BHBlockRenderer {
 	
 	private boolean renderFluid(BlockState state, int x, int y, int z) {
 		BaseBlock block = state.getBlock();
-		
-		Tessellator tessellator = Tessellator.INSTANCE;
 		
 		int color = block.getColorMultiplier(blockView, x, y, z);
 		float r = (float) (color >> 16 & 0xFF) / 255.0f;
@@ -1520,17 +1537,19 @@ public class BHBlockRenderer {
 				
 				float light = block.getBrightness(blockView, x, y, z);
 				light = Math.max(light, sample.getLight());
-				tessellator.color(light * r, light * g, light * b);
+				
+				MeshBuilder builder = this.builder.getBuilder(sample.getLayer());
+				builder.setColor(light * r, light * g, light * b);
 				
 				Vec2F uv1 = sample.getUV(u1 - cos - sin, v1 - cos + sin, uvCache.get());
 				Vec2F uv2 = sample.getUV(u1 - cos + sin, v1 + cos + sin, uvCache.get());
 				Vec2F uv3 = sample.getUV(u1 + cos + sin, v1 + cos - sin, uvCache.get());
 				Vec2F uv4 = sample.getUV(u1 + cos - sin, v1 - cos - sin, uvCache.get());
 				
-				tessellator.vertex(x, y + h1, z, uv1.x, uv1.y);
-				tessellator.vertex(x, y + h2, z + 1, uv2.x, uv2.y);
-				tessellator.vertex(x + 1, y + h3, z + 1, uv3.x, uv3.y);
-				tessellator.vertex(x + 1, y + h4, z, uv4.x, uv4.y);
+				builder.vertex(x, y + h1, z, uv1.x, uv1.y);
+				builder.vertex(x, y + h2, z + 1, uv2.x, uv2.y);
+				builder.vertex(x + 1, y + h3, z + 1, uv3.x, uv3.y);
+				builder.vertex(x + 1, y + h4, z, uv4.x, uv4.y);
 				
 				result = true;
 			}
@@ -1541,7 +1560,7 @@ public class BHBlockRenderer {
 			if (sample != null) {
 				float light = getBrightness(block, x, y - 1, z) * 0.5F;
 				light = Math.max(light, sample.getLight());
-				tessellator.color(light, light, light);
+				cr00 = light; cg00 = light; cb00 = light;
 				renderNegYFace(block, x, y, z, sample);
 				result = true;
 			}
@@ -1603,12 +1622,14 @@ public class BHBlockRenderer {
 			float light = block.getBrightness(blockView, dx, y, dz);
 			light = side < 2 ? (light * 0.8f) : (light * 0.6f);
 			light = Math.max(light, sample.getLight());
-			tessellator.color(light * r, light * g, light * b);
 			
-			tessellator.vertex(px1, y + py1, pz1, u1v1.x, u1v1.y);
-			tessellator.vertex(px2, y + py2, pz2, u2v2.x, u2v2.y);
-			tessellator.vertex(px2, y, pz2, u2v3.x, u2v3.y);
-			tessellator.vertex(px1, y, pz1, u1v3.x, u1v3.y);
+			MeshBuilder builder = this.builder.getBuilder(sample.getLayer());
+			builder.setColor(light * r, light * g, light * b);
+			
+			builder.vertex(px1, y + py1, pz1, u1v1.x, u1v1.y);
+			builder.vertex(px2, y + py2, pz2, u2v2.x, u2v2.y);
+			builder.vertex(px2, y, pz2, u2v3.x, u2v3.y);
+			builder.vertex(px1, y, pz1, u1v3.x, u1v3.y);
 			result = true;
 		}
 		
@@ -1659,7 +1680,6 @@ public class BHBlockRenderer {
 		
 		BaseBlock block = state.getBlock();
 		
-		Tessellator tessellator = Tessellator.INSTANCE;
 		int meta = state.getMeta();
 		
 		float light = block.getBrightness(blockView, x, y, z);
@@ -1674,7 +1694,8 @@ public class BHBlockRenderer {
 		if (b < 0.0f) b = 0.0f;
 		
 		light = Math.max(light, Math.max(sample1.getLight(), sample2.getLight()));
-		tessellator.color(light * r, light * g, light * b);
+		MeshBuilder builder = this.builder.getBuilder(sample1.getLayer());
+		builder.setColor(light * r, light * g, light * b);
 		
 		Vec2F u1v1 = sample1.getUV(0, 0, uvCache.get());
 		Vec2F u1v2 = sample1.getUV(0, 1, uvCache.get());
@@ -1737,22 +1758,22 @@ public class BHBlockRenderer {
 				u2v2 = sample1.getUV(u2, v2, u2v2);
 			}
 			
-			tessellator.vertex(x2, y + 0.015625f, z2, u2v2.x, u2v2.y);
-			tessellator.vertex(x2, y + 0.015625f, z1, u2v1.x, u2v1.y);
-			tessellator.vertex(x1, y + 0.015625f, z1, u1v1.x, u1v1.y);
-			tessellator.vertex(x1, y + 0.015625f, z2, u1v2.x, u1v2.y);
+			builder.vertex(x2, y + 0.015625f, z2, u2v2.x, u2v2.y);
+			builder.vertex(x2, y + 0.015625f, z1, u2v1.x, u2v1.y);
+			builder.vertex(x1, y + 0.015625f, z1, u1v1.x, u1v1.y);
+			builder.vertex(x1, y + 0.015625f, z2, u1v2.x, u1v2.y);
 		}
 		else if (type == 1) {
-			tessellator.vertex(x2, y + 0.015625f, z2, u2v2.x, u2v2.y);
-			tessellator.vertex(x2, y + 0.015625f, z1, u2v1.x, u2v1.y);
-			tessellator.vertex(x1, y + 0.015625f, z1, u1v1.x, u1v1.y);
-			tessellator.vertex(x1, y + 0.015625f, z2, u1v2.x, u1v2.y);
+			builder.vertex(x2, y + 0.015625f, z2, u2v2.x, u2v2.y);
+			builder.vertex(x2, y + 0.015625f, z1, u2v1.x, u2v1.y);
+			builder.vertex(x1, y + 0.015625f, z1, u1v1.x, u1v1.y);
+			builder.vertex(x1, y + 0.015625f, z2, u1v2.x, u1v2.y);
 		}
 		else {
-			tessellator.vertex(x2, y + 0.015625f, z2, u2v2.x, u2v2.y);
-			tessellator.vertex(x2, y + 0.015625f, z1, u1v2.x, u1v2.y);
-			tessellator.vertex(x1, y + 0.015625f, z1, u1v1.x, u1v1.y);
-			tessellator.vertex(x1, y + 0.015625f, z2, u2v1.x, u2v1.y);
+			builder.vertex(x2, y + 0.015625f, z2, u2v2.x, u2v2.y);
+			builder.vertex(x2, y + 0.015625f, z1, u1v2.x, u1v2.y);
+			builder.vertex(x1, y + 0.015625f, z1, u1v1.x, u1v1.y);
+			builder.vertex(x1, y + 0.015625f, z2, u2v1.x, u2v1.y);
 		}
 		
 		if (!blockView.canSuffocate(x, y + 1, z)) {
@@ -1762,35 +1783,35 @@ public class BHBlockRenderer {
 			u2v2 = sample2.getUV(1, 1, u2v2);
 			
 			if (blockView.canSuffocate(x - 1, y, z) && blockView.getBlockId(x - 1, y + 1, z) == BaseBlock.REDSTONE_DUST.id) {
-				tessellator.color(light * r, light * g, light * b);
-				tessellator.vertex(x + 0.015625, y + 1.021875, z + 1, u2v1.x, u2v1.y);
-				tessellator.vertex(x + 0.015625, y, z + 1, u1v1.x, u1v1.y);
-				tessellator.vertex(x + 0.015625, y, z, u1v2.x, u1v2.y);
-				tessellator.vertex(x + 0.015625, y + 1.021875, z, u2v2.x, u2v2.y);
+				builder.setColor(light * r, light * g, light * b);
+				builder.vertex(x + 0.015625, y + 1.021875, z + 1, u2v1.x, u2v1.y);
+				builder.vertex(x + 0.015625, y, z + 1, u1v1.x, u1v1.y);
+				builder.vertex(x + 0.015625, y, z, u1v2.x, u1v2.y);
+				builder.vertex(x + 0.015625, y + 1.021875, z, u2v2.x, u2v2.y);
 			}
 			
 			if (blockView.canSuffocate(x + 1, y, z) && blockView.getBlockId(x + 1, y + 1, z) == BaseBlock.REDSTONE_DUST.id) {
-				tessellator.color(light * r, light * g, light * b);
-				tessellator.vertex(x + 0.984375, y, z + 1, u1v2.x, u1v2.y);
-				tessellator.vertex(x + 0.984375, y + 1.021875, z + 1, u2v2.y, u2v2.y);
-				tessellator.vertex(x + 0.984375, y + 1.021875, z, u2v1.y, u2v1.y);
-				tessellator.vertex(x + 0.984375, y, z, u1v1.y, u1v1.y);
+				builder.setColor(light * r, light * g, light * b);
+				builder.vertex(x + 0.984375, y, z + 1, u1v2.x, u1v2.y);
+				builder.vertex(x + 0.984375, y + 1.021875, z + 1, u2v2.y, u2v2.y);
+				builder.vertex(x + 0.984375, y + 1.021875, z, u2v1.y, u2v1.y);
+				builder.vertex(x + 0.984375, y, z, u1v1.y, u1v1.y);
 			}
 			
 			if (blockView.canSuffocate(x, y, z - 1) && blockView.getBlockId(x, y + 1, z - 1) == BaseBlock.REDSTONE_DUST.id) {
-				tessellator.color(light * r, light * g, light * b);
-				tessellator.vertex(x + 1, y, z + 0.015625, u1v2.x, u1v2.y);
-				tessellator.vertex(x + 1, y + 1.021875, z + 0.015625, u2v2.x, u2v2.y);
-				tessellator.vertex(x, y + 1.021875, z + 0.015625, u2v1.x, u2v1.y);
-				tessellator.vertex(x, y, z + 0.015625, u1v1.x, u1v1.y);
+				builder.setColor(light * r, light * g, light * b);
+				builder.vertex(x + 1, y, z + 0.015625, u1v2.x, u1v2.y);
+				builder.vertex(x + 1, y + 1.021875, z + 0.015625, u2v2.x, u2v2.y);
+				builder.vertex(x, y + 1.021875, z + 0.015625, u2v1.x, u2v1.y);
+				builder.vertex(x, y, z + 0.015625, u1v1.x, u1v1.y);
 			}
 			
 			if (blockView.canSuffocate(x, y, z + 1) && blockView.getBlockId(x, y + 1, z + 1) == BaseBlock.REDSTONE_DUST.id) {
-				tessellator.color(light * r, light * g, light * b);
-				tessellator.vertex(x + 1, y + 1.021875, z + 0.984375, u2v1.x, u2v1.y);
-				tessellator.vertex(x + 1, y, z + 0.984375, u1v1.x, u1v1.y);
-				tessellator.vertex(x, y, z + 0.984375, u1v2.x, u1v2.y);
-				tessellator.vertex(x, y + 1.021875, z + 0.984375, u2v2.x, u2v2.y);
+				builder.setColor(light * r, light * g, light * b);
+				builder.vertex(x + 1, y + 1.021875, z + 0.984375, u2v1.x, u2v1.y);
+				builder.vertex(x + 1, y, z + 0.984375, u1v1.x, u1v1.y);
+				builder.vertex(x, y, z + 0.984375, u1v2.x, u1v2.y);
+				builder.vertex(x, y + 1.021875, z + 0.984375, u2v2.x, u2v2.y);
 			}
 		}
 		
@@ -1802,16 +1823,15 @@ public class BHBlockRenderer {
 		TextureSample sample = state.getTextureForIndex(blockView, x, y, z, meta, overlayIndex);
 		if (sample == null) return false;
 		BaseBlock block = state.getBlock();
-		Tessellator tessellator = Tessellator.INSTANCE;
 		float light = getBrightness(block, x, y, z);
 		light = Math.max(light, sample.getLight());
-		tessellator.color(light, light, light);
+		MeshBuilder builder = this.builder.getBuilder(sample.getLayer());
+		builder.setColor(light, light, light);
 		renderCrop(x, y - 0.0625, z, sample);
 		return true;
 	}
 	
 	private void renderCrop(double x, double y, double z, TextureSample sample) {
-		Tessellator tessellator = Tessellator.INSTANCE;
 		Vec2F u1v1 = sample.getUV(0, 0, uvCache.get());
 		Vec2F u1v2 = sample.getUV(0, 1, uvCache.get());
 		Vec2F u2v1 = sample.getUV(1, 0, uvCache.get());
@@ -1823,44 +1843,45 @@ public class BHBlockRenderer {
 		double z2 = z + 0.5 + 0.5;
 		double y2 = y + 1;
 		
-		tessellator.vertex(x1, y2, z1, u1v1.x, u1v1.y);
-		tessellator.vertex(x1, y, z1, u1v2.x, u1v2.y);
-		tessellator.vertex(x1, y, z2, u2v2.x, u2v2.y);
-		tessellator.vertex(x1, y2, z2, u2v1.x, u2v1.y);
-		tessellator.vertex(x1, y2, z2, u1v1.x, u1v1.y);
-		tessellator.vertex(x1, y, z2, u1v2.x, u1v2.y);
-		tessellator.vertex(x1, y, z1, u2v2.x, u2v2.y);
-		tessellator.vertex(x1, y2, z1, u2v1.x, u2v1.y);
-		tessellator.vertex(x2, y2, z2, u1v1.x, u1v1.y);
-		tessellator.vertex(x2, y, z2, u1v2.x, u1v2.y);
-		tessellator.vertex(x2, y, z1, u2v2.x, u2v2.y);
-		tessellator.vertex(x2, y2, z1, u2v1.x, u2v1.y);
-		tessellator.vertex(x2, y2, z1, u1v1.x, u1v1.y);
-		tessellator.vertex(x2, y, z1, u1v2.x, u1v2.y);
-		tessellator.vertex(x2, y, z2, u2v2.x, u2v2.y);
-		tessellator.vertex(x2, y2, z2, u2v1.x, u2v1.y);
+		MeshBuilder builder = this.builder.getBuilder(sample.getLayer());
+		builder.vertex(x1, y2, z1, u1v1.x, u1v1.y);
+		builder.vertex(x1, y, z1, u1v2.x, u1v2.y);
+		builder.vertex(x1, y, z2, u2v2.x, u2v2.y);
+		builder.vertex(x1, y2, z2, u2v1.x, u2v1.y);
+		builder.vertex(x1, y2, z2, u1v1.x, u1v1.y);
+		builder.vertex(x1, y, z2, u1v2.x, u1v2.y);
+		builder.vertex(x1, y, z1, u2v2.x, u2v2.y);
+		builder.vertex(x1, y2, z1, u2v1.x, u2v1.y);
+		builder.vertex(x2, y2, z2, u1v1.x, u1v1.y);
+		builder.vertex(x2, y, z2, u1v2.x, u1v2.y);
+		builder.vertex(x2, y, z1, u2v2.x, u2v2.y);
+		builder.vertex(x2, y2, z1, u2v1.x, u2v1.y);
+		builder.vertex(x2, y2, z1, u1v1.x, u1v1.y);
+		builder.vertex(x2, y, z1, u1v2.x, u1v2.y);
+		builder.vertex(x2, y, z2, u2v2.x, u2v2.y);
+		builder.vertex(x2, y2, z2, u2v1.x, u2v1.y);
 		
 		x1 = x + 0.5 - 0.5;
 		x2 = x + 0.5 + 0.5;
 		z1 = z + 0.5 - 0.25;
 		z2 = z + 0.5 + 0.25;
 		
-		tessellator.vertex(x1, y2, z1, u1v1.x, u1v1.y);
-		tessellator.vertex(x1, y, z1, u1v2.x, u1v2.y);
-		tessellator.vertex(x2, y, z1, u2v2.x, u2v2.y);
-		tessellator.vertex(x2, y2, z1, u2v1.x, u2v1.y);
-		tessellator.vertex(x2, y2, z1, u1v1.x, u1v1.y);
-		tessellator.vertex(x2, y, z1, u1v2.x, u1v2.y);
-		tessellator.vertex(x1, y, z1, u2v2.x, u2v2.y);
-		tessellator.vertex(x1, y2, z1, u2v1.x, u2v1.y);
-		tessellator.vertex(x2, y2, z2, u1v1.x, u1v1.y);
-		tessellator.vertex(x2, y, z2, u1v2.x, u1v2.y);
-		tessellator.vertex(x1, y, z2, u2v2.x, u2v2.y);
-		tessellator.vertex(x1, y2, z2, u2v1.x, u2v1.y);
-		tessellator.vertex(x1, y2, z2, u1v1.x, u1v1.y);
-		tessellator.vertex(x1, y, z2, u1v2.x, u1v2.y);
-		tessellator.vertex(x2, y, z2, u2v2.x, u2v2.y);
-		tessellator.vertex(x2, y2, z2, u2v1.x, u2v1.y);
+		builder.vertex(x1, y2, z1, u1v1.x, u1v1.y);
+		builder.vertex(x1, y, z1, u1v2.x, u1v2.y);
+		builder.vertex(x2, y, z1, u2v2.x, u2v2.y);
+		builder.vertex(x2, y2, z1, u2v1.x, u2v1.y);
+		builder.vertex(x2, y2, z1, u1v1.x, u1v1.y);
+		builder.vertex(x2, y, z1, u1v2.x, u1v2.y);
+		builder.vertex(x1, y, z1, u2v2.x, u2v2.y);
+		builder.vertex(x1, y2, z1, u2v1.x, u2v1.y);
+		builder.vertex(x2, y2, z2, u1v1.x, u1v1.y);
+		builder.vertex(x2, y, z2, u1v2.x, u1v2.y);
+		builder.vertex(x1, y, z2, u2v2.x, u2v2.y);
+		builder.vertex(x1, y2, z2, u2v1.x, u2v1.y);
+		builder.vertex(x1, y2, z2, u1v1.x, u1v1.y);
+		builder.vertex(x1, y, z2, u1v2.x, u1v2.y);
+		builder.vertex(x2, y, z2, u2v2.x, u2v2.y);
+		builder.vertex(x2, y2, z2, u2v1.x, u2v1.y);
 	}
 	
 	private boolean renderDoor(BlockState state, int x, int y, int z) {
@@ -1959,7 +1980,6 @@ public class BHBlockRenderer {
 	
 	private boolean renderLadder(BlockState state, int x, int y, int z) {
 		BaseBlock block = state.getBlock();
-		Tessellator tessellator = Tessellator.INSTANCE;
 		
 		TextureSample sample = state.getTextureForIndex(blockView, x, y, z, 0, overlayIndex);
 		if (sample == null) return false;
@@ -1971,7 +1991,8 @@ public class BHBlockRenderer {
 		
 		float light = block.getBrightness(blockView, x, y, z);
 		light = Math.max(light, sample.getLight());
-		tessellator.color(light, light, light);
+		MeshBuilder builder = this.builder.getBuilder(sample.getLayer());
+		builder.setColor(light, light, light);
 		
 		int meta = state.getMeta();
 		if (breaking) {
@@ -1983,31 +2004,31 @@ public class BHBlockRenderer {
 		
 		switch (meta) {
 			case 5 -> {
-				tessellator.vertex(x + 0.05, y + 1, z + 1, u1v1.x, u1v1.y);
-				tessellator.vertex(x + 0.05, y, z + 1, u1v2.x, u1v2.y);
-				tessellator.vertex(x + 0.05, y, z, u2v2.x, u2v2.y);
-				tessellator.vertex(x + 0.05, y + 1, z, u2v1.x, u2v1.y);
+				builder.vertex(x + 0.05, y + 1, z + 1, u1v1.x, u1v1.y);
+				builder.vertex(x + 0.05, y, z + 1, u1v2.x, u1v2.y);
+				builder.vertex(x + 0.05, y, z, u2v2.x, u2v2.y);
+				builder.vertex(x + 0.05, y + 1, z, u2v1.x, u2v1.y);
 				return true;
 			}
 			case 4 -> {
-				tessellator.vertex(x + 0.95, y, z + 1, u2v2.x, u2v2.y);
-				tessellator.vertex(x + 0.95, y + 1, z + 1, u2v1.x, u2v1.y);
-				tessellator.vertex(x + 0.95, y + 1, z, u1v1.x, u1v1.y);
-				tessellator.vertex(x + 0.95, y, z, u1v2.x, u1v2.y);
+				builder.vertex(x + 0.95, y, z + 1, u2v2.x, u2v2.y);
+				builder.vertex(x + 0.95, y + 1, z + 1, u2v1.x, u2v1.y);
+				builder.vertex(x + 0.95, y + 1, z, u1v1.x, u1v1.y);
+				builder.vertex(x + 0.95, y, z, u1v2.x, u1v2.y);
 				return true;
 			}
 			case 3 -> {
-				tessellator.vertex(x + 1, y, z + 0.05, u2v2.x, u2v2.y);
-				tessellator.vertex(x + 1, y + 1, z + 0.05, u2v1.x, u2v1.y);
-				tessellator.vertex(x, y + 1, z + 0.05, u1v1.x, u1v1.y);
-				tessellator.vertex(x, y, z + 0.05, u1v2.x, u1v2.y);
+				builder.vertex(x + 1, y, z + 0.05, u2v2.x, u2v2.y);
+				builder.vertex(x + 1, y + 1, z + 0.05, u2v1.x, u2v1.y);
+				builder.vertex(x, y + 1, z + 0.05, u1v1.x, u1v1.y);
+				builder.vertex(x, y, z + 0.05, u1v2.x, u1v2.y);
 				return true;
 			}
 			case 2 -> {
-				tessellator.vertex(x + 1, y + 1, z + 0.95, u1v1.x, u1v1.y);
-				tessellator.vertex(x + 1, y, z + 0.95, u1v2.x, u1v2.y);
-				tessellator.vertex(x, y, z + 0.95, u2v2.x, u2v2.y);
-				tessellator.vertex(x, y + 1, z + 0.95, u2v1.x, u2v1.y);
+				builder.vertex(x + 1, y + 1, z + 0.95, u1v1.x, u1v1.y);
+				builder.vertex(x + 1, y, z + 0.95, u1v2.x, u1v2.y);
+				builder.vertex(x, y, z + 0.95, u2v2.x, u2v2.y);
+				builder.vertex(x, y + 1, z + 0.95, u2v1.x, u2v1.y);
 				return true;
 			}
 		}
@@ -2020,7 +2041,6 @@ public class BHBlockRenderer {
 		TextureSample sample = state.getTextureForIndex(blockView, x, y, z, meta, overlayIndex);
 		if (sample == null) return false;
 		
-		Tessellator tessellator = Tessellator.INSTANCE;
 		RailBlock block = (RailBlock) state.getBlock();
 		
 		if (block.wrapMeta()) {
@@ -2029,7 +2049,8 @@ public class BHBlockRenderer {
 		
 		float light = block.getBrightness(blockView, x, y, z);
 		light = Math.max(light, sample.getLight());
-		tessellator.color(light, light, light);
+		MeshBuilder builder = this.builder.getBuilder(sample.getLayer());
+		builder.setColor(light, light, light);
 		
 		Vec2F u1v1 = sample.getUV(0, 0, uvCache.get());
 		Vec2F u1v2 = sample.getUV(0, 1, uvCache.get());
@@ -2085,14 +2106,14 @@ public class BHBlockRenderer {
 			y3 += 1.0f;
 		}
 		
-		tessellator.vertex(x1, y1, z1, u2v1.x, u2v1.y);
-		tessellator.vertex(x2, y2, z2, u2v2.x, u2v2.y);
-		tessellator.vertex(x3, y3, z3, u1v2.x, u1v2.y);
-		tessellator.vertex(x4, y4, z4, u1v1.x, u1v1.y);
-		tessellator.vertex(x4, y4, z4, u1v1.x, u1v1.y);
-		tessellator.vertex(x3, y3, z3, u1v2.x, u1v2.y);
-		tessellator.vertex(x2, y2, z2, u2v2.x, u2v2.y);
-		tessellator.vertex(x1, y1, z1, u2v1.x, u2v1.y);
+		builder.vertex(x1, y1, z1, u2v1.x, u2v1.y);
+		builder.vertex(x2, y2, z2, u2v2.x, u2v2.y);
+		builder.vertex(x3, y3, z3, u1v2.x, u1v2.y);
+		builder.vertex(x4, y4, z4, u1v1.x, u1v1.y);
+		builder.vertex(x4, y4, z4, u1v1.x, u1v1.y);
+		builder.vertex(x3, y3, z3, u1v2.x, u1v2.y);
+		builder.vertex(x2, y2, z2, u2v2.x, u2v2.y);
+		builder.vertex(x1, y1, z1, u2v1.x, u2v1.y);
 		
 		return true;
 	}
@@ -2104,25 +2125,25 @@ public class BHBlockRenderer {
 		int meta = state.getMeta();
 		if (meta == 0) {
 			block.setBoundingBox(0.0f, 0.0f, 0.0f, 0.5f, 0.5f, 1.0f);
-			result = renderFullCube(state, x, y, z) | result;
+			result = renderFullCube(state, x, y, z);
 			block.setBoundingBox(0.5f, 0.0f, 0.0f, 1.0f, 1.0f, 1.0f);
 			result = renderFullCube(state, x, y, z) | result;
 		}
 		else if (meta == 1) {
 			block.setBoundingBox(0.0f, 0.0f, 0.0f, 0.5f, 1.0f, 1.0f);
-			result = renderFullCube(state, x, y, z) | result;
+			result = renderFullCube(state, x, y, z);
 			block.setBoundingBox(0.5f, 0.0f, 0.0f, 1.0f, 0.5f, 1.0f);
 			result = renderFullCube(state, x, y, z) | result;
 		}
 		else if (meta == 2) {
 			block.setBoundingBox(0.0f, 0.0f, 0.0f, 1.0f, 0.5f, 0.5f);
-			result = renderFullCube(state, x, y, z) | result;
+			result = renderFullCube(state, x, y, z);
 			block.setBoundingBox(0.0f, 0.0f, 0.5f, 1.0f, 1.0f, 1.0f);
 			result = renderFullCube(state, x, y, z) | result;
 		}
 		else if (meta == 3) {
 			block.setBoundingBox(0.0f, 0.0f, 0.0f, 1.0f, 1.0f, 0.5f);
-			result = renderFullCube(state, x, y, z) | result;
+			result = renderFullCube(state, x, y, z);
 			block.setBoundingBox(0.0f, 0.0f, 0.5f, 1.0f, 0.5f, 1.0f);
 			result = renderFullCube(state, x, y, z) | result;
 		}
@@ -2189,7 +2210,6 @@ public class BHBlockRenderer {
 		
 		boolean result = renderFullCube(state, x, y, z);
 		
-		Tessellator tessellator = Tessellator.INSTANCE;
 		TextureSample sample = state.getTextureForIndex(blockView, x, y, z, 6, overlayIndex);
 		if (sample == null) return result;
 		
@@ -2201,7 +2221,8 @@ public class BHBlockRenderer {
 		Vec2F u1v2 = sample.getUV(0, 1, uvCache.get());
 		Vec2F u2v1 = sample.getUV(1, 0, uvCache.get());
 		Vec2F u2v2 = sample.getUV(1, 1, uvCache.get());
-		tessellator.color(light, light, light);
+		MeshBuilder builder = this.builder.getBuilder(sample.getLayer());
+		builder.setColor(light, light, light);
 		
 		if (breaking) {
 			u1v1.set(0, 0);
@@ -2319,10 +2340,10 @@ public class BHBlockRenderer {
 				}
 			}
 			
-			tessellator.vertex(p1.x, p1.y, p1.z, u1v2.x, u1v2.y);
-			tessellator.vertex(p2.x, p2.y, p2.z, u2v2.x, u2v2.y);
-			tessellator.vertex(p3.x, p3.y, p3.z, u2v1.x, u2v1.y);
-			tessellator.vertex(p4.x, p4.y, p4.z, u1v1.x, u1v1.y);
+			builder.vertex(p1.x, p1.y, p1.z, u1v2.x, u1v2.y);
+			builder.vertex(p2.x, p2.y, p2.z, u2v2.x, u2v2.y);
+			builder.vertex(p3.x, p3.y, p3.z, u2v1.x, u2v1.y);
+			builder.vertex(p4.x, p4.y, p4.z, u1v1.x, u1v1.y);
 		}
 		
 		return true;
@@ -2361,7 +2382,6 @@ public class BHBlockRenderer {
 		float blockLight = getBrightness(block, x, y, z);
 		float light;
 		
-		Tessellator tessellator = Tessellator.INSTANCE;
 		boolean result = false;
 		
 		TextureSample sample;
@@ -2391,13 +2411,14 @@ public class BHBlockRenderer {
 		if (renderAllSides || state.isSideRendered(blockView, x, y, z - 1, BlockDirection.NEG_Z)) {
 			sample = state.getTextureForIndex(blockView, x, y, z, BlockDirection.NEG_Z.getFacing(), overlayIndex);
 			if (sample != null) {
+				MeshBuilder builder = this.builder.getBuilder(sample.getLayer());
 				light = getBrightness(block, x, y, z - 1);
 				if (block.minZ > 0.0) light = blockLight;
 				light = Math.max(light, sample.getLight());
 				cr00 = r2 * light; cg00 = g2 * light; cb00 = b2 * light;
-				tessellator.addOffset(0.0f, 0.0f, 0.0625f);
+				builder.addOffset(0.0, 0.0, 0.0625);
 				renderNegZFace(block, x, y, z, sample);
-				tessellator.addOffset(0.0f, 0.0f, -0.0625f);
+				builder.addOffset(0.0, 0.0, -0.0625);
 				result = true;
 			}
 		}
@@ -2405,13 +2426,14 @@ public class BHBlockRenderer {
 		if (renderAllSides || state.isSideRendered(blockView, x, y, z + 1, BlockDirection.POS_Z)) {
 			sample = state.getTextureForIndex(blockView, x, y, z, BlockDirection.POS_Z.getFacing(), overlayIndex);
 			if (sample != null) {
+				MeshBuilder builder = this.builder.getBuilder(sample.getLayer());
 				light = getBrightness(block, x, y, z + 1);
 				if (block.maxZ < 1.0) light = blockLight;
 				light = Math.max(light, sample.getLight());
 				cr00 = r2 * light; cg00 = g2 * light; cb00 = b2 * light;
-				tessellator.addOffset(0.0f, 0.0f, -0.0625f);
+				builder.addOffset(0.0f, 0.0f, -0.0625f);
 				renderPosZFace(block, x, y, z, sample);
-				tessellator.addOffset(0.0f, 0.0f, 0.0625f);
+				builder.addOffset(0.0f, 0.0f, 0.0625f);
 				result = true;
 			}
 		}
@@ -2419,13 +2441,14 @@ public class BHBlockRenderer {
 		if (renderAllSides || state.isSideRendered(blockView, x - 1, y, z, BlockDirection.NEG_X)) {
 			sample = state.getTextureForIndex(blockView, x, y, z, BlockDirection.NEG_X.getFacing(), overlayIndex);
 			if (sample != null) {
+				MeshBuilder builder = this.builder.getBuilder(sample.getLayer());
 				light = getBrightness(block, x - 1, y, z);
 				if (block.minX > 0.0) light = blockLight;
 				light = Math.max(light, sample.getLight());
 				cr00 = r3 * light; cg00 = g3 * light; cb00 = b3 * light;
-				tessellator.addOffset(0.0625f, 0.0f, 0.0f);
+				builder.addOffset(0.0625f, 0.0f, 0.0f);
 				renderNegXFace(block, x, y, z, sample);
-				tessellator.addOffset(-0.0625f, 0.0f, 0.0f);
+				builder.addOffset(-0.0625f, 0.0f, 0.0f);
 				result = true;
 			}
 		}
@@ -2433,13 +2456,14 @@ public class BHBlockRenderer {
 		if (renderAllSides || state.isSideRendered(blockView, x + 1, y, z, BlockDirection.POS_X)) {
 			sample = state.getTextureForIndex(blockView, x, y, z, BlockDirection.POS_X.getFacing(), overlayIndex);
 			if (sample != null) {
+				MeshBuilder builder = this.builder.getBuilder(sample.getLayer());
 				light = getBrightness(block, x + 1, y, z);
 				if (block.maxX < 1.0) light = blockLight;
 				light = Math.max(light, sample.getLight());
 				cr00 = r3 * light; cg00 = g3 * light; cb00 = b3 * light;
-				tessellator.addOffset(-0.0625f, 0.0f, 0.0f);
+				builder.addOffset(-0.0625f, 0.0f, 0.0f);
 				renderPosXFace(block, x, y, z, sample);
-				tessellator.addOffset(0.0625f, 0.0f, 0.0f);
+				builder.addOffset(0.0625f, 0.0f, 0.0f);
 				result = true;
 			}
 		}
@@ -2450,16 +2474,16 @@ public class BHBlockRenderer {
 	//TODO finish bed rendering
 	private boolean renderBed(BlockState state, int x, int y, int z) {
 		BaseBlock block = state.getBlock();
-		Tessellator tessellator = Tessellator.INSTANCE;
 		
 		int meta = state.getMeta();
 		int facing = BedBlock.orientationOnly(meta);
 		boolean isFoot = BedBlock.isFoot(meta);
 		
 		float light = block.getBrightness(blockView, x, y, z);
-		tessellator.color(0.5f * light, 0.5f * light, 0.5f * light);
-		
 		TextureSample sample = state.getTextureForIndex(blockView, x, y, z, 0, overlayIndex);
+		MeshBuilder builder = this.builder.getBuilder(sample.getLayer());
+		builder.setColor(0.5f * light, 0.5f * light, 0.5f * light);
+		
 		float u11 = sample.getU(0);
 		float u12 = sample.getU(1);
 		float v11 = sample.getV(0);
@@ -2471,15 +2495,16 @@ public class BHBlockRenderer {
 		double z1 = z + block.minZ;
 		double z2 = z + block.maxZ;
 		
-		tessellator.vertex(x1, y2, z2, u11, v12);
-		tessellator.vertex(x1, y2, z1, u11, v11);
-		tessellator.vertex(x2, y2, z1, u12, v11);
-		tessellator.vertex(x2, y2, z2, u12, v12);
+		builder.vertex(x1, y2, z2, u11, v12);
+		builder.vertex(x1, y2, z1, u11, v11);
+		builder.vertex(x2, y2, z1, u12, v11);
+		builder.vertex(x2, y2, z2, u12, v12);
 		
 		float light2 = block.getBrightness(blockView, x, y + 1, z);
-		tessellator.color(light2, light2, light2);
-		
 		sample = state.getTextureForIndex(blockView, x, y, z, 1, overlayIndex);
+		builder = this.builder.getBuilder(sample.getLayer());
+		builder.setColor(light2, light2, light2);
+		
 		float u21 = sample.getU(0);
 		float u22 = sample.getU(1);
 		float v21 = sample.getV(0);
@@ -2523,10 +2548,10 @@ public class BHBlockRenderer {
 		double d25 = (double) z + block.minZ;
 		double d26 = (double) z + block.maxZ;
 		
-		tessellator.vertex(d23, d24, d26, d18, d20);
-		tessellator.vertex(d23, d24, d25, d14, d16);
-		tessellator.vertex(d22, d24, d25, d15, d17);
-		tessellator.vertex(d22, d24, d26, d19, d21);
+		builder.vertex(d23, d24, d26, d18, d20);
+		builder.vertex(d23, d24, d25, d14, d16);
+		builder.vertex(d22, d24, d25, d15, d17);
+		builder.vertex(d22, d24, d26, d19, d21);
 		
 		int magic = MagicBedNumbers.field_792[facing];
 		if (isFoot) {
@@ -2540,47 +2565,41 @@ public class BHBlockRenderer {
 			case 1 -> face = 3;
 		}
 		
+		float brightness;
+		
 		if (magic != 2 && (renderAllSides || state.isSideRendered(blockView, x, y, z - 1, BlockDirection.NEG_Z))) {
-			float f19 = block.getBrightness(blockView, x, y, z - 1);
-			if (block.minZ > 0.0) {
-				f19 = light;
-			}
-			tessellator.color(0.8f * f19, 0.8f * f19, 0.8f * f19);
+			brightness = block.getBrightness(blockView, x, y, z - 1);
+			if (block.minZ > 0.0) brightness = light;
 			sample = state.getTextureForIndex(blockView, x, y, z, 2, overlayIndex);
 			sample.setMirrorU(face == 2);
+			cr00 = 0.8f * brightness; cg00 = 0.8f * brightness; cb00 = 0.8f * brightness;
 			renderNegZFace(block, x, y, z, sample);
 		}
 		
 		if (magic != 3 && (renderAllSides || state.isSideRendered(blockView, x, y, z + 1, BlockDirection.POS_Z))) {
-			float f20 = block.getBrightness(blockView, x, y, z + 1);
-			if (block.maxZ < 1.0) {
-				f20 = light;
-			}
-			tessellator.color(0.8f * f20, 0.8f * f20, 0.8f * f20);
+			brightness = block.getBrightness(blockView, x, y, z + 1);
+			if (block.maxZ < 1.0) brightness = light;
 			sample = state.getTextureForIndex(blockView, x, y, z, 3, overlayIndex);
 			sample.setMirrorU(face == 3);
+			cr00 = 0.8f * brightness; cg00 = 0.8f * brightness; cb00 = 0.8f * brightness;
 			renderPosZFace(block, x, y, z, sample);
 		}
 		
 		if (magic != 4 && (renderAllSides || state.isSideRendered(blockView, x - 1, y, z, BlockDirection.NEG_X))) {
-			float f21 = block.getBrightness(blockView, x - 1, y, z);
-			if (block.minX > 0.0) {
-				f21 = light;
-			}
-			tessellator.color(0.6f * f21, 0.6f * f21, 0.6f * f21);
+			brightness = block.getBrightness(blockView, x - 1, y, z);
+			if (block.minX > 0.0) brightness = light;
 			sample = state.getTextureForIndex(blockView, x, y, z, 3, overlayIndex);
 			sample.setMirrorU(face == 4);
+			cr00 = 0.6f * brightness; cg00 = 0.6f * brightness; cb00 = 0.6f * brightness;
 			renderNegXFace(block, x, y, z, sample);
 		}
 		
 		if (magic != 5 && (renderAllSides || state.isSideRendered(blockView, x + 1, y, z, BlockDirection.POS_X))) {
-			float f22 = block.getBrightness(blockView, x + 1, y, z);
-			if (block.maxX < 1.0) {
-				f22 = light;
-			}
-			tessellator.color(0.6f * f22, 0.6f * f22, 0.6f * f22);
+			brightness = block.getBrightness(blockView, x + 1, y, z);
+			if (block.maxX < 1.0) brightness = light;
 			sample = state.getTextureForIndex(blockView, x, y, z, 3, overlayIndex);
 			sample.setMirrorU(face == 5);
+			cr00 = 0.6f * brightness; cg00 = 0.6f * brightness; cb00 = 0.6f * brightness;
 			renderPosXFace(block, x, y, z, sample);
 		}
 		
@@ -2593,7 +2612,6 @@ public class BHBlockRenderer {
 		int wrappedMeta = meta & 3;
 		int powered = (meta & 0xC) >> 2;
 		renderFullCube(state, x, y, z);
-		Tessellator tessellator = Tessellator.INSTANCE;
 		
 		float light = block.getBrightness(blockView, x, y, z);
 		if (state.getEmittance() > 0) light = (light + 1.0f) * 0.5f;
@@ -2627,7 +2645,8 @@ public class BHBlockRenderer {
 		TextureSample sample = state.getTextureForIndex(blockView, x, y, z, 6, overlayIndex);
 		if (sample != null) {
 			float light2 = Math.max(light, sample.getLight());
-			tessellator.color(light2, light2, light2);
+			MeshBuilder builder = this.builder.getBuilder(sample.getLayer());
+			builder.setColor(light2, light2, light2);
 			renderTorchSkewed(x + dx, y + dy, z + dz, 0.0, 0.0, sample);
 			renderTorchSkewed(x + d4, y + dy, z + d5, 0.0, 0.0, sample);
 			result = true;
@@ -2636,8 +2655,9 @@ public class BHBlockRenderer {
 		sample = state.getTextureForIndex(blockView, x, y, z, 0, overlayIndex);
 		if (sample == null) return result;
 		
+		MeshBuilder builder = this.builder.getBuilder(sample.getLayer());
 		light = Math.max(light, sample.getLight());
-		tessellator.color(light, light, light);
+		builder.setColor(light, light, light);
 		Vec2F u1v1 = sample.getUV(0, 0, uvCache.get());
 		Vec2F u1v2 = sample.getUV(0, 1, uvCache.get());
 		Vec2F u2v1 = sample.getUV(1, 0, uvCache.get());
@@ -2673,10 +2693,10 @@ public class BHBlockRenderer {
 			z3 = z4 = z;
 		}
 		
-		tessellator.vertex(x4, y1, z4, u1v1.x, u1v1.y);
-		tessellator.vertex(x3, y1, z3, u1v2.x, u1v2.y);
-		tessellator.vertex(x2, y1, z2, u2v2.x, u2v2.y);
-		tessellator.vertex(x1, y1, z1, u2v1.x, u2v1.y);
+		builder.vertex(x4, y1, z4, u1v1.x, u1v1.y);
+		builder.vertex(x3, y1, z3, u1v2.x, u1v2.y);
+		builder.vertex(x2, y1, z2, u2v2.x, u2v2.y);
+		builder.vertex(x1, y1, z1, u2v1.x, u2v1.y);
 		
 		return true;
 	}
@@ -2735,7 +2755,7 @@ public class BHBlockRenderer {
 				}
 			}
 			
-			result = renderFullCube(state, x, y, z) | result;
+			result = renderFullCube(state, x, y, z);
 			block.setBoundingBox(0.0f, 0.0f, 0.0f, 1.0f, 1.0f, 1.0f);
 			forceRotation = false;
 		}
@@ -2775,7 +2795,7 @@ public class BHBlockRenderer {
 				}
 			}
 			
-			result = renderFullCube(state, x, y, z) | result;
+			result = renderFullCube(state, x, y, z);
 			forceRotation = false;
 		}
 		
@@ -2803,7 +2823,7 @@ public class BHBlockRenderer {
 				this.rotation.set(BlockDirection.POS_X, 2);
 				this.rotation.set(BlockDirection.NEG_X, 2);
 				block.setBoundingBox(0.0f, 0.0f, 0.0f, 1.0f, 0.25f, 1.0f);
-				result = renderFullCube(state, x, y, z) | result;
+				result = renderFullCube(state, x, y, z);
 				renderPistonHead(x + 0.375f, x + 0.625f, y + 0.25f, y + 0.25f + delta, z + 0.625f, z + 0.625f, light * 0.8f, scale, 0);
 				renderPistonHead(x + 0.625f, x + 0.375f, y + 0.25f, y + 0.25f + delta, z + 0.375f, z + 0.375f, light * 0.8f, scale, 0);
 				renderPistonHead(x + 0.375f, x + 0.375f, y + 0.25f, y + 0.25f + delta, z + 0.375f, z + 0.625f, light * 0.6f, scale, 0);
@@ -2811,7 +2831,7 @@ public class BHBlockRenderer {
 			}
 			case 1 -> {
 				block.setBoundingBox(0.0f, 0.75f, 0.0f, 1.0f, 1.0f, 1.0f);
-				result = renderFullCube(state, x, y, z) | result;
+				result = renderFullCube(state, x, y, z);
 				renderPistonHead(x + 0.375f, x + 0.625f, y - 0.25f + 1.0f - delta, y - 0.25f + 1.0f, z + 0.625f, z + 0.625f, light * 0.8f, scale, 0);
 				renderPistonHead(x + 0.625f, x + 0.375f, y - 0.25f + 1.0f - delta, y - 0.25f + 1.0f, z + 0.375f, z + 0.375f, light * 0.8f, scale, 0);
 				renderPistonHead(x + 0.375f, x + 0.375f, y - 0.25f + 1.0f - delta, y - 0.25f + 1.0f, z + 0.375f, z + 0.625f, light * 0.6f, scale, 0);
@@ -2822,7 +2842,7 @@ public class BHBlockRenderer {
 				this.rotation.set(BlockDirection.NEG_X, 3);
 				this.rotation.set(BlockDirection.POS_Y, 2);
 				block.setBoundingBox(0.0f, 0.0f, 0.0f, 1.0f, 1.0f, 0.25f);
-				result = renderFullCube(state, x, y, z) | result;
+				result = renderFullCube(state, x, y, z);
 				renderPistonHead(x + 0.375f, x + 0.375f, y + 0.625f, y + 0.375f, z + 0.25f, z + 0.25f + delta, light * 0.6f, scale, 1);
 				renderPistonHead(x + 0.625f, x + 0.625f, y + 0.375f, y + 0.625f, z + 0.25f, z + 0.25f + delta, light * 0.6f, scale, 1);
 				renderPistonHead(x + 0.375f, x + 0.625f, y + 0.375f, y + 0.375f, z + 0.25f, z + 0.25f + delta, light * 0.5f, scale, 1);
@@ -2833,7 +2853,7 @@ public class BHBlockRenderer {
 				this.rotation.set(BlockDirection.NEG_X, 1);
 				this.rotation.set(BlockDirection.NEG_Y, 2);
 				block.setBoundingBox(0.0f, 0.0f, 0.75f, 1.0f, 1.0f, 1.0f);
-				result = renderFullCube(state, x, y, z) | result;
+				result = renderFullCube(state, x, y, z);
 				renderPistonHead(x + 0.375f, x + 0.375f, y + 0.625f, y + 0.375f, z - 0.25f + 1.0f - delta, z - 0.25f + 1.0f, light * 0.6f, scale, 1);
 				renderPistonHead(x + 0.625f, x + 0.625f, y + 0.375f, y + 0.625f, z - 0.25f + 1.0f - delta, z - 0.25f + 1.0f, light * 0.6f, scale, 1);
 				renderPistonHead(x + 0.375f, x + 0.625f, y + 0.375f, y + 0.375f, z - 0.25f + 1.0f - delta, z - 0.25f + 1.0f, light * 0.5f, scale, 1);
@@ -2845,7 +2865,7 @@ public class BHBlockRenderer {
 				this.rotation.set(BlockDirection.POS_Y, 1);
 				this.rotation.set(BlockDirection.NEG_Y, 1);
 				block.setBoundingBox(0.0f, 0.0f, 0.0f, 0.25f, 1.0f, 1.0f);
-				result = renderFullCube(state, x, y, z) | result;
+				result = renderFullCube(state, x, y, z);
 				renderPistonHead(x + 0.25f, x + 0.25f + delta, y + 0.375f, y + 0.375f, z + 0.625f, z + 0.375f, light * 0.5f, scale, 2);
 				renderPistonHead(x + 0.25f, x + 0.25f + delta, y + 0.625f, y + 0.625f, z + 0.375f, z + 0.625f, light, scale, 2);
 				renderPistonHead(x + 0.25f, x + 0.25f + delta, y + 0.375f, y + 0.625f, z + 0.375f, z + 0.375f, light * 0.6f, scale, 2);
@@ -2857,7 +2877,7 @@ public class BHBlockRenderer {
 				this.rotation.set(BlockDirection.POS_Y, 3);
 				this.rotation.set(BlockDirection.NEG_Y, 3);
 				block.setBoundingBox(0.75f, 0.0f, 0.0f, 1.0f, 1.0f, 1.0f);
-				result = renderFullCube(state, x, y, z) | result;
+				result = renderFullCube(state, x, y, z);
 				renderPistonHead(x - 0.25f + 1.0f - delta, x - 0.25f + 1.0f, y + 0.375f, y + 0.375f, z + 0.625f, z + 0.375f, light * 0.5f, scale, 2);
 				renderPistonHead(x - 0.25f + 1.0f - delta, x - 0.25f + 1.0f, y + 0.625f, y + 0.625f, z + 0.375f, z + 0.625f, light, scale, 2);
 				renderPistonHead(x - 0.25f + 1.0f - delta, x - 0.25f + 1.0f, y + 0.375f, y + 0.625f, z + 0.375f, z + 0.375f, light * 0.6f, scale, 2);
@@ -2870,32 +2890,32 @@ public class BHBlockRenderer {
 	}
 	
 	private void renderPistonHead(double x1, double x2, double y1, double y2, double z1, double z2, float light, float delta, int type) {
-		Tessellator tessellator = Tessellator.INSTANCE;
 		TextureSample sample = Textures.getVanillaBlockSample(108);
 		if (sample == null) return;
 		sample.setRotation(0);
 		Vec2F uv1 = sample.getUV(0, 0, uvCache.get());
 		Vec2F uv2 = sample.getUV(delta / 16F, 0.25F, uvCache.get());
 		light = Math.max(light, sample.getLight());
-		tessellator.color(light, light, light);
+		MeshBuilder builder = this.builder.getBuilder(sample.getLayer());
+		builder.setColor(light, light, light);
 		switch (type) {
 			case 0 -> {
-				tessellator.vertex(x1, y2, z1, uv2.x, uv1.y);
-				tessellator.vertex(x1, y1, z1, uv1.x, uv1.y);
-				tessellator.vertex(x2, y1, z2, uv1.x, uv2.y);
-				tessellator.vertex(x2, y2, z2, uv2.x, uv2.y);
+				builder.vertex(x1, y2, z1, uv2.x, uv1.y);
+				builder.vertex(x1, y1, z1, uv1.x, uv1.y);
+				builder.vertex(x2, y1, z2, uv1.x, uv2.y);
+				builder.vertex(x2, y2, z2, uv2.x, uv2.y);
 			}
 			case 1 -> {
-				tessellator.vertex(x1, y1, z2, uv2.x, uv1.y);
-				tessellator.vertex(x1, y1, z1, uv1.x, uv1.y);
-				tessellator.vertex(x2, y2, z1, uv1.x, uv2.y);
-				tessellator.vertex(x2, y2, z2, uv2.x, uv2.y);
+				builder.vertex(x1, y1, z2, uv2.x, uv1.y);
+				builder.vertex(x1, y1, z1, uv1.x, uv1.y);
+				builder.vertex(x2, y2, z1, uv1.x, uv2.y);
+				builder.vertex(x2, y2, z2, uv2.x, uv2.y);
 			}
 			case 2 -> {
-				tessellator.vertex(x2, y1, z1, uv2.x, uv1.y);
-				tessellator.vertex(x1, y1, z1, uv1.x, uv1.y);
-				tessellator.vertex(x1, y2, z2, uv1.x, uv2.y);
-				tessellator.vertex(x2, y2, z2, uv2.x, uv2.y);
+				builder.vertex(x2, y1, z1, uv2.x, uv1.y);
+				builder.vertex(x1, y1, z1, uv1.x, uv1.y);
+				builder.vertex(x1, y2, z2, uv1.x, uv2.y);
+				builder.vertex(x2, y2, z2, uv2.x, uv2.y);
 			}
 		}
 	}

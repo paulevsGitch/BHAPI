@@ -40,13 +40,11 @@ public class LayeredMeshBuilder {
 	
 	public void build(Tessellator tessellator) {
 		if (isEmpty()) return;
-		tessellator.start();
 		builders.forEach(builder -> {
 			if (!builder.isEmpty()) {
 				builder.build(tessellator);
 			}
 		});
-		tessellator.draw();
 	}
 	
 	public void build(Tessellator tessellator, RenderLayer layer) {

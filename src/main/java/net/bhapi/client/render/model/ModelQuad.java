@@ -1,5 +1,6 @@
 package net.bhapi.client.render.model;
 
+import net.bhapi.client.render.level.MeshBuilder;
 import net.bhapi.client.render.texture.TextureSample;
 import net.bhapi.storage.CircleCache;
 import net.bhapi.storage.Vec2F;
@@ -8,7 +9,6 @@ import net.bhapi.util.BlockDirection;
 import net.bhapi.util.MathUtil;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
-import net.minecraft.client.render.Tessellator;
 import net.minecraft.level.BlockView;
 
 @Environment(EnvType.CLIENT)
@@ -96,14 +96,14 @@ public class ModelQuad {
 	}
 	
 	public void apply(ModelRenderingContext context, TextureSample sample, CircleCache<Vec2F> uvCache) {
-		Tessellator tessellator = context.getTessellator();
+		MeshBuilder builder = context.getBuilder().getBuilder(sample.getLayer());
 		double x = context.getX();
 		double y = context.getY();
 		double z = context.getZ();
-		tessellator.setNormal(normal.x, normal.y, normal.z);
+		builder.setNormal(normal.x, normal.y, normal.z);
 		BlockView view = context.getBlockView();
 		float textureLight = sample.getLight();
-		if (textureLight == 1) tessellator.color(1F, 1F, 1F);
+		if (textureLight == 1) builder.setColor(1F, 1F, 1F);
 		else {
 			float light;
 			if (!context.isInGUI()) {
@@ -111,7 +111,7 @@ public class ModelQuad {
 			}
 			else light = guiLight;
 			if (light < textureLight) light = textureLight;
-			tessellator.color(light, light, light);
+			builder.setColor(light, light, light);
 		}
 		for (byte i = 0; i < 4; i++) {
 			Vec3F pos = positions[i];
@@ -119,7 +119,7 @@ public class ModelQuad {
 			if (!context.isBreaking()) {
 				uv = sample.getUV(uv.x, uv.y, uvCache.get());
 			}
-			tessellator.vertex(x + pos.x, y + pos.y, z + pos.z, uv.x, uv.y);
+			builder.vertex(x + pos.x, y + pos.y, z + pos.z, uv.x, uv.y);
 		}
 	}
 	
