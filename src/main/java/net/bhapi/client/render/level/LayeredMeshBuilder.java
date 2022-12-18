@@ -31,9 +31,13 @@ public class LayeredMeshBuilder {
 		}
 	}
 	
+	public boolean isEmpty(RenderLayer layer) {
+		return builders.get(layer).isEmpty();
+	}
+	
 	public boolean isEmpty() {
 		for (RenderLayer layer: RenderLayer.VALUES) {
-			if (!builders.get(layer).isEmpty()) return false;
+			if (!isEmpty(layer)) return false;
 		}
 		return true;
 	}
@@ -50,8 +54,6 @@ public class LayeredMeshBuilder {
 	public void build(Tessellator tessellator, RenderLayer layer) {
 		MeshBuilder builder = builders.get(layer);
 		if (builder.isEmpty()) return;
-		tessellator.start();
 		builder.build(tessellator);
-		tessellator.draw();
 	}
 }

@@ -40,6 +40,10 @@ public class ChunkSection implements NBTSerializable {
 		return x << 8 | y << 4 | z;
 	}
 	
+	public BlockState getBlockState(int index) {
+		return states[index];
+	}
+	
 	public BlockState getBlockState(int x, int y, int z) {
 		BlockState state = states[getIndex(x, y, z)];
 		return state == null ? BlockUtil.AIR_STATE : state;

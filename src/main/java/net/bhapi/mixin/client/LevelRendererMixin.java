@@ -4,6 +4,7 @@ import net.bhapi.blockstate.BlockState;
 import net.bhapi.client.BHAPIClient;
 import net.bhapi.client.render.block.BHBlockRenderer;
 import net.bhapi.client.render.block.BreakInfo;
+import net.bhapi.client.render.level.ClientChunks;
 import net.bhapi.client.render.texture.Textures;
 import net.bhapi.level.BlockStateProvider;
 import net.bhapi.level.ChunkHeightProvider;
@@ -46,6 +47,12 @@ public abstract class LevelRendererMixin implements LevelHeightProvider {
 	@Shadow protected abstract void renderBox(Box arg);
 	
 	@Shadow private List field_1807;
+	
+	@Shadow private int sectionCounX;
+	
+	@Shadow private int sectionCounY;
+	
+	@Shadow private int sectionCounZ;
 	
 	@ModifyConstant(method = "method_1544(Lnet/minecraft/util/maths/Vec3f;Lnet/minecraft/class_68;F)V", constant = @Constant(intValue = 128))
 	private int bhapi_changeMaxHeight(int value) {
@@ -224,7 +231,21 @@ public abstract class LevelRendererMixin implements LevelHeightProvider {
 	
 	@Inject(method = "method_1549", at = @At("HEAD"), cancellable = true)
 	private void bhapi_method_1549(LivingEntity arg, boolean bl, CallbackInfoReturnable<Boolean> info) {
-		if (arg == null) info.setReturnValue(false);
+		//if (arg == null) info.setReturnValue(false);
+		info.setReturnValue(true);
+	}
+	
+	@Inject(method = "method_1548", at = @At("HEAD"), cancellable = true)
+	private void bhapi_renderChunks(LivingEntity entity, int d, double delta, CallbackInfoReturnable<Integer> info) {
+		info.setReturnValue(0);
+		ClientChunks.render(entity, (float) delta);
+	}
+	
+	@Inject(method = "updateFromOptions", at = @At("TAIL"))
+	public void updateFromOptions(CallbackInfo info) {
+		System.out.println("Sections " + (this.sectionCounX | 1) + " " + (this.sectionCounY | 1));
+		ClientChunks.init(this.sectionCounX | 1, this.sectionCounY | 1);
+		//ClientChunks.init(3, 3);
 	}
 	
 	@Inject(method = "playSound", at = @At("HEAD"), cancellable = true)

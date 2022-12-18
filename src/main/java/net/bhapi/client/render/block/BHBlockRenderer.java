@@ -116,7 +116,7 @@ public class BHBlockRenderer {
 	}
 	
 	public void startArea(int x, int y, int z) {
-		builder.start(x, y, z);
+		builder.start(-x, -y, -z);
 	}
 	
 	public void build(Tessellator tessellator, RenderLayer layer) {
@@ -148,13 +148,12 @@ public class BHBlockRenderer {
 	}
 	
 	public void renderItem(BlockState state, boolean colorizeItem, float light) {
-		GL11.glTranslatef(-0.5F, -0.5F, -0.5F);
-		
 		int list = ITEMS_CACHE.computeIfAbsent(state, s -> {
 			builder.start();
 			item = true;
 			
-			itemColor.set(light);
+			//itemColor.set(light);
+			itemColor.set(1);
 			if (colorizeItem) {
 				int color = s.getBlock().getBaseColor(0);
 				float r = (float) (color >> 16 & 0xFF) / 255.0F;
@@ -171,19 +170,22 @@ public class BHBlockRenderer {
 			int result = GL11.glGenLists(1);
 			GL11.glNewList(result, GL11.GL_COMPILE);
 			Tessellator tessellator = Tessellator.INSTANCE;
+			GL11.glPushMatrix();
+			GL11.glTranslatef(-0.5F, -0.5F, -0.5F);
 			tessellator.start();
 			builder.build(tessellator);
 			tessellator.draw();
+			GL11.glPopMatrix();
 			GL11.glEndList();
 			
 			return result;
 		});
 		
+		GL11.glColor3f(light, light, light);
 		GL11.glCallList(list);
 	}
 	
 	public boolean render(BlockState state, int x, int y, int z) {
-		if (!item) return false;
 		byte type = state.getRenderType(blockView, x, y, z);
 		if (type == BlockRenderTypes.EMPTY) return false;
 		state.getBlock().updateBoundingBox(blockView, x, y, z);

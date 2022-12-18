@@ -52,7 +52,8 @@ public abstract class AreaRendererMixin {
 	@SuppressWarnings("all")
 	@Inject(method = "<init>", at = @At("TAIL"))
 	private void bhapi_onInit(Level list, List i, int j, int k, int l, int m, int par7, CallbackInfo ci) {
-		AreaRenderers.add(new Vec3I(startX >> 4, startY >> 4, startZ >> 4), AreaRenderer.class.cast(this));
+		// AreaRenderers.add(new Vec3I(startX >> 4, startY >> 4, startZ >> 4), AreaRenderer.class.cast(this));
+		// System.out.println("Area " + startX + " " + startY + " " + startZ + " ");
 	}
 	
 	@Inject(method = "setPosition", at = @At("TAIL"))

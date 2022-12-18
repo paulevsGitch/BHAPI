@@ -1,6 +1,7 @@
 package net.bhapi.storage;
 
 import net.bhapi.util.BlockDirection;
+import net.minecraft.util.maths.MathHelper;
 
 import java.util.Locale;
 
@@ -60,6 +61,14 @@ public class Vec3I {
 	
 	public Vec3I move(BlockDirection direction) {
 		return direction.move(this);
+	}
+	
+	public int lengthSqr() {
+		return x * x + y * y + z * z;
+	}
+	
+	public float length() {
+		return MathHelper.sqrt(lengthSqr());
 	}
 	
 	@Override

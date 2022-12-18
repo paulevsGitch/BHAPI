@@ -1,14 +1,19 @@
 package net.bhapi.storage;
 
+import net.bhapi.client.render.level.UpdateCondition;
 import net.bhapi.util.MathUtil;
 
+import java.util.Arrays;
+import java.util.Comparator;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
 
 public class WorldCache<T> {
+	private final UpdateCondition<T> updateCondition;
+	private final BiConsumer<Vec3I, T> processor;
 	private final BiConsumer<Vec3I, T> updater;
-	private final Consumer<T> processor;
+	private final Vec3I[] updateOrder;
 	private final Vec3I[] positions;
 	private final Vec3I center;
 	private final int deltaXZ;
@@ -23,7 +28,7 @@ public class WorldCache<T> {
 	private final T[] data;
 	
 	@SuppressWarnings("unchecked")
-	public WorldCache(int sizeXZ, int sizeY, BiConsumer<Vec3I, T> updater, Consumer<T> processor) {
+	public WorldCache(int sizeXZ, int sizeY, BiConsumer<Vec3I, T> updater, BiConsumer<Vec3I, T> processor, UpdateCondition<T> updateCondition) {
 		this.deltaXZ = (sizeXZ >> 1);
 		this.deltaY = (sizeY >> 1);
 		
@@ -34,6 +39,7 @@ public class WorldCache<T> {
 		sizeY = MathUtil.getClosestPowerOfTwo(sizeY);
 		int capacity = sizeXZ * sizeXZ * sizeY;
 		
+		this.updateCondition = updateCondition;
 		this.processor = processor;
 		this.updater = updater;
 		
@@ -50,6 +56,34 @@ public class WorldCache<T> {
 		for (int i = 0; i < data.length; i++) {
 			this.positions[i] = new Vec3I(0, Integer.MIN_VALUE, 0);
 		}
+		
+		int index = 0;
+		capacity = (deltaXZ << 1) + 1;
+		capacity *= capacity;
+		capacity *= (deltaY << 1) + 1;
+		this.updateOrder = new Vec3I[capacity];
+		System.out.println(capacity);
+		for (int x = -deltaXZ; x <= deltaXZ; x++) {
+			for (int z = -deltaXZ; z <= deltaXZ; z++) {
+				for (int y = -deltaY; y <= deltaY; y++) {
+					this.updateOrder[index++] = new Vec3I(x, y, z);
+				}
+			}
+		}
+		Arrays.sort(this.updateOrder, Comparator.comparingInt(Vec3I::lengthSqr));
+		System.out.println("Start: " + this.updateOrder[0]);
+	}
+	
+	public int getSizeXZ() {
+		return sizeXZ;
+	}
+	
+	public int getSizeY() {
+		return sizeY;
+	}
+	
+	public int getCapacity() {
+		return positions.length;
 	}
 	
 	public void fill(Supplier<T> constructor) {
@@ -62,18 +96,46 @@ public class WorldCache<T> {
 		center.set(x, y, z);
 	}
 	
-	public void process() {
-		for (int index = 0; index < data.length; index++) {
-			pos.x = (index >> this.bitsXYZ) & maskXZ;
-			pos.y = (index >> this.bitsXZ) & maskY;
-			pos.z = index & maskXZ;
-			if (pos.x >= sizeXZ || pos.z >= sizeXZ || pos.y >= sizeY) continue;
-			pos.subtract(deltaXZ, deltaY, deltaXZ).add(center);
-			if (!positions[index].equals(pos)) {
-				positions[index].set(pos);
-				updater.accept(pos, data[index]);
+	public void process(int maxUpdates) {
+		int updatesCounter = 0;
+		/*for (int x = -deltaXZ; x <= deltaXZ; x++) {
+			pos.x = center.x + x;
+			for (int z = -deltaXZ; z <= deltaXZ; z++) {
+				pos.z = center.z + z;
+				for (int y = -deltaY; y <= deltaY; y++) {
+					pos.y = center.y + y;
+					int index = (pos.x & maskXZ) << bitsXYZ | (pos.y & maskY) << bitsXZ | (pos.z & maskXZ);
+					if (updatesCounter < maxUpdates) {
+						if (!positions[index].equals(pos)) {
+							positions[index].set(pos);
+							updater.accept(pos, data[index]);
+							updatesCounter++;
+						}
+						else if (updateCondition.needUpdate(pos, data[index])) {
+							updater.accept(pos, data[index]);
+							updatesCounter++;
+						}
+					}
+					processor.accept(pos, data[index]);
+				}
 			}
-			processor.accept(data[index]);
+		}*/
+		
+		for (Vec3I delta : this.updateOrder) {
+			pos.set(center).add(delta);
+			int index = (pos.x & maskXZ) << bitsXYZ | (pos.y & maskY) << bitsXZ | (pos.z & maskXZ);
+			if (updatesCounter < maxUpdates) {
+				if (!positions[index].equals(pos)) {
+					positions[index].set(pos);
+					updater.accept(pos, data[index]);
+					updatesCounter++;
+				}
+				else if (updateCondition.needUpdate(pos, data[index])) {
+					updater.accept(pos, data[index]);
+					updatesCounter++;
+				}
+			}
+			processor.accept(pos, data[index]);
 		}
 	}
 }
