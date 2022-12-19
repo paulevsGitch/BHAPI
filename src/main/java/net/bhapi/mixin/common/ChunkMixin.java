@@ -3,6 +3,7 @@ package net.bhapi.mixin.common;
 import net.bhapi.BHAPI;
 import net.bhapi.block.BHAirBlock;
 import net.bhapi.blockstate.BlockState;
+import net.bhapi.client.render.level.ClientChunks;
 import net.bhapi.interfaces.NBTSerializable;
 import net.bhapi.level.BlockStateProvider;
 import net.bhapi.level.ChunkHeightProvider;
@@ -710,6 +711,29 @@ public abstract class ChunkMixin implements NBTSerializable, LevelHeightProvider
 		return bhapi_sections;
 	}
 	
+	@Environment(EnvType.CLIENT)
+	private void bhapi_updateClient(int x, int y, int z) {
+		int cx1 = (x - 1) >> 4;
+		int cy1 = (y - 1) >> 4;
+		int cz1 = (z - 1) >> 4;
+		int cx2 = (x + 1) >> 4;
+		int cy2 = (y + 1) >> 4;
+		int cz2 = (z + 1) >> 4;
+		
+		short count = (short) (bhapi_sections.length - 1);
+		cy1 = MathUtil.clamp(cy1, 0, count);
+		cy2 = MathUtil.clamp(cy2, 0, count);
+		
+		Vec3I pos = new Vec3I();
+		for (pos.y = cy1; pos.y <= cy2; pos.y++) {
+			for (pos.x = cx1; pos.x <= cx2; pos.x++) {
+				for (pos.z = cz1; pos.z <= cz2; pos.z++) {
+					ClientChunks.update(pos);
+				}
+			}
+		}
+	}
+	
 	@Unique
 	@Override
 	public boolean setBlockState(int x, int y, int z, BlockState state, boolean update) {
@@ -728,6 +752,10 @@ public abstract class ChunkMixin implements NBTSerializable, LevelHeightProvider
 		int wz = this.z << 4 | z;
 		
 		section.setBlockState(x, py, z, state);
+		
+		if (BHAPI.isClient()) {
+			bhapi_updateClient(wx, y, wz);
+		}
 		
 		if (!update) {
 			this.needUpdate = true;

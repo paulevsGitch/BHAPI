@@ -8,8 +8,6 @@ import net.bhapi.mixin.common.packet.AbstractPackerAccessor;
 import net.bhapi.packet.BlockStatesPacket;
 import net.bhapi.recipe.RecipeSorter;
 import net.bhapi.registry.CommonRegistries;
-import net.bhapi.storage.Vec3I;
-import net.bhapi.storage.WorldCache;
 import net.bhapi.util.BlockUtil;
 import net.bhapi.util.ItemUtil;
 import net.fabricmc.api.EnvType;

@@ -2,7 +2,7 @@ package net.bhapi.level.updaters;
 
 import net.bhapi.BHAPI;
 import net.bhapi.blockstate.BlockState;
-import net.bhapi.client.render.AreaRenderers;
+import net.bhapi.client.render.level.ClientChunks;
 import net.bhapi.level.BlockStateProvider;
 import net.bhapi.level.light.BHLightArea;
 import net.bhapi.level.light.VoxelLightScatter;
@@ -47,14 +47,6 @@ public class LevelLightUpdater extends ThreadedUpdater {
 	public void addArea(BHLightArea area) {
 		synchronized (updateRequests) {
 			updateRequests.add(area);
-		}
-	}
-	
-	@Override
-	public void process() {
-		super.process();
-		if (BHAPI.isClient()) {
-			clientUpdate();
 		}
 	}
 	
@@ -158,31 +150,10 @@ public class LevelLightUpdater extends ThreadedUpdater {
 		for (blockPos.x = x1; blockPos.x <= x2; blockPos.x++) {
 			for (blockPos.y = y1; blockPos.y <= y2; blockPos.y++) {
 				for (blockPos.z = z1; blockPos.z <= z2; blockPos.z++) {
-					synchronized (clientUpdateRequests) {
-						clientUpdateRequests.add(updatesCache.get().set(blockPos));
-						//AreaRenderers.update(blockPos);
-					}
+					ClientChunks.update(blockPos);
 				}
 			}
 		}
-	}
-	
-	@Environment(EnvType.CLIENT)
-	private void clientUpdate() {
-		AreaRenderers.clean();
-		synchronized (clientUpdateRequests) {
-			//clientUpdateAreas.addAll(clientUpdateRequests);
-			clientUpdateRequests.forEach(AreaRenderers::update);
-			clientUpdateRequests.clear();
-		}
-		//clientUpdateAreas.forEach(AreaRenderers::update);
-		//clientUpdateAreas.clear();
-		/*Iterator<Vec3I> iterator = clientUpdateAreas.iterator();
-		for (byte i = 0; i < 4 && iterator.hasNext(); i++) {
-			Vec3I pos = iterator.next();
-			iterator.remove();
-			AreaRenderers.update(pos);
-		}*/
 	}
 	
 	private boolean canPropagate(BlockStateProvider provider, Vec3I pos, int light) {

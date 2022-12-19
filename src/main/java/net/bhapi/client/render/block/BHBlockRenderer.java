@@ -119,6 +119,10 @@ public class BHBlockRenderer {
 		builder.start(-x, -y, -z);
 	}
 	
+	public boolean isEmpty(RenderLayer layer) {
+		return builder.isEmpty(layer);
+	}
+	
 	public void build(Tessellator tessellator, RenderLayer layer) {
 		builder.build(tessellator, layer);
 	}
@@ -1548,10 +1552,10 @@ public class BHBlockRenderer {
 				Vec2F uv3 = sample.getUV(u1 + cos + sin, v1 + cos - sin, uvCache.get());
 				Vec2F uv4 = sample.getUV(u1 + cos - sin, v1 - cos - sin, uvCache.get());
 				
-				builder.vertex(x, y + h1, z, uv1.x, uv1.y);
-				builder.vertex(x, y + h2, z + 1, uv2.x, uv2.y);
-				builder.vertex(x + 1, y + h3, z + 1, uv3.x, uv3.y);
-				builder.vertex(x + 1, y + h4, z, uv4.x, uv4.y);
+				builder.vertex((double) x, y + h1, z, uv1.x, uv1.y);
+				builder.vertex((double) x, y + h2, z + 1, uv2.x, uv2.y);
+				builder.vertex((double) x + 1, y + h3, z + 1, uv3.x, uv3.y);
+				builder.vertex((double) x + 1, y + h4, z, uv4.x, uv4.y);
 				
 				result = true;
 			}
@@ -1628,10 +1632,10 @@ public class BHBlockRenderer {
 			MeshBuilder builder = this.builder.getBuilder(sample.getLayer());
 			builder.setColor(light * r, light * g, light * b);
 			
-			builder.vertex(px1, y + py1, pz1, u1v1.x, u1v1.y);
-			builder.vertex(px2, y + py2, pz2, u2v2.x, u2v2.y);
-			builder.vertex(px2, y, pz2, u2v3.x, u2v3.y);
-			builder.vertex(px1, y, pz1, u1v3.x, u1v3.y);
+			builder.vertex((double) px1, y + py1, pz1, u1v1.x, u1v1.y);
+			builder.vertex((double) px2, y + py2, pz2, u2v2.x, u2v2.y);
+			builder.vertex((double) px2, y, pz2, u2v3.x, u2v3.y);
+			builder.vertex((double) px1, y, pz1, u1v3.x, u1v3.y);
 			result = true;
 		}
 		

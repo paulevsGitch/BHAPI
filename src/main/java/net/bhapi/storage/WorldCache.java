@@ -6,12 +6,10 @@ import net.bhapi.util.MathUtil;
 import java.util.Arrays;
 import java.util.Comparator;
 import java.util.function.BiConsumer;
-import java.util.function.Consumer;
 import java.util.function.Supplier;
 
 public class WorldCache<T> {
 	private final UpdateCondition<T> updateCondition;
-	private final BiConsumer<Vec3I, T> processor;
 	private final BiConsumer<Vec3I, T> updater;
 	private final Vec3I[] updateOrder;
 	private final Vec3I[] positions;
@@ -28,7 +26,7 @@ public class WorldCache<T> {
 	private final T[] data;
 	
 	@SuppressWarnings("unchecked")
-	public WorldCache(int sizeXZ, int sizeY, BiConsumer<Vec3I, T> updater, BiConsumer<Vec3I, T> processor, UpdateCondition<T> updateCondition) {
+	public WorldCache(int sizeXZ, int sizeY, BiConsumer<Vec3I, T> updater, UpdateCondition<T> updateCondition) {
 		this.deltaXZ = (sizeXZ >> 1);
 		this.deltaY = (sizeY >> 1);
 		
@@ -40,7 +38,6 @@ public class WorldCache<T> {
 		int capacity = sizeXZ * sizeXZ * sizeY;
 		
 		this.updateCondition = updateCondition;
-		this.processor = processor;
 		this.updater = updater;
 		
 		this.positions = new Vec3I[capacity];
@@ -71,7 +68,6 @@ public class WorldCache<T> {
 			}
 		}
 		Arrays.sort(this.updateOrder, Comparator.comparingInt(Vec3I::lengthSqr));
-		System.out.println("Start: " + this.updateOrder[0]);
 	}
 	
 	public int getSizeXZ() {
@@ -96,45 +92,35 @@ public class WorldCache<T> {
 		center.set(x, y, z);
 	}
 	
-	public void process(int maxUpdates) {
+	public void update(int maxUpdates) {
 		int updatesCounter = 0;
-		/*for (int x = -deltaXZ; x <= deltaXZ; x++) {
-			pos.x = center.x + x;
-			for (int z = -deltaXZ; z <= deltaXZ; z++) {
-				pos.z = center.z + z;
-				for (int y = -deltaY; y <= deltaY; y++) {
-					pos.y = center.y + y;
-					int index = (pos.x & maskXZ) << bitsXYZ | (pos.y & maskY) << bitsXZ | (pos.z & maskXZ);
-					if (updatesCounter < maxUpdates) {
-						if (!positions[index].equals(pos)) {
-							positions[index].set(pos);
-							updater.accept(pos, data[index]);
-							updatesCounter++;
-						}
-						else if (updateCondition.needUpdate(pos, data[index])) {
-							updater.accept(pos, data[index]);
-							updatesCounter++;
-						}
-					}
-					processor.accept(pos, data[index]);
-				}
+		for (Vec3I delta : this.updateOrder) {
+			if (updatesCounter >= maxUpdates) return;
+			
+			pos.set(center).add(delta);
+			int index = (pos.x & maskXZ) << bitsXYZ | (pos.y & maskY) << bitsXZ | (pos.z & maskXZ);
+			
+			if (!positions[index].equals(pos)) {
+				positions[index].set(pos);
+				updater.accept(pos, data[index]);
+				updatesCounter++;
 			}
-		}*/
-		
+			else if (updateCondition.needUpdate(pos, data[index])) {
+				updater.accept(pos, data[index]);
+				updatesCounter++;
+			}
+		}
+	}
+	
+	public T get(Vec3I pos) {
+		int index = (pos.x & maskXZ) << bitsXYZ | (pos.y & maskY) << bitsXZ | (pos.z & maskXZ);
+		return data[index];
+	}
+	
+	public void forEach(BiConsumer<Vec3I, T> processor) {
 		for (Vec3I delta : this.updateOrder) {
 			pos.set(center).add(delta);
 			int index = (pos.x & maskXZ) << bitsXYZ | (pos.y & maskY) << bitsXZ | (pos.z & maskXZ);
-			if (updatesCounter < maxUpdates) {
-				if (!positions[index].equals(pos)) {
-					positions[index].set(pos);
-					updater.accept(pos, data[index]);
-					updatesCounter++;
-				}
-				else if (updateCondition.needUpdate(pos, data[index])) {
-					updater.accept(pos, data[index]);
-					updatesCounter++;
-				}
-			}
 			processor.accept(pos, data[index]);
 		}
 	}

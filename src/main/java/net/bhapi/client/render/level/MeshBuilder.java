@@ -1,10 +1,13 @@
 package net.bhapi.client.render.level;
 
+import net.fabricmc.api.EnvType;
+import net.fabricmc.api.Environment;
 import net.minecraft.client.render.Tessellator;
 
 import java.util.ArrayList;
 import java.util.List;
 
+@Environment(EnvType.CLIENT)
 public class MeshBuilder {
 	private final List<Integer> normalIndexes = new ArrayList<>(2048);
 	private final List<Integer> colorIndexes = new ArrayList<>(2048);

@@ -1,10 +1,8 @@
 package net.bhapi.mixin.client;
 
 import net.bhapi.blockstate.BlockState;
-import net.bhapi.client.render.AreaRenderers;
 import net.bhapi.client.render.block.BHBlockRenderer;
 import net.bhapi.level.BlockStateProvider;
-import net.bhapi.storage.Vec3I;
 import net.minecraft.block.BaseBlock;
 import net.minecraft.block.entity.BaseBlockEntity;
 import net.minecraft.client.render.AreaRenderer;
@@ -48,18 +46,6 @@ public abstract class AreaRendererMixin {
 	@Shadow protected abstract void offset();
 	
 	@Unique private final BHBlockRenderer bhapi_renderer = new BHBlockRenderer();
-	
-	@SuppressWarnings("all")
-	@Inject(method = "<init>", at = @At("TAIL"))
-	private void bhapi_onInit(Level list, List i, int j, int k, int l, int m, int par7, CallbackInfo ci) {
-		// AreaRenderers.add(new Vec3I(startX >> 4, startY >> 4, startZ >> 4), AreaRenderer.class.cast(this));
-		// System.out.println("Area " + startX + " " + startY + " " + startZ + " ");
-	}
-	
-	@Inject(method = "setPosition", at = @At("TAIL"))
-	private void bhapi_setPosition(int i, int j, int k, CallbackInfo ci) {
-		AreaRenderers.change(new Vec3I(startX >> 4, startY >> 4, startZ >> 4), AreaRenderer.class.cast(this));
-	}
 	
 	@Inject(method = "distance", at = @At("HEAD"), cancellable = true)
 	private void bhapi_distance(BaseEntity entity, CallbackInfoReturnable<Float> info) {

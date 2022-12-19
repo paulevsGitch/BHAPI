@@ -2,8 +2,11 @@ package net.bhapi.client.render.level;
 
 import net.bhapi.client.render.texture.RenderLayer;
 import net.bhapi.storage.EnumArray;
+import net.fabricmc.api.EnvType;
+import net.fabricmc.api.Environment;
 import net.minecraft.client.render.Tessellator;
 
+@Environment(EnvType.CLIENT)
 public class LayeredMeshBuilder {
 	EnumArray<RenderLayer, MeshBuilder> builders = new EnumArray<>(RenderLayer.class);
 	
