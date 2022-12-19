@@ -12,8 +12,8 @@ Documentation is not available yet, but there are javadocs in the code.
 ### Features:
 - Custom world save format (WIP)
 - Worlds with large heights
-- Registries
-- Blockstates
+- Registries for blocks, items, events
+- Blockstates and Blockstate Properties
 - Custom blocks
 - Custom items
 - Custom commands
@@ -21,10 +21,14 @@ Documentation is not available yet, but there are javadocs in the code.
 - Custom textures
 - Animations (using .mcmeta format)
 - Events (only startup and on resource reloading)
-- Configs
+- Configs (JSON format)
 - Multithreading (Configurable)
 - Texture atlas (for blocks, items and particles)
 - Custom block rendering and models (Vanilla, Modern JSON, OBJ and procedural)
+- Custom world rendering
+- Custom light spreading
+- Automatic texture render layers (instead of hardcoding in blocks)
+- Translations
 
 ### Fixes:
 - Custom proxy ([Betacraft](https://betacraft.uk/)), should fix missing sounds (Configurable)
