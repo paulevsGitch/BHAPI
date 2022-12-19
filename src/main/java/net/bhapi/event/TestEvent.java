@@ -45,7 +45,7 @@ public class TestEvent {
 	}
 	
 	private void registerBlock(String name, BaseBlock block, BiConsumer<Identifier, BaseBlock> register) {
-		Identifier id = Identifier.make(name);
+		Identifier id = Identifier.make("bhapi", name);
 		register.accept(id, block);
 		BLOCKS.put(id, block);
 	}
@@ -53,22 +53,22 @@ public class TestEvent {
 	@EventListener // Test Items
 	public void registerItems(ItemRegistryEvent event) {
 		BHAPI.log("Adding items");
-		event.register(Identifier.make("testitem"), new BHSimpleItem(Identifier.make("block/stone")));
+		event.register(Identifier.make("bhapi", "testitem"), new BHSimpleItem(Identifier.make("block/stone")));
 		BLOCKS.forEach((id, block) -> event.register(id, new BHBlockItem(block, false)));
 	}
 	
 	@EventListener // Test Recipes
 	public void registerRecipes(RecipeRegistryEvent event) {
 		BHAPI.log("Adding shaped recipe");
-		RecipeBuilder.start(ItemUtil.makeStack(Identifier.make("testblock")))
+		RecipeBuilder.start(ItemUtil.makeStack(Identifier.make("bhapi", "testblock")))
 			.setShape("##", "##")
 			.addIngredient('#', ItemUtil.makeStack(Identifier.make("dirt")))
 			.build(event.getRegistry());
 		
 		BHAPI.log("Adding shapeless recipe");
-		RecipeBuilder.start(ItemUtil.makeStack(Identifier.make("testblock3")))
-			.addIngredient(ItemUtil.makeStack(Identifier.make("testblock")))
-			.addIngredient(ItemUtil.makeStack(Identifier.make("testblock2")))
+		RecipeBuilder.start(ItemUtil.makeStack(Identifier.make("bhapi", "testblock3")))
+			.addIngredient(ItemUtil.makeStack(Identifier.make("bhapi", "testblock")))
+			.addIngredient(ItemUtil.makeStack(Identifier.make("bhapi", "testblock2")))
 			.build(event.getRegistry());
 	}
 	

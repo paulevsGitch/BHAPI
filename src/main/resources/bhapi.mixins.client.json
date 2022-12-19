@@ -13,6 +13,7 @@
 		"AbstractClientPlayerMixin",
 		"BlockEntityRendererMixin",
 		"ProjectileRendererMixin",
+		"TranslationStorageMixin",
 		"OverworldDimensionMixin",
 		"TextureManagerAccessor",
 		"LevelRendererAccessor",

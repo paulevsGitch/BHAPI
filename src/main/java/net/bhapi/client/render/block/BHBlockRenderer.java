@@ -129,7 +129,9 @@ public class BHBlockRenderer {
 	
 	public void renderBlockBreak(BlockState state, int x, int y, int z) {
 		breaking = true;
+		builder.start(0, 0, 0);
 		render(state, x, y, z);
+		builder.build(Tessellator.INSTANCE);
 		breaking = false;
 	}
 	

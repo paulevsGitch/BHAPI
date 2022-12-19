@@ -8,7 +8,7 @@ import net.bhapi.storage.Resource;
 import net.bhapi.storage.Vec3F;
 import net.bhapi.util.BlockDirection;
 import net.bhapi.util.Identifier;
-import net.bhapi.util.JsonUtil;
+import net.bhapi.util.JSONUtil;
 import net.bhapi.util.ResourceUtil;
 
 import java.io.BufferedReader;
@@ -31,13 +31,13 @@ public class OBJModel extends CustomModel {
 	private static EnumArray<FaceGroup, ModelQuad[]> loadQuads(Identifier path) {
 		EnumArray<FaceGroup, ModelQuad[]> groups = new EnumArray<>(FaceGroup.class);
 		
-		JsonObject json = JsonUtil.readFromSource(path);
+		JsonObject json = JSONUtil.readFromSource(path);
 		if (json == null) {
 			BHAPI.warn("Model " + path + " don't exists");
 			return groups;
 		}
 		
-		Vec3F offset = json.has("offset") ? JsonUtil.vectorFromArray(json.getAsJsonArray("offset")) : new Vec3F();
+		Vec3F offset = json.has("offset") ? JSONUtil.vectorFromArray(json.getAsJsonArray("offset")) : new Vec3F();
 		String linkedOBJ = json.get("linkedOBJ").getAsString();
 		
 		JsonObject preMaterials = json.getAsJsonObject("materials");
@@ -48,7 +48,7 @@ public class OBJModel extends CustomModel {
 			int textureIndex = entry.get("textureIndex").getAsInt();
 			boolean shade = entry.has("shade") && entry.get("shade").getAsBoolean();
 			int tintIndex = entry.has("tintIndex") ? entry.get("tintIndex").getAsInt() : -1;
-			Vec3F normal = entry.has("normal") ? JsonUtil.vectorFromArray(entry.getAsJsonArray("normal")) : null;
+			Vec3F normal = entry.has("normal") ? JSONUtil.vectorFromArray(entry.getAsJsonArray("normal")) : null;
 			
 			EnumArray<BlockDirection, Boolean> cullingMap = new EnumArray<>(BlockDirection.class);
 			for (BlockDirection dir: BlockDirection.VALUES) cullingMap.set(dir, false);

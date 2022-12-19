@@ -1,25 +1,32 @@
 package net.bhapi;
 
+import com.google.gson.JsonObject;
 import net.bhapi.config.BHConfigs;
 import net.bhapi.event.BHEvent;
 import net.bhapi.event.EventListener;
 import net.bhapi.event.EventRegistrationEvent;
+import net.bhapi.mixin.common.TranslationStorageAccessor;
 import net.bhapi.mixin.common.packet.AbstractPackerAccessor;
 import net.bhapi.packet.BlockStatesPacket;
 import net.bhapi.recipe.RecipeSorter;
 import net.bhapi.registry.CommonRegistries;
+import net.bhapi.storage.Resource;
 import net.bhapi.util.BlockUtil;
 import net.bhapi.util.ItemUtil;
+import net.bhapi.util.JSONUtil;
+import net.bhapi.util.ResourceUtil;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.ModInitializer;
 import net.fabricmc.loader.api.FabricLoader;
 import net.fabricmc.tinyremapper.extension.mixin.common.data.Pair;
+import net.minecraft.client.resource.language.TranslationStorage;
 import net.minecraft.recipe.RecipeRegistry;
 import org.apache.logging.log4j.Level;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import java.io.File;
+import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
@@ -29,6 +36,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Properties;
 import java.util.function.Supplier;
 
 public class BHAPI implements ModInitializer {
@@ -65,6 +73,7 @@ public class BHAPI implements ModInitializer {
 		
 		CommonRegistries.initRecipes();
 		RecipeSorter.sort(RecipeRegistry.getInstance());
+		loadTranslations();
 		
 		BHConfigs.save();
 	}
@@ -94,6 +103,32 @@ public class BHAPI implements ModInitializer {
 		if (isServer()) {
 			processEntryPoints("bhapi:server_events", CommonRegistries.EVENT_REGISTRY);
 		}
+	}
+	
+	private void loadTranslations() {
+		List<Resource> translations = new ArrayList<>();
+		FabricLoader.getInstance().getAllMods().forEach(container -> {
+			String modID = container.getMetadata().getId();
+			List<Resource> list = ResourceUtil.getResources("/assets/" + modID + "/lang/", "en_us.json");
+			translations.addAll(list);
+		});
+		
+		TranslationStorageAccessor accessor = (TranslationStorageAccessor) TranslationStorage.getInstance();
+		Properties properties = accessor.getProperties();
+		
+		translations.forEach(resource -> {
+			try {
+				JsonObject json = JSONUtil.read(resource.getStream());
+				resource.close();
+				json.keySet().forEach(key -> {
+					String value = json.get(key).getAsString();
+					properties.put(key, value);
+				});
+			}
+			catch (IOException e) {
+				e.printStackTrace();
+			}
+		});
 	}
 	
 	@SuppressWarnings("unchecked")

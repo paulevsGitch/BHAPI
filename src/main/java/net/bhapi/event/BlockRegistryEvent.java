@@ -18,5 +18,6 @@ public class BlockRegistryEvent extends RegistryEvent<Identifier, BaseBlock> {
 	public void register(Identifier id, BaseBlock value) {
 		super.register(id, value);
 		value.setTranslationKey(id.getModID() + "." + id.getName());
+		System.out.println("Translation: " + id);
 	}
 }

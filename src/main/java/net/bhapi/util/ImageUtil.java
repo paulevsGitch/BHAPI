@@ -122,7 +122,7 @@ public class ImageUtil {
 						meta.close();
 					}
 					else {
-						JsonObject json = JsonUtil.read(meta.getStream());
+						JsonObject json = JSONUtil.read(meta.getStream());
 						json = json.getAsJsonObject("animation");
 						
 						boolean interpolate = json.has("interpolate") && json.get("interpolate").getAsBoolean();

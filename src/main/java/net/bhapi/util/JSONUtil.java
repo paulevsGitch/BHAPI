@@ -13,7 +13,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 
-public class JsonUtil {
+public class JSONUtil {
 	private static final Gson GSON = new GsonBuilder().setPrettyPrinting().create();
 	
 	/**

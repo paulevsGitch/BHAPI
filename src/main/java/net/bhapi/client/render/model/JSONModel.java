@@ -9,7 +9,7 @@ import net.bhapi.storage.EnumArray;
 import net.bhapi.storage.Vec3F;
 import net.bhapi.util.BlockDirection;
 import net.bhapi.util.Identifier;
-import net.bhapi.util.JsonUtil;
+import net.bhapi.util.JSONUtil;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -25,7 +25,7 @@ public class JSONModel extends CustomModel {
 	private static JsonObject getModel(Identifier id) {
 		JsonObject obj = MODEL_CACHE.get(id);
 		if (obj == null) {
-			obj = JsonUtil.readFromSource(id);
+			obj = JSONUtil.readFromSource(id);
 			if (obj == null) {
 				BHAPI.warn("No JSON model with name " + id);
 				return null;
@@ -36,7 +36,7 @@ public class JSONModel extends CustomModel {
 				if (index > 0) path = path.substring(0, index) + "models/" + path.substring(index + 1);
 				else path = "models/" + path;
 				JsonObject parent = getModel(Identifier.make(path));
-				if (parent != null) obj = JsonUtil.merge(obj, parent);
+				if (parent != null) obj = JSONUtil.merge(obj, parent);
 			}
 			MODEL_CACHE.put(id, obj);
 		}
@@ -50,8 +50,8 @@ public class JSONModel extends CustomModel {
 		ModelBuilder builder = ModelBuilder.start();
 		json.get("elements").getAsJsonArray().forEach(element -> {
 			JsonObject entry = element.getAsJsonObject();
-			Vec3F min = JsonUtil.vectorFromArray(entry.getAsJsonArray("from"));
-			Vec3F max = JsonUtil.vectorFromArray(entry.getAsJsonArray("to"));
+			Vec3F min = JSONUtil.vectorFromArray(entry.getAsJsonArray("from"));
+			Vec3F max = JSONUtil.vectorFromArray(entry.getAsJsonArray("to"));
 			JsonObject faces = entry.get("faces").getAsJsonObject();
 			ModelCuboidBuilder cuboid = builder.cuboid().rescale(true).setMinPos(
 				min.x, min.y, min.z
@@ -61,7 +61,7 @@ public class JSONModel extends CustomModel {
 			if (entry.has("shade")) cuboid.setShade(entry.get("shade").getAsBoolean());
 			if (entry.has("rotation")) {
 				entry = entry.getAsJsonObject("rotation");
-				Vec3F center = JsonUtil.vectorFromArray(entry.getAsJsonArray("origin"));
+				Vec3F center = JSONUtil.vectorFromArray(entry.getAsJsonArray("origin"));
 				char axis = entry.get("axis").getAsString().charAt(0);
 				float angle = (float) Math.toRadians(entry.get("angle").getAsFloat());
 				cuboid.setRotation(center.x, center.y, center.z, axis, angle);//cuboid.allFaces();
