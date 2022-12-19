@@ -184,6 +184,14 @@ public class ImageUtil {
 		return buffer instanceof DataBufferInt ? ((DataBufferInt) buffer).getData() : null;
 	}
 	
+	public static int[] getPixels(BufferedImage image) {
+		int width = image.getWidth();
+		int height = image.getHeight();
+		int[] pixels = new int[width * height];
+		image.getRGB(0, 0, width, height, pixels, width, 0);
+		return pixels;
+	}
+	
 	public static void convertFormat(int[] pixels, FormatConvert format) {
 		switch (format) {
 			case ABGR_TO_ARGB -> {
@@ -234,9 +242,8 @@ public class ImageUtil {
 	}
 	
 	public static RenderLayer getLayer(BufferedImage img) {
-		int[] data = getPixelData(img);
+		int[] data = getPixels(img);
 		RenderLayer layer = RenderLayer.SOLID;
-		if (data == null) return layer;
 		for (int argb: data) {
 			int a = (argb >> 24) & 255;
 			if (a == 0) layer = RenderLayer.TRANSPARENT;

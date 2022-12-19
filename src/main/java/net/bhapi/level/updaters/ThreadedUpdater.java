@@ -12,6 +12,7 @@ import java.util.Locale;
 public abstract class ThreadedUpdater {
 	protected final boolean useThreads;
 	protected final boolean isClient;
+	protected final boolean noDelay;
 	
 	private RunnableThread updatingThread;
 	private boolean isEmpty = true;
@@ -20,6 +21,11 @@ public abstract class ThreadedUpdater {
 	private long time;
 	
 	public ThreadedUpdater(String name, Level level) {
+		this(name, level, false);
+	}
+	
+	public ThreadedUpdater(String name, Level level, boolean noDelay) {
+		this.noDelay = noDelay;
 		if (name.endsWith("_")) this.name = name + level.dimension.id;
 		else this.name = name + "_" + level.dimension.id;
 		useThreads = BHConfigs.GENERAL.getBool("multithreading.useThreads", true);
@@ -53,29 +59,12 @@ public abstract class ThreadedUpdater {
 	protected void onFinish() {}
 	
 	private void delay() {
-		if (!useThreads) return;
-		long t = System.currentTimeMillis();
-		int delta = (int) (t - time);
-		time = t;
-		if (delta < 50) {
-			delta = 50 - delta;
-			try {
-				Thread.sleep(delta);
-			}
-			catch (InterruptedException e) {
-				e.printStackTrace();
-			}
-		}
-		else if (delta > 100) {
-			StringBuilder builder = new StringBuilder("Update in thread ");
-			builder.append(Thread.currentThread().getName());
-			builder.append(" take ");
-			builder.append(delta);
-			builder.append("ms instead of 50 (");
-			builder.append(String.format(Locale.ROOT, "%.1f", (float) delta / 50F));
-			builder.append(" ticks)");
-			BHAPI.warn(builder.toString());
-		}
+		if (!useThreads || noDelay) return;
+		long currentTime = System.currentTimeMillis();
+		int delta = (int) (currentTime - time);
+		time = currentTime;
+		if (delta < 50) delay(delta);
+		else if (delta > 100) warning(delta);
 	}
 	
 	private boolean canUpdate() {
@@ -100,5 +89,26 @@ public abstract class ThreadedUpdater {
 				isEmpty = empty;
 			}
 		}
+	}
+	
+	private void delay(int delta) {
+		delta = 50 - delta;
+		try {
+			Thread.sleep(delta);
+		}
+		catch (InterruptedException e) {
+			e.printStackTrace();
+		}
+	}
+	
+	private void warning(int delta) {
+		StringBuilder builder = new StringBuilder("Update in thread ");
+		builder.append(Thread.currentThread().getName());
+		builder.append(" take ");
+		builder.append(delta);
+		builder.append("ms instead of 50 (");
+		builder.append(String.format(Locale.ROOT, "%.1f", (float) delta / 50F));
+		builder.append(" ticks)");
+		BHAPI.warn(builder.toString());
 	}
 }

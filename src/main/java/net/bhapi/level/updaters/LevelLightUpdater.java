@@ -37,7 +37,7 @@ public class LevelLightUpdater extends ThreadedUpdater {
 	//private final Set<Vec3I> clientUpdateAreas = new HashSet<>();
 	
 	public LevelLightUpdater(Level level) {
-		super("light_updater_", level);
+		super("light_updater_", level, true);
 		vectorCache.fill(Vec3I::new);
 		if (BHAPI.isClient()) {
 			updatesCache.fill(Vec3I::new);
@@ -95,12 +95,16 @@ public class LevelLightUpdater extends ThreadedUpdater {
 				scatter.update(level, pos, light);
 			}
 			
-			if (BHAPI.isClient()) {
+			if (isClient) {
 				markToUpdate(min, max);
 			}
 			
 			positions.clear();
 			lights.clear();
+		}
+		
+		if (isClient) {
+			clientUpdateRequests.forEach(ClientChunks::update);
 		}
 	}
 	
@@ -150,10 +154,16 @@ public class LevelLightUpdater extends ThreadedUpdater {
 		for (blockPos.x = x1; blockPos.x <= x2; blockPos.x++) {
 			for (blockPos.y = y1; blockPos.y <= y2; blockPos.y++) {
 				for (blockPos.z = z1; blockPos.z <= z2; blockPos.z++) {
-					ClientChunks.update(blockPos);
+					clientUpdateRequests.add(updatesCache.get().set(blockPos));
 				}
 			}
 		}
+	}
+	
+	@Environment(EnvType.CLIENT)
+	private void updateClient() {
+		clientUpdateRequests.forEach(ClientChunks::update);
+		clientUpdateRequests.clear();
 	}
 	
 	private boolean canPropagate(BlockStateProvider provider, Vec3I pos, int light) {
