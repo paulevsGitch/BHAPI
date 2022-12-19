@@ -79,26 +79,37 @@ public class ChunkSection implements NBTSerializable {
 		return blockEntities.values();
 	}
 	
+	private int getLight(LightType type, int index) {
+		int dataIndex = index >> 1;
+		if (type == LightType.SKY) dataIndex += 2048;
+		byte light = this.light[dataIndex];
+		return (index & 1) == 0 ? light & 15 : (light >> 4) & 15;
+	}
+	
+	private void setLight(LightType type, int index, int value) {
+		int dataIndex = index >> 1;
+		if (type == LightType.SKY) dataIndex += 2048;
+		byte light = this.light[dataIndex];
+		if ((index & 1) == 0) light = (byte) ((light & 0xF0) | value);
+		else light = (byte) ((light & 0x0F) | (value << 4));
+		this.light[dataIndex] = light;
+	}
+	
 	public int getMaxLight(int x, int y, int z) {
 		int index = getIndex(x, y, z);
-		int a = light[index] & 15;
-		int b = (light[index] >> 4) & 15;
+		int a = getLight(LightType.BLOCK, index);
+		int b = getLight(LightType.SKY, index);
 		return a > b ? a : b;
 	}
 	
 	public int getLight(LightType type, int x, int y, int z) {
 		int index = getIndex(x, y, z);
-		return type == LightType.SKY ? light[index] & 15 : (light[index] >> 4) & 15;
+		return getLight(type, index);
 	}
 	
 	public void setLight(LightType type, int x, int y, int z, int value) {
 		int index = getIndex(x, y, z);
-		if (type == LightType.SKY) {
-			light[index] = (byte) ((light[index] & 0xF0) | value);
-		}
-		else {
-			light[index] = (byte) ((light[index] & 0x0F) | (value << 4));
-		}
+		setLight(type, index, value);
 	}
 	
 	public int writeData(byte[] data, int x, int y, int z, int index) {

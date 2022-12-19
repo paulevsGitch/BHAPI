@@ -13,13 +13,13 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 @Mixin(GrassBlock.class)
 public class GrassBlockMixin {
 	@Inject(method = "getColorMultiplier", at = @At("HEAD"), cancellable = true)
-	private void bhapi_getColorMultiplier(BlockView arg, int i, int j, int k, CallbackInfoReturnable<Integer> info) {
-		BiomeSource source = arg.getBiomeSource();
+	private void bhapi_getColorMultiplier(BlockView view, int x, int y, int z, CallbackInfoReturnable<Integer> info) {
+		BiomeSource source = view.getBiomeSource();
 		double temperature, wetness;
 		synchronized (source) {
-			arg.getBiomeSource().getBiomes(i, k, 1, 1);
-			temperature = arg.getBiomeSource().temperatureNoises[0];
-			wetness = arg.getBiomeSource().rainfallNoises[0];
+			source.getBiomes(x, z, 1, 1);
+			temperature = source.temperatureNoises[0];
+			wetness = source.rainfallNoises[0];
 		}
 		temperature = MathUtil.clamp(temperature, 0, 1);
 		wetness = MathUtil.clamp(wetness, 0, 1);

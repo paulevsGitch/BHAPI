@@ -236,8 +236,9 @@ public abstract class LevelRendererMixin implements LevelHeightProvider {
 	}
 	
 	@Inject(method = "method_1548", at = @At("HEAD"), cancellable = true)
-	private void bhapi_renderChunks(LivingEntity entity, int d, double delta, CallbackInfoReturnable<Integer> info) {
+	private void bhapi_renderChunks(LivingEntity entity, int layer, double delta, CallbackInfoReturnable<Integer> info) {
 		info.setReturnValue(0);
+		if (layer != 0) return;
 		ClientChunks.render(entity, (float) delta);
 	}
 	

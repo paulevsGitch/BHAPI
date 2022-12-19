@@ -101,6 +101,9 @@ public class ClientChunks {
 		Minecraft mc = BHAPIClient.getMinecraft();
 		short sections = LevelHeightProvider.cast(mc.level).getSectionsCount();
 		if (pos.y < 0 || pos.y >= sections) return;
+		if (!mc.level.isBlockLoaded(pos.x << 4, 0, pos.z << 4)) return;
+		
+		System.out.println("Update " + pos);
 		
 		RENDERER.setView(mc.level);
 		RENDERER.startArea(pos.x << 4, pos.y << 4, pos.z << 4);

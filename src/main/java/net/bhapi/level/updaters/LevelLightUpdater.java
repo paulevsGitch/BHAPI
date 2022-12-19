@@ -16,7 +16,6 @@ import net.minecraft.level.LightType;
 
 import java.util.ArrayList;
 import java.util.HashSet;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
 
@@ -58,12 +57,8 @@ public class LevelLightUpdater extends ThreadedUpdater {
 		}
 		
 		BlockStateProvider provider = BlockStateProvider.cast(level);
-		Iterator<BHLightArea> iterator = updateAreas.iterator();
 		
-		for (short i = 0; i < 64 && iterator.hasNext(); i++) {
-			BHLightArea area = iterator.next();
-			iterator.remove();
-			
+		for (BHLightArea area: updateAreas) {
 			Vec3I min = area.getMinPos();
 			Vec3I max = area.getMaxPos();
 			byte light;
@@ -103,8 +98,11 @@ public class LevelLightUpdater extends ThreadedUpdater {
 			lights.clear();
 		}
 		
+		updateAreas.clear();
+		
 		if (isClient) {
 			clientUpdateRequests.forEach(ClientChunks::update);
+			clientUpdateRequests.clear();
 		}
 	}
 	
@@ -169,8 +167,10 @@ public class LevelLightUpdater extends ThreadedUpdater {
 	private boolean canPropagate(BlockStateProvider provider, Vec3I pos, int light) {
 		for (BlockDirection face: BlockDirection.VALUES) {
 			blockPos.set(pos).move(face);
-			int light2 = light - provider.getBlockState(blockPos).getLightOpacity();
-			if (light2 > 0) return true;
+			BlockState state = provider.getBlockState(blockPos);
+			int emittance = state.getEmittance();
+			int light2 = light - state.getLightOpacity();
+			if (light2 > 0 && emittance < light) return true;
 		}
 		return false;
 	}
