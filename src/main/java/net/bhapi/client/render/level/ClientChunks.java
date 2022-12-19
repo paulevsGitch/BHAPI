@@ -29,6 +29,7 @@ public class ClientChunks {
 	private static WorldCache<ClientChunk> chunks;
 	private static RenderLayer layer;
 	private static double px, py, pz;
+	private static int oldLight;
 	private static Level level;
 	
 	public static void init() {
@@ -57,6 +58,10 @@ public class ClientChunks {
 		chunks.get(pos).needUpdate = true;
 	}
 	
+	public static void updateAll() {
+		chunks.forEach((pos, chunk) -> chunk.needUpdate = true);
+	}
+	
 	public static void render(LivingEntity entity, float delta) {
 		if (chunks == null) return;
 		
@@ -70,8 +75,15 @@ public class ClientChunks {
 			return;
 		}
 		
+		if (!level.dimension.noSkyLight) {
+			int light = level.getEnvironmentLight(delta);
+			if (oldLight != light) {
+				oldLight = light;
+				updateAll();
+			}
+		}
+		
 		chunks.setCenter(entity.chunkX, (int) entity.y >> 4, entity.chunkZ);
-		//chunks.updateCircle();
 		chunks.update(1);
 		
 		px = MathUtil.lerp(entity.prevX, entity.x, delta);
@@ -102,8 +114,6 @@ public class ClientChunks {
 		short sections = LevelHeightProvider.cast(mc.level).getSectionsCount();
 		if (pos.y < 0 || pos.y >= sections) return;
 		if (!mc.level.isBlockLoaded(pos.x << 4, 0, pos.z << 4)) return;
-		
-		System.out.println("Update " + pos);
 		
 		RENDERER.setView(mc.level);
 		RENDERER.startArea(pos.x << 4, pos.y << 4, pos.z << 4);

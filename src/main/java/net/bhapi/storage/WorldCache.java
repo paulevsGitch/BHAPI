@@ -60,7 +60,6 @@ public class WorldCache<T> {
 		capacity *= capacity;
 		capacity *= (deltaY << 1) + 1;
 		this.updateOrder = new Vec3I[capacity];
-		System.out.println(capacity);
 		for (int x = -deltaXZ; x <= deltaXZ; x++) {
 			for (int z = -deltaXZ; z <= deltaXZ; z++) {
 				for (int y = -deltaY; y <= deltaY; y++) {

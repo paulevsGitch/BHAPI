@@ -32,8 +32,6 @@ public class LevelLightUpdater extends ThreadedUpdater {
 	private final CircleCache<Vec3I> updatesCache = new CircleCache<>(4096);
 	@Environment(EnvType.CLIENT)
 	private final Set<Vec3I> clientUpdateRequests = new HashSet<>();
-	//@Environment(EnvType.CLIENT)
-	//private final Set<Vec3I> clientUpdateAreas = new HashSet<>();
 	
 	public LevelLightUpdater(Level level) {
 		super("light_updater_", level, true);
