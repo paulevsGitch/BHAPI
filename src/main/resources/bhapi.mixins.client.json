@@ -34,6 +34,7 @@
 		"MinecraftAccessor",
 		"BaseItemAccessor",
 		"ClientLevelMixin",
+		"GameOptionsMixin",
 		"PlayerBaseMixin",
 		"PlantBlockMixin",
 		"StoneBlockMixin",

@@ -243,24 +243,12 @@ public abstract class LevelRendererMixin implements LevelHeightProvider {
 	
 	@Inject(method = "updateFromOptions", at = @At("TAIL"))
 	public void updateFromOptions(CallbackInfo info) {
-		System.out.println("Sections " + (this.sectionCounX | 1) + " " + (this.sectionCounY | 1));
-		ClientChunks.init(this.sectionCounX | 1, this.sectionCounY | 1);
-		//ClientChunks.init(3, 3);
+		//ClientChunks.init(this.sectionCounX | 1, this.sectionCounY | 1);
+		ClientChunks.init();
 	}
 	
 	@Inject(method = "playSound", at = @At("HEAD"), cancellable = true)
 	private void bhapi_playSound(String string, double d, double e, double f, float g, float h, CallbackInfo info) {
 		if (this.client.viewEntity == null) info.cancel();
 	}
-	
-	/*@SuppressWarnings("unchecked")
-	@Inject(method = "method_1549", at = @At(value = "INVOKE", target = "Ljava/util/List;size()I", ordinal = 4))
-	private void bhapi_cleanAreas(LivingEntity entity, boolean flag, CallbackInfoReturnable<Boolean> cir) {
-		List<AreaRenderer> areas = this.field_1807;
-		for (int i = 0; i < areas.size(); i++) {
-			if (areas.get(i) == null) {
-				areas.remove(i--);
-			}
-		}
-	}*/
 }

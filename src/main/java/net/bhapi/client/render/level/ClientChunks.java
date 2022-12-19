@@ -30,9 +30,17 @@ public class ClientChunks {
 	private static boolean update;
 	private static double px, py, pz;
 	
-	public static void init(int width, int height) {
-		boolean fillChunks = false;
-		
+	public static void init() {
+		int viewDistance = BHAPIClient.getMinecraft().options.viewDistance;
+		int side = 64 << 3 - viewDistance;
+		if (side > 512) side = 512;
+		int sectionCounXZ = side >> 4 | 1;
+		int sectionCounY = sectionCounXZ < 17 ? sectionCounXZ : side >> 5 | 1;
+		init(sectionCounXZ, sectionCounY);
+	}
+	
+	private static void init(int width, int height) {
+		update = false;
 		if (chunks == null || chunks.getSizeXZ() != width || chunks.getSizeY() != height) {
 			if (chunks != null) RENDER_LISTS.clear();
 			chunks = new WorldCache<>(
@@ -40,14 +48,9 @@ public class ClientChunks {
 				ClientChunks::updateChunk,
 				ClientChunks::needUpdate
 			);
-			fillChunks = true;
-		}
-		
-		update = true;
-		
-		if (fillChunks) {
 			chunks.fill(ClientChunk::new);
 		}
+		update = true;
 	}
 	
 	public static void update(Vec3I pos) {
