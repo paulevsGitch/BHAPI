@@ -69,6 +69,7 @@ public abstract class ChunkMixin implements NBTSerializable, LevelHeightProvider
 	@Unique private ChunkSection[] bhapi_sections;
 	@Unique private final short[] bhapi_heightmap = new short[256];
 	@Unique private boolean bhapi_hasSkyLight;
+	@Unique private boolean bhapi_skipLight;
 	
 	@Inject(method = "<init>(Lnet/minecraft/level/Level;[BII)V", at = @At("TAIL"))
 	private void bhapi_onChunkInit(Level level, byte[] blocks, int x, int z, CallbackInfo info) {
@@ -528,6 +529,24 @@ public abstract class ChunkMixin implements NBTSerializable, LevelHeightProvider
 		info.setReturnValue(index);
 	}
 	
+	@Environment(EnvType.CLIENT)
+	@Inject(method = "markToUpdate", at = @At("HEAD"))
+	private void bhapi_markToUpdate(CallbackInfo info) {
+		if (bhapi_skipLight) return;
+		if (decorated) {
+			bhapi_skipLight = true;
+			int wx = this.x << 4;
+			int wz = this.z << 4;
+			for (short i = 0; i < getSectionsCount(); i++) {
+				ChunkSection section = getChunkSection(i);
+				if (section != null) {
+					int wy = i << 4;
+					level.updateLight(LightType.BLOCK, wx, wy, wz, wx | 15, wy | 15, wz | 15);
+				}
+			}
+		}
+	}
+	
 	@Unique
 	@Override
 	public short getHeightmapData(int x, int z) {
@@ -778,16 +797,18 @@ public abstract class ChunkMixin implements NBTSerializable, LevelHeightProvider
 			this.level.updateLight(LightType.SKY, wx, y, wz, wx, y, wz);
 		}
 		
-		int light = this.level.getLight(LightType.BLOCK, wx, y, wz);
-		if (light != state.getEmittance()) {
-			if (this.decorated) {
-				this.level.updateLight(LightType.BLOCK, wx, y, wz, wx, y, wz);
-			}
-			else {
-				int x1 = (wx >> 4) << 4;
-				int y1 = (y >> 4) << 4;
-				int z1 = (wz >> 4) << 4;
-				this.level.updateLight(LightType.BLOCK, x1, y1, z1, x1 + 15, y1 + 15, z1 + 15);
+		if (this.decorated) {
+			int light = this.level.getLight(LightType.BLOCK, wx, y, wz);
+			if (light != state.getEmittance()) {
+				if (this.decorated) {
+					this.level.updateLight(LightType.BLOCK, wx, y, wz, wx, y, wz);
+				}
+				else {
+					int x1 = (wx >> 4) << 4;
+					int y1 = (y >> 4) << 4;
+					int z1 = (wz >> 4) << 4;
+					this.level.updateLight(LightType.BLOCK, x1, y1, z1, x1 + 15, y1 + 15, z1 + 15);
+				}
 			}
 		}
 		this.fillSkyLight(x, z);

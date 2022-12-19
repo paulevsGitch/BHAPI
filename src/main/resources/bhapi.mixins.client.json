@@ -35,6 +35,7 @@
 		"BaseItemAccessor",
 		"ClientLevelMixin",
 		"GameOptionsMixin",
+		"GrassBlockMixin",
 		"PlayerBaseMixin",
 		"PlantBlockMixin",
 		"StoneBlockMixin",
