@@ -28,7 +28,6 @@ public class ClientChunks {
 	private static final BHBlockRenderer RENDERER = new BHBlockRenderer();
 	private static WorldCache<ClientChunk> chunks;
 	private static RenderLayer layer;
-	private static boolean update;
 	private static double px, py, pz;
 	private static Level level;
 	
@@ -42,7 +41,6 @@ public class ClientChunks {
 	}
 	
 	private static void init(int width, int height) {
-		update = false;
 		level = null;
 		if (chunks == null || chunks.getSizeXZ() != width || chunks.getSizeY() != height) {
 			if (chunks != null) RENDER_LISTS.clear();
@@ -53,7 +51,6 @@ public class ClientChunks {
 			);
 			chunks.fill(ClientChunk::new);
 		}
-		update = true;
 	}
 	
 	public static void update(Vec3I pos) {
@@ -68,16 +65,14 @@ public class ClientChunks {
 			level = clientLevel;
 			chunks.forEach((pos, chunk) -> {
 				chunk.needUpdate = true;
-				for (RenderLayer layer: RenderLayer.VALUES) {
-					chunk.empty.set(layer, true);
-				}
+				chunk.markEmpty();
 			});
 			return;
 		}
 		
 		chunks.setCenter(entity.chunkX, (int) entity.y >> 4, entity.chunkZ);
+		//chunks.updateCircle();
 		chunks.update(1);
-		update = true;
 		
 		px = MathUtil.lerp(entity.prevX, entity.x, delta);
 		py = MathUtil.lerp(entity.prevY, entity.y, delta);
@@ -101,12 +96,12 @@ public class ClientChunks {
 	}
 	
 	private static void updateChunk(Vec3I pos, ClientChunk chunk) {
+		chunk.needUpdate = false;
+		
 		Minecraft mc = BHAPIClient.getMinecraft();
 		short sections = LevelHeightProvider.cast(mc.level).getSectionsCount();
 		if (pos.y < 0 || pos.y >= sections) return;
 		
-		update = false;
-		chunk.needUpdate = false;
 		RENDERER.setView(mc.level);
 		RENDERER.startArea(pos.x << 4, pos.y << 4, pos.z << 4);
 		
@@ -114,9 +109,7 @@ public class ClientChunks {
 		ChunkSection section = provider.getChunkSection(pos.y);
 		
 		if (section == null) {
-			for (RenderLayer layer: RenderLayer.VALUES) {
-				chunk.empty.set(layer, true);
-			}
+			chunk.markEmpty();
 			return;
 		}
 		
@@ -144,25 +137,29 @@ public class ClientChunks {
 			tesselator.draw();
 			GL11.glEndList();
 		}
-		chunk.pos.set(pos);
 	}
 	
 	private static void renderChunk(Vec3I pos, ClientChunk chunk) {
 		if (chunk.empty.get(layer)) return;
-		if (!chunk.pos.equals(pos)) return;
+		if (!chunk.pos.equals(pos)) {
+			chunk.pos.set(pos);
+			chunk.needUpdate = true;
+			chunk.markEmpty();
+			return;
+		}
 		
 		GL11.glPushMatrix();
 		GL11.glTranslatef(
-			(float) ((pos.x << 4) - px),
-			(float) ((pos.y << 4) - py),
-			(float) ((pos.z << 4) - pz)
+			(float) ((chunk.pos.x << 4) - px),
+			(float) ((chunk.pos.y << 4) - py),
+			(float) ((chunk.pos.z << 4) - pz)
 		);
 		GL11.glCallList(chunk.data.get(layer));
 		GL11.glPopMatrix();
 	}
 	
 	private static boolean needUpdate(Vec3I pos, ClientChunk chunk) {
-		return update && chunk.needUpdate;// && chunk.updateFrames == 0;
+		return chunk.needUpdate;
 	}
 	
 	private static class ClientChunk {
@@ -181,6 +178,12 @@ public class ClientChunks {
 			for (RenderLayer layer: RenderLayer.VALUES) {
 				empty.set(layer, true);
 				data.set(layer, list++);
+			}
+		}
+		
+		void markEmpty() {
+			for (RenderLayer layer: RenderLayer.VALUES) {
+				empty.set(layer, true);
 			}
 		}
 	}

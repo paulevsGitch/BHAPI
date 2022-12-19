@@ -136,4 +136,9 @@ public abstract class LevelPopulationRegionMixin implements BlockStateProvider, 
 		
 		return BlockStateProvider.cast(chunk).getBlockState(x & 15, y, z & 15);
 	}
+	
+	@Inject(method = "getBlockMeta", at = @At("HEAD"), cancellable = true)
+	private void bhapi_getBlockMeta(int x, int y, int z, CallbackInfoReturnable<Integer> info) {
+		info.setReturnValue(getBlockState(x, y, z).getMeta());
+	}
 }

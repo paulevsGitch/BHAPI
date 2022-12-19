@@ -24,6 +24,7 @@ public class WorldCache<T> {
 	private final int maskY;
 	private final Vec3I pos;
 	private final T[] data;
+	private int updateIndex;
 	
 	@SuppressWarnings("unchecked")
 	public WorldCache(int sizeXZ, int sizeY, BiConsumer<Vec3I, T> updater, UpdateCondition<T> updateCondition) {
@@ -94,11 +95,11 @@ public class WorldCache<T> {
 	
 	public void update(int maxUpdates) {
 		int updatesCounter = 0;
-		for (Vec3I delta : this.updateOrder) {
+		for (Vec3I delta : updateOrder) {
 			if (updatesCounter >= maxUpdates) return;
 			
 			pos.set(center).add(delta);
-			int index = (pos.x & maskXZ) << bitsXYZ | (pos.y & maskY) << bitsXZ | (pos.z & maskXZ);
+			int index = getIndex(pos);
 			
 			if (!positions[index].equals(pos)) {
 				positions[index].set(pos);
@@ -112,16 +113,33 @@ public class WorldCache<T> {
 		}
 	}
 	
+	public void updateCircle() {
+		pos.set(center).add(updateOrder[updateIndex++]);
+		int index = getIndex(pos);
+		
+		for (int i = 0; i < updateOrder.length; i++) {
+			if (updateCondition.needUpdate(pos, data[index])) {
+				updater.accept(pos, data[index]);
+				break;
+			}
+		}
+		
+		if (updateIndex >= updateOrder.length) updateIndex = 0;
+	}
+	
 	public T get(Vec3I pos) {
-		int index = (pos.x & maskXZ) << bitsXYZ | (pos.y & maskY) << bitsXZ | (pos.z & maskXZ);
-		return data[index];
+		return data[getIndex(pos)];
 	}
 	
 	public void forEach(BiConsumer<Vec3I, T> processor) {
 		for (Vec3I delta : this.updateOrder) {
 			pos.set(center).add(delta);
-			int index = (pos.x & maskXZ) << bitsXYZ | (pos.y & maskY) << bitsXZ | (pos.z & maskXZ);
+			int index = getIndex(pos);
 			processor.accept(pos, data[index]);
 		}
+	}
+	
+	private int getIndex(Vec3I pos) {
+		return (pos.x & maskXZ) << bitsXYZ | (pos.y & maskY) << bitsXZ | (pos.z & maskXZ);
 	}
 }
