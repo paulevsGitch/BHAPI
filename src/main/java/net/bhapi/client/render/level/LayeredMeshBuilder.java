@@ -1,5 +1,6 @@
 package net.bhapi.client.render.level;
 
+import net.bhapi.client.render.VBO;
 import net.bhapi.client.render.texture.RenderLayer;
 import net.bhapi.storage.EnumArray;
 import net.fabricmc.api.EnvType;
@@ -58,5 +59,11 @@ public class LayeredMeshBuilder {
 		MeshBuilder builder = builders.get(layer);
 		if (builder.isEmpty()) return;
 		builder.build(tessellator);
+	}
+	
+	public void build(VBO vbo, RenderLayer layer) {
+		MeshBuilder builder = builders.get(layer);
+		if (builder.isEmpty()) return;
+		builder.build(vbo);
 	}
 }

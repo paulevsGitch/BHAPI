@@ -2,6 +2,7 @@ package net.bhapi.client.render.block;
 
 import net.bhapi.blockstate.BlockState;
 import net.bhapi.client.BHAPIClient;
+import net.bhapi.client.render.VBO;
 import net.bhapi.client.render.level.LayeredMeshBuilder;
 import net.bhapi.client.render.level.MeshBuilder;
 import net.bhapi.client.render.model.CustomModel;
@@ -124,6 +125,10 @@ public class BHBlockRenderer {
 	
 	public void build(Tessellator tessellator, RenderLayer layer) {
 		builder.build(tessellator, layer);
+	}
+	
+	public void build(VBO vbo, RenderLayer layer) {
+		builder.build(vbo, layer);
 	}
 	
 	public void renderBlockBreak(BlockState state, int x, int y, int z) {

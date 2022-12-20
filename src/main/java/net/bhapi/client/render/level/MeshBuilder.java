@@ -1,9 +1,12 @@
 package net.bhapi.client.render.level;
 
+import net.bhapi.client.render.VBO;
+import net.bhapi.util.BufferUtil;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
 import net.minecraft.client.render.Tessellator;
 
+import java.nio.FloatBuffer;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -147,5 +150,105 @@ public class MeshBuilder {
 			
 			tessellator.vertex(x, y, z, u, v);
 		}
+	}
+	
+	public void build(VBO vbo) {
+		final int count = normalIndexes.size();
+		
+		if (count == 0) {
+			vbo.setEmpty();
+			return;
+		}
+		
+		float x, y, z, nx, ny, nz, u, v, r, g, b, a;
+		nx = 0; ny = 1; nz = 0;
+		r = 1; g = 1; b = 1; a = 1;
+		
+		normalIndex = -1;
+		colorIndex = -1;
+		
+		int bufferSize = vertexData.size();
+		FloatBuffer vertexBuffer = BufferUtil.createFloatBuffer(bufferSize);
+		FloatBuffer normalBuffer = BufferUtil.createFloatBuffer(bufferSize);
+		FloatBuffer colorBuffer = BufferUtil.createFloatBuffer(bufferSize / 3 * 4);
+		FloatBuffer uvBuffer = BufferUtil.createFloatBuffer(bufferSize / 3 * 2);
+		
+		for (int i = 0; i < count; i++) {
+			int vertexIndex = i * 3;
+			int uvIndex = i << 1;
+			
+			x = vertexData.get(vertexIndex++);
+			y = vertexData.get(vertexIndex++);
+			z = vertexData.get(vertexIndex);
+			
+			u = uvData.get(uvIndex++);
+			v = uvData.get(uvIndex);
+			
+			int index = colorIndexes.get(i);
+			if (index != colorIndex) {
+				colorIndex = index << 2;
+				r = (colorData.get(colorIndex++) & 255) / 255F;
+				g = (colorData.get(colorIndex++) & 255) / 255F;
+				b = (colorData.get(colorIndex++) & 255) / 255F;
+				a = (colorData.get(colorIndex) & 255) / 255F;
+				colorIndex = index;
+			}
+			
+			index = normalIndexes.get(i);
+			if (index != normalIndex) {
+				normalIndex = index * 3;
+				nx = normalData.get(normalIndex++);
+				ny = normalData.get(normalIndex++);
+				nz = normalData.get(normalIndex);
+				normalIndex = index;
+			}
+			
+			vertexBuffer.put(x);
+			vertexBuffer.put(y);
+			vertexBuffer.put(z);
+			
+			normalBuffer.put(nx);
+			normalBuffer.put(ny);
+			normalBuffer.put(nz);
+			
+			colorBuffer.put(r);
+			colorBuffer.put(g);
+			colorBuffer.put(b);
+			colorBuffer.put(a);
+			
+			uvBuffer.put(u);
+			uvBuffer.put(v);
+		}
+		
+		vertexBuffer.position(0);
+		normalBuffer.position(0);
+		colorBuffer.position(0);
+		uvBuffer.position(0);
+		
+		vbo.setData(vertexBuffer, normalBuffer, colorBuffer, uvBuffer);
+	}
+	
+	private byte[] packByte(List<Byte> data) {
+		byte[] result = new byte[data.size()];
+		for (int i = 0; i < result.length; i++) {
+			result[i] = data.get(i);
+		}
+		return result;
+	}
+	
+	private int[] packInt(List<Integer> data) {
+		int[] result = new int[data.size()];
+		for (int i = 0; i < result.length; i++) {
+			result[i] = data.get(i);
+		}
+		return result;
+	}
+	
+	private float[] packFloat(List<Float> data) {
+		float[] result = new float[data.size()];
+		for (int i = 0; i < result.length; i++) {
+			result[i] = data.get(i);
+		}
+		return result;
 	}
 }
