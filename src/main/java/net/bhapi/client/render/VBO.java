@@ -87,8 +87,18 @@ public class VBO {
 		GL11.glTexCoordPointer(2, GL11.GL_FLOAT, 0, 0);
 		
 		GL11.glDrawArrays(GL11.GL_QUADS, 0, size);
-		
+	}
+	
+	public static void unbind() {
 		GL15.glBindBuffer(GL15.GL_ARRAY_BUFFER, 0);
 		GL30.glBindVertexArray(0);
+	}
+	
+	public void dispose() {
+		GL15.glDeleteBuffers(vaoTarget);
+		GL15.glDeleteBuffers(vertexTarget);
+		GL15.glDeleteBuffers(normalTarget);
+		GL15.glDeleteBuffers(colorTarget);
+		GL15.glDeleteBuffers(uvTarget);
 	}
 }

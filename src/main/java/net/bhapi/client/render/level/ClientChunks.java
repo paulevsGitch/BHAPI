@@ -5,11 +5,11 @@ import net.bhapi.client.BHAPIClient;
 import net.bhapi.client.render.VBO;
 import net.bhapi.client.render.block.BHBlockRenderer;
 import net.bhapi.client.render.texture.RenderLayer;
+import net.bhapi.config.BHConfigs;
 import net.bhapi.level.ChunkSection;
 import net.bhapi.level.ChunkSectionProvider;
 import net.bhapi.level.LevelHeightProvider;
 import net.bhapi.storage.EnumArray;
-import net.bhapi.storage.ExpandableCache;
 import net.bhapi.storage.Vec3I;
 import net.bhapi.storage.WorldCache;
 import net.bhapi.util.MathUtil;
@@ -26,14 +26,10 @@ import java.util.concurrent.ArrayBlockingQueue;
 
 @Environment(EnvType.CLIENT)
 public class ClientChunks {
-	private static final ExpandableCache<Integer> RENDER_LISTS = new ExpandableCache<>(
-		() -> GL11.glGenLists(RenderLayer.VALUES.length)
-	);
 	private static final Queue<Vec3I> UPDATE_REQUESTS = new ArrayBlockingQueue<>(4096);
-	private static final BHBlockRenderer RENDERER = new BHBlockRenderer();
 	
 	private static WorldCache<ClientChunk> chunks;
-	private static RunnableThread buildingThread;
+	private static RunnableThread[] buildingThreads;
 	private static RenderLayer layer;
 	private static double px, py, pz;
 	private static int oldLight;
@@ -46,16 +42,28 @@ public class ClientChunks {
 		int sectionCountXZ = side >> 4 | 1;
 		int sectionCountY = sectionCountXZ < 17 ? sectionCountXZ : side >> 5 | 1;
 		init(sectionCountXZ, sectionCountY);
-		if (buildingThread == null) {
-			buildingThread = ThreadManager.makeThread("chunk_mesh_builder", ClientChunks::buildMeshes);
-			buildingThread.start();
+		
+		if (buildingThreads == null) {
+			int count = BHConfigs.GENERAL.getInt("multithreading.meshBuildersCount", 4);
+			count = MathUtil.clamp(count, 1, 16);
+			BHConfigs.GENERAL.setInt("multithreading.meshBuildersCount", count);
+			BHConfigs.GENERAL.save();
+			
+			buildingThreads = new RunnableThread[count];
+			for (int i = 0; i < count; i++) {
+				final BHBlockRenderer renderer = new BHBlockRenderer();
+				buildingThreads[i] = ThreadManager.makeThread("chunk_mesh_builder_" + i, () -> buildMeshes(renderer));
+				buildingThreads[i].start();
+			}
 		}
 	}
 	
 	private static void init(int width, int height) {
-		level = null;
 		if (chunks == null || chunks.getSizeXZ() != width || chunks.getSizeY() != height) {
-			if (chunks != null) RENDER_LISTS.clear();
+			if (chunks != null) {
+				UPDATE_REQUESTS.clear();
+				chunks.forEach((pos, chunk) -> chunk.dispose());
+			}
 			chunks = new WorldCache<>(
 				width, height,
 				ClientChunks::updateChunk,
@@ -118,6 +126,7 @@ public class ClientChunks {
 		chunks.forEach(ClientChunks::renderChunk);
 		
 		GL11.glDisable(GL11.GL_BLEND);
+		VBO.unbind();
 	}
 	
 	private static void updateChunk(Vec3I pos, ClientChunk chunk) {
@@ -151,18 +160,18 @@ public class ClientChunks {
 		return chunk.needUpdate;
 	}
 	
-	private static void buildMeshes() {
+	private static void buildMeshes(BHBlockRenderer renderer) {
 		if (level == null) return;
-		if (UPDATE_REQUESTS.isEmpty()) return;
 		
 		Vec3I pos = UPDATE_REQUESTS.poll();
+		if (pos == null) return;
 		
 		short sections = LevelHeightProvider.cast(level).getSectionsCount();
 		if (pos.y < 0 || pos.y >= sections) return;
 		if (!level.isBlockLoaded(pos.x << 4, 0, pos.z << 4)) return;
 		
-		RENDERER.setView(level);
-		RENDERER.startArea(pos.x << 4, pos.y << 4, pos.z << 4);
+		renderer.setView(level);
+		renderer.startArea(pos.x << 4, pos.y << 4, pos.z << 4);
 		
 		ChunkSectionProvider provider = ChunkSectionProvider.cast(level.getChunkFromCache(pos.x, pos.z));
 		ChunkSection section = provider.getChunkSection(pos.y);
@@ -182,25 +191,23 @@ public class ClientChunks {
 			int y = (i >> 4) & 15;
 			int z = i & 15;
 			BlockState state = section.getBlockState(x, y, z);
-			RENDERER.render(state, x | wx, y | wy, z | wz);
+			renderer.render(state, x | wx, y | wy, z | wz);
 		}
 		
 		for (RenderLayer layer: RenderLayer.VALUES) {
 			VBO vbo = chunk.data.get(layer);
 			vbo.setEmpty();
-			boolean empty = RENDERER.isEmpty(layer);
+			boolean empty = renderer.isEmpty(layer);
 			if (empty) {
 				vbo.setEmpty();
 				continue;
 			}
-			RENDERER.build(vbo, layer);
+			renderer.build(vbo, layer);
 			vbo.markToUpdate();
 		}
 	}
 	
 	private static class ClientChunk {
-		//final EnumArray<RenderLayer, Boolean> empty;
-		//final EnumArray<RenderLayer, Integer> data;
 		final EnumArray<RenderLayer, VBO> data;
 		final Vec3I pos;
 		
@@ -209,13 +216,6 @@ public class ClientChunks {
 		ClientChunk() {
 			needUpdate = true;
 			pos = new Vec3I(0, Integer.MIN_VALUE, 0);
-			/*empty = new EnumArray<>(RenderLayer.class);
-			data = new EnumArray<>(RenderLayer.class);
-			int list = RENDER_LISTS.get();
-			for (RenderLayer layer: RenderLayer.VALUES) {
-				empty.set(layer, true);
-				data.set(layer, list++);
-			}*/
 			data = new EnumArray<>(RenderLayer.class);
 			for (RenderLayer layer: RenderLayer.VALUES) {
 				data.set(layer, new VBO());
@@ -224,8 +224,13 @@ public class ClientChunks {
 		
 		void markEmpty() {
 			for (RenderLayer layer: RenderLayer.VALUES) {
-				//empty.set(layer, true);
 				data.get(layer).setEmpty();
+			}
+		}
+		
+		void dispose() {
+			for (RenderLayer layer: RenderLayer.VALUES) {
+				data.get(layer).dispose();
 			}
 		}
 	}
