@@ -38,8 +38,8 @@ public abstract class ItemRendererMixin extends EntityRenderer {
 	@Shadow public boolean coloriseItem;
 	@Shadow private Random rand;
 	
-	@Unique private BlockItemView bhapi_itemView = new BlockItemView();
-	@Unique private FloatBuffer bhapi_buffer = BufferUtil.createFloatBuffer(4);
+	@Unique private final BlockItemView bhapi_itemView = new BlockItemView();
+	@Unique private final FloatBuffer bhapi_buffer = BufferUtil.createFloatBuffer(4);
 	@Unique private ItemStack bhapi_renderingStack;
 	
 	@Inject(method = "<init>", at = @At("TAIL"))
@@ -76,16 +76,11 @@ public abstract class ItemRendererMixin extends EntityRenderer {
 				GL11.glColor4f(r, g, b, 1.0F);
 			}
 			
-			//RenderHelper.enableLighting();
-			//GL11.glLightModel(2899, bhapi_buffer);
-			
 			RenderHelper.disableLighting();
 			BHBlockRenderer renderer = BHAPIClient.getBlockRenderer();
 			bhapi_itemView.setBlockState(state);
 			renderer.setView(bhapi_itemView);
-			renderer.renderItem(state, this.coloriseItem, 1.0f);
-			
-			//RenderHelper.disableLighting();
+			renderer.renderItem(state, 1.0f);
 			
 			GL11.glPopMatrix();
 		}
@@ -95,13 +90,6 @@ public abstract class ItemRendererMixin extends EntityRenderer {
 			
 			if (this.coloriseItem) {
 				int color = item.getColorMultiplier(j);
-				/*if (item instanceof BHBlockItem && color == 0xFFFFFF) {
-					BlockState state = BHBlockItem.cast(item).getState();
-					if (state.is(BaseBlock.TALLGRASS) && state.getMeta() > 0) {
-						int meta = state.getMeta();
-						color = meta > 0 ? FoliageColor.getFoliageColor(0.5, 0.5) : 0xFFFFFF;
-					}
-				}*/
 				if (item instanceof BHBlockItem) {
 					BlockState state = BHBlockItem.cast(item).getState();
 					if (state.is(BaseBlock.TALLGRASS)) {
@@ -130,15 +118,9 @@ public abstract class ItemRendererMixin extends EntityRenderer {
 		float offset = MathHelper.sin(((float) entity.age + delta) / 10.0f + entity.rotation) * 0.1f + 0.1f;
 		float angle = (((float) entity.age + delta) / 20.0f + entity.rotation) * 57.295776f;
 		int count = 1;
-		if (entity.stack.count > 1) {
-			count = 2;
-		}
-		if (entity.stack.count > 5) {
-			count = 3;
-		}
-		if (entity.stack.count > 20) {
-			count = 4;
-		}
+		if (entity.stack.count > 20) count = 4;
+		else if (entity.stack.count > 5) count = 3;
+		else if (entity.stack.count > 1) count = 2;
 		GL11.glTranslatef((float) x, (float) y + offset, (float) z);
 		GL11.glEnable(32826);
 		
@@ -162,7 +144,7 @@ public abstract class ItemRendererMixin extends EntityRenderer {
 				BHBlockRenderer renderer = BHAPIClient.getBlockRenderer();
 				bhapi_itemView.setBlockState(state);
 				renderer.setView(bhapi_itemView);
-				renderer.renderItem(state, this.coloriseItem, entity.getBrightnessAtEyes(delta));
+				renderer.renderItem(state, entity.getBrightnessAtEyes(delta));
 				
 				GL11.glPopMatrix();
 			}

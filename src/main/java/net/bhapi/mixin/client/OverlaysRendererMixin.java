@@ -222,8 +222,7 @@ public abstract class OverlaysRendererMixin {
 			BHBlockRenderer renderer = BHAPIClient.getBlockRenderer();
 			bhapi_itemView.setBlockState(state);
 			renderer.setView(bhapi_itemView);
-			int color = state.getBlock().getColorMultiplier(bhapi_itemView, 0, 0, 0);
-			renderer.renderItem(state, color != 0xFFFFFF, entity.getBrightnessAtEyes(1.0f));
+			renderer.renderItem(state, entity.getBrightnessAtEyes(1.0f));
 		}
 		else {
 			float u22;

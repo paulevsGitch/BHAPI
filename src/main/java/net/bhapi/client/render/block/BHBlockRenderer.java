@@ -14,7 +14,6 @@ import net.bhapi.storage.CircleCache;
 import net.bhapi.storage.EnumArray;
 import net.bhapi.storage.PermutationTable;
 import net.bhapi.storage.Vec2F;
-import net.bhapi.storage.Vec3F;
 import net.bhapi.storage.Vec3I;
 import net.bhapi.util.BlockDirection;
 import net.bhapi.util.MathUtil;
@@ -55,12 +54,12 @@ public class BHBlockRenderer {
 	private final ModelRenderingContext context = new ModelRenderingContext();
 	private final LayeredMeshBuilder builder = new LayeredMeshBuilder();
 	private final boolean[] renderSides = new boolean[4];
-	private final Vec3F itemColor = new Vec3F();
 	private final Vec3I pos = new Vec3I();
 	
 	private boolean forceRotation = false;
 	private boolean renderAllSides = false;
 	private boolean shadeTopFace;
+	private float itemLight;
 	private float cr00;
 	private float cr01;
 	private float cr11;
@@ -153,42 +152,45 @@ public class BHBlockRenderer {
 		this.renderAllSides = false;
 	}
 	
-	public void renderItem(BlockState state, boolean colorizeItem, float light) {
-		int list = ITEMS_CACHE.computeIfAbsent(state, s -> {
-			builder.start();
-			item = true;
-			
-			//itemColor.set(light);
-			itemColor.set(1);
-			if (colorizeItem) {
-				int color = s.getBlock().getBaseColor(0);
-				float r = (float) (color >> 16 & 0xFF) / 255.0F;
-				float g = (float) (color >> 8 & 0xFF) / 255.0F;
-				float b = (float) (color & 0xFF) / 255.0F;
-				itemColor.multiply(r, g, b);
-			}
-			
-			s.getBlock().updateRenderBounds();
-			renderAllSides(s, 0, 0, 0);
-			
-			item = false;
-			
-			int result = GL11.glGenLists(1);
-			GL11.glNewList(result, GL11.GL_COMPILE);
-			Tessellator tessellator = Tessellator.INSTANCE;
-			GL11.glPushMatrix();
-			GL11.glTranslatef(-0.5F, -0.5F, -0.5F);
-			tessellator.start();
-			builder.build(tessellator);
-			tessellator.draw();
-			GL11.glPopMatrix();
-			GL11.glEndList();
-			
-			return result;
-		});
+	public void renderItem(BlockState state, float light) {
+		if (light < 0.99F) renderItemDirectly(state, light);
+		else {
+			int list = ITEMS_CACHE.computeIfAbsent(state, s -> {
+				int result = GL11.glGenLists(1);
+				GL11.glNewList(result, GL11.GL_COMPILE);
+				renderItemDirectly(s, 1.0F);
+				GL11.glEndList();
+				return result;
+			});
+			GL11.glCallList(list);
+		}
+	}
+	
+	private void renderItemDirectly(BlockState state, float light) {
+		Tessellator tessellator = Tessellator.INSTANCE;
+		item = true;
 		
-		GL11.glColor3f(light, light, light);
-		GL11.glCallList(list);
+		builder.start();
+		itemLight = light;
+		state.getBlock().updateRenderBounds();
+		renderAllSides(state, 0, 0, 0);
+		
+		GL11.glPushMatrix();
+		GL11.glTranslatef(-0.5F, -0.5F, -0.5F);
+		tessellator.start();
+		
+		builder.build(tessellator, RenderLayer.SOLID);
+		builder.build(tessellator, RenderLayer.TRANSPARENT);
+		tessellator.draw();
+		GL11.glEnable(GL11.GL_BLEND);
+		GL11.glBlendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE_MINUS_SRC_ALPHA);
+		tessellator.start();
+		builder.build(tessellator, RenderLayer.TRANSLUCENT);
+		tessellator.draw();
+		GL11.glDisable(GL11.GL_BLEND);
+		GL11.glPopMatrix();
+		
+		item = false;
 	}
 	
 	public boolean render(BlockState state, int x, int y, int z) {
@@ -214,8 +216,8 @@ public class BHBlockRenderer {
 				context.setBreaking(breaking);
 				context.setPosition(x, y, z);
 				context.setState(state);
-				context.setInGUI(item && itemColor.x == 1.0F);
-				context.setLight(item ? itemColor.x : 1.0F);
+				context.setInGUI(item && itemLight == 1.0F);
+				context.setLight(item ? itemLight : 1.0F);
 				model.render(context, uvCache);
 				result = true;
 			}
@@ -227,7 +229,7 @@ public class BHBlockRenderer {
 	}
 	
 	private float getBrightness(BaseBlock block, int x, int y, int z) {
-		return item ? 1.0F : block.getBrightness(blockView, x, y, z);
+		return item ? itemLight : block.getBrightness(blockView, x, y, z);
 	}
 	
 	private boolean isFancy() {
@@ -237,7 +239,7 @@ public class BHBlockRenderer {
 	private boolean renderFullCube(BlockState state, int x, int y, int z) {
 		float r, g, b;
 		if (item) {
-			r = itemColor.x; g = itemColor.y; b = itemColor.z;
+			r = itemLight; g = itemLight; b = itemLight;
 		}
 		else {
 			int color;

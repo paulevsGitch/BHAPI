@@ -42,6 +42,7 @@ public class TestEvent {
 		registerBlock("farlands", new FarBlock(Material.WOOD, BaseBlock.STONE_SOUNDS), event::register);
 		registerBlock("testblock4", new TestBlock(Material.WOOD, BaseBlock.WOOD_SOUNDS), event::register);
 		registerBlock("testblock5", new TestBlock5(Material.WOOD, BaseBlock.METAL_SOUNDS), event::register);
+		registerBlock("enchanted_iron", new EnchIron(), event::register);
 	}
 	
 	private void registerBlock(String name, BaseBlock block, BiConsumer<Identifier, BaseBlock> register) {
@@ -268,6 +269,38 @@ public class TestEvent {
 		@Override
 		public boolean isFullCube() {
 			return false;
+		}
+	}
+	
+	private class EnchIron extends BHBaseBlock implements BHBlockRender, ClientPostInit {
+		private TextureSample[] samples;
+		
+		public EnchIron() {
+			super(Material.METAL);
+			setSounds(METAL_SOUNDS);
+			setHardness(0.7F);
+		}
+		
+		@Override
+		public void afterClientInit() {
+			if (samples != null) return;
+			samples = new TextureSample[] {
+				Textures.getVanillaBlockSample(BaseBlock.IRON_BLOCK.texture),
+				Textures.getAtlas().getSample(Identifier.make("bhapi", "block/glint"))
+			};
+			samples[1].setLight(1);
+		}
+		
+		@Override
+		@Environment(value=EnvType.CLIENT)
+		public int getOverlayCount(BlockView view, int x, int y, int z, BlockState state) {
+			return 2;
+		}
+		
+		@Override
+		@Environment(EnvType.CLIENT)
+		public TextureSample getTextureForIndex(BlockView view, int x, int y, int z, BlockState state, int textureIndex, int overlayIndex) {
+			return samples[overlayIndex];
 		}
 	}
 }
