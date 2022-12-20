@@ -26,6 +26,10 @@ public class Vec3F {
 		return MathHelper.sqrt(lengthSqr());
 	}
 	
+	public Vec3F add(float value) {
+		return add(value, value, value);
+	}
+	
 	public Vec3F add(float x, float y, float z) {
 		this.x += x;
 		this.y += y;
@@ -108,6 +112,10 @@ public class Vec3F {
 		float ny = this.z * vector.x - this.x * vector.z;
 		float nz = this.x * vector.y - this.y * vector.x;
 		return set(nx, ny, nz);
+	}
+	
+	public float dot(Vec3F vector) {
+		return this.x * vector.x + this.y * vector.y + this.z * vector.z;
 	}
 	
 	@Override

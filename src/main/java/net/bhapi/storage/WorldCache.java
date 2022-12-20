@@ -11,6 +11,7 @@ import java.util.function.Supplier;
 public class WorldCache<T> {
 	private final UpdateCondition<T> updateCondition;
 	private final BiConsumer<Vec3I, T> updater;
+	private final Supplier<T> constructor;
 	private final Vec3I[] updateOrder;
 	private final Vec3I[] positions;
 	private final Vec3I center;
@@ -27,7 +28,7 @@ public class WorldCache<T> {
 	private int updateIndex;
 	
 	@SuppressWarnings("unchecked")
-	public WorldCache(int sizeXZ, int sizeY, BiConsumer<Vec3I, T> updater, UpdateCondition<T> updateCondition) {
+	public WorldCache(int sizeXZ, int sizeY, BiConsumer<Vec3I, T> updater, UpdateCondition<T> updateCondition, Supplier<T> constructor) {
 		this.deltaXZ = (sizeXZ >> 1);
 		this.deltaY = (sizeY >> 1);
 		
@@ -38,6 +39,7 @@ public class WorldCache<T> {
 		sizeY = MathUtil.getClosestPowerOfTwo(sizeY);
 		int capacity = sizeXZ * sizeXZ * sizeY;
 		
+		this.constructor = constructor;
 		this.updateCondition = updateCondition;
 		this.updater = updater;
 		
@@ -78,18 +80,18 @@ public class WorldCache<T> {
 		return sizeY;
 	}
 	
-	public int getCapacity() {
-		return positions.length;
-	}
-	
-	public void fill(Supplier<T> constructor) {
-		for (int i = 0; i < data.length; i++) {
-			data[i] = constructor.get();
-		}
-	}
-	
 	public void setCenter(int x, int y, int z) {
 		center.set(x, y, z);
+	}
+	
+	public void fill(int count) {
+		int counter = 0;
+		for (Vec3I delta : this.updateOrder) {
+			pos.set(center).add(delta);
+			int index = getIndex(pos);
+			if (data[index] == null) data[index] = constructor.get();
+			if (++counter > count) return;
+		}
 	}
 	
 	public void update(int maxUpdates) {
@@ -99,6 +101,10 @@ public class WorldCache<T> {
 			
 			pos.set(center).add(delta);
 			int index = getIndex(pos);
+			
+			if (data[index] == null) {
+				data[index] = constructor.get();
+			}
 			
 			if (!positions[index].equals(pos)) {
 				positions[index].set(pos);
@@ -112,20 +118,6 @@ public class WorldCache<T> {
 		}
 	}
 	
-	public void updateCircle() {
-		pos.set(center).add(updateOrder[updateIndex++]);
-		int index = getIndex(pos);
-		
-		for (int i = 0; i < updateOrder.length; i++) {
-			if (updateCondition.needUpdate(pos, data[index])) {
-				updater.accept(pos, data[index]);
-				break;
-			}
-		}
-		
-		if (updateIndex >= updateOrder.length) updateIndex = 0;
-	}
-	
 	public T get(Vec3I pos) {
 		return data[getIndex(pos)];
 	}
@@ -134,6 +126,7 @@ public class WorldCache<T> {
 		for (Vec3I delta : this.updateOrder) {
 			pos.set(center).add(delta);
 			int index = getIndex(pos);
+			if (data[index] == null) continue;
 			processor.accept(pos, data[index]);
 		}
 	}

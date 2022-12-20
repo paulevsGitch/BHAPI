@@ -60,31 +60,31 @@ public class VBO {
 	}
 	
 	public void render() {
+		GL30.glBindVertexArray(vaoTarget);
+		
 		if (update) {
 			attachBuffer(vertexTarget, vertexBuffer);
 			attachBuffer(normalTarget, normalBuffer);
 			attachBuffer(colorTarget, colorBuffer);
 			attachBuffer(uvTarget, uvBuffer);
 			update = false;
+			
+			GL11.glEnableClientState(GL11.GL_VERTEX_ARRAY);
+			GL15.glBindBuffer(GL15.GL_ARRAY_BUFFER, vertexTarget);
+			GL11.glVertexPointer(3, GL11.GL_FLOAT, 0, 0);
+			
+			GL11.glEnableClientState(GL11.GL_NORMAL_ARRAY);
+			GL15.glBindBuffer(GL15.GL_ARRAY_BUFFER, normalTarget);
+			GL11.glNormalPointer(GL11.GL_FLOAT, 0, 0);
+			
+			GL11.glEnableClientState(GL11.GL_COLOR_ARRAY);
+			GL15.glBindBuffer(GL15.GL_ARRAY_BUFFER, colorTarget);
+			GL11.glColorPointer(4, GL11.GL_FLOAT, 0, 0);
+			
+			GL11.glEnableClientState(GL11.GL_TEXTURE_COORD_ARRAY);
+			GL15.glBindBuffer(GL15.GL_ARRAY_BUFFER, uvTarget);
+			GL11.glTexCoordPointer(2, GL11.GL_FLOAT, 0, 0);
 		}
-		
-		GL30.glBindVertexArray(vaoTarget);
-		
-		GL11.glEnableClientState(GL11.GL_VERTEX_ARRAY);
-		GL15.glBindBuffer(GL15.GL_ARRAY_BUFFER, vertexTarget);
-		GL11.glVertexPointer(3, GL11.GL_FLOAT, 0, 0);
-		
-		GL11.glEnableClientState(GL11.GL_NORMAL_ARRAY);
-		GL15.glBindBuffer(GL15.GL_ARRAY_BUFFER, normalTarget);
-		GL11.glNormalPointer(GL11.GL_FLOAT, 0, 0);
-		
-		GL11.glEnableClientState(GL11.GL_COLOR_ARRAY);
-		GL15.glBindBuffer(GL15.GL_ARRAY_BUFFER, colorTarget);
-		GL11.glColorPointer(4, GL11.GL_FLOAT, 0, 0);
-		
-		GL11.glEnableClientState(GL11.GL_TEXTURE_COORD_ARRAY);
-		GL15.glBindBuffer(GL15.GL_ARRAY_BUFFER, uvTarget);
-		GL11.glTexCoordPointer(2, GL11.GL_FLOAT, 0, 0);
 		
 		GL11.glDrawArrays(GL11.GL_QUADS, 0, size);
 	}

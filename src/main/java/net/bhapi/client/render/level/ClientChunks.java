@@ -4,12 +4,14 @@ import net.bhapi.blockstate.BlockState;
 import net.bhapi.client.BHAPIClient;
 import net.bhapi.client.render.VBO;
 import net.bhapi.client.render.block.BHBlockRenderer;
+import net.bhapi.client.render.culling.FrustumCulling;
 import net.bhapi.client.render.texture.RenderLayer;
 import net.bhapi.config.BHConfigs;
 import net.bhapi.level.ChunkSection;
 import net.bhapi.level.ChunkSectionProvider;
 import net.bhapi.level.LevelHeightProvider;
 import net.bhapi.storage.EnumArray;
+import net.bhapi.storage.Vec3F;
 import net.bhapi.storage.Vec3I;
 import net.bhapi.storage.WorldCache;
 import net.bhapi.util.MathUtil;
@@ -27,6 +29,7 @@ import java.util.concurrent.ArrayBlockingQueue;
 @Environment(EnvType.CLIENT)
 public class ClientChunks {
 	private static final Queue<Vec3I> UPDATE_REQUESTS = new ArrayBlockingQueue<>(4096);
+	private static final FrustumCulling FRUSTUM_CULLING = new FrustumCulling();
 	
 	private static WorldCache<ClientChunk> chunks;
 	private static RunnableThread[] buildingThreads;
@@ -56,6 +59,9 @@ public class ClientChunks {
 				buildingThreads[i].start();
 			}
 		}
+		
+		//FRUSTUM_CULLING.setViewAngle((float) Math.toRadians(75F * 0.5F));
+		FRUSTUM_CULLING.setViewAngle((float) Math.toRadians(50F));
 	}
 	
 	private static void init(int width, int height) {
@@ -67,14 +73,15 @@ public class ClientChunks {
 			chunks = new WorldCache<>(
 				width, height,
 				ClientChunks::updateChunk,
-				ClientChunks::needUpdate
+				ClientChunks::needUpdate,
+				ClientChunk::new
 			);
-			chunks.fill(ClientChunk::new);
 		}
 	}
 	
 	public static void update(Vec3I pos) {
-		chunks.get(pos).needUpdate = true;
+		ClientChunk chunk = chunks.get(pos);
+		if (chunk != null) chunk.needUpdate = true;
 	}
 	
 	public static void updateAll() {
@@ -110,6 +117,11 @@ public class ClientChunks {
 		px = MathUtil.lerp(entity.prevX, entity.x, delta);
 		py = MathUtil.lerp(entity.prevY, entity.y, delta);
 		pz = MathUtil.lerp(entity.prevZ, entity.z, delta);
+		float yaw = (float) Math.toRadians(entity.yaw);
+		float pitch = (float) Math.toRadians(entity.pitch);
+		FRUSTUM_CULLING.rotate(-yaw, pitch);
+		
+		chunks.forEach(ClientChunks::checkVisibility);
 		
 		GL11.glDisable(GL11.GL_ALPHA_TEST);
 		GL11.glDisable(GL11.GL_BLEND);
@@ -130,12 +142,15 @@ public class ClientChunks {
 	}
 	
 	private static void updateChunk(Vec3I pos, ClientChunk chunk) {
+		if (!chunk.needUpdate) return;
 		if (UPDATE_REQUESTS.size() > 4095) return;
 		chunk.needUpdate = false;
 		UPDATE_REQUESTS.add(pos.clone());
 	}
 	
 	private static void renderChunk(Vec3I pos, ClientChunk chunk) {
+		if (!chunk.visible) return;
+		
 		VBO vbo = chunk.data.get(layer);
 		if (vbo.isEmpty()) return;
 		
@@ -148,9 +163,9 @@ public class ClientChunks {
 		
 		GL11.glPushMatrix();
 		GL11.glTranslatef(
-			(float) ((chunk.pos.x << 4) - px),
-			(float) ((chunk.pos.y << 4) - py),
-			(float) ((chunk.pos.z << 4) - pz)
+			chunk.renderPos.x - 8,
+			chunk.renderPos.y - 8,
+			chunk.renderPos.z - 8
 		);
 		vbo.render();
 		GL11.glPopMatrix();
@@ -158,6 +173,13 @@ public class ClientChunks {
 	
 	private static boolean needUpdate(Vec3I pos, ClientChunk chunk) {
 		return chunk.needUpdate;
+	}
+	
+	private static void checkVisibility(Vec3I pos, ClientChunk chunk) {
+		chunk.renderPos.x = (float) ((chunk.pos.x << 4) - px + 8);
+		chunk.renderPos.y = (float) ((chunk.pos.y << 4) - py + 8);
+		chunk.renderPos.z = (float) ((chunk.pos.z << 4) - pz + 8);
+		chunk.visible = !FRUSTUM_CULLING.isOutside(chunk.renderPos, 16);
 	}
 	
 	private static void buildMeshes(BHBlockRenderer renderer) {
@@ -177,6 +199,8 @@ public class ClientChunks {
 		ChunkSection section = provider.getChunkSection(pos.y);
 		
 		ClientChunk chunk = chunks.get(pos);
+		chunk.needUpdate = false;
+		
 		if (section == null) {
 			chunk.markEmpty();
 			return;
@@ -196,7 +220,6 @@ public class ClientChunks {
 		
 		for (RenderLayer layer: RenderLayer.VALUES) {
 			VBO vbo = chunk.data.get(layer);
-			vbo.setEmpty();
 			boolean empty = renderer.isEmpty(layer);
 			if (empty) {
 				vbo.setEmpty();
@@ -209,12 +232,15 @@ public class ClientChunks {
 	
 	private static class ClientChunk {
 		final EnumArray<RenderLayer, VBO> data;
+		final Vec3F renderPos;
 		final Vec3I pos;
 		
 		boolean needUpdate;
+		boolean visible;
 		
 		ClientChunk() {
 			needUpdate = true;
+			renderPos = new Vec3F();
 			pos = new Vec3I(0, Integer.MIN_VALUE, 0);
 			data = new EnumArray<>(RenderLayer.class);
 			for (RenderLayer layer: RenderLayer.VALUES) {
