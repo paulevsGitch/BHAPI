@@ -2932,4 +2932,8 @@ public class BHBlockRenderer {
 			}
 		}
 	}
+	
+	public static void clearItemCache() {
+		ITEMS_CACHE.clear();
+	}
 }

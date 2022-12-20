@@ -2,12 +2,12 @@ package net.bhapi.mixin.client;
 
 import net.bhapi.BHAPI;
 import net.bhapi.client.ClientRegistries;
+import net.bhapi.client.render.block.BHBlockRenderer;
 import net.bhapi.client.render.texture.TextureAtlas;
 import net.bhapi.client.render.texture.Textures;
 import net.bhapi.client.render.texture.UVPair;
 import net.bhapi.util.BufferUtil;
 import net.bhapi.util.ImageUtil;
-import net.minecraft.client.TexturePackManager;
 import net.minecraft.client.options.GameOptions;
 import net.minecraft.client.render.TextureBinder;
 import net.minecraft.client.texture.TextureManager;
@@ -37,11 +37,6 @@ public abstract class TextureManagerMixin {
 		"/particles.png",
 	};
 	
-	@Inject(method = "<init>", at = @At("TAIL"))
-	private void bhapi_onTextureManagerInit(TexturePackManager manager, GameOptions options, CallbackInfo info) {
-		//currentImageBuffer = BufferUtil.createByteBuffer(4096 * 4096 * 4); // 4k texture
-	}
-	
 	@Inject(method = "getTextureId", at = @At("HEAD"), cancellable = true)
 	private void bhapi_getTextureId(String name, CallbackInfoReturnable<Integer> info) {
 		if (Textures.isBuilding()) return;
@@ -69,8 +64,6 @@ public abstract class TextureManagerMixin {
 			binder.render3d = this.gameOptions.anaglyph3d;
 			
 			UVPair uv = atlas.getUV(binder.index);
-			//int size = uv.getWidth() * uv.getHeight();
-			//if (binder.grid.length != size) binder.grid = new byte[size * 4];
 			
 			binder.update();
 			
@@ -112,6 +105,7 @@ public abstract class TextureManagerMixin {
 	
 	@Inject(method = "reloadTexturesFromTexturePack", at = @At("RETURN"))
 	private void bhapi_reloadTexturesFromTexturePack(CallbackInfo info) {
+		BHBlockRenderer.clearItemCache();
 		Textures.preReload();
 		BHAPI.processEntryPoints("bhapi:client_events", ClientRegistries.EVENT_REGISTRY_RELOAD);
 		Textures.reload();
