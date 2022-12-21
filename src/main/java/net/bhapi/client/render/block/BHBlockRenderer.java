@@ -42,7 +42,7 @@ import java.util.List;
 import java.util.Map;
 
 public class BHBlockRenderer {
-	private static final Map<BlockState, Integer> ITEMS_CACHE = new HashMap<>();
+	private static final Map<BlockState, int[]> ITEMS_CACHE = new HashMap<>();
 	private static final PermutationTable[] TABLES = {
 		new PermutationTable(0),
 		new PermutationTable(1),
@@ -158,17 +158,18 @@ public class BHBlockRenderer {
 	}
 	
 	public void renderItem(BlockState state, float light) {
-		if (light < 0.99F) renderItemDirectly(state, light);
-		else {
-			int list = ITEMS_CACHE.computeIfAbsent(state, s -> {
-				int result = GL11.glGenLists(1);
-				GL11.glNewList(result, GL11.GL_COMPILE);
-				renderItemDirectly(s, 1.0F);
-				GL11.glEndList();
-				return result;
-			});
-			GL11.glCallList(list);
+		int iLight = (int) (light * 15);
+		iLight = MathUtil.clamp(iLight, 0, 15);
+		int[] list = ITEMS_CACHE.computeIfAbsent(state, s -> new int[16]);
+		int target = list[iLight];
+		if (target == 0) {
+			target = GL11.glGenLists(1);
+			GL11.glNewList(target, GL11.GL_COMPILE);
+			renderItemDirectly(state, (float) iLight / 15F);
+			GL11.glEndList();
+			list[iLight] = target;
 		}
+		GL11.glCallList(target);
 	}
 	
 	private void renderItemDirectly(BlockState state, float light) {

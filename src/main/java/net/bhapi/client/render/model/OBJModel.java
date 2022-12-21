@@ -143,7 +143,9 @@ public class OBJModel extends CustomModel {
 						if (member.contains("/")) {
 							String[] sub = member.split("/");
 							vertexIndex.add(Integer.parseInt(sub[0]) - 1);
-							uvIndex.add(Integer.parseInt(sub[1]) - 1);
+							if (!sub[1].isEmpty()) {
+								uvIndex.add(Integer.parseInt(sub[1]) - 1);
+							}
 						}
 						else {
 							vertexIndex.add(Integer.parseInt(member) - 1);
