@@ -1,6 +1,5 @@
 package net.bhapi.level.updaters;
 
-import net.bhapi.BHAPI;
 import net.bhapi.blockstate.BlockState;
 import net.bhapi.config.BHConfigs;
 import net.bhapi.level.BlockStateProvider;
@@ -25,7 +24,6 @@ import net.minecraft.level.gen.BiomeSource;
 import net.minecraft.level.gen.FixedBiomeSource;
 import net.minecraft.util.maths.MathHelper;
 
-import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -52,26 +50,7 @@ public class LevelChunkUpdater extends ThreadedUpdater {
 		LevelHeightProvider heightProvider = LevelHeightProvider.cast(level);
 		height = heightProvider.getSectionsCount();
 		caveSoundTicks = random.getInt(12000) + 6000;
-		
-		// TODO Replace this with reading biomes from chunk cache
-		if (BHAPI.isClient()) {
-			BiomeSource source;
-			BiomeSource levelSource = level.getBiomeSource();
-			try {
-				if (levelSource instanceof FixedBiomeSource) {
-					BaseBiome[] biome = levelSource.getBiomes(biomes, 0, 0, 1, 1);
-					source = new FixedBiomeSource(biome[0], 1.0, 0.0);
-				}
-				else source = levelSource.getClass().getConstructor(Level.class).newInstance(level);
-			}
-			catch (InstantiationException | IllegalAccessException | InvocationTargetException | NoSuchMethodException e) {
-				BHAPI.warn("Failed to load biome source " + levelSource + " on client");
-				source = FAIL_SOURCE;
-			}
-			biomeSource = source;
-		}
-		else biomeSource = level.getBiomeSource(); // Weird behavior on server, missing constructors
-		
+		biomeSource = level.getBiomeSource();
 		updatesVertical = BHConfigs.GENERAL.getInt("updates.verticalChunks", 8);
 		updatesHorizontal = BHConfigs.GENERAL.getInt("updates.horizontalChunks", 8);
 		BHConfigs.GENERAL.save();

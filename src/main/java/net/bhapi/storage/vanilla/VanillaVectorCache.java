@@ -1,4 +1,4 @@
-package net.bhapi.storage;
+package net.bhapi.storage.vanilla;
 
 import net.minecraft.util.maths.Vec3f;
 

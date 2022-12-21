@@ -150,10 +150,8 @@ public class ClientChunks {
 	
 	private static void renderChunk(Vec3I pos, ClientChunk chunk) {
 		if (!chunk.visible) return;
-		
 		VBO vbo = chunk.data.get(layer);
 		if (vbo.isEmpty()) return;
-		
 		if (!chunk.pos.equals(pos)) {
 			chunk.pos.set(pos);
 			chunk.needUpdate = true;
@@ -176,9 +174,9 @@ public class ClientChunks {
 	}
 	
 	private static void checkVisibility(Vec3I pos, ClientChunk chunk) {
-		chunk.renderPos.x = (float) ((chunk.pos.x << 4) - px + 8);
-		chunk.renderPos.y = (float) ((chunk.pos.y << 4) - py + 8);
-		chunk.renderPos.z = (float) ((chunk.pos.z << 4) - pz + 8);
+		chunk.renderPos.x = (float) ((pos.x << 4) - px + 8);
+		chunk.renderPos.y = (float) ((pos.y << 4) - py + 8);
+		chunk.renderPos.z = (float) ((pos.z << 4) - pz + 8);
 		chunk.visible = !FRUSTUM_CULLING.isOutside(chunk.renderPos, 16);
 	}
 	

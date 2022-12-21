@@ -19,12 +19,28 @@ public class ThreadManager {
 		stopThread(thread.getName());
 	}
 	
+	@SuppressWarnings("deprecation")
 	public static void stopThread(String name) {
 		RunnableThread thread = THREADS.get(name);
 		if (thread != null) {
 			thread.stopThread();
 			THREADS.remove(name);
 		}
+		// Kill thread if it stuck
+		new Thread(() -> {
+			try {
+				Thread.sleep(100);
+			}
+			catch (InterruptedException e) {
+				e.printStackTrace();
+			}
+			if (thread != null && thread.isAlive()) {
+				try {
+					thread.stop();
+				}
+				catch (Exception ignored) {}
+			}
+		}).start();
 	}
 	
 	public static void remove(String name) {

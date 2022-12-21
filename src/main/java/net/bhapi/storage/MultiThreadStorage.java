@@ -24,4 +24,8 @@ public class MultiThreadStorage <T> {
 		}
 		return object;
 	}
+	
+	public void clear() {
+		objects.clear();
+	}
 }
