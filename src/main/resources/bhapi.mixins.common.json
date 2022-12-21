@@ -21,6 +21,7 @@
 		"ItemEntityMixin",
 		"ItemStackMixin",
 		"ChunkMixin",
+		"StatsMixin",
 		"Vec3fMixin",
 		
 		"recipe.RecipeRegistryAccessor",

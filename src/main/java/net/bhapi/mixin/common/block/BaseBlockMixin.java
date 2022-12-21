@@ -5,6 +5,7 @@ import net.bhapi.blockstate.BlockState;
 import net.bhapi.blockstate.BlockStateContainer;
 import net.bhapi.client.render.block.BHBlockRender;
 import net.bhapi.level.BlockStateProvider;
+import net.bhapi.storage.vanilla.BlockMarker;
 import net.bhapi.util.BlockUtil;
 import net.bhapi.util.ItemUtil;
 import net.fabricmc.api.EnvType;
@@ -20,6 +21,7 @@ import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
+import org.spongepowered.asm.mixin.injection.ModifyVariable;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
@@ -37,6 +39,12 @@ public abstract class BaseBlockMixin implements BlockStateContainer, BHBlockRend
 	@Shadow @Final public int id;
 	
 	@Unique	private BlockState defaultState;
+	
+	// Allows to put anything into block ID field
+	@ModifyVariable(method = "<init>(ILnet/minecraft/block/material/Material;)V", at = @At("HEAD"), ordinal = 0, argsOnly = true)
+	private static int bhapi_setModBlockID(int id) {
+		return BlockMarker.isVanillaInitiated() ? BlockUtil.MOD_BLOCK_ID : id;
+	}
 	
 	// Reset block and all its values to default
 	// Allows to register same block multiple times

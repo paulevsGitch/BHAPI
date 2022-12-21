@@ -172,25 +172,34 @@ public class Textures {
 		idMap.forEach((index, id) -> {
 			byte x = (byte) (index & 15);
 			byte y = (byte) (index >> 4);
-			if (idMap == ID_BLOCK && (index == 238 || index == 206)) {
-				BufferedImage img = ImageUtil.makeImage(32, 32);
-				Graphics g = img.getGraphics();
-				g.setColor(new Color(128, 128, 128, 128));
-				g.fillRect(0, 0, 32, 32);
-				textures.put(id, img);
+			
+			if (idMap == ID_BLOCK) {
+				// Liquids, using 2x2 tiles texture
+				if (index == 238 || index == 206) {
+					BufferedImage img = ImageUtil.makeImage(32, 32);
+					Graphics g = img.getGraphics();
+					g.setColor(new Color(128, 128, 128, 128));
+					g.fillRect(0, 0, 32, 32);
+					textures.put(id, img);
+					return;
+				}
+				
+				// Vanilla block animations (portal, fire, static liquids)
+				if (index == 14 || index == 31 || index == 47 || index == 205 || index == 237) {
+					BufferedImage img = ImageUtil.makeImage(16, 16);
+					Graphics g = img.getGraphics();
+					boolean isFire = index == 31 || index == 47;
+					boolean isLava = index == 205 || index == 237;
+					g.setColor(new Color(128, 128, 128, isFire ? 0 : isLava ? 255 : 128));
+					g.fillRect(0, 0, 16, 16);
+					textures.put(id, img);
+					return;
+				}
 			}
-			else if (idMap == ID_BLOCK && (index == 31 || index == 47 || index == 205 || index == 237)) {
-				BufferedImage img = ImageUtil.makeImage(16, 16);
-				Graphics g = img.getGraphics();
-				g.setColor(new Color(128, 128, 128, 128));
-				g.fillRect(0, 0, 16, 16);
-				textures.put(id, img);
-			}
-			else {
-				BufferedImage img = ImageUtil.makeImage(width, height);
-				img.getGraphics().drawImage(atlas, -x * width, -y * height, null);
-				textures.put(id, img);
-			}
+			
+			BufferedImage img = ImageUtil.makeImage(width, height);
+			img.getGraphics().drawImage(atlas, -x * width, -y * height, null);
+			textures.put(id, img);
 		});
 	}
 	
