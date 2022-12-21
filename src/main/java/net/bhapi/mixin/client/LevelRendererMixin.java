@@ -9,6 +9,7 @@ import net.bhapi.client.render.texture.Textures;
 import net.bhapi.level.BlockStateProvider;
 import net.bhapi.level.ChunkHeightProvider;
 import net.bhapi.level.LevelHeightProvider;
+import net.bhapi.level.light.ClientLightLevel;
 import net.bhapi.registry.CommonRegistries;
 import net.bhapi.util.MathUtil;
 import net.fabricmc.loader.api.FabricLoader;
@@ -244,8 +245,8 @@ public abstract class LevelRendererMixin implements LevelHeightProvider {
 	
 	@Inject(method = "updateFromOptions", at = @At("TAIL"))
 	public void updateFromOptions(CallbackInfo info) {
-		//ClientChunks.init(this.sectionCounX | 1, this.sectionCounY | 1);
 		ClientChunks.init();
+		ClientLightLevel.init();
 	}
 	
 	@Inject(method = "playSound", at = @At("HEAD"), cancellable = true)

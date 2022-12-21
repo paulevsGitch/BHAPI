@@ -40,9 +40,9 @@ public class Textures {
 	public static void preInit() {
 		building = true;
 		BufferedImage terrain = loadTexture("/terrain.png");
-		addTextures(terrain, ID_BLOCK, LOADED_TEXTURES);
-		addTextures(loadTexture("/gui/items.png"), ID_ITEM, LOADED_TEXTURES);
-		addTextures(loadTexture("/particles.png"), ID_PARTICLE, LOADED_TEXTURES);
+		addTextures(terrain, ID_BLOCK);
+		addTextures(loadTexture("/gui/items.png"), ID_ITEM);
+		addTextures(loadTexture("/particles.png"), ID_PARTICLE);
 		
 		IntStream.range(0, 10).forEach(index -> {
 			int width = terrain.getWidth() / 16;
@@ -80,9 +80,9 @@ public class Textures {
 	public static void preReload() {
 		building = true;
 		BufferedImage terrain = loadTexture("/terrain.png");
-		addTextures(terrain, ID_BLOCK, LOADED_TEXTURES);
-		addTextures(loadTexture("/gui/items.png"), ID_ITEM, LOADED_TEXTURES);
-		addTextures(loadTexture("/particles.png"), ID_PARTICLE, LOADED_TEXTURES);
+		addTextures(terrain, ID_BLOCK);
+		addTextures(loadTexture("/gui/items.png"), ID_ITEM);
+		addTextures(loadTexture("/particles.png"), ID_PARTICLE);
 		
 		IntStream.range(0, 10).forEach(index -> {
 			int width = terrain.getWidth() / 16;
@@ -165,7 +165,7 @@ public class Textures {
 		return image;
 	}
 	
-	private static void addTextures(BufferedImage atlas, Map<Integer, Identifier> idMap, Map<Identifier, BufferedImage> textures) {
+	private static void addTextures(BufferedImage atlas, Map<Integer, Identifier> idMap) {
 		int width = atlas.getWidth() >> 4;
 		int height = atlas.getHeight() >> 4;
 		
@@ -180,7 +180,7 @@ public class Textures {
 					Graphics g = img.getGraphics();
 					g.setColor(new Color(128, 128, 128, 128));
 					g.fillRect(0, 0, 32, 32);
-					textures.put(id, img);
+					LOADED_TEXTURES.put(id, img);
 					return;
 				}
 				
@@ -192,14 +192,14 @@ public class Textures {
 					boolean isLava = index == 205 || index == 237;
 					g.setColor(new Color(128, 128, 128, isFire ? 0 : isLava ? 255 : 128));
 					g.fillRect(0, 0, 16, 16);
-					textures.put(id, img);
+					LOADED_TEXTURES.put(id, img);
 					return;
 				}
 			}
 			
 			BufferedImage img = ImageUtil.makeImage(width, height);
 			img.getGraphics().drawImage(atlas, -x * width, -y * height, null);
-			textures.put(id, img);
+			LOADED_TEXTURES.put(id, img);
 		});
 	}
 	

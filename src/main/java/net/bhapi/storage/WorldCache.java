@@ -25,7 +25,10 @@ public class WorldCache<T> {
 	private final int maskY;
 	private final Vec3I pos;
 	private final T[] data;
-	private int updateIndex;
+	
+	public WorldCache(int sizeXZ, int sizeY, Supplier<T> constructor) {
+		this(sizeXZ, sizeY, null, null, constructor);
+	}
 	
 	@SuppressWarnings("unchecked")
 	public WorldCache(int sizeXZ, int sizeY, BiConsumer<Vec3I, T> updater, UpdateCondition<T> updateCondition, Supplier<T> constructor) {
@@ -84,6 +87,10 @@ public class WorldCache<T> {
 		center.set(x, y, z);
 	}
 	
+	public void fill() {
+		fill(data.length);
+	}
+	
 	public void fill(int count) {
 		int counter = 0;
 		for (Vec3I delta : this.updateOrder) {
@@ -120,6 +127,12 @@ public class WorldCache<T> {
 	
 	public T get(Vec3I pos) {
 		return data[getIndex(pos)];
+	}
+	
+	public T getOrCreate(Vec3I pos) {
+		int index = getIndex(pos);
+		if (data[index] == null) data[index] = constructor.get();
+		return data[index];
 	}
 	
 	public void forEach(BiConsumer<Vec3I, T> processor) {

@@ -1,5 +1,6 @@
 package net.bhapi.level.light;
 
+import net.bhapi.BHAPI;
 import net.bhapi.blockstate.BlockState;
 import net.bhapi.level.BlockStateProvider;
 import net.bhapi.storage.CircleCache;
@@ -12,11 +13,12 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-public class VoxelLightScatter {
+public class BHLightScatter {
 	private static final int SIDE = 14 * 2 + 1;
 	private static final int SIDE2 = SIDE * SIDE;
 	private static final int CAPACITY = SIDE * SIDE * SIDE;
 	private static final int CENTER = getIndex(14, 14, 14);
+	private static final boolean IS_CLIENT = BHAPI.isClient();
 	
 	private final CircleCache<Vec3I> vectorCache = new CircleCache<>(CAPACITY >> 1);
 	private final List<List<Vec3I>> buffers = new ArrayList<>(2);
@@ -24,7 +26,7 @@ public class VoxelLightScatter {
 	private final byte[] data = new byte[CAPACITY];
 	private final Vec3I blockPos = new Vec3I();
 	
-	public VoxelLightScatter() {
+	public BHLightScatter() {
 		buffers.add(new ArrayList<>(CAPACITY >> 2));
 		buffers.add(new ArrayList<>(CAPACITY >> 2));
 		vectorCache.fill(Vec3I::new);
@@ -41,7 +43,7 @@ public class VoxelLightScatter {
 		buffers.get(1).clear();
 		buffers.get(0).add(vectorCache.get().set(14, 14, 14));
 		Vec3I center2 = center.clone().subtract(14);
-		level.setLight(LightType.BLOCK, center.x, center.y, center.z, light);
+		setLight(level, center.x, center.y, center.z, light);
 		
 		BlockStateProvider provider = BlockStateProvider.cast(level);
 		
@@ -65,14 +67,7 @@ public class VoxelLightScatter {
 							endPoints.add(side);
 							mask[index] = true;
 							data[index] = realLight;
-							//level.setLight(LightType.BLOCK, blockPos.x, blockPos.y, blockPos.z, data[index]);
-							level.getChunk(blockPos.x, blockPos.z).setLight(
-								LightType.BLOCK,
-								blockPos.x & 15,
-								blockPos.y,
-								blockPos.z & 15,
-								data[index]
-							);
+							setLight(level, blockPos.x, blockPos.y, blockPos.z, data[index]);
 						}
 					}
 				}
@@ -96,6 +91,16 @@ public class VoxelLightScatter {
 	}
 	
 	private boolean checkWorld(Level level, Vec3I pos, int light) {
-		return level.getLight(LightType.BLOCK, pos.x, pos.y, pos.z) <= light;
+		return getLight(level, pos.x, pos.y, pos.z) <= light;
+	}
+	
+	private void setLight(Level level, int x, int y, int z, int light) {
+		if (IS_CLIENT) ClientLightLevel.setLight(x, y, z, light);
+		else level.getChunk(x, z).setLight(LightType.BLOCK, x & 15, y, z & 15, light);
+	}
+	
+	private int getLight(Level level, int x, int y, int z) {
+		if (IS_CLIENT) return ClientLightLevel.getLight(x, y, z);
+		else return level.getChunk(x, z).getLight(LightType.BLOCK, x & 15, y, z & 15);
 	}
 }

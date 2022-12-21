@@ -3,6 +3,7 @@ package net.bhapi.level;
 import net.bhapi.blockstate.BlockState;
 import net.bhapi.config.BHConfigs;
 import net.bhapi.interfaces.NBTSerializable;
+import net.bhapi.level.light.BHLightChunk;
 import net.bhapi.registry.CommonRegistries;
 import net.bhapi.storage.MultiThreadStorage;
 import net.bhapi.storage.Vec3I;
@@ -136,6 +137,16 @@ public class ChunkSection implements NBTSerializable {
 		light[secIndex] = data[index++];
 		
 		return index;
+	}
+	
+	public void fillLightFrom(LightType type, BHLightChunk chunk) {
+		int index = type == LightType.SKY ? 2048 : 0;
+		System.arraycopy(chunk.getData(), 0, light, index, 2048);
+	}
+	
+	public void fillLightInto(LightType type, BHLightChunk chunk) {
+		int index = type == LightType.SKY ? 2048 : 0;
+		System.arraycopy(light, index, chunk.getData(), 0, 2048);
 	}
 	
 	@Override

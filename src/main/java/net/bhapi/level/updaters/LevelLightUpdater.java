@@ -5,7 +5,8 @@ import net.bhapi.blockstate.BlockState;
 import net.bhapi.client.render.level.ClientChunks;
 import net.bhapi.level.BlockStateProvider;
 import net.bhapi.level.light.BHLightArea;
-import net.bhapi.level.light.VoxelLightScatter;
+import net.bhapi.level.light.BHLightScatter;
+import net.bhapi.level.light.ClientLightLevel;
 import net.bhapi.storage.CircleCache;
 import net.bhapi.storage.Vec3I;
 import net.bhapi.util.BlockDirection;
@@ -23,7 +24,7 @@ public class LevelLightUpdater extends ThreadedUpdater {
 	private final CircleCache<Vec3I> vectorCache = new CircleCache<>(131072);
 	private final Set<BHLightArea> updateRequests = new HashSet<>();
 	private final Set<BHLightArea> updateAreas = new HashSet<>();
-	private final VoxelLightScatter scatter = new VoxelLightScatter();
+	private final BHLightScatter scatter = new BHLightScatter();
 	private final List<Vec3I> positions = new ArrayList<>(4096);
 	private final List<Byte> lights = new ArrayList<>(4096);
 	private final Vec3I blockPos = new Vec3I();
@@ -99,7 +100,11 @@ public class LevelLightUpdater extends ThreadedUpdater {
 		updateAreas.clear();
 		
 		if (isClient) {
-			clientUpdateRequests.forEach(ClientChunks::update);
+			clientUpdateRequests.forEach(pos -> {
+				if (ClientLightLevel.fillSection(pos)) {
+					ClientChunks.update(pos);
+				}
+			});
 			clientUpdateRequests.clear();
 		}
 	}
@@ -108,7 +113,7 @@ public class LevelLightUpdater extends ThreadedUpdater {
 		for (blockPos.x = min.x; blockPos.x <= max.x; blockPos.x++) {
 			for (blockPos.y = min.y; blockPos.y <= max.y; blockPos.y++) {
 				for (blockPos.z = min.z; blockPos.z <= max.z; blockPos.z++) {
-					level.setLight(LightType.BLOCK, blockPos.x, blockPos.y, blockPos.z, 0);
+					clearLight(level, blockPos.x, blockPos.y, blockPos.z);
 				}
 			}
 		}
@@ -130,13 +135,23 @@ public class LevelLightUpdater extends ThreadedUpdater {
 	}
 	
 	private byte getMaxLight(Vec3I pos) {
-		byte light = (byte) level.getLight(LightType.BLOCK, pos.x, pos.y, pos.z);
+		byte light = (byte) getLight(level, pos.x, pos.y, pos.z);
 		for (BlockDirection face: BlockDirection.VALUES) {
 			blockPos.set(pos).move(face);
-			byte light2 = (byte) level.getLight(LightType.BLOCK, blockPos.x, blockPos.y, blockPos.z);
+			byte light2 = (byte) getLight(level, blockPos.x, blockPos.y, blockPos.z);
 			if (light2 > light) light = light2;
 		}
 		return light;
+	}
+	
+	private void clearLight(Level level, int x, int y, int z) {
+		if (isClient) ClientLightLevel.setLight(x, y, z, 0);
+		else level.getChunk(x, z).setLight(LightType.BLOCK, x & 15, y, z & 15, 0);
+	}
+	
+	private int getLight(Level level, int x, int y, int z) {
+		if (isClient) return ClientLightLevel.getLight(x, y, z);
+		else return level.getChunk(x, z).getLight(LightType.BLOCK, x & 15, y, z & 15);
 	}
 	
 	@Environment(EnvType.CLIENT)
@@ -154,12 +169,6 @@ public class LevelLightUpdater extends ThreadedUpdater {
 				}
 			}
 		}
-	}
-	
-	@Environment(EnvType.CLIENT)
-	private void updateClient() {
-		clientUpdateRequests.forEach(ClientChunks::update);
-		clientUpdateRequests.clear();
 	}
 	
 	private boolean canPropagate(BlockStateProvider provider, Vec3I pos, int light) {
