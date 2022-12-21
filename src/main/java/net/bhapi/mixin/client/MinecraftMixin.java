@@ -2,6 +2,7 @@ package net.bhapi.mixin.client;
 
 import net.bhapi.BHAPI;
 import net.bhapi.client.ClientRegistries;
+import net.bhapi.client.render.block.BHBlockRenderer;
 import net.bhapi.client.render.level.ClientChunks;
 import net.bhapi.client.render.texture.Textures;
 import net.bhapi.interfaces.ClientPostInit;
@@ -56,5 +57,11 @@ public class MinecraftMixin {
 	private void bhapi_fixChunkUpdates(CallbackInfo info) {
 		this.fpsDebugString = this.fpsDebugString.substring(0, this.fpsDebugString.length() - 15) +
 			ClientChunks.getChunkUpdates() + " chunk updates";
+	}
+	
+	@Inject(method = "Lnet/minecraft/client/Minecraft;stop()V", at = @At("HEAD"))
+	private void bhapi_onExit(CallbackInfo info) {
+		BHBlockRenderer.clearItemCache();
+		ClientChunks.onExit();
 	}
 }

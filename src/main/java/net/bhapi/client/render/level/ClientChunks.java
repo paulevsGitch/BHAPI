@@ -79,6 +79,12 @@ public class ClientChunks {
 		}
 	}
 	
+	public static void onExit() {
+		if (chunks != null) {
+			chunks.forEach((pos, chunk) -> chunk.dispose());
+		}
+	}
+	
 	public static void update(Vec3I pos) {
 		ClientChunk chunk = chunks.get(pos);
 		if (chunk != null) chunk.needUpdate = true;

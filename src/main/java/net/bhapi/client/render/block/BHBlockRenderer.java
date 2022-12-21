@@ -2936,6 +2936,11 @@ public class BHBlockRenderer {
 	}
 	
 	public static void clearItemCache() {
+		ITEMS_CACHE.values().forEach(data -> {
+			for (int i: data) {
+				if (i != 0) GL11.glDeleteLists(i, 1);
+			}
+		});
 		ITEMS_CACHE.clear();
 	}
 }
