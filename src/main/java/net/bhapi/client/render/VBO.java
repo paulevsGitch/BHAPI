@@ -11,11 +11,10 @@ import java.nio.FloatBuffer;
 @Environment(EnvType.CLIENT)
 public class VBO {
 	private final int vaoTarget;
-	
-	private int vertexTarget;
-	private int normalTarget;
-	private int colorTarget;
-	private int uvTarget;
+	private final int vertexTarget;
+	private final int normalTarget;
+	private final int colorTarget;
+	private final int uvTarget;
 	
 	private boolean update;
 	private int size;

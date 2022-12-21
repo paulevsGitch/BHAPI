@@ -67,7 +67,6 @@ public class ClientChunks {
 	private static void init(int width, int height) {
 		if (chunks == null || chunks.getSizeXZ() != width || chunks.getSizeY() != height) {
 			if (chunks != null) {
-				UPDATE_REQUESTS.clear();
 				chunks.forEach((pos, chunk) -> chunk.dispose());
 			}
 			chunks = new WorldCache<>(
@@ -76,6 +75,7 @@ public class ClientChunks {
 				ClientChunks::needUpdate,
 				ClientChunk::new
 			);
+			UPDATE_REQUESTS.clear();
 		}
 	}
 	
