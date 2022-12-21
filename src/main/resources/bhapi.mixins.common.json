@@ -19,6 +19,7 @@
 		"ItemEntityMixin",
 		"ItemStackMixin",
 		"ChunkMixin",
+		"Vec3fMixin",
 		
 		"recipe.RecipeRegistryAccessor",
 		"recipe.ShapelessRecipeMixin",

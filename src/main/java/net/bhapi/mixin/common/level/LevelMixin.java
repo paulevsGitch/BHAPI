@@ -85,6 +85,7 @@ public abstract class LevelMixin implements LevelHeightProvider, BlockStateProvi
 	@Unique private LevelChunkUpdater bhapi_chunksUpdater;
 	@Unique private LevelTicksUpdater bhapi_ticksUpdater;
 	@Unique private LevelLightUpdater bhapi_lightUpdater;
+	@Unique private Vec3f bhapi_tempPos = Vec3f.make(0, 0, 0);
 	
 	@Inject(
 		method = "<init>(Lnet/minecraft/level/dimension/DimensionData;Ljava/lang/String;Lnet/minecraft/level/dimension/BaseDimension;J)V",
@@ -437,26 +438,25 @@ public abstract class LevelMixin implements LevelHeightProvider, BlockStateProvi
 				pos.z = d3;
 			}
 			
-			Vec3f vec3f = Vec3f.getFromCacheAndSet(pos.x, pos.y, pos.z);
-			vec3f.x = MathHelper.floor(pos.x);
-			x = (int) vec3f.x;
+			bhapi_tempPos.x = MathHelper.floor(pos.x);
+			x = (int) bhapi_tempPos.x;
 			if (side == 5) {
 				--x;
-				vec3f.x += 1.0;
+				bhapi_tempPos.x += 1.0;
 			}
 			
-			vec3f.y = MathHelper.floor(pos.y);
-			y = (int)vec3f.y;
+			bhapi_tempPos.y = MathHelper.floor(pos.y);
+			y = (int)bhapi_tempPos.y;
 			if (side == 1) {
 				--y;
-				vec3f.y += 1.0;
+				bhapi_tempPos.y += 1.0;
 			}
 			
-			vec3f.z = MathHelper.floor(pos.z);
-			z = (int)vec3f.z;
+			bhapi_tempPos.z = MathHelper.floor(pos.z);
+			z = (int)bhapi_tempPos.z;
 			if (side == 3) {
 				--z;
-				vec3f.z += 1.0;
+				bhapi_tempPos.z += 1.0;
 			}
 			
 			int meta2 = this.getBlockMeta(x, y, z);

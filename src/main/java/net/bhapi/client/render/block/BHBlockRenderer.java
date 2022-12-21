@@ -2246,6 +2246,7 @@ public class BHBlockRenderer {
 		
 		Vec3f[] points = new Vec3f[8];
 		
+		// TODO switch this into my own implementation
 		points[0] = Vec3f.getFromCacheAndSet(-0.0625f, 0.0, -0.0625f);
 		points[1] = Vec3f.getFromCacheAndSet(0.0625f, 0.0, -0.0625f);
 		points[2] = Vec3f.getFromCacheAndSet(0.0625f, 0.0, 0.0625f);
