@@ -47,4 +47,9 @@ public class FallingBlockEntityMixin implements BlockStateContainer {
 	public void setDefaultState(BlockState state) {
 		this.bhapi_blockState = state;
 	}
+	
+	@Override
+	public BlockState getDefaultState() {
+		return this.bhapi_blockState;
+	}
 }

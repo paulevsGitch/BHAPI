@@ -165,7 +165,9 @@ public class BHBlockRenderer {
 		if (target == 0) {
 			target = GL11.glGenLists(1);
 			GL11.glNewList(target, GL11.GL_COMPILE);
-			renderItemDirectly(state, (float) iLight / 15F);
+			float itemLight = (float) iLight / 15F;
+			itemLight = itemLight * 0.7F + 0.3F;
+			renderItemDirectly(state, itemLight);
 			GL11.glEndList();
 			list[iLight] = target;
 		}

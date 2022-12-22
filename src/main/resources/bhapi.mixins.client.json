@@ -11,6 +11,7 @@
 		"ClientPlayNetworkHandlerMixin",
 		"MultiplayerChunkCacheMixin",
 		"AbstractClientPlayerMixin",
+		"FallingBlockRendererMixin",
 		"BlockEntityRendererMixin",
 		"ProjectileRendererMixin",
 		"TranslationStorageMixin",
