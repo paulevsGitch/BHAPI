@@ -1,7 +1,7 @@
 package net.bhapi.client.render.level;
 
-import net.bhapi.client.render.VBO;
 import net.bhapi.client.render.texture.RenderLayer;
+import net.bhapi.client.render.vbo.VBO;
 import net.bhapi.storage.EnumArray;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;

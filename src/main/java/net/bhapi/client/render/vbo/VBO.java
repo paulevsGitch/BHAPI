@@ -1,4 +1,4 @@
-package net.bhapi.client.render;
+package net.bhapi.client.render.vbo;
 
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
@@ -10,6 +10,8 @@ import java.nio.FloatBuffer;
 
 @Environment(EnvType.CLIENT)
 public class VBO {
+	protected int size;
+	
 	private final int vaoTarget;
 	private final int vertexTarget;
 	private final int normalTarget;
@@ -17,7 +19,6 @@ public class VBO {
 	private final int uvTarget;
 	
 	private boolean update;
-	private int size;
 	
 	private FloatBuffer vertexBuffer;
 	private FloatBuffer normalBuffer;
@@ -59,33 +60,38 @@ public class VBO {
 	}
 	
 	public void render() {
-		GL30.glBindVertexArray(vaoTarget);
-		
-		if (update) {
-			attachBuffer(vertexTarget, vertexBuffer);
-			attachBuffer(normalTarget, normalBuffer);
-			attachBuffer(colorTarget, colorBuffer);
-			attachBuffer(uvTarget, uvBuffer);
-			update = false;
-			
-			GL11.glEnableClientState(GL11.GL_VERTEX_ARRAY);
-			GL15.glBindBuffer(GL15.GL_ARRAY_BUFFER, vertexTarget);
-			GL11.glVertexPointer(3, GL11.GL_FLOAT, 0, 0);
-			
-			GL11.glEnableClientState(GL11.GL_NORMAL_ARRAY);
-			GL15.glBindBuffer(GL15.GL_ARRAY_BUFFER, normalTarget);
-			GL11.glNormalPointer(GL11.GL_FLOAT, 0, 0);
-			
-			GL11.glEnableClientState(GL11.GL_COLOR_ARRAY);
-			GL15.glBindBuffer(GL15.GL_ARRAY_BUFFER, colorTarget);
-			GL11.glColorPointer(4, GL11.GL_FLOAT, 0, 0);
-			
-			GL11.glEnableClientState(GL11.GL_TEXTURE_COORD_ARRAY);
-			GL15.glBindBuffer(GL15.GL_ARRAY_BUFFER, uvTarget);
-			GL11.glTexCoordPointer(2, GL11.GL_FLOAT, 0, 0);
-		}
-		
+		bind();
+		update();
 		GL11.glDrawArrays(GL11.GL_QUADS, 0, size);
+	}
+	
+	protected void bind() {
+		GL30.glBindVertexArray(vaoTarget);
+	}
+	
+	protected void update() {
+		if (!update) return;
+		attachBuffer(vertexTarget, vertexBuffer);
+		attachBuffer(normalTarget, normalBuffer);
+		attachBuffer(colorTarget, colorBuffer);
+		attachBuffer(uvTarget, uvBuffer);
+		update = false;
+		
+		GL11.glEnableClientState(GL11.GL_VERTEX_ARRAY);
+		GL15.glBindBuffer(GL15.GL_ARRAY_BUFFER, vertexTarget);
+		GL11.glVertexPointer(3, GL11.GL_FLOAT, 0, 0);
+		
+		GL11.glEnableClientState(GL11.GL_NORMAL_ARRAY);
+		GL15.glBindBuffer(GL15.GL_ARRAY_BUFFER, normalTarget);
+		GL11.glNormalPointer(GL11.GL_FLOAT, 0, 0);
+		
+		GL11.glEnableClientState(GL11.GL_COLOR_ARRAY);
+		GL15.glBindBuffer(GL15.GL_ARRAY_BUFFER, colorTarget);
+		GL11.glColorPointer(4, GL11.GL_FLOAT, 0, 0);
+		
+		GL11.glEnableClientState(GL11.GL_TEXTURE_COORD_ARRAY);
+		GL15.glBindBuffer(GL15.GL_ARRAY_BUFFER, uvTarget);
+		GL11.glTexCoordPointer(2, GL11.GL_FLOAT, 0, 0);
 	}
 	
 	public static void unbind() {

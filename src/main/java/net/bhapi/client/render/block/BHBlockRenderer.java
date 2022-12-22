@@ -2,7 +2,6 @@ package net.bhapi.client.render.block;
 
 import net.bhapi.blockstate.BlockState;
 import net.bhapi.client.BHAPIClient;
-import net.bhapi.client.render.VBO;
 import net.bhapi.client.render.level.LayeredMeshBuilder;
 import net.bhapi.client.render.level.MeshBuilder;
 import net.bhapi.client.render.model.CustomModel;
@@ -10,6 +9,7 @@ import net.bhapi.client.render.model.ModelRenderingContext;
 import net.bhapi.client.render.texture.RenderLayer;
 import net.bhapi.client.render.texture.TextureSample;
 import net.bhapi.client.render.texture.Textures;
+import net.bhapi.client.render.vbo.VBO;
 import net.bhapi.level.BlockStateProvider;
 import net.bhapi.storage.CircleCache;
 import net.bhapi.storage.EnumArray;

@@ -178,7 +178,7 @@ public class Textures {
 				if (index == 238 || index == 206) {
 					BufferedImage img = ImageUtil.makeImage(32, 32);
 					Graphics g = img.getGraphics();
-					g.setColor(new Color(128, 128, 128, 128));
+					g.setColor(new Color(128, 128, 128, index == 238 ? 255 : 128));
 					g.fillRect(0, 0, 32, 32);
 					LOADED_TEXTURES.put(id, img);
 					return;
@@ -189,7 +189,7 @@ public class Textures {
 					BufferedImage img = ImageUtil.makeImage(16, 16);
 					Graphics g = img.getGraphics();
 					boolean isFire = index == 31 || index == 47;
-					boolean isLava = index == 205 || index == 237;
+					boolean isLava = index == 237;
 					g.setColor(new Color(128, 128, 128, isFire ? 0 : isLava ? 255 : 128));
 					g.fillRect(0, 0, 16, 16);
 					LOADED_TEXTURES.put(id, img);

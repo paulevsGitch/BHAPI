@@ -136,11 +136,25 @@ public class WorldCache<T> {
 	}
 	
 	public void forEach(BiConsumer<Vec3I, T> processor) {
-		for (Vec3I delta : this.updateOrder) {
-			pos.set(center).add(delta);
-			int index = getIndex(pos);
-			if (data[index] == null) continue;
-			processor.accept(pos, data[index]);
+		forEach(processor, false);
+	}
+	
+	public void forEach(BiConsumer<Vec3I, T> processor, boolean reversed) {
+		if (reversed) {
+			for (int i = updateOrder.length - 1; i >= 0; i--) {
+				pos.set(center).add(this.updateOrder[i]);
+				int index = getIndex(pos);
+				if (data[index] == null) continue;
+				processor.accept(pos, data[index]);
+			}
+		}
+		else {
+			for (Vec3I delta : this.updateOrder) {
+				pos.set(center).add(delta);
+				int index = getIndex(pos);
+				if (data[index] == null) continue;
+				processor.accept(pos, data[index]);
+			}
 		}
 	}
 	

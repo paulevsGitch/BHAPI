@@ -2,10 +2,11 @@ package net.bhapi.client.render.level;
 
 import net.bhapi.blockstate.BlockState;
 import net.bhapi.client.BHAPIClient;
-import net.bhapi.client.render.VBO;
 import net.bhapi.client.render.block.BHBlockRenderer;
 import net.bhapi.client.render.culling.FrustumCulling;
 import net.bhapi.client.render.texture.RenderLayer;
+import net.bhapi.client.render.vbo.IndexedVBO;
+import net.bhapi.client.render.vbo.VBO;
 import net.bhapi.config.BHConfigs;
 import net.bhapi.level.ChunkSection;
 import net.bhapi.level.ChunkSectionProvider;
@@ -35,6 +36,8 @@ public class ClientChunks {
 	private static RunnableThread[] buildingThreads;
 	private static RenderLayer layer;
 	private static double px, py, pz;
+	private static Vec3I cameraPos;
+	private static boolean sort;
 	private static int oldLight;
 	private static Level level;
 	
@@ -45,6 +48,9 @@ public class ClientChunks {
 		int sectionCountXZ = side >> 4 | 1;
 		int sectionCountY = sectionCountXZ < 17 ? sectionCountXZ : side >> 5 | 1;
 		init(sectionCountXZ, sectionCountY);
+		
+		if (cameraPos == null) cameraPos = new Vec3I(0, Integer.MIN_VALUE, 0);
+		sort = true;
 		
 		if (buildingThreads == null) {
 			int count = BHConfigs.GENERAL.getInt("multithreading.meshBuildersCount", 4);
@@ -60,7 +66,6 @@ public class ClientChunks {
 			}
 		}
 		
-		//FRUSTUM_CULLING.setViewAngle((float) Math.toRadians(75F * 0.5F));
 		FRUSTUM_CULLING.setViewAngle((float) Math.toRadians(50F));
 	}
 	
@@ -138,13 +143,22 @@ public class ClientChunks {
 		layer = RenderLayer.TRANSPARENT;
 		chunks.forEach(ClientChunks::renderChunk);
 		
+		int ix = (int) px;
+		int iy = (int) py;
+		int iz = (int) pz;
+		if (ix != cameraPos.x || iy != cameraPos.y || iz != cameraPos.z) {
+			cameraPos.set(ix, iy, iz);
+			sort = true;
+		}
+		
 		GL11.glEnable(GL11.GL_BLEND);
 		GL11.glBlendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE_MINUS_SRC_ALPHA);
 		layer = RenderLayer.TRANSLUCENT;
-		chunks.forEach(ClientChunks::renderChunk);
+		chunks.forEach(ClientChunks::renderChunk, true);
 		
 		GL11.glDisable(GL11.GL_BLEND);
 		VBO.unbind();
+		sort = false;
 	}
 	
 	private static void updateChunk(Vec3I pos, ClientChunk chunk) {
@@ -158,11 +172,16 @@ public class ClientChunks {
 		if (!chunk.visible) return;
 		VBO vbo = chunk.data.get(layer);
 		if (vbo.isEmpty()) return;
+		
 		if (!chunk.pos.equals(pos)) {
 			chunk.pos.set(pos);
 			chunk.needUpdate = true;
 			chunk.markEmpty();
 			return;
+		}
+		
+		if (sort && layer == RenderLayer.TRANSLUCENT) {
+			((IndexedVBO) vbo).sort(chunk.renderPos);
 		}
 		
 		GL11.glPushMatrix();
@@ -231,6 +250,7 @@ public class ClientChunks {
 			}
 			renderer.build(vbo, layer);
 			vbo.markToUpdate();
+			if (layer == RenderLayer.TRANSLUCENT) sort = true;
 		}
 	}
 	
@@ -248,7 +268,8 @@ public class ClientChunks {
 			pos = new Vec3I(0, Integer.MIN_VALUE, 0);
 			data = new EnumArray<>(RenderLayer.class);
 			for (RenderLayer layer: RenderLayer.VALUES) {
-				data.set(layer, new VBO());
+				VBO vbo = layer == RenderLayer.TRANSLUCENT ? new IndexedVBO() : new VBO();
+				data.set(layer, vbo);
 			}
 		}
 		
