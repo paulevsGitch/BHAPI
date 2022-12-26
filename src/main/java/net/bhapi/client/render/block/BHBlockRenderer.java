@@ -428,9 +428,6 @@ public class BHBlockRenderer {
 			TextureSample sample = state.getTextureForIndex(blockView, x, y, z, 2, overlayIndex);
 			if (sample != null) {
 				renderNegZFace(block, x, y, z, sample, state);
-				if (isFancy() && block == BaseBlock.GRASS && !breaking && block.getTextureForSide(blockView, x, y, z, BlockDirection.NEG_Z.getFacing()) != 68) {
-					renderNegZFace(block, x, y, z, Textures.getVanillaBlockSample(38), state);
-				}
 				result = true;
 			}
 		}
@@ -474,9 +471,6 @@ public class BHBlockRenderer {
 			TextureSample sample = state.getTextureForIndex(blockView, x, y, z, BlockDirection.POS_Z.getFacing(), overlayIndex);
 			if (sample != null) {
 				renderPosZFace(block, x, y, z, sample, state);
-				if (isFancy() && block == BaseBlock.GRASS && !breaking && block.getTextureForSide(blockView, x, y, z, 2) != 68) {
-					renderPosZFace(block, x, y, z, Textures.getVanillaBlockSample(38), state);
-				}
 				result = true;
 			}
 		}
@@ -519,9 +513,6 @@ public class BHBlockRenderer {
 			TextureSample sample = state.getTextureForIndex(blockView, x, y, z, BlockDirection.NEG_X.getFacing(), overlayIndex);
 			if (sample != null) {
 				renderNegXFace(block, x, y, z, sample, state);
-				if (isFancy() && block == BaseBlock.GRASS && !breaking && block.getTextureForSide(blockView, x, y, z, 2) != 68) {
-					renderNegXFace(block, x, y, z, Textures.getVanillaBlockSample(38), state);
-				}
 				result = true;
 			}
 		}
@@ -564,9 +555,6 @@ public class BHBlockRenderer {
 			TextureSample sample = state.getTextureForIndex(blockView, x, y, z, BlockDirection.POS_X.getFacing(), overlayIndex);
 			if (sample != null) {
 				renderPosXFace(block, x, y, z, sample, state);
-				if (isFancy() && block == BaseBlock.GRASS && !breaking && block.getTextureForSide(blockView, x, y, z, 2) != 68) {
-					renderPosXFace(block, x, y, z, Textures.getVanillaBlockSample(38), state);
-				}
 				result = true;
 			}
 		}
@@ -603,7 +591,10 @@ public class BHBlockRenderer {
 			cr00 = bR * light;
 			cg00 = bG * light;
 			cb00 = bB * light;
-			renderNegYFace(block, x, y, z, state.getTextureForIndex(blockView, x, y, z, 0, overlayIndex), state);
+			TextureSample sample = state.getTextureForIndex(blockView, x, y, z, 0, overlayIndex);
+			if (sample != null) {
+				renderNegYFace(block, x, y, z, sample, state);
+			}
 			result = true;
 		}
 		
@@ -615,7 +606,10 @@ public class BHBlockRenderer {
 			cr00 = light;
 			cg00 = light;
 			cb00 = light;
-			renderPosYFace(block, x, y, z, state.getTextureForIndex(blockView, x, y, z, 1, overlayIndex), state);
+			TextureSample sample = state.getTextureForIndex(blockView, x, y, z, 1, overlayIndex);
+			if (sample != null) {
+				renderPosYFace(block, x, y, z, sample, state);
+			}
 			result = true;
 		}
 		
@@ -627,9 +621,9 @@ public class BHBlockRenderer {
 			cr00 = ewR * light;
 			cg00 = ewG * light;
 			cb00 = ewB * light;
-			renderNegZFace(block, x, y, z, state.getTextureForIndex(blockView, x, y, z, 2, overlayIndex), state);
-			if (isFancy() && block == BaseBlock.GRASS && !breaking) {
-				renderNegZFace(block, x, y, z, Textures.getVanillaBlockSample(38), state);
+			TextureSample sample = state.getTextureForIndex(blockView, x, y, z, 2, overlayIndex);
+			if (sample != null) {
+				renderNegZFace(block, x, y, z, sample, state);
 			}
 			result = true;
 		}
@@ -642,9 +636,9 @@ public class BHBlockRenderer {
 			cr00 = ewR * light;
 			cg00 = ewG * light;
 			cb00 = ewB * light;
-			renderPosZFace(block, x, y, z, state.getTextureForIndex(blockView, x, y, z, 3, overlayIndex), state);
-			if (isFancy() && block == BaseBlock.GRASS && !breaking) {
-				renderPosZFace(block, x, y, z, Textures.getVanillaBlockSample(38), state);
+			TextureSample sample = state.getTextureForIndex(blockView, x, y, z, 3, overlayIndex);
+			if (sample != null) {
+				renderPosZFace(block, x, y, z, sample, state);
 			}
 			result = true;
 		}
@@ -657,9 +651,9 @@ public class BHBlockRenderer {
 			cr00 = nsR * light;
 			cg00 = nsG * light;
 			cb00 = nsB * light;
-			renderNegXFace(block, x, y, z, state.getTextureForIndex(blockView, x, y, z, 4, overlayIndex), state);
-			if (isFancy() && block == BaseBlock.GRASS && !breaking) {
-				renderNegXFace(block, x, y, z, Textures.getVanillaBlockSample(38), state);
+			TextureSample sample = state.getTextureForIndex(blockView, x, y, z, 4, overlayIndex);
+			if (sample != null) {
+				renderNegXFace(block, x, y, z, sample, state);
 			}
 			result = true;
 		}
@@ -672,9 +666,9 @@ public class BHBlockRenderer {
 			cr00 = nsR * light;
 			cg00 = nsG * light;
 			cb00 = nsB * light;
-			renderPosXFace(block, x, y, z, state.getTextureForIndex(blockView, x, y, z, 5, overlayIndex), state);
-			if (isFancy() && block == BaseBlock.GRASS && !breaking) {
-				renderPosXFace(block, x, y, z, Textures.getVanillaBlockSample(38), state);
+			TextureSample sample = state.getTextureForIndex(blockView, x, y, z, 5, overlayIndex);
+			if (sample != null) {
+				renderPosXFace(block, x, y, z, sample, state);
 			}
 			result = true;
 		}
