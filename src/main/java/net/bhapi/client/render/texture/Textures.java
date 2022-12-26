@@ -7,8 +7,13 @@ import net.bhapi.util.BufferUtil;
 import net.bhapi.util.Identifier;
 import net.bhapi.util.ImageUtil;
 import net.bhapi.util.ImageUtil.FormatConvert;
+import net.bhapi.util.MathUtil;
 import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.client.render.TextureBinder;
+import net.minecraft.client.render.block.FoliageColor;
+import net.minecraft.client.render.block.GrassColor;
+import net.minecraft.level.gen.BiomeSource;
+import net.minecraft.util.maths.MathHelper;
 import org.lwjgl.opengl.GL11;
 
 import java.awt.Color;
@@ -73,6 +78,40 @@ public class Textures {
 			Identifier id = binder.renderMode == 0 ? ID_BLOCK.get(binder.index) : ID_ITEM.get(binder.index);
 			binder.index = atlas.getTextureIndex(id);
 		});
+		
+		ColorProvider provider = (view, x, y, z, state) -> {
+			BiomeSource source = view.getBiomeSource();
+			source.getBiomes(MathHelper.floor(x), MathHelper.floor(z), 1, 1);
+			double temperature = source.temperatureNoises[0];
+			double wetness = source.rainfallNoises[0];
+			temperature = MathUtil.clamp(temperature, 0, 1);
+			wetness = MathUtil.clamp(wetness, 0, 1);
+			return GrassColor.getGrassColor(temperature, wetness);
+		};
+		
+		VANILLA_BLOCKS.get(0).setColorProvider(provider);
+		VANILLA_BLOCKS.get(38).setColorProvider(provider);
+		VANILLA_BLOCKS.get(39).setColorProvider(provider);
+		VANILLA_BLOCKS.get(56).setColorProvider(provider);
+		
+		provider = (view, x, y, z, state) -> {
+			int meta = state.getMeta() & 3;
+			if (meta == 2) return FoliageColor.getBirchColor();
+			BiomeSource source = view.getBiomeSource();
+			source.getBiomes(MathHelper.floor(x), MathHelper.floor(z), 1, 1);
+			double temperature = source.temperatureNoises[0];
+			double wetness = source.rainfallNoises[0];
+			temperature = MathUtil.clamp(temperature, 0, 1);
+			wetness = MathUtil.clamp(wetness, 0, 1);
+			return FoliageColor.getFoliageColor(temperature, wetness);
+		};
+		
+		VANILLA_BLOCKS.get(52).setColorProvider(provider);
+		VANILLA_BLOCKS.get(53).setColorProvider(provider);
+		
+		provider = (view, x, y, z, state) -> FoliageColor.getSpruceColor();
+		VANILLA_BLOCKS.get(132).setColorProvider(provider);
+		VANILLA_BLOCKS.get(133).setColorProvider(provider);
 		
 		building = false;
 	}

@@ -226,8 +226,9 @@ public class ClientChunks {
 	}
 	
 	private static void renderBlockEntities(Vec3I pos, ClientChunk chunk) {
-		if (chunk.blockEntities.isEmpty()) return;
+		if (!chunk.visible || chunk.blockEntities.isEmpty()) return;
 		if (BlockEntityRenderDispatcher.INSTANCE.textureManager == null) return;
+		
 		chunk.blockEntities.forEach(pair -> {
 			BlockEntityRenderer renderer = pair.second();
 			BaseBlockEntity entity = pair.first();
@@ -239,7 +240,7 @@ public class ClientChunks {
 			if (BreakInfo.POS.x != entity.x || BreakInfo.POS.y != entity.y || BreakInfo.POS.z != entity.z) return;
 			
 			GL11.glEnable(GL11.GL_BLEND);
-			GL11.glBlendFunc(774, 768);
+			GL11.glBlendFunc(GL11.GL_DST_COLOR, GL11.GL_SRC_COLOR);
 			
 			GL11.glPolygonOffset(-3.0f, -3.0f);
 			GL11.glEnable(GL11.GL_POLYGON_OFFSET_FILL);

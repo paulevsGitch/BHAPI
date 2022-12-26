@@ -10,11 +10,10 @@ import net.bhapi.item.BHBlockItem;
 import net.bhapi.item.BHItemRender;
 import net.bhapi.storage.Vec2F;
 import net.bhapi.util.BufferUtil;
-import net.minecraft.block.BaseBlock;
+import net.bhapi.util.ColorUtil;
 import net.minecraft.client.render.RenderHelper;
 import net.minecraft.client.render.Tessellator;
 import net.minecraft.client.render.TextRenderer;
-import net.minecraft.client.render.block.FoliageColor;
 import net.minecraft.client.render.entity.EntityRenderer;
 import net.minecraft.client.render.entity.ItemRenderer;
 import net.minecraft.client.texture.TextureManager;
@@ -35,7 +34,6 @@ import java.util.Random;
 
 @Mixin(ItemRenderer.class)
 public abstract class ItemRendererMixin extends EntityRenderer {
-	@Shadow public boolean coloriseItem;
 	@Shadow private Random rand;
 	
 	@Unique private final BlockItemView bhapi_itemView = new BlockItemView();
@@ -68,14 +66,6 @@ public abstract class ItemRendererMixin extends EntityRenderer {
 			GL11.glRotatef(210.0f, 1.0f, 0.0f, 0.0f);
 			GL11.glRotatef(45.0f, 0.0f, 1.0f, 0.0f);
 			
-			if (this.coloriseItem) {
-				int color = item.getColorMultiplier(j);
-				float r = (float) (color >> 16 & 0xFF) / 255.0F;
-				float g = (float) (color >> 8 & 0xFF) / 255.0F;
-				float b = (float) (color & 0xFF) / 255.0F;
-				GL11.glColor4f(r, g, b, 1.0F);
-			}
-			
 			RenderHelper.disableLighting();
 			BHBlockRenderer renderer = BHAPIClient.getBlockRenderer();
 			bhapi_itemView.setBlockState(state);
@@ -88,21 +78,12 @@ public abstract class ItemRendererMixin extends EntityRenderer {
 			GL11.glDisable(0xb50);
 			Textures.getAtlas().bind();
 			
-			if (this.coloriseItem) {
-				int color = item.getColorMultiplier(j);
-				if (item instanceof BHBlockItem) {
-					BlockState state = BHBlockItem.cast(item).getState();
-					if (state.is(BaseBlock.TALLGRASS)) {
-						color = state.getMeta() > 0 ? FoliageColor.getFoliageColor(0.5, 0.5) : 0xFFFFFF;
-					}
-				}
-				float r = (float) (color >> 16 & 0xFF) / 255.0F;
-				float g = (float) (color >> 8 & 0xFF) / 255.0F;
-				float b = (float) (color & 0xFF) / 255.0F;
-				GL11.glColor4f(r, g, b, 1.0F);
-			}
-			
 			TextureSample sample = BHItemRender.cast(item).getTexture(bhapi_renderingStack);
+			int color = sample.getColorMultiplier(bhapi_itemView, 0, 0, 0, null);
+			float r = ColorUtil.getRed(color);
+			float g = ColorUtil.getGreen(color);
+			float b = ColorUtil.getBlue(color);
+			GL11.glColor4f(r, g, b, 1.0F);
 			
 			bhapi_renderRectangle(x, y, sample);
 			GL11.glEnable(0xb50);
@@ -150,24 +131,22 @@ public abstract class ItemRendererMixin extends EntityRenderer {
 			}
 		}
 		else {
-			float b, g, r;
-			int color;
 			GL11.glScalef(0.5f, 0.5f, 0.5f);
 			Textures.getAtlas().bind();
 			
 			TextureSample sample = BHItemRender.cast(item).getTexture(entity.stack);
 			
-			Vec2F uv1 = sample.getUV(0, 0);
-			Vec2F uv2 = sample.getUV(1, 1);
-			
-			if (this.coloriseItem) {
-				color = item.getColorMultiplier(entity.stack.getDamage());
-				r = (float) (color >> 16 & 0xFF) / 255.0f;
-				g = (float) (color >> 8 & 0xFF) / 255.0f;
-				b = (float) (color & 0xFF) / 255.0f;
-				float light = entity.getBrightnessAtEyes(delta);
-				GL11.glColor4f(r * light, g * light, b * light, 1.0f);
+			float light = entity.getBrightnessAtEyes(delta);
+			float r = light;
+			float g = light;
+			float b = light;
+			int color = sample.getColorMultiplier(bhapi_itemView, 0, 0, 0, null);
+			if (color != ColorUtil.WHITE_COLOR) {
+				r *= ColorUtil.getRed(color);
+				g *= ColorUtil.getGreen(color);
+				b *= ColorUtil.getBlue(color);
 			}
+			GL11.glColor4f(r, g, b, 1.0F);
 			
 			for (color = 0; color < count; ++color) {
 				GL11.glPushMatrix();
@@ -179,13 +158,18 @@ public abstract class ItemRendererMixin extends EntityRenderer {
 				}
 				GL11.glRotatef(180.0f - this.dispatcher.angle, 0.0f, 1.0f, 0.0f);
 				
+				Vec2F u1v1 = sample.getUV(0, 0);
+				Vec2F u1v2 = sample.getUV(0, 1);
+				Vec2F u2v1 = sample.getUV(1, 0);
+				Vec2F u2v2 = sample.getUV(1, 1);
+				
 				Tessellator tessellator = Tessellator.INSTANCE;
 				tessellator.start();
 				tessellator.setNormal(0.0F, 1.0F, 0.0F);
-				tessellator.vertex(-0.5F, -0.25F, 0.0, uv1.x, uv2.y);
-				tessellator.vertex(0.5F, -0.25F, 0.0, uv2.x, uv2.y);
-				tessellator.vertex(0.5F, 0.75F, 0.0, uv2.x, uv1.y);
-				tessellator.vertex(-0.5F, 0.75F, 0.0, uv1.x, uv1.y);
+				tessellator.vertex(-0.5F, -0.25F, 0.0, u1v2.x, u1v2.y);
+				tessellator.vertex(0.5F, -0.25F, 0.0, u2v2.x, u2v2.y);
+				tessellator.vertex(0.5F, 0.75F, 0.0, u2v1.x, u2v1.y);
+				tessellator.vertex(-0.5F, 0.75F, 0.0, u1v1.x, u1v1.y);
 				tessellator.draw();
 				
 				GL11.glPopMatrix();
