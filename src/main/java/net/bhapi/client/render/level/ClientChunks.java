@@ -3,6 +3,8 @@ package net.bhapi.client.render.level;
 import net.bhapi.blockstate.BlockState;
 import net.bhapi.client.BHAPIClient;
 import net.bhapi.client.render.block.BHBlockRenderer;
+import net.bhapi.client.render.block.BlockBreakingInfo;
+import net.bhapi.client.render.block.BreakInfo;
 import net.bhapi.client.render.culling.FrustumCulling;
 import net.bhapi.client.render.texture.RenderLayer;
 import net.bhapi.client.render.vbo.IndexedVBO;
@@ -20,10 +22,17 @@ import net.bhapi.util.ThreadManager;
 import net.bhapi.util.ThreadManager.RunnableThread;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
+import net.fabricmc.tinyremapper.extension.mixin.common.data.Pair;
+import net.minecraft.block.entity.BaseBlockEntity;
+import net.minecraft.client.render.RenderHelper;
+import net.minecraft.client.render.blockentity.BlockEntityRenderer;
+import net.minecraft.client.render.entity.BlockEntityRenderDispatcher;
 import net.minecraft.entity.LivingEntity;
 import net.minecraft.level.Level;
 import org.lwjgl.opengl.GL11;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Queue;
 import java.util.concurrent.ArrayBlockingQueue;
 
@@ -40,6 +49,7 @@ public class ClientChunks {
 	private static boolean sort;
 	private static int oldLight;
 	private static Level level;
+	private static float delta;
 	
 	public static void init() {
 		int viewDistance = BHAPIClient.getMinecraft().options.viewDistance;
@@ -123,7 +133,7 @@ public class ClientChunks {
 		}
 		
 		chunks.setCenter(entity.chunkX, (int) entity.y >> 4, entity.chunkZ);
-		chunks.update(4);
+		chunks.update(16);
 		
 		px = MathUtil.lerp(entity.prevX, entity.x, delta);
 		py = MathUtil.lerp(entity.prevY, entity.y, delta);
@@ -132,8 +142,10 @@ public class ClientChunks {
 		float pitch = (float) Math.toRadians(entity.pitch);
 		FRUSTUM_CULLING.rotate(-yaw, pitch);
 		
+		ClientChunks.delta = delta;
 		chunks.forEach(ClientChunks::checkVisibility);
 		
+		RenderHelper.disableLighting();
 		GL11.glDisable(GL11.GL_ALPHA_TEST);
 		GL11.glDisable(GL11.GL_BLEND);
 		layer = RenderLayer.SOLID;
@@ -159,6 +171,9 @@ public class ClientChunks {
 		GL11.glDisable(GL11.GL_BLEND);
 		VBO.unbind();
 		sort = false;
+		
+		RenderHelper.enableLighting();
+		chunks.forEach(ClientChunks::renderBlockEntities, true);
 	}
 	
 	private static void updateChunk(Vec3I pos, ClientChunk chunk) {
@@ -166,10 +181,26 @@ public class ClientChunks {
 		if (UPDATE_REQUESTS.size() > 4095) return;
 		chunk.needUpdate = false;
 		UPDATE_REQUESTS.add(pos.clone());
+		
+		chunk.blockEntities.clear();
+		short sections = LevelHeightProvider.cast(level).getSectionsCount();
+		if (pos.y < 0 || pos.y >= sections) return;
+		
+		ChunkSectionProvider provider = ChunkSectionProvider.cast(level.getChunkFromCache(pos.x, pos.z));
+		ChunkSection section = provider.getChunkSection(pos.y);
+		if (section == null) return;
+		
+		section.getBlockEntities().forEach(entity -> {
+			BlockEntityRenderer customRenderer = BlockEntityRenderDispatcher.INSTANCE.getCustomRenderer(entity);
+			if (customRenderer != null) {
+				chunk.blockEntities.add(Pair.of(entity, customRenderer));
+			}
+		});
 	}
 	
 	private static void renderChunk(Vec3I pos, ClientChunk chunk) {
 		if (!chunk.visible) return;
+		
 		VBO vbo = chunk.data.get(layer);
 		if (vbo.isEmpty()) return;
 		
@@ -192,6 +223,36 @@ public class ClientChunks {
 		);
 		vbo.render();
 		GL11.glPopMatrix();
+	}
+	
+	private static void renderBlockEntities(Vec3I pos, ClientChunk chunk) {
+		if (chunk.blockEntities.isEmpty()) return;
+		if (BlockEntityRenderDispatcher.INSTANCE.textureManager == null) return;
+		chunk.blockEntities.forEach(pair -> {
+			BlockEntityRenderer renderer = pair.second();
+			BaseBlockEntity entity = pair.first();
+			float light = level.getBrightness(entity.x, entity.y, entity.z);
+			GL11.glColor3f(light, light, light);
+			renderer.render(entity, entity.x - px, entity.y - py, entity.z - pz, delta);
+			
+			if (BreakInfo.stage == -1) return;
+			if (BreakInfo.POS.x != entity.x || BreakInfo.POS.y != entity.y || BreakInfo.POS.z != entity.z) return;
+			
+			GL11.glEnable(GL11.GL_BLEND);
+			GL11.glBlendFunc(774, 768);
+			
+			GL11.glPolygonOffset(-3.0f, -3.0f);
+			GL11.glEnable(GL11.GL_POLYGON_OFFSET_FILL);
+			
+			BlockBreakingInfo.cast(renderer).setBreaking(BreakInfo.stage);
+			renderer.render(entity, entity.x - px, entity.y - py, entity.z - pz, delta);
+			BlockBreakingInfo.cast(renderer).setBreaking(-1);
+			
+			GL11.glPolygonOffset(0.0f, 0.0f);
+			GL11.glDisable(GL11.GL_POLYGON_OFFSET_FILL);
+			
+			GL11.glDisable(GL11.GL_BLEND);
+		});
 	}
 	
 	private static boolean needUpdate(Vec3I pos, ClientChunk chunk) {
@@ -255,6 +316,7 @@ public class ClientChunks {
 	}
 	
 	private static class ClientChunk {
+		final List<Pair<BaseBlockEntity, BlockEntityRenderer>> blockEntities;
 		final EnumArray<RenderLayer, VBO> data;
 		final Vec3F renderPos;
 		final Vec3I pos;
@@ -263,6 +325,7 @@ public class ClientChunks {
 		boolean visible;
 		
 		ClientChunk() {
+			blockEntities = new ArrayList<>();
 			needUpdate = true;
 			renderPos = new Vec3F();
 			pos = new Vec3I(0, Integer.MIN_VALUE, 0);

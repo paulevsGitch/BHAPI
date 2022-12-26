@@ -51,6 +51,8 @@ public class PistonRendererMixin {
 			
 			BHBlockRenderer renderer = BHAPIClient.getBlockRenderer();
 			renderer.setView(entity.level);
+			renderer.startArea(0, 0, 0);
+			
 			if (block == BaseBlock.PISTON_HEAD && entity.getProgress(delta) < 0.5f) {
 				renderer.renderPistonHeadAllSides(state, entity.x, entity.y, entity.z, false);
 			}
@@ -62,6 +64,8 @@ public class PistonRendererMixin {
 				bhapi_headState = bhapi_headState.withMeta(entity.getFacing());
 				renderer.renderPistonHeadAllSides(bhapi_headState, entity.x, entity.y, entity.z, entity.getProgress(delta) < 0.5f);
 				BaseBlock.PISTON_HEAD.resetTexture();
+				renderer.build(tessellator);
+				renderer.startArea(0, 0, 0);
 				tessellator.setOffset(x - entity.x, y - entity.y, z - entity.z);
 				renderer.renderPistonExtended(state, entity.x, entity.y, entity.z);
 			}
@@ -69,6 +73,7 @@ public class PistonRendererMixin {
 				renderer.renderAllSides(state, entity.x, entity.y, entity.z);
 			}
 			
+			renderer.build(tessellator);
 			tessellator.setOffset(0.0, 0.0, 0.0);
 			tessellator.draw();
 			RenderHelper.enableLighting();

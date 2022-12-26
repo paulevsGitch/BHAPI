@@ -659,6 +659,12 @@ public abstract class LevelMixin implements LevelHeightProvider, BlockStateProvi
 		}
 	}
 	
+	@Inject(method = "updateListenersLight", at = @At("HEAD"), cancellable = true)
+	public void updateListenersLight(int x, int y, int z, CallbackInfo info) {
+		info.cancel();
+		bhapi_lightUpdater.addArea(new BHLightArea(LightType.BLOCK, x, y, z, x, y, z));
+	}
+	
 	@ModifyConstant(method = {
 		"getBlockId(III)I",
 		"isBlockLoaded(III)Z",

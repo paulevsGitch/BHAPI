@@ -22,7 +22,7 @@ public class FallingBlockRendererMixin {
 		GL11.glPushMatrix();
 		GL11.glTranslated(x, y, z);
 		Textures.getAtlas().bind();
-		BHAPIClient.getBlockRenderer().renderItem(state, entity.getBrightnessAtEyes(delta));
+		BHAPIClient.getBlockRenderer().renderItem(state, entity.getBrightnessAtEyes(0.5F));
 		GL11.glPopMatrix();
 	}
 }

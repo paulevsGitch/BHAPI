@@ -124,6 +124,9 @@ public abstract class ChunkMixin implements NBTSerializable, LevelHeightProvider
 		if (section != null) {
 			section.setMeta(x & 15, y & 15, z & 15, meta);
 			this.needUpdate = true;
+			if (BHAPI.isClient()) {
+				bhapi_updateClient(this.x << 4 | x, y, this.z << 4 |z);
+			}
 		}
 	}
 	

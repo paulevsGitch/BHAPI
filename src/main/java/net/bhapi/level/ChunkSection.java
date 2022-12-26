@@ -100,7 +100,7 @@ public class ChunkSection implements NBTSerializable {
 		int index = getIndex(x, y, z);
 		int a = getLight(LightType.BLOCK, index);
 		int b = getLight(LightType.SKY, index);
-		return a > b ? a : b;
+		return Math.max(a, b);
 	}
 	
 	public int getLight(LightType type, int x, int y, int z) {

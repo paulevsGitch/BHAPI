@@ -123,6 +123,10 @@ public class BHBlockRenderer {
 		return builder.isEmpty(layer);
 	}
 	
+	public void build(Tessellator tessellator) {
+		builder.build(tessellator);
+	}
+	
 	public void build(Tessellator tessellator, RenderLayer layer) {
 		builder.build(tessellator, layer);
 	}
@@ -166,7 +170,7 @@ public class BHBlockRenderer {
 			target = GL11.glGenLists(1);
 			GL11.glNewList(target, GL11.GL_COMPILE);
 			float itemLight = (float) iLight / 15F;
-			itemLight = itemLight * 0.7F + 0.3F;
+			//itemLight = itemLight * 0.7F + 0.3F;
 			renderItemDirectly(state, itemLight);
 			GL11.glEndList();
 			list[iLight] = target;
@@ -247,7 +251,7 @@ public class BHBlockRenderer {
 	private boolean renderFullCube(BlockState state, int x, int y, int z) {
 		float r, g, b;
 		if (item) {
-			r = itemLight; g = itemLight; b = itemLight;
+			r = 1; g = 1; b = 1;
 		}
 		else {
 			int color;
@@ -435,10 +439,10 @@ public class BHBlockRenderer {
 			brightnessBottomEast = getBrightness(block, x, y - 1, z);
 			brightnessTopEast = getBrightness(block, x, y + 1, z);
 			brightnessSouthEast = getBrightness(block, x + 1, y, z);
-			brightnessBottomNorthEast = allowsGrassUnderNorthEast || allowsGrassUnderBottomEast ? block.getBrightness(blockView, x - 1, y - 1, z) : brightnessNorthEast;
-			brightnessTopNorthEast = allowsGrassUnderNorthEast || allowsGrassUnderTopEast ? block.getBrightness(blockView, x - 1, y + 1, z) : brightnessNorthEast;
-			brightnessBottomSouthEast = allowsGrassUnderSouthEast || allowsGrassUnderBottomEast ? block.getBrightness(blockView, x + 1, y - 1, z) : brightnessSouthEast;
-			brightnessTopSouthEast = allowsGrassUnderSouthEast || allowsGrassUnderTopEast ? block.getBrightness(blockView, x + 1, y + 1, z) : brightnessSouthEast;++z;
+			brightnessBottomNorthEast = allowsGrassUnderNorthEast || allowsGrassUnderBottomEast ? getBrightness(block, x - 1, y - 1, z) : brightnessNorthEast;
+			brightnessTopNorthEast = allowsGrassUnderNorthEast || allowsGrassUnderTopEast ? getBrightness(block, x - 1, y + 1, z) : brightnessNorthEast;
+			brightnessBottomSouthEast = allowsGrassUnderSouthEast || allowsGrassUnderBottomEast ? getBrightness(block, x + 1, y - 1, z) : brightnessSouthEast;
+			brightnessTopSouthEast = allowsGrassUnderSouthEast || allowsGrassUnderTopEast ? getBrightness(block, x + 1, y + 1, z) : brightnessSouthEast;++z;
 			f2 = (brightnessNorthEast + brightnessTopNorthEast + brightnessNegZ + brightnessTopEast) / 4.0F;
 			f3 = (brightnessNegZ + brightnessTopEast + brightnessSouthEast + brightnessTopSouthEast) / 4.0F;
 			f4 = (brightnessBottomEast + brightnessNegZ + brightnessBottomSouthEast + brightnessSouthEast) / 4.0F;
@@ -493,10 +497,10 @@ public class BHBlockRenderer {
 			brightnessSouthWest = getBrightness(block, x + 1, y, z);
 			brightnessBottomWest = getBrightness(block, x, y - 1, z);
 			brightnessTopWest = getBrightness(block, x, y + 1, z);
-			brightnessBottomNorthWest = allowsGrassUnderNorthWest || allowsGrassUnderBottomWest ? block.getBrightness(blockView, x - 1, y - 1, z) : brightnessNorthWest;
-			brightnessTopNorthWest = allowsGrassUnderNorthWest || allowsGrassUnderTopWest ? block.getBrightness(blockView, x - 1, y + 1, z) : brightnessNorthWest;
-			brightnessBottomSouthWest = allowsGrassUnderSouthWest || allowsGrassUnderBottomWest ? block.getBrightness(blockView, x + 1, y - 1, z) : brightnessSouthWest;
-			brightnessTopSouthWest = allowsGrassUnderSouthWest || allowsGrassUnderTopWest ? block.getBrightness(blockView, x + 1, y + 1, z) : brightnessSouthWest;--z;
+			brightnessBottomNorthWest = allowsGrassUnderNorthWest || allowsGrassUnderBottomWest ? getBrightness(block, x - 1, y - 1, z) : brightnessNorthWest;
+			brightnessTopNorthWest = allowsGrassUnderNorthWest || allowsGrassUnderTopWest ? getBrightness(block, x - 1, y + 1, z) : brightnessNorthWest;
+			brightnessBottomSouthWest = allowsGrassUnderSouthWest || allowsGrassUnderBottomWest ? getBrightness(block, x + 1, y - 1, z) : brightnessSouthWest;
+			brightnessTopSouthWest = allowsGrassUnderSouthWest || allowsGrassUnderTopWest ? getBrightness(block, x + 1, y + 1, z) : brightnessSouthWest;--z;
 			f2 = (brightnessNorthWest + brightnessTopNorthWest + brightnessPosZ + brightnessTopWest) / 4.0F;
 			f5 = (brightnessPosZ + brightnessTopWest + brightnessSouthWest + brightnessTopSouthWest) / 4.0F;
 			f4 = (brightnessBottomWest + brightnessPosZ + brightnessBottomSouthWest + brightnessSouthWest) / 4.0F;
@@ -549,10 +553,10 @@ public class BHBlockRenderer {
 			brightnessNorthEast = getBrightness(block, x, y, z - 1);
 			brightnessNorthWest = getBrightness(block, x, y, z + 1);
 			brightnessTopNorth = getBrightness(block, x, y + 1, z);
-			brightnessBottomNorthEast = allowsGrassUnderNorthEast || allowsGrassUnderBottomNorth ? block.getBrightness(blockView, x, y - 1, z - 1) : brightnessNorthEast;
-			brightnessBottomNorthWest = allowsGrassUnderNorthWest || allowsGrassUnderBottomNorth ? block.getBrightness(blockView, x, y - 1, z + 1) : brightnessNorthWest;
-			brightnessTopNorthEast = allowsGrassUnderNorthEast || allowsGrassUnderTopNorth ? block.getBrightness(blockView, x, y + 1, z - 1) : brightnessNorthEast;
-			brightnessTopNorthWest = allowsGrassUnderNorthWest || allowsGrassUnderTopNorth ? block.getBrightness(blockView, x, y + 1, z + 1) : brightnessNorthWest;
+			brightnessBottomNorthEast = allowsGrassUnderNorthEast || allowsGrassUnderBottomNorth ? getBrightness(block, x, y - 1, z - 1) : brightnessNorthEast;
+			brightnessBottomNorthWest = allowsGrassUnderNorthWest || allowsGrassUnderBottomNorth ? getBrightness(block, x, y - 1, z + 1) : brightnessNorthWest;
+			brightnessTopNorthEast = allowsGrassUnderNorthEast || allowsGrassUnderTopNorth ? getBrightness(block, x, y + 1, z - 1) : brightnessNorthEast;
+			brightnessTopNorthWest = allowsGrassUnderNorthWest || allowsGrassUnderTopNorth ? getBrightness(block, x, y + 1, z + 1) : brightnessNorthWest;
 			++x;
 			f5 = (brightnessBottomNorth + brightnessBottomNorthWest + brightnessNegX + brightnessNorthWest) / 4.0F;
 			f2 = (brightnessNegX + brightnessNorthWest + brightnessTopNorth + brightnessTopNorthWest) / 4.0F;
@@ -606,10 +610,10 @@ public class BHBlockRenderer {
 			brightnessSouthEast = getBrightness(block, x, y, z - 1);
 			brightnessSouthWest = getBrightness(block, x, y, z + 1);
 			brightnessTopSouth = getBrightness(block, x, y + 1, z);
-			brightnessBottomSouthEast = allowsGrassUnderBottomSouth || allowsGrassUnderSouthEast ? block.getBrightness(blockView, x, y - 1, z - 1) : brightnessSouthEast;
-			brightnessBottomSouthWest = allowsGrassUnderBottomSouth || allowsGrassUnderSouthWest ? block.getBrightness(blockView, x, y - 1, z + 1) : brightnessSouthWest;
-			brightnessTopSouthEast = allowsGrassUnderTopSouth || allowsGrassUnderSouthEast ? block.getBrightness(blockView, x, y + 1, z - 1) : brightnessSouthEast;
-			brightnessTopSouthWest = allowsGrassUnderTopSouth || allowsGrassUnderSouthWest ? block.getBrightness(blockView, x, y + 1, z + 1) : brightnessSouthWest;
+			brightnessBottomSouthEast = allowsGrassUnderBottomSouth || allowsGrassUnderSouthEast ? getBrightness(block, x, y - 1, z - 1) : brightnessSouthEast;
+			brightnessBottomSouthWest = allowsGrassUnderBottomSouth || allowsGrassUnderSouthWest ? getBrightness(block, x, y - 1, z + 1) : brightnessSouthWest;
+			brightnessTopSouthEast = allowsGrassUnderTopSouth || allowsGrassUnderSouthEast ? getBrightness(block, x, y + 1, z - 1) : brightnessSouthEast;
+			brightnessTopSouthWest = allowsGrassUnderTopSouth || allowsGrassUnderSouthWest ? getBrightness(block, x, y + 1, z + 1) : brightnessSouthWest;
 			--x;
 			f2 = (brightnessBottomSouth + brightnessBottomSouthWest + brightnessPosX + brightnessSouthWest) / 4.0F;
 			f5 = (brightnessPosX + brightnessSouthWest + brightnessTopSouth + brightnessTopSouthWest) / 4.0F;
@@ -719,7 +723,7 @@ public class BHBlockRenderer {
 		}
 		
 		if (renderAllSides || state.isSideRendered(blockView, x, y, z - 1, BlockDirection.NEG_Z)) {
-			light = block.getBrightness(blockView, x, y, z - 1);
+			light = getBrightness(block, x, y, z - 1);
 			if (block.minZ > 0.0) {
 				light = light2;
 			}
@@ -1301,7 +1305,7 @@ public class BHBlockRenderer {
 		
 		if (sample1 == null || sample2 == null) return false;
 		
-		float light = block.getBrightness(blockView, x, y, z);
+		float light = getBrightness(block, x, y, z);
 		light = Math.max(light, Math.max(sample1.getLight(), sample2.getLight()));
 		MeshBuilder builder = this.builder.getBuilder(sample1.getLayer());
 		builder.setColor(light, light, light);
@@ -1551,7 +1555,7 @@ public class BHBlockRenderer {
 				float sin = MathHelper.sin(angle) * (isFlowing ? 0.25F : 0.5F);
 				float cos = MathHelper.cos(angle) * (isFlowing ? 0.25F : 0.5F);
 				
-				float light = block.getBrightness(blockView, x, y, z);
+				float light = getBrightness(block, x, y, z);
 				light = Math.max(light, sample.getLight());
 				
 				MeshBuilder builder = this.builder.getBuilder(sample.getLayer());
@@ -1635,7 +1639,7 @@ public class BHBlockRenderer {
 			Vec2F u2v3 = sample.getUV(0.5F, 0.5F, uvCache.get());
 			Vec2F u1v3 = sample.getUV(0, 0.5F, uvCache.get());
 			
-			float light = block.getBrightness(blockView, dx, y, dz);
+			float light = getBrightness(block, dx, y, dz);
 			light = side < 2 ? (light * 0.8f) : (light * 0.6f);
 			light = Math.max(light, sample.getLight());
 			
@@ -1698,7 +1702,7 @@ public class BHBlockRenderer {
 		
 		int meta = state.getMeta();
 		
-		float light = block.getBrightness(blockView, x, y, z);
+		float light = getBrightness(block, x, y, z);
 		float power = (float) meta / 15.0f;
 		
 		float r = power * 0.6f + 0.4f;
@@ -1774,22 +1778,22 @@ public class BHBlockRenderer {
 				u2v2 = sample1.getUV(u2, v2, u2v2);
 			}
 			
-			builder.vertex(x2, y + 0.015625f, z2, u2v2.x, u2v2.y);
-			builder.vertex(x2, y + 0.015625f, z1, u2v1.x, u2v1.y);
-			builder.vertex(x1, y + 0.015625f, z1, u1v1.x, u1v1.y);
-			builder.vertex(x1, y + 0.015625f, z2, u1v2.x, u1v2.y);
+			builder.vertex(x2, y + 0.015625, z2, u2v2.x, u2v2.y);
+			builder.vertex(x2, y + 0.015625, z1, u2v1.x, u2v1.y);
+			builder.vertex(x1, y + 0.015625, z1, u1v1.x, u1v1.y);
+			builder.vertex(x1, y + 0.015625, z2, u1v2.x, u1v2.y);
 		}
 		else if (type == 1) {
-			builder.vertex(x2, y + 0.015625f, z2, u2v2.x, u2v2.y);
-			builder.vertex(x2, y + 0.015625f, z1, u2v1.x, u2v1.y);
-			builder.vertex(x1, y + 0.015625f, z1, u1v1.x, u1v1.y);
-			builder.vertex(x1, y + 0.015625f, z2, u1v2.x, u1v2.y);
+			builder.vertex(x2, y + 0.015625, z2, u2v2.x, u2v2.y);
+			builder.vertex(x2, y + 0.015625, z1, u2v1.x, u2v1.y);
+			builder.vertex(x1, y + 0.015625, z1, u1v1.x, u1v1.y);
+			builder.vertex(x1, y + 0.015625, z2, u1v2.x, u1v2.y);
 		}
 		else {
-			builder.vertex(x2, y + 0.015625f, z2, u2v2.x, u2v2.y);
-			builder.vertex(x2, y + 0.015625f, z1, u1v2.x, u1v2.y);
-			builder.vertex(x1, y + 0.015625f, z1, u1v1.x, u1v1.y);
-			builder.vertex(x1, y + 0.015625f, z2, u2v1.x, u2v1.y);
+			builder.vertex(x2, y + 0.015625, z2, u2v2.x, u2v2.y);
+			builder.vertex(x2, y + 0.015625, z1, u1v2.x, u1v2.y);
+			builder.vertex(x1, y + 0.015625, z1, u1v1.x, u1v1.y);
+			builder.vertex(x1, y + 0.015625, z2, u2v1.x, u2v1.y);
 		}
 		
 		if (!blockView.canSuffocate(x, y + 1, z)) {
@@ -1904,8 +1908,8 @@ public class BHBlockRenderer {
 		BaseBlock block = state.getBlock();
 		boolean result = false;
 		
-		float lightT = block.getBrightness(blockView, x, y, z);
-		float lightB = block.getBrightness(blockView, x, y - 1, z);
+		float lightT = getBrightness(block, x, y, z);
+		float lightB = getBrightness(block, x, y - 1, z);
 		
 		if (block.minY > 0.0) lightB = lightT;
 		if (state.getEmittance() > 0) lightB = 1.0f;
@@ -1918,7 +1922,7 @@ public class BHBlockRenderer {
 			result = true;
 		}
 		
-		lightB = block.getBrightness(blockView, x, y + 1, z);
+		lightB = getBrightness(block, x, y + 1, z);
 		if (block.maxY < 1.0) lightB = lightT;
 		if (state.getEmittance() > 0) lightB = 1.0f;
 		
@@ -1930,7 +1934,7 @@ public class BHBlockRenderer {
 			result = true;
 		}
 		
-		lightB = block.getBrightness(blockView, x, y, z - 1);
+		lightB = getBrightness(block, x, y, z - 1);
 		if (block.minZ > 0.0) lightB = lightT;
 		if (state.getEmittance() > 0) lightB = 1.0f;
 		
@@ -1946,7 +1950,7 @@ public class BHBlockRenderer {
 			result = true;
 		}
 		
-		lightB = block.getBrightness(blockView, x, y, z + 1);
+		lightB = getBrightness(block, x, y, z + 1);
 		if (block.maxZ < 1.0) lightB = lightT;
 		if (state.getEmittance() > 0) lightB = 1.0f;
 		
@@ -1961,7 +1965,7 @@ public class BHBlockRenderer {
 			result = true;
 		}
 		
-		lightB = block.getBrightness(blockView, x - 1, y, z);
+		lightB = getBrightness(block, x - 1, y, z);
 		if (block.minX > 0.0) lightB = lightT;
 		if (state.getEmittance() > 0) lightB = 1.0f;
 		
@@ -1976,7 +1980,7 @@ public class BHBlockRenderer {
 			result = true;
 		}
 		
-		lightB = block.getBrightness(blockView, x + 1, y, z);
+		lightB = getBrightness(block, x + 1, y, z);
 		if (block.maxX < 1.0) lightB = lightT;
 		if (state.getEmittance() > 0) lightB = 1.0f;
 		
@@ -2005,7 +2009,7 @@ public class BHBlockRenderer {
 		Vec2F u2v1 = sample.getUV(1, 0, uvCache.get());
 		Vec2F u2v2 = sample.getUV(1, 1, uvCache.get());
 		
-		float light = block.getBrightness(blockView, x, y, z);
+		float light = getBrightness(block, x, y, z);
 		light = Math.max(light, sample.getLight());
 		MeshBuilder builder = this.builder.getBuilder(sample.getLayer());
 		builder.setColor(light, light, light);
@@ -2063,7 +2067,7 @@ public class BHBlockRenderer {
 			meta &= 7;
 		}
 		
-		float light = block.getBrightness(blockView, x, y, z);
+		float light = getBrightness(block, x, y, z);
 		light = Math.max(light, sample.getLight());
 		MeshBuilder builder = this.builder.getBuilder(sample.getLayer());
 		builder.setColor(light, light, light);
@@ -2229,7 +2233,7 @@ public class BHBlockRenderer {
 		TextureSample sample = state.getTextureForIndex(blockView, x, y, z, 6, overlayIndex);
 		if (sample == null) return result;
 		
-		float light = block.getBrightness(blockView, x, y, z);
+		float light = getBrightness(block, x, y, z);
 		if (state.getEmittance() > 0) light = 1.0f;
 		light = Math.max(light, sample.getLight());
 		
@@ -2496,7 +2500,7 @@ public class BHBlockRenderer {
 		int facing = BedBlock.orientationOnly(meta);
 		boolean isFoot = BedBlock.isFoot(meta);
 		
-		float light = block.getBrightness(blockView, x, y, z);
+		float light = getBrightness(block, x, y, z);
 		TextureSample sample = state.getTextureForIndex(blockView, x, y, z, 0, overlayIndex);
 		MeshBuilder builder = this.builder.getBuilder(sample.getLayer());
 		builder.setColor(0.5f * light, 0.5f * light, 0.5f * light);
@@ -2517,7 +2521,7 @@ public class BHBlockRenderer {
 		builder.vertex(x2, y2, z1, u12, v11);
 		builder.vertex(x2, y2, z2, u12, v12);
 		
-		float light2 = block.getBrightness(blockView, x, y + 1, z);
+		float light2 = getBrightness(block, x, y + 1, z);
 		sample = state.getTextureForIndex(blockView, x, y, z, 1, overlayIndex);
 		builder = this.builder.getBuilder(sample.getLayer());
 		builder.setColor(light2, light2, light2);
@@ -2585,7 +2589,7 @@ public class BHBlockRenderer {
 		float brightness;
 		
 		if (magic != 2 && (renderAllSides || state.isSideRendered(blockView, x, y, z - 1, BlockDirection.NEG_Z))) {
-			brightness = block.getBrightness(blockView, x, y, z - 1);
+			brightness = getBrightness(block, x, y, z - 1);
 			if (block.minZ > 0.0) brightness = light;
 			sample = state.getTextureForIndex(blockView, x, y, z, 2, overlayIndex);
 			sample.setMirrorU(face == 2);
@@ -2594,7 +2598,7 @@ public class BHBlockRenderer {
 		}
 		
 		if (magic != 3 && (renderAllSides || state.isSideRendered(blockView, x, y, z + 1, BlockDirection.POS_Z))) {
-			brightness = block.getBrightness(blockView, x, y, z + 1);
+			brightness = getBrightness(block, x, y, z + 1);
 			if (block.maxZ < 1.0) brightness = light;
 			sample = state.getTextureForIndex(blockView, x, y, z, 3, overlayIndex);
 			sample.setMirrorU(face == 3);
@@ -2603,7 +2607,7 @@ public class BHBlockRenderer {
 		}
 		
 		if (magic != 4 && (renderAllSides || state.isSideRendered(blockView, x - 1, y, z, BlockDirection.NEG_X))) {
-			brightness = block.getBrightness(blockView, x - 1, y, z);
+			brightness = getBrightness(block, x - 1, y, z);
 			if (block.minX > 0.0) brightness = light;
 			sample = state.getTextureForIndex(blockView, x, y, z, 3, overlayIndex);
 			sample.setMirrorU(face == 4);
@@ -2612,7 +2616,7 @@ public class BHBlockRenderer {
 		}
 		
 		if (magic != 5 && (renderAllSides || state.isSideRendered(blockView, x + 1, y, z, BlockDirection.POS_X))) {
-			brightness = block.getBrightness(blockView, x + 1, y, z);
+			brightness = getBrightness(block, x + 1, y, z);
 			if (block.maxX < 1.0) brightness = light;
 			sample = state.getTextureForIndex(blockView, x, y, z, 3, overlayIndex);
 			sample.setMirrorU(face == 5);
@@ -2630,7 +2634,7 @@ public class BHBlockRenderer {
 		int powered = (meta & 0xC) >> 2;
 		renderFullCube(state, x, y, z);
 		
-		float light = block.getBrightness(blockView, x, y, z);
+		float light = getBrightness(block, x, y, z);
 		if (state.getEmittance() > 0) light = (light + 1.0f) * 0.5f;
 		
 		double dy = -0.1875;
@@ -2827,7 +2831,7 @@ public class BHBlockRenderer {
 		BaseBlock block = state.getBlock();
 		int meta = state.getMeta();
 		int offset = PistonHeadBlock.getOffsetIndex(meta);
-		float light = block.getBrightness(blockView, x, y, z);
+		float light = getBrightness(block, x, y, z);
 		float delta = extended ? 1.0F : 0.5F;
 		float scale = extended ? 16.0F : 8.0F;
 		resetSamplesRotation();
