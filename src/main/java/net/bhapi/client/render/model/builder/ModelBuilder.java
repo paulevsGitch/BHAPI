@@ -4,10 +4,13 @@ import net.bhapi.client.render.model.CustomModel;
 import net.bhapi.client.render.model.FaceGroup;
 import net.bhapi.client.render.model.ModelQuad;
 import net.bhapi.storage.EnumArray;
+import net.fabricmc.api.EnvType;
+import net.fabricmc.api.Environment;
 
 import java.util.ArrayList;
 import java.util.List;
 
+@Environment(EnvType.CLIENT)
 public class ModelBuilder {
 	protected static final ModelBuilder INSTANCE = new ModelBuilder();
 	private final EnumArray<FaceGroup, List<ModelQuad>> groups = new EnumArray<>(FaceGroup.class);

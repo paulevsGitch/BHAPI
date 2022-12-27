@@ -4,8 +4,11 @@ import net.bhapi.blockstate.BlockState;
 import net.bhapi.client.render.level.LayeredMeshBuilder;
 import net.bhapi.storage.EnumArray;
 import net.bhapi.util.BlockDirection;
+import net.fabricmc.api.EnvType;
+import net.fabricmc.api.Environment;
 import net.minecraft.level.BlockView;
 
+@Environment(EnvType.CLIENT)
 public class ModelRenderingContext {
 	private final EnumArray<BlockDirection, Boolean> renderFaces;
 	private LayeredMeshBuilder builder;

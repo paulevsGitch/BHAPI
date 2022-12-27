@@ -1,5 +1,9 @@
 package net.bhapi.client.render.block;
 
+import net.fabricmc.api.EnvType;
+import net.fabricmc.api.Environment;
+
+@Environment(EnvType.CLIENT)
 public class BlockRenderTypes {
 	public static final byte FULL_CUBE = 0;
 	public static final byte CROSS = 1;
@@ -21,8 +25,4 @@ public class BlockRenderTypes {
 	public static final byte PISTON_HEAD = 17;
 	public static final byte CUSTOM = 18;
 	public static final byte EMPTY = -1;
-	
-	public static boolean isVanilla(int type) {
-		return type >= 0 && type <= 17;
-	}
 }

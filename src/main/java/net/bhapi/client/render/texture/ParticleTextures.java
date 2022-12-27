@@ -1,7 +1,10 @@
 package net.bhapi.client.render.texture;
 
 import net.bhapi.util.Identifier;
+import net.fabricmc.api.EnvType;
+import net.fabricmc.api.Environment;
 
+@Environment(EnvType.CLIENT)
 public class ParticleTextures {
 	public static final TextureSample[] GENERIC = new TextureSample[8];
 	public static final TextureSample[] SPLASH = new TextureSample[8];

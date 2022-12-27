@@ -3,10 +3,13 @@ package net.bhapi.client.render.texture;
 import net.bhapi.client.BHAPIClient;
 import net.bhapi.mixin.client.MinecraftAccessor;
 import net.bhapi.util.MathUtil;
+import net.fabricmc.api.EnvType;
+import net.fabricmc.api.Environment;
 import net.minecraft.client.render.TextureBinder;
 
 import java.awt.image.BufferedImage;
 
+@Environment(EnvType.CLIENT)
 public class AnimationTextureBinder extends TextureBinder {
 	private final byte[] color = new byte[4];
 	private final boolean interpolate;

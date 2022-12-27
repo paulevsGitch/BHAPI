@@ -79,7 +79,7 @@ public abstract class ItemRendererMixin extends EntityRenderer {
 			Textures.getAtlas().bind();
 			
 			TextureSample sample = BHItemRender.cast(item).getTexture(bhapi_renderingStack);
-			int color = sample.getColorMultiplier(bhapi_itemView, 0, 0, 0, null);
+			int color = sample.getColorMultiplier(bhapi_itemView, 0, 0, 0, bhapi_renderingStack);
 			float r = ColorUtil.getRed(color);
 			float g = ColorUtil.getGreen(color);
 			float b = ColorUtil.getBlue(color);
@@ -140,7 +140,7 @@ public abstract class ItemRendererMixin extends EntityRenderer {
 			float r = light;
 			float g = light;
 			float b = light;
-			int color = sample.getColorMultiplier(bhapi_itemView, 0, 0, 0, null);
+			int color = sample.getColorMultiplier(bhapi_itemView, 0, 0, 0, entity.stack);
 			if (color != ColorUtil.WHITE_COLOR) {
 				r *= ColorUtil.getRed(color);
 				g *= ColorUtil.getGreen(color);

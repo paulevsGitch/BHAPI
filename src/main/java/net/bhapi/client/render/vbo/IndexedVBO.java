@@ -2,6 +2,8 @@ package net.bhapi.client.render.vbo;
 
 import net.bhapi.storage.Vec3F;
 import net.bhapi.util.BufferUtil;
+import net.fabricmc.api.EnvType;
+import net.fabricmc.api.Environment;
 import net.fabricmc.tinyremapper.extension.mixin.common.data.Pair;
 import net.minecraft.util.maths.MathHelper;
 import org.lwjgl.opengl.GL11;
@@ -12,6 +14,7 @@ import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 
+@Environment(EnvType.CLIENT)
 public class IndexedVBO extends VBO {
 	private List<Pair<Vec3F, int[]>> quadIndexData;
 	private IntBuffer indexBuffer;

@@ -19,6 +19,8 @@ import net.bhapi.storage.Vec3I;
 import net.bhapi.util.BlockDirection;
 import net.bhapi.util.ColorUtil;
 import net.bhapi.util.MathUtil;
+import net.fabricmc.api.EnvType;
+import net.fabricmc.api.Environment;
 import net.minecraft.block.BaseBlock;
 import net.minecraft.block.BedBlock;
 import net.minecraft.block.FluidBlock;
@@ -42,6 +44,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+@Environment(EnvType.CLIENT)
 public class BHBlockRenderer {
 	private static final Map<BlockState, int[]> ITEMS_CACHE = new HashMap<>();
 	private static final PermutationTable[] TABLES = {

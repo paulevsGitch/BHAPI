@@ -3,6 +3,8 @@ package net.bhapi.client.render.block;
 import net.bhapi.blockstate.BlockState;
 import net.bhapi.level.BlockStateProvider;
 import net.bhapi.util.BlockUtil;
+import net.fabricmc.api.EnvType;
+import net.fabricmc.api.Environment;
 import net.minecraft.block.entity.BaseBlockEntity;
 import net.minecraft.block.material.Material;
 import net.minecraft.level.BlockView;
@@ -10,6 +12,7 @@ import net.minecraft.level.biome.BaseBiome;
 import net.minecraft.level.gen.BiomeSource;
 import net.minecraft.level.gen.FixedBiomeSource;
 
+@Environment(EnvType.CLIENT)
 public class BlockItemView implements BlockView, BlockStateProvider {
 	private static final BiomeSource BIOME_SOURCE = new FixedBiomeSource(BaseBiome.PLAINS, 0.5F, 0.5F);
 	private BlockState state;

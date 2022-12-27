@@ -2,18 +2,16 @@ package net.bhapi.client.render.texture;
 
 import net.bhapi.BHAPI;
 import net.bhapi.client.BHAPIClient;
+import net.bhapi.client.render.color.VanillaColorProviders;
 import net.bhapi.mixin.client.TextureManagerAccessor;
 import net.bhapi.util.BufferUtil;
 import net.bhapi.util.Identifier;
 import net.bhapi.util.ImageUtil;
 import net.bhapi.util.ImageUtil.FormatConvert;
-import net.bhapi.util.MathUtil;
+import net.fabricmc.api.EnvType;
+import net.fabricmc.api.Environment;
 import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.client.render.TextureBinder;
-import net.minecraft.client.render.block.FoliageColor;
-import net.minecraft.client.render.block.GrassColor;
-import net.minecraft.level.gen.BiomeSource;
-import net.minecraft.util.maths.MathHelper;
 import org.lwjgl.opengl.GL11;
 
 import java.awt.Color;
@@ -25,6 +23,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.IntStream;
 
+@Environment(EnvType.CLIENT)
 public class Textures {
 	private static final Map<Integer, Identifier> ID_PARTICLE = new HashMap<>();
 	private static final Map<Integer, Identifier> ID_BLOCK = new HashMap<>();
@@ -79,39 +78,19 @@ public class Textures {
 			binder.index = atlas.getTextureIndex(id);
 		});
 		
-		ColorProvider provider = (view, x, y, z, state) -> {
-			BiomeSource source = view.getBiomeSource();
-			source.getBiomes(MathHelper.floor(x), MathHelper.floor(z), 1, 1);
-			double temperature = source.temperatureNoises[0];
-			double wetness = source.rainfallNoises[0];
-			temperature = MathUtil.clamp(temperature, 0, 1);
-			wetness = MathUtil.clamp(wetness, 0, 1);
-			return GrassColor.getGrassColor(temperature, wetness);
-		};
+		VANILLA_BLOCKS.get(0).setBlockColorProvider(VanillaColorProviders.GRASS_BLOCK_COLOR);
+		VANILLA_BLOCKS.get(38).setBlockColorProvider(VanillaColorProviders.GRASS_BLOCK_COLOR);
+		VANILLA_BLOCKS.get(39).setBlockColorProvider(VanillaColorProviders.GRASS_BLOCK_COLOR);
+		VANILLA_BLOCKS.get(56).setBlockColorProvider(VanillaColorProviders.GRASS_BLOCK_COLOR);
 		
-		VANILLA_BLOCKS.get(0).setColorProvider(provider);
-		VANILLA_BLOCKS.get(38).setColorProvider(provider);
-		VANILLA_BLOCKS.get(39).setColorProvider(provider);
-		VANILLA_BLOCKS.get(56).setColorProvider(provider);
+		VANILLA_BLOCKS.get(39).setItemColorProvider(VanillaColorProviders.GRASS_ITEM_COLOR);
+		VANILLA_BLOCKS.get(56).setItemColorProvider(VanillaColorProviders.GRASS_ITEM_COLOR);
 		
-		provider = (view, x, y, z, state) -> {
-			int meta = state.getMeta() & 3;
-			if (meta == 2) return FoliageColor.getBirchColor();
-			BiomeSource source = view.getBiomeSource();
-			source.getBiomes(MathHelper.floor(x), MathHelper.floor(z), 1, 1);
-			double temperature = source.temperatureNoises[0];
-			double wetness = source.rainfallNoises[0];
-			temperature = MathUtil.clamp(temperature, 0, 1);
-			wetness = MathUtil.clamp(wetness, 0, 1);
-			return FoliageColor.getFoliageColor(temperature, wetness);
-		};
+		VANILLA_BLOCKS.get(52).setBlockColorProvider(VanillaColorProviders.FOLIAGE_BLOCK_COLOR);
+		VANILLA_BLOCKS.get(53).setBlockColorProvider(VanillaColorProviders.FOLIAGE_BLOCK_COLOR);
 		
-		VANILLA_BLOCKS.get(52).setColorProvider(provider);
-		VANILLA_BLOCKS.get(53).setColorProvider(provider);
-		
-		provider = (view, x, y, z, state) -> FoliageColor.getSpruceColor();
-		VANILLA_BLOCKS.get(132).setColorProvider(provider);
-		VANILLA_BLOCKS.get(133).setColorProvider(provider);
+		VANILLA_BLOCKS.get(132).setBlockColorProvider(VanillaColorProviders.SPRUCE_BLOCK_COLOR);
+		VANILLA_BLOCKS.get(133).setBlockColorProvider(VanillaColorProviders.SPRUCE_BLOCK_COLOR);
 		
 		building = false;
 	}

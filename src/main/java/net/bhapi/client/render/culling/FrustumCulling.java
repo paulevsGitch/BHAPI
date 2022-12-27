@@ -2,7 +2,10 @@ package net.bhapi.client.render.culling;
 
 import net.bhapi.storage.Matrix4x4;
 import net.bhapi.storage.Vec3F;
+import net.fabricmc.api.EnvType;
+import net.fabricmc.api.Environment;
 
+@Environment(EnvType.CLIENT)
 public class FrustumCulling {
 	private static final Vec3F[] NORMALS;
 	

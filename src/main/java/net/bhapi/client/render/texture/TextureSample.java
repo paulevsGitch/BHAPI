@@ -1,27 +1,35 @@
 package net.bhapi.client.render.texture;
 
 import net.bhapi.blockstate.BlockState;
+import net.bhapi.client.render.color.ColorProvider;
 import net.bhapi.storage.CircleCache;
 import net.bhapi.storage.Vec2F;
 import net.bhapi.util.ColorUtil;
+import net.fabricmc.api.EnvType;
+import net.fabricmc.api.Environment;
+import net.minecraft.item.ItemStack;
 import net.minecraft.level.BlockView;
 
+@Environment(EnvType.CLIENT)
 public class TextureSample {
 	private static final CircleCache<Vec2F> UV_CACHE = new CircleCache<Vec2F>(4).fill(Vec2F::new);
-	private static final ColorProvider DEFAULT_PROVIDER = (view, x, y, z, state) -> ColorUtil.WHITE_COLOR;
+	private static final ColorProvider<BlockState> DEFAULT_BLOCK_PROVIDER = (view, x, y, z, state) -> ColorUtil.WHITE_COLOR;
+	private static final ColorProvider<ItemStack> DEFAULT_ITEM_PROVIDER = (view, x, y, z, stack) -> ColorUtil.WHITE_COLOR;
 	
 	private final TextureAtlas atlas;
 	private final RenderLayer layer;
 	private final int id;
 	
-	private ColorProvider provider;
+	private ColorProvider<BlockState> blockProvider;
+	private ColorProvider<ItemStack> itemProvider;
 	private boolean mirrorU;
 	private boolean mirrorV;
 	private byte rotation;
 	private float light;
 	
 	protected TextureSample(TextureAtlas atlas, int id, RenderLayer layer) {
-		this.provider = DEFAULT_PROVIDER;
+		this.blockProvider = DEFAULT_BLOCK_PROVIDER;
+		this.itemProvider = DEFAULT_ITEM_PROVIDER;
 		this.atlas = atlas;
 		this.layer = layer;
 		this.id = id;
@@ -103,12 +111,20 @@ public class TextureSample {
 		return layer;
 	}
 	
-	public void setColorProvider(ColorProvider provider) {
-		this.provider = provider;
+	public void setBlockColorProvider(ColorProvider<BlockState> provider) {
+		this.blockProvider = provider;
+	}
+	
+	public void setItemColorProvider(ColorProvider<ItemStack> provider) {
+		this.itemProvider = provider;
 	}
 	
 	public int getColorMultiplier(BlockView view, double x, double y, double z, BlockState state) {
-		return provider.getColorMultiplier(view, x, y, z, state);
+		return blockProvider.getColorMultiplier(view, x, y, z, state);
+	}
+	
+	public int getColorMultiplier(BlockView view, double x, double y, double z, ItemStack stack) {
+		return itemProvider.getColorMultiplier(view, x, y, z, stack);
 	}
 	
 	@Override

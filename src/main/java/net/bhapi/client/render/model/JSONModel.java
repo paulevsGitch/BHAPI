@@ -10,10 +10,13 @@ import net.bhapi.storage.Vec3F;
 import net.bhapi.util.BlockDirection;
 import net.bhapi.util.Identifier;
 import net.bhapi.util.JSONUtil;
+import net.fabricmc.api.EnvType;
+import net.fabricmc.api.Environment;
 
 import java.util.HashMap;
 import java.util.Map;
 
+@Environment(EnvType.CLIENT)
 public class JSONModel extends CustomModel {
 	private static final Map<Identifier, JsonObject> MODEL_CACHE = new HashMap<>();
 	private static final Map<String, BlockDirection> FACES = new HashMap<>();

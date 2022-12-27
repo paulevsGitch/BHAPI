@@ -1,7 +1,10 @@
 package net.bhapi.client.render.model;
 
 import net.bhapi.util.BlockDirection;
+import net.fabricmc.api.EnvType;
+import net.fabricmc.api.Environment;
 
+@Environment(EnvType.CLIENT)
 public enum FaceGroup {
 	NEG_Y(BlockDirection.NEG_Y),
 	POS_Y(BlockDirection.POS_Y),

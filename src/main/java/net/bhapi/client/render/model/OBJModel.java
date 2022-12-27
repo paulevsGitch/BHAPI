@@ -10,6 +10,8 @@ import net.bhapi.util.BlockDirection;
 import net.bhapi.util.Identifier;
 import net.bhapi.util.JSONUtil;
 import net.bhapi.util.ResourceUtil;
+import net.fabricmc.api.EnvType;
+import net.fabricmc.api.Environment;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -19,6 +21,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+@Environment(EnvType.CLIENT)
 public class OBJModel extends CustomModel {
 	private static final MaterialInfo STARTING_MATERIAL = new MaterialInfo(
 		0, new EnumArray<>(BlockDirection.class), false, new Vec3F(0, 1, 0)

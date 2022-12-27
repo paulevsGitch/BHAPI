@@ -8,8 +8,11 @@ import net.bhapi.storage.Vec2F;
 import net.bhapi.storage.Vec3F;
 import net.bhapi.util.BlockDirection;
 import net.bhapi.util.MathUtil;
+import net.fabricmc.api.EnvType;
+import net.fabricmc.api.Environment;
 import net.fabricmc.tinyremapper.extension.mixin.common.data.Pair;
 
+@Environment(EnvType.CLIENT)
 public class ModelCuboidBuilder {
 	private static final ModelCuboidBuilder INSTANCE = new ModelCuboidBuilder();
 	private final EnumArray<BlockDirection, Integer> textureIndex = new EnumArray<>(BlockDirection.class);
