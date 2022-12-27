@@ -41,7 +41,7 @@ public class CustomModel {
 		int index = context.getOverlayIndex();
 		for (ModelQuad quad: quads) {
 			TextureSample sample = state.getTextureForIndex(view, x, y, z, quad.getTextureIndex(), index);
-			if (sample != null) quad.apply(context, sample, uvCache);
+			if (sample != null) quad.render(context, sample, uvCache);
 		}
 	}
 }

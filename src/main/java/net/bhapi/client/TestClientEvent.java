@@ -12,6 +12,7 @@ import net.bhapi.util.Identifier;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
 
+import java.awt.Color;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -34,6 +35,8 @@ public class TestClientEvent {
 			Textures.getAtlas().getSample(Identifier.make("bhapi", "block/warped_cobble")),
 			Textures.getAtlas().getSample(Identifier.make("bhapi", "block/lantern")),
 		};
+		
+		samples[0].setColorProvider((view, x, y, z, state) -> Color.MAGENTA.getRGB());
 		
 		/*EnumArray<FaceGroup, ModelQuad[]> quads = new EnumArray<>(FaceGroup.class);
 		ModelQuad[] face = new ModelQuad[1];

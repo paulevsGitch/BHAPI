@@ -34,15 +34,15 @@ public class GrassBlockMixin implements BHBlockRender {
 	
 	@Override
 	public int getOverlayCount(BlockView view, int x, int y, int z, BlockState state) {
-		return 2;//BlockStateProvider.cast(view).getBlockState(x, y + 1, z).is(BaseBlock.SNOW) ? 1 : 2;
+		return BlockStateProvider.cast(view).getBlockState(x, y + 1, z).is(BaseBlock.SNOW) ? 1 : 2;
 	}
 	
 	@Override
 	public TextureSample getTextureForIndex(BlockView view, int x, int y, int z, BlockState state, int textureIndex, int overlayIndex) {
 		TextureSample sample;
 		switch (textureIndex) {
-			case 0 -> sample = overlayIndex == 1 ? Textures.getVanillaBlockSample(2) : null;
-			case 1 -> sample = overlayIndex == 1 ? Textures.getVanillaBlockSample(0) : null;
+			case 0 -> sample = overlayIndex == 0 ? Textures.getVanillaBlockSample(2) : null;
+			case 1 -> sample = overlayIndex == 0 ? Textures.getVanillaBlockSample(0) : null;
 			default -> {
 				int index;
 				if (overlayIndex == 1) {

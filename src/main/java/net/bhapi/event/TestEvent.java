@@ -101,7 +101,7 @@ public class TestEvent {
 		public TextureSample getTextureForIndex(BlockView view, int x, int y, int z, BlockState state, int textureIndex, int overlayIndex) {
 			state = BlockStateProvider.cast(view).getBlockState(x, y - 1, z);
 			if (state.isAir() || state.is(this)) return super.getTextureForIndex(view, x, y, z, state, textureIndex, overlayIndex);
-			return state.getTextureForIndex(view, x, y - 1, z, textureIndex, overlayIndex);
+			return state.getTextureForIndex(view, x, y - 1, z, 1, overlayIndex);
 		}
 		
 		@Override

@@ -21,7 +21,7 @@ import java.util.Map;
 
 public class OBJModel extends CustomModel {
 	private static final MaterialInfo STARTING_MATERIAL = new MaterialInfo(
-		0, new EnumArray<>(BlockDirection.class), false, 0, new Vec3F(0, 1, 0)
+		0, new EnumArray<>(BlockDirection.class), false, new Vec3F(0, 1, 0)
 	);
 	
 	public OBJModel(Identifier path) {
@@ -47,7 +47,6 @@ public class OBJModel extends CustomModel {
 			JsonObject entry = preMaterials.get(name).getAsJsonObject();
 			int textureIndex = entry.get("textureIndex").getAsInt();
 			boolean shade = entry.has("shade") && entry.get("shade").getAsBoolean();
-			int tintIndex = entry.has("tintIndex") ? entry.get("tintIndex").getAsInt() : -1;
 			Vec3F normal = entry.has("normal") ? JSONUtil.vectorFromArray(entry.getAsJsonArray("normal")) : null;
 			
 			EnumArray<BlockDirection, Boolean> cullingMap = new EnumArray<>(BlockDirection.class);
@@ -74,7 +73,7 @@ public class OBJModel extends CustomModel {
 				}
 			}
 			
-			materials.put(name, new MaterialInfo(textureIndex, cullingMap, shade, tintIndex, normal));
+			materials.put(name, new MaterialInfo(textureIndex, cullingMap, shade, normal));
 		});
 		
 		EnumArray<FaceGroup, List<ModelQuad>> quads = new EnumArray<>(FaceGroup.class);
@@ -153,7 +152,6 @@ public class OBJModel extends CustomModel {
 					}
 					
 					ModelQuad quad = new ModelQuad(activeMaterial.textureIndex);
-					quad.setTintIndex(activeMaterial.tintIndex);
 					quad.setAO(activeMaterial.shade);
 					quad.setNormal(activeMaterial.normal);
 					
@@ -196,7 +194,6 @@ public class OBJModel extends CustomModel {
 		int textureIndex,
 		EnumArray<BlockDirection, Boolean> culling,
 		boolean shade,
-		int tintIndex,
 		Vec3F normal
 	) {}
 	

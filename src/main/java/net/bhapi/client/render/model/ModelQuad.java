@@ -1,11 +1,13 @@
 package net.bhapi.client.render.model;
 
+import net.bhapi.blockstate.BlockState;
 import net.bhapi.client.render.level.MeshBuilder;
 import net.bhapi.client.render.texture.TextureSample;
 import net.bhapi.storage.CircleCache;
 import net.bhapi.storage.Vec2F;
 import net.bhapi.storage.Vec3F;
 import net.bhapi.util.BlockDirection;
+import net.bhapi.util.ColorUtil;
 import net.bhapi.util.MathUtil;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
@@ -19,7 +21,6 @@ public class ModelQuad {
 	private float brightness;
 	private float guiLight;
 	private boolean useAO;
-	private int tintIndex;
 	private Vec3F normal;
 	
 	public ModelQuad(int index) {
@@ -45,10 +46,6 @@ public class ModelQuad {
 	
 	public void setAO(boolean useAO) {
 		this.useAO = useAO;
-	}
-	
-	public void setTintIndex(int tintIndex) {
-		this.tintIndex = tintIndex;
 	}
 	
 	public void setNormal(Vec3F normal) {
@@ -95,30 +92,48 @@ public class ModelQuad {
 		return index;
 	}
 	
-	public void apply(ModelRenderingContext context, TextureSample sample, CircleCache<Vec2F> uvCache) {
+	public void render(ModelRenderingContext context, TextureSample sample, CircleCache<Vec2F> uvCache) {
 		MeshBuilder builder = context.getBuilder().getBuilder(sample.getLayer());
+		BlockState state = context.getState();
 		double x = context.getX();
 		double y = context.getY();
 		double z = context.getZ();
 		builder.setNormal(normal.x, normal.y, normal.z);
 		BlockView view = context.getBlockView();
 		float textureLight = sample.getLight();
-		if (textureLight == 1) builder.setColor(1F, 1F, 1F);
+		float light = 0;
+		float r, g, b;
+		
+		if (textureLight == 1) {
+			int color = sample.getColorMultiplier(view, x, y, z, state);
+			r = ColorUtil.getRed(color);
+			g = ColorUtil.getGreen(color);
+			b = ColorUtil.getBlue(color);
+			builder.setColor(r, g, b);
+		}
 		else {
-			float light;
 			if (!context.isInGUI()) {
 				light = brightness * context.getLight() * view.getBrightness((int) x, (int) y, (int) z);
 			}
 			else light = guiLight;
 			if (light < textureLight) light = textureLight;
-			builder.setColor(light, light, light);
 		}
+		
 		for (byte i = 0; i < 4; i++) {
+			if (textureLight != 1) {
+				int color = sample.getColorMultiplier(view, x, y, z, state);
+				r = light * ColorUtil.getRed(color);
+				g = light * ColorUtil.getGreen(color);
+				b = light * ColorUtil.getBlue(color);
+				builder.setColor(r, g, b);
+			}
+			
 			Vec3F pos = positions[i];
 			Vec2F uv = uvs[i];
 			if (!context.isBreaking()) {
 				uv = sample.getUV(uv.x, uv.y, uvCache.get());
 			}
+			
 			builder.vertex(x + pos.x, y + pos.y, z + pos.z, uv.x, uv.y);
 		}
 	}
