@@ -18,6 +18,7 @@ import net.bhapi.util.BlockUtil;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
 import net.minecraft.block.BaseBlock;
+import net.minecraft.block.entity.BaseBlockEntity;
 import net.minecraft.block.material.Material;
 import net.minecraft.entity.BaseEntity;
 import net.minecraft.level.Level;
@@ -51,6 +52,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
+import java.util.concurrent.CopyOnWriteArrayList;
 
 @Mixin(Level.class)
 public abstract class LevelMixin implements LevelHeightProvider, BlockStateProvider, PlaceChecker {
@@ -65,6 +67,7 @@ public abstract class LevelMixin implements LevelHeightProvider, BlockStateProvi
 	@Shadow private ArrayList collidingEntitySearchCache;
 	@Shadow public boolean stopPhysics;
 	@Shadow public boolean isClientSide;
+	@Shadow public List tileEntities;
 	
 	@Shadow public abstract Chunk getChunkFromCache(int i, int j);
 	@Shadow public abstract boolean isAreaLoaded(int i, int j, int k, int l, int m, int n);
@@ -201,8 +204,8 @@ public abstract class LevelMixin implements LevelHeightProvider, BlockStateProvi
 		
 		int x = (x2 + x1) >> 1;
 		int z = (z2 + z1) >> 1;
-		if (this.getChunk(x, z).isClient()) return;
 		if (!this.isBlockLoaded(x, 64, z)) return;
+		if (this.getChunk(x, z).isClient()) return;
 		
 		if (type == LightType.BLOCK) {
 			bhapi_lightUpdater.addArea(new BHLightArea(type, x1, y1, z1, x2, y2, z2));
@@ -581,6 +584,7 @@ public abstract class LevelMixin implements LevelHeightProvider, BlockStateProvi
 			bhapi_blocksUpdater = new LevelBlocksUpdater(level);
 			bhapi_lightUpdater = new LevelLightUpdater(level);
 		}
+		this.tileEntities = new CopyOnWriteArrayList<BaseBlockEntity>();
 	}
 	
 	@Inject(method = "getHeightIterating", at = @At("HEAD"), cancellable = true)
@@ -722,6 +726,7 @@ public abstract class LevelMixin implements LevelHeightProvider, BlockStateProvi
 	@Unique
 	@Override
 	public BlockState getBlockState(int x, int y, int z) {
+		if (y < 0 || y >= getLevelHeight()) return BlockUtil.AIR_STATE;
 		BlockStateProvider provider = BlockStateProvider.cast(this.getChunkFromCache(x >> 4, z >> 4));
 		return provider.getBlockState(x & 15, y, z & 15);
 	}

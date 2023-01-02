@@ -174,14 +174,14 @@ public abstract class ChunkMixin implements NBTSerializable, LevelHeightProvider
 		bhapi_fillBlocks();
 		
 		byte x, z;
-		short maxY = getLevelHeight();
+		short maxY = (short) (getLevelHeight() - 1);
 		while (bhapi_getSection(maxY) == null && maxY > 0) maxY -= 16;
 		this.minHeight = maxY;
 		for (x = 0; x < 16; ++x) {
 			for (z = 0; z < 16; ++z) {
 				short y;
 				for (y = maxY; y > 0; y--) {
-					if (getBlockState(x, y, z).getLightOpacity() > 0) break;
+					if (getBlockState(x, y - 1, z).getLightOpacity() > 0) break;
 				}
 				bhapi_setHeight(x, z, y);
 				if (y < minHeight) this.minHeight = y;
@@ -563,7 +563,7 @@ public abstract class ChunkMixin implements NBTSerializable, LevelHeightProvider
 	
 	@Unique
 	private ChunkSection bhapi_getSection(int y) {
-		byte sectionY = (byte) (y >> 4);
+		short sectionY = (short) (y >> 4);
 		return sectionY < 0 || sectionY >= bhapi_sections.length ? null : bhapi_sections[sectionY];
 	}
 	
@@ -827,11 +827,8 @@ public abstract class ChunkMixin implements NBTSerializable, LevelHeightProvider
 	@Unique
 	@Override
 	public BlockState getBlockState(int x, int y, int z) {
-		if (y < 0 || y >= getLevelHeight()) return BlockUtil.AIR_STATE;
-		
 		ChunkSection section = bhapi_getSection(y);
 		if (section == null) return BlockUtil.AIR_STATE;
-		
 		return section.getBlockState(x, y & 15, z);
 	}
 	

@@ -71,6 +71,17 @@ public class Vec3I {
 		return MathHelper.sqrt(lengthSqr());
 	}
 	
+	public int distanceSqr(Vec3I vector) {
+		int dx = this.x - vector.x;
+		int dy = this.y - vector.y;
+		int dz = this.z - vector.z;
+		return dx * dx + dy * dy + dz * dz;
+	}
+	
+	public float distance(Vec3I vector) {
+		return MathHelper.sqrt(distanceSqr(vector));
+	}
+	
 	@Override
 	public Vec3I clone() {
 		return new Vec3I(x, y, z);

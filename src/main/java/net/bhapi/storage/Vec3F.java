@@ -118,6 +118,17 @@ public class Vec3F {
 		return this.x * vector.x + this.y * vector.y + this.z * vector.z;
 	}
 	
+	public float distanceSqr(Vec3I vector) {
+		float dx = this.x - vector.x;
+		float dy = this.y - vector.y;
+		float dz = this.z - vector.z;
+		return dx * dx + dy * dy + dz * dz;
+	}
+	
+	public float distance(Vec3I vector) {
+		return MathHelper.sqrt(distanceSqr(vector));
+	}
+	
 	@Override
 	public Vec3F clone() {
 		return new Vec3F(x, y, z);

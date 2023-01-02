@@ -7,8 +7,9 @@ import org.spongepowered.asm.mixin.Mixin;
 
 @Mixin(OverworldDimension.class)
 public abstract class OverworldDimensionMixin extends BaseDimension implements LevelHeightProvider {
-	@Override
+	// TODO move into weather API
+	/*@Override
 	public float getCloudHeight() {
 		return getLevelHeight() + 1;
-	}
+	}*/
 }

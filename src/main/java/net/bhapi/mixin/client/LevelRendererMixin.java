@@ -7,12 +7,9 @@ import net.bhapi.client.render.block.BreakInfo;
 import net.bhapi.client.render.level.ClientChunks;
 import net.bhapi.client.render.texture.Textures;
 import net.bhapi.level.BlockStateProvider;
-import net.bhapi.level.ChunkHeightProvider;
 import net.bhapi.level.LevelHeightProvider;
 import net.bhapi.level.light.ClientLightLevel;
 import net.bhapi.registry.CommonRegistries;
-import net.bhapi.util.MathUtil;
-import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.block.BaseBlock;
 import net.minecraft.block.BlockSounds;
 import net.minecraft.client.Minecraft;
@@ -185,54 +182,8 @@ public abstract class LevelRendererMixin implements LevelHeightProvider {
 		GL11.glDisable(GL11.GL_ALPHA_TEST);
 	}
 	
-	// TODO remove this
-	@Inject(method = "renderClouds", at = @At("HEAD"))
-	private void debugRenderHeightmap(float delta, CallbackInfo info) {
-		if (!FabricLoader.getInstance().isDevelopmentEnvironment()) return;
-		if (!BHAPIClient.getMinecraft().options.debugHud) return;
-		
-		LivingEntity entity = this.client.viewEntity;
-		double x = MathUtil.lerp(entity.prevX, entity.x, delta);
-		double y = MathUtil.lerp(entity.prevY, entity.y, delta);
-		double z = MathUtil.lerp(entity.prevZ, entity.z, delta);
-		int chunkX = MathHelper.floor(x / 16.0);
-		int chunkZ = MathHelper.floor(z / 16.0);
-		x = (chunkX << 4) - x;
-		z = (chunkZ << 4) - z;
-		GL11.glDisable(GL11.GL_TEXTURE_2D);
-		
-		// Render chunk borders
-		/*for (byte dy = -3; dy < 4; dy++) {
-			GL11.glBegin(GL11.GL_LINE_LOOP);
-			GL11.glColor3f(1F, 0F, 0F);
-			GL11.glVertex3f((float) x, dy, 16 + (float) z);
-			GL11.glVertex3f(16 + (float) x, dy, 16 + (float) z);
-			GL11.glVertex3f(16 + (float) x, dy, (float) z);
-			GL11.glVertex3f((float) x, dy, (float) z);
-			GL11.glEnd();
-		}*/
-		
-		ChunkHeightProvider provider = ChunkHeightProvider.cast(entity.level.getChunkFromCache(chunkX, chunkZ));
-		GL11.glColor3f(1F, 1F, 0F);
-		for (int dx = 0; dx < 16; dx++) {
-			for (int dz = 0; dz < 16; dz++) {
-				short height = provider.getHeightmapData(dx, dz);
-				float py = (float) (height - y) + 0.1F;
-				GL11.glBegin(GL11.GL_LINE_LOOP);
-				GL11.glVertex3f(0.1F + (float) x + dx, py, 0.9F + (float) z + dz);
-				GL11.glVertex3f(0.9F + (float) x + dx, py, 0.9F + (float) z + dz);
-				GL11.glVertex3f(0.9F + (float) x + dx, py, 0.1F + (float) z + dz);
-				GL11.glVertex3f(0.1F + (float) x + dx, py, 0.1F + (float) z + dz);
-				GL11.glEnd();
-			}
-		}
-		
-		GL11.glEnable(GL11.GL_TEXTURE_2D);
-	}
-	
 	@Inject(method = "method_1549", at = @At("HEAD"), cancellable = true)
 	private void bhapi_method_1549(LivingEntity arg, boolean bl, CallbackInfoReturnable<Boolean> info) {
-		//if (arg == null) info.setReturnValue(false);
 		info.setReturnValue(true);
 	}
 	

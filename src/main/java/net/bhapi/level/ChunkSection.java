@@ -28,7 +28,7 @@ public class ChunkSection implements NBTSerializable {
 	public static final ChunkSection EMPTY = new ChunkSection();
 	private static final MultiThreadStorage<StatesLoader> LOADERS = new MultiThreadStorage<>(StatesLoader::new);
 	private final Map<Vec3I, BaseBlockEntity> blockEntities = new ConcurrentHashMap<>();
-	private final BlockState[] states = new BlockState[4096];
+	private final int[] states = new int[4096];
 	private final byte[] light = new byte[4096];
 	public final List<BaseEntity> entities;
 	
@@ -42,16 +42,17 @@ public class ChunkSection implements NBTSerializable {
 	}
 	
 	public BlockState getBlockState(int index) {
-		return states[index];
-	}
-	
-	public BlockState getBlockState(int x, int y, int z) {
-		BlockState state = states[getIndex(x, y, z)];
+		int rawID = states[index];
+		BlockState state = CommonRegistries.BLOCKSTATES_MAP.get(rawID);
 		return state == null ? BlockUtil.AIR_STATE : state;
 	}
 	
+	public BlockState getBlockState(int x, int y, int z) {
+		return getBlockState(getIndex(x, y, z));
+	}
+	
 	public void setBlockState(int x, int y, int z, BlockState state) {
-		states[getIndex(x, y, z)] = state;
+		states[getIndex(x, y, z)] = state.getID();
 	}
 	
 	public int getMeta(int x, int y, int z) {
@@ -60,8 +61,9 @@ public class ChunkSection implements NBTSerializable {
 	
 	public void setMeta(int x, int y, int z, int meta) {
 		int index = getIndex(x, y, z);
-		if (states[index] == null) return;
-		states[index] = states[index].withMeta(meta);
+		BlockState state = CommonRegistries.BLOCKSTATES_MAP.get(states[index]);
+		if (state == null) return;
+		states[index] = state.withMeta(meta).getID();
 	}
 	
 	public BaseBlockEntity getBlockEntity(Vec3I pos) {
@@ -115,14 +117,8 @@ public class ChunkSection implements NBTSerializable {
 	
 	public int writeData(byte[] data, int x, int y, int z, int index) {
 		int secIndex = getIndex(x, y, z);
-		
-		BlockState state = states[secIndex];
-		if (state == null) state = BlockUtil.AIR_STATE;
-		int stateID = CommonRegistries.BLOCKSTATES_MAP.getID(state);
-		index = MathUtil.writeInt(data, stateID, index);
-		
+		index = MathUtil.writeInt(data, states[secIndex], index);
 		data[index++] = light[secIndex];
-		
 		return index;
 	}
 	
@@ -130,8 +126,7 @@ public class ChunkSection implements NBTSerializable {
 		int secIndex = getIndex(x, y, z);
 		
 		int stateID = MathUtil.readInt(data, index);
-		BlockState state = CommonRegistries.BLOCKSTATES_MAP.get(stateID);
-		states[secIndex] = state;
+		states[secIndex] = stateID;
 		
 		index += 4;
 		light[secIndex] = data[index++];

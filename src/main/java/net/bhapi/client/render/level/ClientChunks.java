@@ -13,6 +13,7 @@ import net.bhapi.config.BHConfigs;
 import net.bhapi.level.ChunkSection;
 import net.bhapi.level.ChunkSectionProvider;
 import net.bhapi.level.LevelHeightProvider;
+import net.bhapi.storage.CircleCache;
 import net.bhapi.storage.EnumArray;
 import net.bhapi.storage.Vec3F;
 import net.bhapi.storage.Vec3I;
@@ -34,11 +35,16 @@ import org.lwjgl.opengl.GL11;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Queue;
-import java.util.concurrent.ArrayBlockingQueue;
+import java.util.concurrent.PriorityBlockingQueue;
 
 @Environment(EnvType.CLIENT)
 public class ClientChunks {
-	private static final Queue<Vec3I> UPDATE_REQUESTS = new ArrayBlockingQueue<>(4096);
+	private static final CircleCache<Vec3I> VECTOR_CACHE = new CircleCache<Vec3I>(8192).fill(Vec3I::new);
+	private static final Queue<Vec3I> UPDATE_REQUESTS = new PriorityBlockingQueue<>(4096, (p1, p2) -> {
+		int l1 = p1.distanceSqr(ClientChunks.cameraPos);
+		int l2 = p2.distanceSqr(ClientChunks.cameraPos);
+		return Integer.compare(l1, l2);
+	});
 	private static final FrustumCulling FRUSTUM_CULLING = new FrustumCulling();
 	
 	private static WorldCache<ClientChunk> chunks;
@@ -63,7 +69,7 @@ public class ClientChunks {
 		sort = true;
 		
 		if (buildingThreads == null) {
-			int count = BHConfigs.GENERAL.getInt("multithreading.meshBuildersCount", 4);
+			int count = BHConfigs.GENERAL.getInt("multithreading.meshBuildersCount", 8);
 			count = MathUtil.clamp(count, 1, 16);
 			BHConfigs.GENERAL.setInt("multithreading.meshBuildersCount", count);
 			BHConfigs.GENERAL.save();
@@ -180,7 +186,7 @@ public class ClientChunks {
 		if (!chunk.needUpdate) return;
 		if (UPDATE_REQUESTS.size() > 4095) return;
 		chunk.needUpdate = false;
-		UPDATE_REQUESTS.add(pos.clone());
+		UPDATE_REQUESTS.add(VECTOR_CACHE.get().set(pos));
 		
 		chunk.blockEntities.clear();
 		short sections = LevelHeightProvider.cast(level).getSectionsCount();

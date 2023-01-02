@@ -17,10 +17,4 @@ public class BaseDimensionMixin implements LevelHeightProvider {
 	private void bhapi_fixCanSpawnOn(int x, int z, CallbackInfoReturnable<Boolean> info) {
 		info.setReturnValue(true);
 	}
-	
-	// TODO remove this
-	@Override
-	public short getLevelHeight() {
-		return 256;
-	}
 }

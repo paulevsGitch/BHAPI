@@ -31,7 +31,6 @@ public class ClientLightLevel {
 	private static void init(int width, int height) {
 		if (blockLight == null || blockLight.getSizeXZ() != width || blockLight.getSizeY() != height) {
 			blockLight = new WorldCache<>(width, height, BHLightChunk::new);
-			System.out.println("Init light cache!");
 		}
 	}
 	

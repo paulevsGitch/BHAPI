@@ -39,10 +39,9 @@
 		"GameOptionsMixin",
 		"GrassBlockMixin",
 		"PlayerBaseMixin",
-		"PlantBlockMixin",
-		"StoneBlockMixin",
 		"MinecraftMixin",
 		"MainMenuMixin",
+		"DisplayMixin",
 		"InGameMixin",
 		"LevelMixin",
 		

@@ -2,10 +2,8 @@ package net.bhapi.mixin.client;
 
 import net.bhapi.blockstate.BlockState;
 import net.bhapi.blockstate.properties.StateProperty;
-import net.bhapi.client.gui.DebugAllItems;
 import net.bhapi.client.render.texture.TextureSample;
 import net.bhapi.client.render.texture.Textures;
-import net.bhapi.event.TestEvent;
 import net.bhapi.level.BlockStateProvider;
 import net.bhapi.registry.CommonRegistries;
 import net.bhapi.storage.Vec2F;
@@ -19,13 +17,11 @@ import net.minecraft.client.gui.InGame;
 import net.minecraft.client.render.Tessellator;
 import net.minecraft.client.render.TextRenderer;
 import net.minecraft.client.util.ScreenScaler;
-import net.minecraft.item.ItemStack;
 import net.minecraft.level.Level;
 import net.minecraft.level.LightType;
 import net.minecraft.util.hit.HitResult;
 import net.minecraft.util.hit.HitType;
 import net.minecraft.util.maths.MathHelper;
-import org.lwjgl.input.Keyboard;
 import org.lwjgl.opengl.GL11;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
@@ -44,21 +40,6 @@ public abstract class InGameMixin extends DrawableHelper {
 	@Shadow private Minecraft minecraft;
 	
 	@Unique private TextureSample bhapi_portalSample;
-	
-	@Inject(method = "renderHud(FZII)V", at = @At("HEAD"))
-	private void bhapi_openItemsGUI(float bl, boolean i, int j, int par4, CallbackInfo ci) {
-		if (!FabricLoader.getInstance().isDevelopmentEnvironment()) return;
-		if (Keyboard.getEventKey() == Keyboard.KEY_G && this.minecraft.currentScreen == null) {
-			DebugAllItems inventory = new DebugAllItems(9 * 4);
-			ItemStack[] items = inventory.getItems();
-			final int[] index = new int[] {0};
-			TestEvent.BLOCKS.values().forEach(block -> {
-				items[index[0]++] = new ItemStack(block, 64);
-			});
-			items[index[0]++] = new ItemStack(BaseBlock.CACTUS, 64);
-			this.minecraft.player.openChestScreen(inventory);
-		}
-	}
 	
 	@Inject(
 		method = "renderHud(FZII)V",
