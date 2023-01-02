@@ -118,6 +118,7 @@ public class ClientChunks {
 	
 	public static void render(LivingEntity entity, float delta) {
 		if (chunks == null) return;
+		chunks.setCenter(entity.chunkX, (int) entity.y >> 4, entity.chunkZ);
 		
 		Level clientLevel = BHAPIClient.getMinecraft().level;
 		if (clientLevel != level) {
@@ -138,8 +139,7 @@ public class ClientChunks {
 			}
 		}
 		
-		chunks.setCenter(entity.chunkX, (int) entity.y >> 4, entity.chunkZ);
-		chunks.update(16);
+		chunks.update(1);
 		
 		px = MathUtil.lerp(entity.prevX, entity.x, delta);
 		py = MathUtil.lerp(entity.prevY, entity.y, delta);

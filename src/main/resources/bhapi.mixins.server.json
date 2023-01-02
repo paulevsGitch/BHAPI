@@ -6,6 +6,7 @@
 	"server": [
 		"ServerPlayerInterractionManagerMixin",
 		"ServerPacketHandlerMixin",
+		"MinecraftServerMixin",
 		"CommandManagerMixin",
 		"ServerPlayerMixin"
 	],

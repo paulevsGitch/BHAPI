@@ -24,7 +24,7 @@ public class GameRendererMixin {
 	@Shadow private int randomOffset;
 	
 	@Inject(method = "renderWeather", at = @At("HEAD"), cancellable = true)
-	protected void bhapi_renderWeather(float delta, CallbackInfo info) {
+	private void bhapi_renderWeather(float delta, CallbackInfo info) {
 		info.cancel();
 		
 		float gradient = this.minecraft.level.getRainGradient(delta);

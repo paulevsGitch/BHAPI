@@ -31,4 +31,12 @@ public class CircleCache <T> {
 	public T get(int index) {
 		return data[index];
 	}
+	
+	public int size() {
+		return data.length;
+	}
+	
+	public void clear() {
+		index = 0;
+	}
 }

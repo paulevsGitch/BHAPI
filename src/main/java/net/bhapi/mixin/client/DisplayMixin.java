@@ -10,7 +10,6 @@ import org.spongepowered.asm.mixin.injection.ModifyVariable;
 public class DisplayMixin {
 	@ModifyVariable(method = "create(Lorg/lwjgl/opengl/PixelFormat;)V", at = @At("HEAD"), ordinal = 0, argsOnly = true)
 	private static PixelFormat bhapi_changeDepth(PixelFormat format) {
-		System.out.println("Change format!!");
 		return format.withDepthBits(24);
 	}
 }

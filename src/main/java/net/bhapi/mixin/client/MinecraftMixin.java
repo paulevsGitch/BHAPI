@@ -8,6 +8,7 @@ import net.bhapi.client.render.texture.Textures;
 import net.bhapi.interfaces.ClientPostInit;
 import net.bhapi.registry.CommonRegistries;
 import net.bhapi.util.ImageUtil;
+import net.bhapi.util.ThreadManager;
 import net.minecraft.client.Minecraft;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
@@ -61,6 +62,7 @@ public class MinecraftMixin {
 	
 	@Inject(method = "Lnet/minecraft/client/Minecraft;stop()V", at = @At("HEAD"))
 	private void bhapi_onExit(CallbackInfo info) {
+		ThreadManager.stopAll();
 		BHBlockRenderer.clearItemCache();
 		ClientChunks.onExit();
 	}

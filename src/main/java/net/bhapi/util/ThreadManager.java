@@ -5,7 +5,6 @@ import java.util.Map;
 
 public class ThreadManager {
 	private static final Map<String, RunnableThread> THREADS = new HashMap<>();
-	private static final Thread MAIN = Thread.currentThread();
 	
 	public static RunnableThread getThread(String name) {
 		return THREADS.get(name);
@@ -47,6 +46,10 @@ public class ThreadManager {
 		THREADS.remove(name);
 	}
 	
+	public static void stopAll() {
+		THREADS.forEach((name, tread) -> tread.stopThread());
+	}
+	
 	public static class RunnableThread extends Thread {
 		private final Runnable function;
 		private boolean run = true;
@@ -62,7 +65,7 @@ public class ThreadManager {
 		
 		@Override
 		public void run() {
-			while (run && MAIN.isAlive()) function.run();
+			while (run) function.run();
 		}
 	}
 }

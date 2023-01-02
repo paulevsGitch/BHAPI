@@ -12,6 +12,7 @@ import net.bhapi.level.light.ClientLightLevel;
 import net.bhapi.registry.CommonRegistries;
 import net.minecraft.block.BaseBlock;
 import net.minecraft.block.BlockSounds;
+import net.minecraft.class_68;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.render.LevelRenderer;
 import net.minecraft.client.render.Tessellator;
@@ -203,5 +204,10 @@ public abstract class LevelRendererMixin implements LevelHeightProvider {
 	@Inject(method = "playSound", at = @At("HEAD"), cancellable = true)
 	private void bhapi_playSound(String string, double d, double e, double f, float g, float h, CallbackInfo info) {
 		if (this.client.viewEntity == null) info.cancel();
+	}
+	
+	@Inject(method = "method_1550", at = @At("HEAD"), cancellable = true)
+	private void bhapi_disableAreasCheck(class_68 arg, float f, CallbackInfo info) {
+		info.cancel();
 	}
 }
