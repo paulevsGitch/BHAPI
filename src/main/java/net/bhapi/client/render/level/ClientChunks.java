@@ -139,7 +139,9 @@ public class ClientChunks {
 			}
 		}
 		
-		chunks.update(1);
+		if (UPDATE_REQUESTS.size() < 4090) {
+			chunks.update(4);
+		}
 		
 		px = MathUtil.lerp(entity.prevX, entity.x, delta);
 		py = MathUtil.lerp(entity.prevY, entity.y, delta);
@@ -185,6 +187,7 @@ public class ClientChunks {
 	private static void updateChunk(Vec3I pos, ClientChunk chunk) {
 		if (!chunk.needUpdate) return;
 		if (UPDATE_REQUESTS.size() > 4095) return;
+		chunk.updating = true;
 		chunk.needUpdate = false;
 		UPDATE_REQUESTS.add(VECTOR_CACHE.get().set(pos));
 		
@@ -263,7 +266,7 @@ public class ClientChunks {
 	}
 	
 	private static boolean needUpdate(Vec3I pos, ClientChunk chunk) {
-		return chunk.needUpdate;
+		return chunk.needUpdate && !chunk.updating;
 	}
 	
 	private static void checkVisibility(Vec3I pos, ClientChunk chunk) {
@@ -294,6 +297,7 @@ public class ClientChunks {
 		
 		if (section == null) {
 			chunk.markEmpty();
+			chunk.updating = false;
 			return;
 		}
 		
@@ -320,6 +324,8 @@ public class ClientChunks {
 			vbo.markToUpdate();
 			if (layer == RenderLayer.TRANSLUCENT) sort = true;
 		}
+		
+		chunk.updating = false;
 	}
 	
 	private static class ClientChunk {
@@ -329,6 +335,7 @@ public class ClientChunks {
 		final Vec3I pos;
 		
 		boolean needUpdate;
+		boolean updating;
 		boolean visible;
 		
 		ClientChunk() {

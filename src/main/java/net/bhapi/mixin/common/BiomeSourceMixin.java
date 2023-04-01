@@ -35,6 +35,8 @@ public abstract class BiomeSourceMixin implements BiomeSourceDataProvider {
 			bhapi_seed = level.getSeed();
 			BHAPI_DATA.clear();
 		}
+		temperatureNoises = null;
+		rainfallNoises = null;
 	}
 	
 	@Environment(value= EnvType.CLIENT)
@@ -42,7 +44,7 @@ public abstract class BiomeSourceMixin implements BiomeSourceDataProvider {
 	private void bhapi_getTemperature(int x, int z, CallbackInfoReturnable<Double> info) {
 		VanillaBiomeSourceData data = BHAPI_DATA.get();
 		data.temperatureNoises = data.temperatureNoise.sample(data.temperatureNoises, x, z, 1, 1, 0.025f, 0.025f, 0.5);
-		this.temperatureNoises = data.temperatureNoises;
+		// this.temperatureNoises = data.temperatureNoises;
 		info.setReturnValue(data.temperatureNoises[0]);
 	}
 	
@@ -53,8 +55,8 @@ public abstract class BiomeSourceMixin implements BiomeSourceDataProvider {
 	private void bhapi_getBiomes1(int x, int z, int wx, int wz, CallbackInfoReturnable<BaseBiome[]> info) {
 		VanillaBiomeSourceData data = BHAPI_DATA.get();
 		data.biomes = this.getBiomes(data.biomes, x, z, wx, wz);
-		this.temperatureNoises = data.temperatureNoises;
-		this.rainfallNoises = data.rainfallNoises;
+		// this.temperatureNoises = data.temperatureNoises;
+		// this.rainfallNoises = data.rainfallNoises;
 		info.setReturnValue(data.biomes);
 	}
 	
@@ -100,8 +102,8 @@ public abstract class BiomeSourceMixin implements BiomeSourceDataProvider {
 		data.rainfallNoises = data.rainfallNoise.sample(data.rainfallNoises, x, z, wx, wx, 0.05f, 0.05f, 0.3333333333333333);
 		data.detailNoises = data.detailNoise.sample(data.detailNoises, x, z, wx, wx, 0.25, 0.25, 0.5882352941176471);
 		
-		this.temperatureNoises = data.temperatureNoises;
-		this.rainfallNoises = data.rainfallNoises;
+		// this.temperatureNoises = data.temperatureNoises;
+		// this.rainfallNoises = data.rainfallNoises;
 		
 		int index = 0;
 		double temperature, wetness, noise;

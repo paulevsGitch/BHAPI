@@ -21,14 +21,13 @@ public class BHLightScatter {
 	private static final boolean IS_CLIENT = BHAPI.isClient();
 	
 	private final CircleCache<Vec3I> vectorCache = new CircleCache<>(CAPACITY >> 1);
-	private final List<List<Vec3I>> buffers = new ArrayList<>(2);
+	private final CircleCache<List<Vec3I>> buffers = new CircleCache<>(2);
 	private final boolean[] mask = new boolean[CAPACITY];
 	private final byte[] data = new byte[CAPACITY];
 	private final Vec3I blockPos = new Vec3I();
 	
 	public BHLightScatter() {
-		buffers.add(new ArrayList<>(CAPACITY >> 2));
-		buffers.add(new ArrayList<>(CAPACITY >> 2));
+		buffers.fill(() -> new ArrayList<>(CAPACITY >> 2));
 		vectorCache.fill(Vec3I::new);
 	}
 	
@@ -39,17 +38,17 @@ public class BHLightScatter {
 		data[CENTER] = light;
 		mask[CENTER] = true;
 		
-		buffers.get(0).clear();
-		buffers.get(1).clear();
-		buffers.get(0).add(vectorCache.get().set(14, 14, 14));
+		List<Vec3I> startPoints = buffers.get();
+		startPoints.add(vectorCache.get().set(14, 14, 14));
 		Vec3I center2 = center.clone().subtract(14);
 		setLight(level, center.x, center.y, center.z, light);
 		
 		BlockStateProvider provider = BlockStateProvider.cast(level);
 		
 		for (byte i = 1; i < light; i++) {
-			List<Vec3I> startPoints = buffers.get((i + 1) & 1);
-			List<Vec3I> endPoints = buffers.get(i & 1);
+			List<Vec3I> endPoints = startPoints;
+			startPoints = buffers.get();
+			endPoints.clear();
 			
 			startPoints.forEach(pos -> {
 				int index = getIndex(pos.x, pos.y, pos.z);

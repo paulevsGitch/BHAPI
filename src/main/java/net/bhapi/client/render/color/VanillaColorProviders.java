@@ -1,6 +1,8 @@
 package net.bhapi.client.render.color;
 
 import net.bhapi.blockstate.BlockState;
+import net.bhapi.interfaces.BiomeSourceDataProvider;
+import net.bhapi.storage.vanilla.VanillaBiomeSourceData;
 import net.bhapi.util.MathUtil;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
@@ -17,8 +19,9 @@ public class VanillaColorProviders {
 	public static final ColorProvider<BlockState> GRASS_BLOCK_COLOR = (view, x, y, z, state) -> {
 		BiomeSource source = view.getBiomeSource();
 		source.getBiomes(MathHelper.floor(x), MathHelper.floor(z), 1, 1);
-		double temperature = source.temperatureNoises[0];
-		double wetness = source.rainfallNoises[0];
+		VanillaBiomeSourceData data = BiomeSourceDataProvider.cast(source).getBiomeSourceData();
+		double temperature = data.temperatureNoises[0];
+		double wetness = data.rainfallNoises[0];
 		temperature = MathUtil.clamp(temperature, 0, 1);
 		wetness = MathUtil.clamp(wetness, 0, 1);
 		return GrassColor.getGrassColor(temperature, wetness);
@@ -29,8 +32,9 @@ public class VanillaColorProviders {
 		if (meta == 2) return FoliageColor.getBirchColor();
 		BiomeSource source = view.getBiomeSource();
 		source.getBiomes(MathHelper.floor(x), MathHelper.floor(z), 1, 1);
-		double temperature = source.temperatureNoises[0];
-		double wetness = source.rainfallNoises[0];
+		VanillaBiomeSourceData data = BiomeSourceDataProvider.cast(source).getBiomeSourceData();
+		double temperature = data.temperatureNoises[0];
+		double wetness = data.rainfallNoises[0];
 		temperature = MathUtil.clamp(temperature, 0, 1);
 		wetness = MathUtil.clamp(wetness, 0, 1);
 		return FoliageColor.getFoliageColor(temperature, wetness);

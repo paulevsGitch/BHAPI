@@ -1,11 +1,13 @@
 package net.bhapi.level.light;
 
+import net.bhapi.storage.Vec3I;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
 
 @Environment(EnvType.CLIENT)
 public class BHLightChunk {
 	private final byte[] light = new byte[2048];
+	private final Vec3I pos = new Vec3I(0, -1000, 0);
 	private boolean filled;
 	
 	private int getLight(int index) {
@@ -44,5 +46,17 @@ public class BHLightChunk {
 	
 	public void setFilled(boolean filled) {
 		this.filled = filled;
+	}
+	
+	public boolean wrongPos(Vec3I pos) {
+		return !pos.equals(this.pos);
+	}
+	
+	public boolean wrongPos(int x, int y, int z) {
+		return x != pos.x || y != pos.y || z != pos.z;
+	}
+	
+	public void setPos(int x, int y, int z) {
+		this.pos.set(x, y, z);
 	}
 }

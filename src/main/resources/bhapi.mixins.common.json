@@ -20,7 +20,7 @@
 		"BiomeSourceMixin",
 		"ItemEntityMixin",
 		"ItemStackMixin",
-		"ChunkMixin",
+		"level.ChunkMixin",
 		"StatsMixin",
 		"Vec3fMixin",
 		

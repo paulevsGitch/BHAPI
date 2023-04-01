@@ -1,4 +1,4 @@
-package net.bhapi.mixin.common;
+package net.bhapi.mixin.common.level;
 
 import net.bhapi.BHAPI;
 import net.bhapi.block.BHAirBlock;
@@ -634,6 +634,16 @@ public abstract class ChunkMixin implements NBTSerializable, LevelHeightProvider
 			}
 			this.blocks = null;
 		}
+		
+		int wx = this.x << 4;
+		int wz = this.z << 4;
+		int max = Math.min(128 >> 4, getSectionsCount());
+		/*for (short i = 0; i < max; i++) {
+			int wy = i << 4;
+			this.level.updateLight(LightType.BLOCK, wx, wy, wz, wx + 15, wy + 15, wz + 15);
+		}*/
+		
+		this.level.updateLight(LightType.BLOCK, wx, 0, wz, wx + 15, max, wz + 15);
 	}
 	
 	@Unique
@@ -706,6 +716,7 @@ public abstract class ChunkMixin implements NBTSerializable, LevelHeightProvider
 		for (byte i = 0; i < size; i++) {
 			CompoundTag sectionTag = (CompoundTag) sectionList.get(i);
 			short y = sectionTag.getShort("y");
+			if (y < 0 || y >= getSectionsCount()) continue;
 			ChunkSection section = new ChunkSection();
 			bhapi_sections[y] = section;
 			section.loadFromNBT(sectionTag);
@@ -800,18 +811,20 @@ public abstract class ChunkMixin implements NBTSerializable, LevelHeightProvider
 			this.level.updateLight(LightType.SKY, wx, y, wz, wx, y, wz);
 		}
 		
-		if (this.decorated) {
-			int light = this.level.getLight(LightType.BLOCK, wx, y, wz);
-			if (light != state.getEmittance()) {
-				if (this.decorated) {
-					this.level.updateLight(LightType.BLOCK, wx, y, wz, wx, y, wz);
-				}
-				else {
-					int x1 = (wx >> 4) << 4;
-					int y1 = (y >> 4) << 4;
-					int z1 = (wz >> 4) << 4;
-					this.level.updateLight(LightType.BLOCK, x1, y1, z1, x1 + 15, y1 + 15, z1 + 15);
-				}
+		int light = section.getLight(LightType.BLOCK, x, py, z);
+		//System.out.println("Light " + light + " state: " + state + " E: " + state.getEmittance());
+		if (light != state.getEmittance()) {
+			//System.out.println("Light " + light + " state: " + state + " E: " + state.getEmittance());
+			//System.out.println("Decor: " + this.decorated);
+			section.setLight(LightType.BLOCK, x, py, z, light);
+			if (this.decorated) {
+				this.level.updateLight(LightType.BLOCK, wx, y, wz, wx, y, wz);
+			}
+			else {
+				int x1 = (wx >> 4) << 4;
+				int y1 = (y >> 4) << 4;
+				int z1 = (wz >> 4) << 4;
+				this.level.updateLight(LightType.BLOCK, x1, y1, z1, x1 + 15, y1 + 15, z1 + 15);
 			}
 		}
 		this.fillSkyLight(x, z);

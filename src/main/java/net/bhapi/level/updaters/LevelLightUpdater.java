@@ -46,6 +46,7 @@ public class LevelLightUpdater extends ThreadedUpdater {
 		synchronized (updateRequests) {
 			updateRequests.add(area);
 		}
+		//System.out.println("Added: " + area.getMinPos() + " " + area.getMaxPos());
 	}
 	
 	@Override
@@ -77,9 +78,6 @@ public class LevelLightUpdater extends ThreadedUpdater {
 					continue;
 				}
 			}
-			
-			min.subtract(15);
-			max.add(15);
 			
 			addLights(provider, min, max);
 			
@@ -119,16 +117,26 @@ public class LevelLightUpdater extends ThreadedUpdater {
 		}
 	}
 	
+	private boolean isOutOfRange(byte light, int pos, int min, int max) {
+		return pos + light < min || pos - light > max;
+	}
+	
 	private void addLights(BlockStateProvider provider, Vec3I min, Vec3I max) {
-		for (blockPos.x = min.x; blockPos.x <= max.x; blockPos.x++) {
-			for (blockPos.y = min.y; blockPos.y <= max.y; blockPos.y++) {
-				for (blockPos.z = min.z; blockPos.z <= max.z; blockPos.z++) {
+		Vec3I p1 = vectorCache.get().set(min).subtract(15);
+		Vec3I p2 = vectorCache.get().set(max).add(15);
+		for (blockPos.x = p1.x; blockPos.x <= p2.x; blockPos.x++) {
+			for (blockPos.y = p1.y; blockPos.y <= p2.y; blockPos.y++) {
+				for (blockPos.z = p1.z; blockPos.z <= p2.z; blockPos.z++) {
 					BlockState state = provider.getBlockState(blockPos);
 					byte light = (byte) state.getEmittance();
-					if (light > 0) {
-						positions.add(vectorCache.get().set(blockPos));
-						lights.add(light);
-					}
+					
+					if (light == 0) continue;
+					if (isOutOfRange(light, blockPos.x, min.x, max.x)) continue;
+					if (isOutOfRange(light, blockPos.y, min.y, max.y)) continue;
+					if (isOutOfRange(light, blockPos.z, min.z, max.z)) continue;
+					
+					positions.add(vectorCache.get().set(blockPos));
+					lights.add(light);
 				}
 			}
 		}
