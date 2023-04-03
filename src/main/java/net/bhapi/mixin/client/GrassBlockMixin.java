@@ -44,12 +44,12 @@ public class GrassBlockMixin implements BHBlockRender {
 			case 0 -> sample = overlayIndex == 0 ? Textures.getVanillaBlockSample(2) : null;
 			case 1 -> sample = overlayIndex == 0 ? Textures.getVanillaBlockSample(0) : null;
 			default -> {
-				int index;
-				if (overlayIndex == 1) {
-					if (BlockStateProvider.cast(view).getBlockState(x, y + 1, z).is(BaseBlock.SNOW)) index = 68;
-					else index = 3;
+				int index = overlayIndex == 1 ? 3 : 38;
+				if (overlayIndex == 0) {
+					if (BlockStateProvider.cast(view).getBlockState(x, y + 1, z).is(BaseBlock.SNOW)) {
+						index = 68;
+					}
 				}
-				else index = 38;
 				sample = Textures.getVanillaBlockSample(index);
 			}
 		}
