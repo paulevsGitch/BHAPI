@@ -36,15 +36,12 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Queue;
 import java.util.Set;
-import java.util.concurrent.PriorityBlockingQueue;
+import java.util.concurrent.ArrayBlockingQueue;
 
 @Environment(EnvType.CLIENT)
 public class ClientChunks {
-	private static final Queue<Vec3I> UPDATE_QUEUE = new PriorityBlockingQueue<>(8192, (p1, p2) -> {
-		int l1 = p1.distanceSqr(ClientChunks.CAMERA_POS);
-		int l2 = p2.distanceSqr(ClientChunks.CAMERA_POS);
-		return Integer.compare(l1, l2);
-	});;//new ArrayBlockingQueue<>(8192);
+	private static final Queue<Vec3I> UPDATE_QUEUE = new ArrayBlockingQueue<>(8192);
+	private static final List<Vec3I> UPDATE_ORDER = new ArrayList<>(8192);
 	private static final Set<Vec3I> UPDATE_REQUESTS = new HashSet<>(8192);
 	private static final FrustumCulling FRUSTUM_CULLING = new FrustumCulling();
 	private static final Vec3I CAMERA_POS = new Vec3I(0, Integer.MIN_VALUE, 0);
@@ -98,7 +95,7 @@ public class ClientChunks {
 				for (int x = -deltaXZ; x <= deltaXZ; x++) {
 					for (int z = -deltaXZ; z <= deltaXZ; z++) {
 						for (int y = -deltaY; y <= deltaY; y++) {
-							UPDATE_REQUESTS.add(new Vec3I(x, y, z).add(CENTER));
+							update(new Vec3I(x, y, z).add(CENTER));
 						}
 					}
 				}
@@ -126,13 +123,28 @@ public class ClientChunks {
 		Level clientLevel = BHAPIClient.getMinecraft().level;
 		if (clientLevel == null) {
 			UPDATE_QUEUE.clear();
-			UPDATE_REQUESTS.clear();
+			synchronized (UPDATE_REQUESTS) {
+				UPDATE_REQUESTS.clear();
+			}
 			level = null;
 			return;
 		}
 		else if (clientLevel != level) {
 			level = clientLevel;
+			int deltaXZ = (chunks.getSizeXZ() >> 1);
+			int deltaY = (chunks.getSizeY() >> 1);
+			synchronized (UPDATE_REQUESTS) {
+				UPDATE_REQUESTS.clear();
+			}
+			UPDATE_QUEUE.clear();
 			chunks.forEach(ClientChunk::markEmpty);
+			for (int x = -deltaXZ; x <= deltaXZ; x++) {
+				for (int z = -deltaXZ; z <= deltaXZ; z++) {
+					for (int y = -deltaY; y <= deltaY; y++) {
+						update(new Vec3I(x, y, z).add(CENTER));
+					}
+				}
+			}
 			return;
 		}
 		
@@ -140,7 +152,9 @@ public class ClientChunks {
 			int light = level.getEnvironmentLight(delta);
 			if (oldLight != light) {
 				oldLight = light;
-				chunks.forEach((pos, chunk) -> UPDATE_REQUESTS.add(pos.clone()));
+				synchronized (UPDATE_REQUESTS) {
+					chunks.forEach((pos, chunk) -> UPDATE_REQUESTS.add(pos.clone()));
+				}
 			}
 		}
 		
@@ -148,10 +162,21 @@ public class ClientChunks {
 			synchronized (UPDATE_REQUESTS) {
 				UPDATE_REQUESTS.forEach(pos -> {
 					if (chunks.isInside(pos)) {
-						UPDATE_QUEUE.add(pos);
+						UPDATE_ORDER.add(pos);
 					}
 				});
 				UPDATE_REQUESTS.clear();
+			}
+			
+			if (UPDATE_ORDER.size() > 0) {
+				UPDATE_ORDER.sort((p1, p2) -> {
+					int l1 = p1.distanceSqr(ClientChunks.CAMERA_POS);
+					int l2 = p2.distanceSqr(ClientChunks.CAMERA_POS);
+					return Integer.compare(l1, l2);
+				});
+				
+				UPDATE_QUEUE.addAll(UPDATE_ORDER);
+				UPDATE_ORDER.clear();
 			}
 		}
 		
@@ -336,9 +361,7 @@ public class ClientChunks {
 		}
 		
 		void markEmpty() {
-			for (RenderLayer layer: RenderLayer.VALUES) {
-				data.get(layer).setEmpty();
-			}
+			data.forEach(VBO::setEmpty);
 		}
 		
 		void dispose() {

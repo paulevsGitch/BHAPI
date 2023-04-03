@@ -643,7 +643,10 @@ public abstract class ChunkMixin implements NBTSerializable, LevelHeightProvider
 			this.level.updateLight(LightType.BLOCK, wx, wy, wz, wx + 15, wy + 15, wz + 15);
 		}*/
 		
-		this.level.updateLight(LightType.BLOCK, wx, 0, wz, wx + 15, max, wz + 15);
+		System.out.println("Added light area:");
+		this.level.updateLight(LightType.BLOCK, wx, 0, wz, wx | 15, max << 4 | 15, wz | 15);
+		
+		//this.level.updateLight(LightType.BLOCK, wx, 0, wz, wx + 15, max, wz + 15);
 	}
 	
 	@Unique

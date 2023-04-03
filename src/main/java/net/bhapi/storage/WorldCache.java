@@ -108,9 +108,9 @@ public class WorldCache<T> {
 	}
 	
 	public void forEach(Consumer<T> processor) {
-		for (int i = 0; i < data.length; i++) {
-			if (data[i] == null) continue;
-			processor.accept(data[i]);
+		for (T datum : data) {
+			if (datum == null) continue;
+			processor.accept(datum);
 		}
 	}
 	

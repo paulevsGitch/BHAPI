@@ -34,6 +34,7 @@ public class VBO {
 	}
 	
 	public void setEmpty() {
+		this.update = false;
 		this.size = 0;
 	}
 	
