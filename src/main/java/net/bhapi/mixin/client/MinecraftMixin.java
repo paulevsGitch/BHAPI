@@ -60,10 +60,15 @@ public class MinecraftMixin {
 			ClientChunks.getChunkUpdates() + " chunk updates";
 	}
 	
-	@Inject(method = "Lnet/minecraft/client/Minecraft;stop()V", at = @At("HEAD"))
+	@Inject(method = "stop()V", at = @At("HEAD"))
 	private void bhapi_onExit(CallbackInfo info) {
 		ThreadManager.stopAll();
 		BHBlockRenderer.clearItemCache();
 		ClientChunks.onExit();
+	}
+	
+	@Inject(method = "startLoginThread", at = @At("HEAD"))
+	private void bhapi_cancelLogin(CallbackInfo info) {
+		info.cancel();
 	}
 }

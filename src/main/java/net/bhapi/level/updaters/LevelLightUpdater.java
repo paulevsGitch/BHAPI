@@ -1,6 +1,5 @@
 package net.bhapi.level.updaters;
 
-import net.bhapi.BHAPI;
 import net.bhapi.blockstate.BlockState;
 import net.bhapi.client.render.level.ClientChunks;
 import net.bhapi.level.BlockStateProvider;
@@ -30,23 +29,17 @@ public class LevelLightUpdater extends ThreadedUpdater {
 	private final Vec3I blockPos = new Vec3I();
 	
 	@Environment(EnvType.CLIENT)
-	private final CircleCache<Vec3I> updatesCache = new CircleCache<>(4096);
-	@Environment(EnvType.CLIENT)
 	private final Set<Vec3I> clientUpdateRequests = new HashSet<>();
 	
 	public LevelLightUpdater(Level level) {
 		super("light_updater_", level, true);
 		vectorCache.fill(Vec3I::new);
-		if (BHAPI.isClient()) {
-			updatesCache.fill(Vec3I::new);
-		}
 	}
 	
 	public void addArea(BHLightArea area) {
 		synchronized (updateRequests) {
 			updateRequests.add(area);
 		}
-		//System.out.println("Added: " + area.getMinPos() + " " + area.getMaxPos());
 	}
 	
 	@Override
@@ -170,10 +163,10 @@ public class LevelLightUpdater extends ThreadedUpdater {
 		int x2 = max.x >> 4;
 		int y2 = max.y >> 4;
 		int z2 = max.z >> 4;
-		for (blockPos.x = x1; blockPos.x <= x2; blockPos.x++) {
-			for (blockPos.y = y1; blockPos.y <= y2; blockPos.y++) {
-				for (blockPos.z = z1; blockPos.z <= z2; blockPos.z++) {
-					clientUpdateRequests.add(updatesCache.get().set(blockPos));
+		for (int x = x1; x <= x2; x++) {
+			for (int y = y1; y <= y2; y++) {
+				for (int z = z1; z <= z2; z++) {
+					clientUpdateRequests.add(new Vec3I(x, y, z));
 				}
 			}
 		}

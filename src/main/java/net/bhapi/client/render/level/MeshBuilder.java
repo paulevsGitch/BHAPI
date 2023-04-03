@@ -227,28 +227,4 @@ public class MeshBuilder {
 		
 		vbo.setData(vertexBuffer, normalBuffer, colorBuffer, uvBuffer);
 	}
-	
-	private byte[] packByte(List<Byte> data) {
-		byte[] result = new byte[data.size()];
-		for (int i = 0; i < result.length; i++) {
-			result[i] = data.get(i);
-		}
-		return result;
-	}
-	
-	private int[] packInt(List<Integer> data) {
-		int[] result = new int[data.size()];
-		for (int i = 0; i < result.length; i++) {
-			result[i] = data.get(i);
-		}
-		return result;
-	}
-	
-	private float[] packFloat(List<Float> data) {
-		float[] result = new float[data.size()];
-		for (int i = 0; i < result.length; i++) {
-			result[i] = data.get(i);
-		}
-		return result;
-	}
 }

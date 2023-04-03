@@ -1,52 +1,47 @@
 package net.bhapi.storage;
 
-import net.bhapi.client.render.level.UpdateCondition;
 import net.bhapi.util.MathUtil;
 
 import java.util.Arrays;
 import java.util.Comparator;
 import java.util.function.BiConsumer;
+import java.util.function.Consumer;
 import java.util.function.Supplier;
 
 public class WorldCache<T> {
-	private final UpdateCondition<T> updateCondition;
-	private final BiConsumer<Vec3I, T> updater;
 	private final Supplier<T> constructor;
 	private final Vec3I[] updateOrder;
-	private final Vec3I[] positions;
 	private final Vec3I center;
-	private final int deltaXZ;
-	private final int deltaY;
 	private final int maskXZ;
 	private final int bitsXYZ;
 	private final int bitsXZ;
+	private final int deltaXZ;
+	private final int deltaY;
 	private final int sizeXZ;
 	private final int sizeY;
 	private final int maskY;
 	private final Vec3I pos;
 	private final T[] data;
 	
-	public WorldCache(int sizeXZ, int sizeY, Supplier<T> constructor) {
-		this(sizeXZ, sizeY, null, null, constructor);
-	}
-	
 	@SuppressWarnings("unchecked")
-	public WorldCache(int sizeXZ, int sizeY, BiConsumer<Vec3I, T> updater, UpdateCondition<T> updateCondition, Supplier<T> constructor) {
-		this.deltaXZ = (sizeXZ >> 1);
-		this.deltaY = (sizeY >> 1);
+	public WorldCache(int sizeXZ, int sizeY, Supplier<T> constructor) {
+		deltaXZ = (sizeXZ >> 1);
+		deltaY = (sizeY >> 1);
 		
 		this.sizeXZ = sizeXZ;
 		this.sizeY = sizeY;
+		
+		System.out.println("1 " + sizeXZ + " " + sizeY + " " + sizeXZ);
 		
 		sizeXZ = MathUtil.getClosestPowerOfTwo(sizeXZ);
 		sizeY = MathUtil.getClosestPowerOfTwo(sizeY);
 		int capacity = sizeXZ * sizeXZ * sizeY;
 		
-		this.constructor = constructor;
-		this.updateCondition = updateCondition;
-		this.updater = updater;
+		System.out.println("2 " + sizeXZ + " " + sizeY + " " + sizeXZ);
+		System.out.println("3 " + capacity);
 		
-		this.positions = new Vec3I[capacity];
+		this.constructor = constructor;
+		
 		this.data = (T[]) new Object[capacity];
 		this.center = new Vec3I();
 		this.maskXZ = sizeXZ - 1;
@@ -56,14 +51,16 @@ public class WorldCache<T> {
 		this.bitsXZ = MathUtil.getCeilBitIndex(sizeXZ);
 		this.bitsXYZ = bitsXZ + MathUtil.getCeilBitIndex(sizeY);
 		
-		for (int i = 0; i < data.length; i++) {
-			this.positions[i] = new Vec3I(0, Integer.MIN_VALUE, 0);
-		}
+		System.out.println("4 " + bitsXZ + " " + bitsXYZ);
 		
 		int index = 0;
 		capacity = (deltaXZ << 1) + 1;
 		capacity *= capacity;
 		capacity *= (deltaY << 1) + 1;
+		
+		System.out.println("5 " + capacity);
+		System.out.println("6 " + deltaXZ + " " + deltaY);
+		
 		this.updateOrder = new Vec3I[capacity];
 		for (int x = -deltaXZ; x <= deltaXZ; x++) {
 			for (int z = -deltaXZ; z <= deltaXZ; z++) {
@@ -85,44 +82,6 @@ public class WorldCache<T> {
 	
 	public void setCenter(int x, int y, int z) {
 		center.set(x, y, z);
-	}
-	
-	public void fill() {
-		fill(data.length);
-	}
-	
-	public void fill(int count) {
-		int counter = 0;
-		for (Vec3I delta : this.updateOrder) {
-			pos.set(center).add(delta);
-			int index = getIndex(pos);
-			if (data[index] == null) data[index] = constructor.get();
-			if (++counter > count) return;
-		}
-	}
-	
-	public void update(int maxUpdates) {
-		int updatesCounter = 0;
-		for (Vec3I delta : updateOrder) {
-			if (updatesCounter >= maxUpdates) return;
-			
-			pos.set(center).add(delta);
-			int index = getIndex(pos);
-			
-			if (data[index] == null) {
-				data[index] = constructor.get();
-			}
-			
-			if (!positions[index].equals(pos)) {
-				positions[index].set(pos);
-				updater.accept(pos, data[index]);
-				updatesCounter++;
-			}
-			else if (updateCondition.needUpdate(pos, data[index])) {
-				updater.accept(pos, data[index]);
-				updatesCounter++;
-			}
-		}
 	}
 	
 	public T get(Vec3I pos) {
@@ -158,7 +117,25 @@ public class WorldCache<T> {
 		}
 	}
 	
+	public void forEach(Consumer<T> processor) {
+		for (int i = 0; i < data.length; i++) {
+			if (data[i] == null) continue;
+			processor.accept(data[i]);
+		}
+	}
+	
 	private int getIndex(Vec3I pos) {
 		return (pos.x & maskXZ) << bitsXYZ | (pos.y & maskY) << bitsXZ | (pos.z & maskXZ);
+	}
+	
+	public boolean isInside(Vec3I pos) {
+		int offset = pos.x - center.x;
+		if (offset < -deltaXZ || offset > deltaXZ) return false;
+		
+		offset = pos.z - center.z;
+		if (offset < -deltaXZ || offset > deltaXZ) return false;
+		
+		offset = pos.y - center.y;
+		return offset >= -deltaY && offset <= deltaY;
 	}
 }

@@ -7,6 +7,7 @@ import net.fabricmc.api.Environment;
 import net.fabricmc.tinyremapper.extension.mixin.common.data.Pair;
 import net.minecraft.util.maths.MathHelper;
 import org.lwjgl.opengl.GL11;
+import org.lwjgl.opengl.GL15;
 
 import java.nio.FloatBuffer;
 import java.nio.IntBuffer;
@@ -16,17 +17,12 @@ import java.util.List;
 
 @Environment(EnvType.CLIENT)
 public class IndexedVBO extends VBO {
-	private List<Pair<Vec3F, int[]>> quadIndexData;
-	private IntBuffer indexBuffer;
-	private boolean canSort;
+	private IndexedVBOData indexedData;
 	
 	public void setData(FloatBuffer vertexBuffer, FloatBuffer normalBuffer, FloatBuffer colorBuffer, FloatBuffer uvBuffer) {
-		canSort = false;
-		super.setData(vertexBuffer, normalBuffer, colorBuffer, uvBuffer);
-		
 		int vertex = 0;
-		int quadCount = size >> 2;
-		indexBuffer = BufferUtil.createIntBuffer(quadCount << 2);
+		int quadCount = vertexBuffer.capacity() / 12;
+		IntBuffer indexBuffer = BufferUtil.createIntBuffer(quadCount << 2);
 		List<Pair<Vec3F, int[]>> quadIndexData = new ArrayList<>();
 		
 		for (int i = 0; i < quadCount; i++) {
@@ -44,27 +40,39 @@ public class IndexedVBO extends VBO {
 			indexBuffer.put(index, data);
 		}
 		
-		this.quadIndexData = quadIndexData;
 		indexBuffer.position(0);
-		canSort = true;
+		
+		indexedData = new IndexedVBOData(
+			vertexBuffer,
+			normalBuffer,
+			colorBuffer,
+			uvBuffer,
+			quadIndexData,
+			indexBuffer
+		);
+		
+		update = true;
 	}
 	
 	public void render() {
+		init();
 		bind();
 		update();
-		if (indexBuffer == null) return;
-		GL11.glDrawElements(GL11.GL_QUADS, indexBuffer);
+		IndexedVBOData data = this.indexedData;
+		if (data == null) return;
+		GL11.glDrawElements(GL11.GL_QUADS, data.indexBuffer);
 	}
 	
 	public void sort(Comparator<Pair<Vec3F, int[]>> comparator) {
-		if (!canSort || quadIndexData == null || indexBuffer == null) return;
-		quadIndexData.sort(comparator);
+		IndexedVBOData data = this.indexedData;
+		if (data == null) return;
+		data.quadIndexData.sort(comparator);
 		int index = 0;
-		for (Pair<Vec3F, int[]> pair: quadIndexData) {
-			indexBuffer.put(index, pair.second());
+		for (Pair<Vec3F, int[]> pair: data.quadIndexData) {
+			data.indexBuffer.put(index, pair.second());
 			index += 4;
 		}
-		indexBuffer.position(0);
+		data.indexBuffer.position(0);
 	}
 	
 	public void sort(Vec3F offset) {
@@ -82,4 +90,44 @@ public class IndexedVBO extends VBO {
 			return Float.compare(d2, d1);
 		});
 	}
+	
+	@Override
+	protected void update() {
+		if (!update) return;
+		IndexedVBOData data = this.indexedData;
+		update = false;
+		
+		if (data == null) return;
+		
+		attachBuffer(vertexTarget, data.vertexBuffer);
+		attachBuffer(normalTarget, data.normalBuffer);
+		attachBuffer(colorTarget, data.colorBuffer);
+		attachBuffer(uvTarget, data.uvBuffer);
+		this.size = data.vertexBuffer.capacity() / 3;
+		
+		GL11.glEnableClientState(GL11.GL_VERTEX_ARRAY);
+		GL15.glBindBuffer(GL15.GL_ARRAY_BUFFER, vertexTarget);
+		GL11.glVertexPointer(3, GL11.GL_FLOAT, 0, 0);
+		
+		GL11.glEnableClientState(GL11.GL_NORMAL_ARRAY);
+		GL15.glBindBuffer(GL15.GL_ARRAY_BUFFER, normalTarget);
+		GL11.glNormalPointer(GL11.GL_FLOAT, 0, 0);
+		
+		GL11.glEnableClientState(GL11.GL_COLOR_ARRAY);
+		GL15.glBindBuffer(GL15.GL_ARRAY_BUFFER, colorTarget);
+		GL11.glColorPointer(4, GL11.GL_FLOAT, 0, 0);
+		
+		GL11.glEnableClientState(GL11.GL_TEXTURE_COORD_ARRAY);
+		GL15.glBindBuffer(GL15.GL_ARRAY_BUFFER, uvTarget);
+		GL11.glTexCoordPointer(2, GL11.GL_FLOAT, 0, 0);
+	}
+	
+	private record IndexedVBOData(
+		FloatBuffer vertexBuffer,
+		FloatBuffer normalBuffer,
+		FloatBuffer colorBuffer,
+		FloatBuffer uvBuffer,
+		List<Pair<Vec3F, int[]>> quadIndexData,
+		IntBuffer indexBuffer
+	) {}
 }

@@ -721,6 +721,9 @@ public abstract class ChunkMixin implements NBTSerializable, LevelHeightProvider
 			bhapi_sections[y] = section;
 			section.loadFromNBT(sectionTag);
 			section.loadEntities(sectionTag, this.level, this.x, y, this.z, this.canHaveBlockEntities);
+			if (BHAPI.isClient()) {
+				ClientChunks.update(new Vec3I(this.x, y, this.z));
+			}
 		}
 		
 		bhapi_updateHasEntities();
@@ -757,11 +760,10 @@ public abstract class ChunkMixin implements NBTSerializable, LevelHeightProvider
 		cy1 = MathUtil.clamp(cy1, 0, count);
 		cy2 = MathUtil.clamp(cy2, 0, count);
 		
-		Vec3I pos = new Vec3I();
-		for (pos.y = cy1; pos.y <= cy2; pos.y++) {
-			for (pos.x = cx1; pos.x <= cx2; pos.x++) {
-				for (pos.z = cz1; pos.z <= cz2; pos.z++) {
-					ClientChunks.update(pos);
+		for (y = cy1; y <= cy2; y++) {
+			for (x = cx1; x <= cx2; x++) {
+				for (z = cz1; z <= cz2; z++) {
+					ClientChunks.update(new Vec3I(x, y, z));
 				}
 			}
 		}

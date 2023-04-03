@@ -19,6 +19,10 @@ public class EnumArray <K extends Enum<K>, V> {
 		return values[key.ordinal()];
 	}
 	
+	public V get(int ordinal) {
+		return values[ordinal];
+	}
+	
 	public V getOrCreate(K key, Function<K, V> constructor) {
 		int index = key.ordinal();
 		V value = values[index];

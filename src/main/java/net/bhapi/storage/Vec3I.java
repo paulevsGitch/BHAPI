@@ -1,6 +1,7 @@
 package net.bhapi.storage;
 
 import net.bhapi.util.BlockDirection;
+import net.bhapi.util.MathUtil;
 import net.minecraft.util.maths.MathHelper;
 
 import java.util.Locale;
@@ -76,6 +77,13 @@ public class Vec3I {
 		int dy = this.y - vector.y;
 		int dz = this.z - vector.z;
 		return dx * dx + dy * dy + dz * dz;
+	}
+	
+	public int distanceManhattan(Vec3I vector) {
+		int dx = MathUtil.abs(this.x - vector.x);
+		int dy = MathUtil.abs(this.y - vector.y);
+		int dz = MathUtil.abs(this.z - vector.z);
+		return dx + dy + dz;
 	}
 	
 	public float distance(Vec3I vector) {

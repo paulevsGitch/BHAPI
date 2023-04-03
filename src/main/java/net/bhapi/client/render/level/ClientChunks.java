@@ -13,7 +13,6 @@ import net.bhapi.config.BHConfigs;
 import net.bhapi.level.ChunkSection;
 import net.bhapi.level.ChunkSectionProvider;
 import net.bhapi.level.LevelHeightProvider;
-import net.bhapi.storage.CircleCache;
 import net.bhapi.storage.EnumArray;
 import net.bhapi.storage.Vec3F;
 import net.bhapi.storage.Vec3I;
@@ -33,18 +32,20 @@ import net.minecraft.level.Level;
 import org.lwjgl.opengl.GL11;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Queue;
+import java.util.Set;
 import java.util.concurrent.PriorityBlockingQueue;
 
 @Environment(EnvType.CLIENT)
 public class ClientChunks {
-	private static final CircleCache<Vec3I> VECTOR_CACHE = new CircleCache<Vec3I>(8192).fill(Vec3I::new);
-	private static final Queue<Vec3I> UPDATE_REQUESTS = new PriorityBlockingQueue<>(4096, (p1, p2) -> {
-		int l1 = p1.distanceSqr(ClientChunks.cameraPos);
-		int l2 = p2.distanceSqr(ClientChunks.cameraPos);
-		return Integer.compare(l1, l2);
-	});
+	private static final Queue<Vec3I> UPDATE_QUEUE = new PriorityBlockingQueue<>(8192, (p1, p2) -> {
+		int l1 = p1.distanceManhattan(ClientChunks.cameraPos);
+		int l2 = p2.distanceManhattan(ClientChunks.cameraPos);
+		return Integer.compare(l2, l1);
+	});;//new ArrayBlockingQueue<>(8192);
+	private static final Set<Vec3I> UPDATE_REQUESTS = new HashSet<>(8192);
 	private static final FrustumCulling FRUSTUM_CULLING = new FrustumCulling();
 	
 	private static WorldCache<ClientChunk> chunks;
@@ -88,32 +89,22 @@ public class ClientChunks {
 	private static void init(int width, int height) {
 		if (chunks == null || chunks.getSizeXZ() != width || chunks.getSizeY() != height) {
 			if (chunks != null) {
-				chunks.forEach((pos, chunk) -> chunk.dispose());
+				chunks.forEach(ClientChunk::dispose);
 			}
-			chunks = new WorldCache<>(
-				width, height,
-				ClientChunks::updateChunk,
-				ClientChunks::needUpdate,
-				ClientChunk::new
-			);
-			UPDATE_REQUESTS.clear();
+			chunks = new WorldCache<>(width, height, ClientChunk::new);
 		}
 	}
 	
 	public static void onExit() {
 		if (chunks != null) {
-			chunks.forEach((pos, chunk) -> chunk.dispose());
+			chunks.forEach(ClientChunk::dispose);
 		}
 	}
 	
 	public static void update(Vec3I pos) {
-		ClientChunk chunk = chunks.get(pos);
-		if (chunk != null) chunk.needUpdate = true;
-	}
-	
-	public static void updateAll() {
-		UPDATE_REQUESTS.clear();
-		chunks.forEach((pos, chunk) -> chunk.needUpdate = true);
+		synchronized (UPDATE_REQUESTS) {
+			UPDATE_REQUESTS.add(pos);
+		}
 	}
 	
 	public static void render(LivingEntity entity, float delta) {
@@ -121,13 +112,15 @@ public class ClientChunks {
 		chunks.setCenter(entity.chunkX, (int) entity.y >> 4, entity.chunkZ);
 		
 		Level clientLevel = BHAPIClient.getMinecraft().level;
-		if (clientLevel != level) {
-			level = clientLevel;
+		if (clientLevel == null) {
+			UPDATE_QUEUE.clear();
 			UPDATE_REQUESTS.clear();
-			chunks.forEach((pos, chunk) -> {
-				chunk.needUpdate = true;
-				chunk.markEmpty();
-			});
+			level = null;
+			return;
+		}
+		else if (clientLevel != level) {
+			level = clientLevel;
+			chunks.forEach(ClientChunk::markEmpty);
 			return;
 		}
 		
@@ -135,12 +128,19 @@ public class ClientChunks {
 			int light = level.getEnvironmentLight(delta);
 			if (oldLight != light) {
 				oldLight = light;
-				updateAll();
+				chunks.forEach((pos, chunk) -> UPDATE_REQUESTS.add(pos.clone()));
 			}
 		}
 		
-		if (UPDATE_REQUESTS.size() < 4090) {
-			chunks.update(4);
+		if (UPDATE_QUEUE.size() == 0) {
+			synchronized (UPDATE_REQUESTS) {
+				UPDATE_REQUESTS.forEach(pos -> {
+					if (chunks.isInside(pos)) {
+						UPDATE_QUEUE.add(pos);
+					}
+				});
+				UPDATE_REQUESTS.clear();
+			}
 		}
 		
 		px = MathUtil.lerp(entity.prevX, entity.x, delta);
@@ -184,41 +184,11 @@ public class ClientChunks {
 		chunks.forEach(ClientChunks::renderBlockEntities, true);
 	}
 	
-	private static void updateChunk(Vec3I pos, ClientChunk chunk) {
-		if (!chunk.needUpdate) return;
-		if (UPDATE_REQUESTS.size() > 4095) return;
-		chunk.updating = true;
-		chunk.needUpdate = false;
-		UPDATE_REQUESTS.add(VECTOR_CACHE.get().set(pos));
-		
-		chunk.blockEntities.clear();
-		short sections = LevelHeightProvider.cast(level).getSectionsCount();
-		if (pos.y < 0 || pos.y >= sections) return;
-		
-		ChunkSectionProvider provider = ChunkSectionProvider.cast(level.getChunkFromCache(pos.x, pos.z));
-		ChunkSection section = provider.getChunkSection(pos.y);
-		if (section == null) return;
-		
-		section.getBlockEntities().forEach(entity -> {
-			BlockEntityRenderer customRenderer = BlockEntityRenderDispatcher.INSTANCE.getCustomRenderer(entity);
-			if (customRenderer != null) {
-				chunk.blockEntities.add(Pair.of(entity, customRenderer));
-			}
-		});
-	}
-	
 	private static void renderChunk(Vec3I pos, ClientChunk chunk) {
 		if (!chunk.visible) return;
 		
 		VBO vbo = chunk.data.get(layer);
 		if (vbo.isEmpty()) return;
-		
-		if (!chunk.pos.equals(pos)) {
-			chunk.pos.set(pos);
-			chunk.needUpdate = true;
-			chunk.markEmpty();
-			return;
-		}
 		
 		if (sort && layer == RenderLayer.TRANSLUCENT) {
 			((IndexedVBO) vbo).sort(chunk.renderPos);
@@ -235,10 +205,12 @@ public class ClientChunks {
 	}
 	
 	private static void renderBlockEntities(Vec3I pos, ClientChunk chunk) {
-		if (!chunk.visible || chunk.blockEntities.isEmpty()) return;
+		if (!chunk.visible) return;
+		List<Pair<BaseBlockEntity, BlockEntityRenderer>> blockEntities = chunk.blockEntities;
+		if (blockEntities == null) return;
 		if (BlockEntityRenderDispatcher.INSTANCE.textureManager == null) return;
 		
-		chunk.blockEntities.forEach(pair -> {
+		blockEntities.forEach(pair -> {
 			BlockEntityRenderer renderer = pair.second();
 			BaseBlockEntity entity = pair.first();
 			float light = level.getBrightness(entity.x, entity.y, entity.z);
@@ -265,22 +237,23 @@ public class ClientChunks {
 		});
 	}
 	
-	private static boolean needUpdate(Vec3I pos, ClientChunk chunk) {
-		return chunk.needUpdate && !chunk.updating;
-	}
-	
 	private static void checkVisibility(Vec3I pos, ClientChunk chunk) {
-		chunk.renderPos.x = (float) ((pos.x << 4) - px + 8);
-		chunk.renderPos.y = (float) ((pos.y << 4) - py + 8);
-		chunk.renderPos.z = (float) ((pos.z << 4) - pz + 8);
+		if (!pos.equals(chunk.pos)) {
+			chunk.visible = false;
+			return;
+		}
+		chunk.renderPos.x = (float) ((chunk.pos.x << 4) - px + 8);
+		chunk.renderPos.y = (float) ((chunk.pos.y << 4) - py + 8);
+		chunk.renderPos.z = (float) ((chunk.pos.z << 4) - pz + 8);
 		chunk.visible = !FRUSTUM_CULLING.isOutside(chunk.renderPos, 16);
 	}
 	
 	private static void buildMeshes(BHBlockRenderer renderer) {
 		if (level == null) return;
 		
-		Vec3I pos = UPDATE_REQUESTS.poll();
+		Vec3I pos = UPDATE_QUEUE.poll();
 		if (pos == null) return;
+		if (!chunks.isInside(pos)) return;
 		
 		short sections = LevelHeightProvider.cast(level).getSectionsCount();
 		if (pos.y < 0 || pos.y >= sections) return;
@@ -292,12 +265,10 @@ public class ClientChunks {
 		ChunkSectionProvider provider = ChunkSectionProvider.cast(level.getChunkFromCache(pos.x, pos.z));
 		ChunkSection section = provider.getChunkSection(pos.y);
 		
-		ClientChunk chunk = chunks.get(pos);
-		chunk.needUpdate = false;
+		ClientChunk chunk = chunks.getOrCreate(pos);
 		
 		if (section == null) {
 			chunk.markEmpty();
-			chunk.updating = false;
 			return;
 		}
 		
@@ -321,33 +292,35 @@ public class ClientChunks {
 				continue;
 			}
 			renderer.build(vbo, layer);
-			vbo.markToUpdate();
 			if (layer == RenderLayer.TRANSLUCENT) sort = true;
 		}
 		
-		chunk.updating = false;
+		List<Pair<BaseBlockEntity, BlockEntityRenderer>> blockEntities = new ArrayList<>();
+		section.getBlockEntities().forEach(entity -> {
+			BlockEntityRenderer customRenderer = BlockEntityRenderDispatcher.INSTANCE.getCustomRenderer(entity);
+			if (customRenderer != null) {
+				blockEntities.add(Pair.of(entity, customRenderer));
+			}
+		});
+		
+		chunk.blockEntities = blockEntities.isEmpty() ? null : blockEntities;
+		chunk.pos.set(pos);
 	}
 	
 	private static class ClientChunk {
-		final List<Pair<BaseBlockEntity, BlockEntityRenderer>> blockEntities;
+		List<Pair<BaseBlockEntity, BlockEntityRenderer>> blockEntities;
 		final EnumArray<RenderLayer, VBO> data;
 		final Vec3F renderPos;
 		final Vec3I pos;
-		
-		boolean needUpdate;
-		boolean updating;
 		boolean visible;
 		
 		ClientChunk() {
-			blockEntities = new ArrayList<>();
-			needUpdate = true;
-			renderPos = new Vec3F();
+			renderPos = new Vec3F(0, Integer.MIN_VALUE, 0);
 			pos = new Vec3I(0, Integer.MIN_VALUE, 0);
 			data = new EnumArray<>(RenderLayer.class);
-			for (RenderLayer layer: RenderLayer.VALUES) {
-				VBO vbo = layer == RenderLayer.TRANSLUCENT ? new IndexedVBO() : new VBO();
-				data.set(layer, vbo);
-			}
+			data.set(RenderLayer.SOLID, new VBO());
+			data.set(RenderLayer.TRANSPARENT, new VBO());
+			data.set(RenderLayer.TRANSLUCENT, new IndexedVBO());
 		}
 		
 		void markEmpty() {
@@ -364,6 +337,6 @@ public class ClientChunks {
 	}
 	
 	public static int getChunkUpdates() {
-		return UPDATE_REQUESTS.size();
+		return UPDATE_QUEUE.size();
 	}
 }

@@ -12,54 +12,42 @@ import java.nio.FloatBuffer;
 public class VBO {
 	protected int size;
 	
-	private final int vaoTarget;
-	private final int vertexTarget;
-	private final int normalTarget;
-	private final int colorTarget;
-	private final int uvTarget;
+	protected int vaoTarget;
+	protected int vertexTarget;
+	protected int normalTarget;
+	protected int colorTarget;
+	protected int uvTarget;
 	
-	private boolean update;
+	protected boolean update;
+	private VBOData data;
 	
-	private FloatBuffer vertexBuffer;
-	private FloatBuffer normalBuffer;
-	private FloatBuffer colorBuffer;
-	private FloatBuffer uvBuffer;
-	
-	public VBO() {
-		vaoTarget = GL30.glGenVertexArrays();
-		vertexTarget = GL15.glGenBuffers();
-		normalTarget = GL15.glGenBuffers();
-		colorTarget = GL15.glGenBuffers();
-		uvTarget = GL15.glGenBuffers();
-	}
+	public VBO() {}
 	
 	public void setData(FloatBuffer vertexBuffer, FloatBuffer normalBuffer, FloatBuffer colorBuffer, FloatBuffer uvBuffer) {
-		this.vertexBuffer = vertexBuffer;
-		this.normalBuffer = normalBuffer;
-		this.colorBuffer = colorBuffer;
-		this.uvBuffer = uvBuffer;
-		this.size = vertexBuffer.capacity() / 3;
+		data = new VBOData(
+			vertexBuffer,
+			normalBuffer,
+			colorBuffer,
+			uvBuffer
+		);
+		update = true;
 	}
 	
 	public void setEmpty() {
 		this.size = 0;
 	}
 	
-	public void markToUpdate() {
-		if (isEmpty()) return;
-		update = true;
-	}
-	
-	private void attachBuffer(int target, FloatBuffer buffer) {
+	protected void attachBuffer(int target, FloatBuffer buffer) {
 		GL15.glBindBuffer(GL15.GL_ARRAY_BUFFER, target);
 		GL15.glBufferData(GL15.GL_ARRAY_BUFFER, buffer, GL15.GL_STATIC_DRAW);
 	}
 	
 	public boolean isEmpty() {
-		return size == 0;
+		return !update && size == 0;
 	}
 	
 	public void render() {
+		init();
 		bind();
 		update();
 		GL11.glDrawArrays(GL11.GL_QUADS, 0, size);
@@ -69,13 +57,27 @@ public class VBO {
 		GL30.glBindVertexArray(vaoTarget);
 	}
 	
+	protected void init() {
+		if (vaoTarget != 0) return;
+		vaoTarget = GL30.glGenVertexArrays();
+		vertexTarget = GL15.glGenBuffers();
+		normalTarget = GL15.glGenBuffers();
+		colorTarget = GL15.glGenBuffers();
+		uvTarget = GL15.glGenBuffers();
+	}
+	
 	protected void update() {
 		if (!update) return;
-		attachBuffer(vertexTarget, vertexBuffer);
-		attachBuffer(normalTarget, normalBuffer);
-		attachBuffer(colorTarget, colorBuffer);
-		attachBuffer(uvTarget, uvBuffer);
+		VBOData data = this.data;
 		update = false;
+		
+		if (data == null) return;
+		
+		attachBuffer(vertexTarget, data.vertexBuffer);
+		attachBuffer(normalTarget, data.normalBuffer);
+		attachBuffer(colorTarget, data.colorBuffer);
+		attachBuffer(uvTarget, data.uvBuffer);
+		this.size = data.vertexBuffer.capacity() / 3;
 		
 		GL11.glEnableClientState(GL11.GL_VERTEX_ARRAY);
 		GL15.glBindBuffer(GL15.GL_ARRAY_BUFFER, vertexTarget);
@@ -106,4 +108,11 @@ public class VBO {
 		GL15.glDeleteBuffers(colorTarget);
 		GL15.glDeleteBuffers(uvTarget);
 	}
+	
+	private record VBOData(
+		FloatBuffer vertexBuffer,
+		FloatBuffer normalBuffer,
+		FloatBuffer colorBuffer,
+		FloatBuffer uvBuffer
+	) {}
 }

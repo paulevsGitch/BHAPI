@@ -180,4 +180,8 @@ public class MathUtil {
 			array[i2] = value;
 		}
 	}
+	
+	public static int abs(int value) {
+		return value < 0 ? -value : value;
+	}
 }
