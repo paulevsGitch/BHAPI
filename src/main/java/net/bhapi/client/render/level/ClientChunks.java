@@ -41,18 +41,19 @@ import java.util.concurrent.PriorityBlockingQueue;
 @Environment(EnvType.CLIENT)
 public class ClientChunks {
 	private static final Queue<Vec3I> UPDATE_QUEUE = new PriorityBlockingQueue<>(8192, (p1, p2) -> {
-		int l1 = p1.distanceManhattan(ClientChunks.cameraPos);
-		int l2 = p2.distanceManhattan(ClientChunks.cameraPos);
-		return Integer.compare(l2, l1);
+		int l1 = p1.distanceSqr(ClientChunks.CAMERA_POS);
+		int l2 = p2.distanceSqr(ClientChunks.CAMERA_POS);
+		return Integer.compare(l1, l2);
 	});;//new ArrayBlockingQueue<>(8192);
 	private static final Set<Vec3I> UPDATE_REQUESTS = new HashSet<>(8192);
 	private static final FrustumCulling FRUSTUM_CULLING = new FrustumCulling();
+	private static final Vec3I CAMERA_POS = new Vec3I(0, Integer.MIN_VALUE, 0);
+	private static final Vec3I CENTER = new Vec3I();
 	
 	private static WorldCache<ClientChunk> chunks;
 	private static RunnableThread[] buildingThreads;
 	private static RenderLayer layer;
 	private static double px, py, pz;
-	private static Vec3I cameraPos;
 	private static boolean sort;
 	private static int oldLight;
 	private static Level level;
@@ -66,7 +67,6 @@ public class ClientChunks {
 		int sectionCountY = sectionCountXZ < 17 ? sectionCountXZ : side >> 5 | 1;
 		init(sectionCountXZ, sectionCountY);
 		
-		if (cameraPos == null) cameraPos = new Vec3I(0, Integer.MIN_VALUE, 0);
 		sort = true;
 		
 		if (buildingThreads == null) {
@@ -92,6 +92,17 @@ public class ClientChunks {
 				chunks.forEach(ClientChunk::dispose);
 			}
 			chunks = new WorldCache<>(width, height, ClientChunk::new);
+			if (level != null) {
+				int deltaXZ = (width >> 1);
+				int deltaY = (height >> 1);
+				for (int x = -deltaXZ; x <= deltaXZ; x++) {
+					for (int z = -deltaXZ; z <= deltaXZ; z++) {
+						for (int y = -deltaY; y <= deltaY; y++) {
+							UPDATE_REQUESTS.add(new Vec3I(x, y, z).add(CENTER));
+						}
+					}
+				}
+			}
 		}
 	}
 	
@@ -109,7 +120,8 @@ public class ClientChunks {
 	
 	public static void render(LivingEntity entity, float delta) {
 		if (chunks == null) return;
-		chunks.setCenter(entity.chunkX, (int) entity.y >> 4, entity.chunkZ);
+		CENTER.set(entity.chunkX, (int) entity.y >> 4, entity.chunkZ);
+		chunks.setCenter(CENTER.x, CENTER.y, CENTER.z);
 		
 		Level clientLevel = BHAPIClient.getMinecraft().level;
 		if (clientLevel == null) {
@@ -166,8 +178,8 @@ public class ClientChunks {
 		int ix = (int) px;
 		int iy = (int) py;
 		int iz = (int) pz;
-		if (ix != cameraPos.x || iy != cameraPos.y || iz != cameraPos.z) {
-			cameraPos.set(ix, iy, iz);
+		if (ix != CAMERA_POS.x || iy != CAMERA_POS.y || iz != CAMERA_POS.z) {
+			CAMERA_POS.set(ix, iy, iz);
 			sort = true;
 		}
 		
