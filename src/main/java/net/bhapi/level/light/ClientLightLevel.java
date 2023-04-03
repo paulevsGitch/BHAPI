@@ -36,12 +36,12 @@ public class ClientLightLevel {
 	
 	private static BHLightChunk getChunk(Level level, int x, int y, int z) {
 		BHLightChunk chunk = blockLight.getOrCreate(POS.set(x >> 4, y >> 4, z >> 4));
-		if (!chunk.isFilled() || chunk.wrongPos(x, y, z)) {
+		if (!chunk.isFilled() || chunk.wrongPos(POS)) {
 			Chunk levelChunk = level.getChunkFromCache(POS.x, POS.z);
 			ChunkSection section = ChunkSectionProvider.cast(levelChunk).getChunkSection(POS.y);
 			if (section != null) section.fillLightInto(LightType.BLOCK, chunk);
 			else Arrays.fill(chunk.getData(), (byte) 0);
-			chunk.setPos(x, y, z);
+			chunk.setPos(POS);
 			chunk.setFilled(true);
 		}
 		return chunk;

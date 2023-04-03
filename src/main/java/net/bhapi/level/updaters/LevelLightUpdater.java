@@ -21,8 +21,8 @@ import java.util.Set;
 
 public class LevelLightUpdater extends ThreadedUpdater {
 	private final CircleCache<Vec3I> vectorCache = new CircleCache<>(131072);
-	private final Set<BHLightArea> updateRequests = new HashSet<>();
-	private final Set<BHLightArea> updateAreas = new HashSet<>();
+	private final Set<BHLightArea> updateRequests = new HashSet<>(8192);
+	private final Set<BHLightArea> updateAreas = new HashSet<>(8192);
 	private final BHLightScatter scatter = new BHLightScatter();
 	private final List<Vec3I> positions = new ArrayList<>(4096);
 	private final List<Byte> lights = new ArrayList<>(4096);

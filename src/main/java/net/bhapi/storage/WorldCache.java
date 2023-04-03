@@ -31,14 +31,9 @@ public class WorldCache<T> {
 		this.sizeXZ = sizeXZ;
 		this.sizeY = sizeY;
 		
-		System.out.println("1 " + sizeXZ + " " + sizeY + " " + sizeXZ);
-		
 		sizeXZ = MathUtil.getClosestPowerOfTwo(sizeXZ);
 		sizeY = MathUtil.getClosestPowerOfTwo(sizeY);
 		int capacity = sizeXZ * sizeXZ * sizeY;
-		
-		System.out.println("2 " + sizeXZ + " " + sizeY + " " + sizeXZ);
-		System.out.println("3 " + capacity);
 		
 		this.constructor = constructor;
 		
@@ -51,15 +46,10 @@ public class WorldCache<T> {
 		this.bitsXZ = MathUtil.getCeilBitIndex(sizeXZ);
 		this.bitsXYZ = bitsXZ + MathUtil.getCeilBitIndex(sizeY);
 		
-		System.out.println("4 " + bitsXZ + " " + bitsXYZ);
-		
 		int index = 0;
 		capacity = (deltaXZ << 1) + 1;
 		capacity *= capacity;
 		capacity *= (deltaY << 1) + 1;
-		
-		System.out.println("5 " + capacity);
-		System.out.println("6 " + deltaXZ + " " + deltaY);
 		
 		this.updateOrder = new Vec3I[capacity];
 		for (int x = -deltaXZ; x <= deltaXZ; x++) {

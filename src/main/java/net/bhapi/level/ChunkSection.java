@@ -19,10 +19,10 @@ import net.minecraft.util.io.ListTag;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.CopyOnWriteArrayList;
 
 public class ChunkSection implements NBTSerializable {
 	public static final ChunkSection EMPTY = new ChunkSection();
@@ -34,7 +34,8 @@ public class ChunkSection implements NBTSerializable {
 	
 	public ChunkSection() {
 		boolean useThreads = BHConfigs.GENERAL.getBool("multithreading.useThreads", true);
-		entities = useThreads ? new CopyOnWriteArrayList<>() : new ArrayList<>();
+		if (useThreads) entities = Collections.synchronizedList(new ArrayList<>());
+		else entities = new ArrayList<>();
 	}
 	
 	private int getIndex(int x, int y, int z) {

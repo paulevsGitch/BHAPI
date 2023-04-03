@@ -46,8 +46,7 @@ public class BHLightScatter {
 		BlockStateProvider provider = BlockStateProvider.cast(level);
 		
 		for (byte i = 1; i < light; i++) {
-			List<Vec3I> endPoints = startPoints;
-			startPoints = buffers.get();
+			List<Vec3I> endPoints = buffers.get();
 			endPoints.clear();
 			
 			startPoints.forEach(pos -> {
@@ -74,6 +73,7 @@ public class BHLightScatter {
 			startPoints.clear();
 			
 			if (endPoints.isEmpty()) return;
+			startPoints = endPoints;
 		}
 	}
 	

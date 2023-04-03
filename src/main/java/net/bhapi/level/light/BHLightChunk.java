@@ -52,11 +52,7 @@ public class BHLightChunk {
 		return !pos.equals(this.pos);
 	}
 	
-	public boolean wrongPos(int x, int y, int z) {
-		return x != pos.x || y != pos.y || z != pos.z;
-	}
-	
-	public void setPos(int x, int y, int z) {
-		this.pos.set(x, y, z);
+	public void setPos(Vec3I pos) {
+		this.pos.set(pos);
 	}
 }

@@ -2,6 +2,7 @@ package net.bhapi.mixin.common.level;
 
 import net.bhapi.BHAPI;
 import net.bhapi.blockstate.BlockState;
+import net.bhapi.config.BHConfigs;
 import net.bhapi.level.BHTimeInfo;
 import net.bhapi.level.BlockStateProvider;
 import net.bhapi.level.LevelHeightProvider;
@@ -21,6 +22,7 @@ import net.minecraft.block.BaseBlock;
 import net.minecraft.block.entity.BaseBlockEntity;
 import net.minecraft.block.material.Material;
 import net.minecraft.entity.BaseEntity;
+import net.minecraft.entity.player.PlayerBase;
 import net.minecraft.level.Level;
 import net.minecraft.level.LevelProperties;
 import net.minecraft.level.LightType;
@@ -50,9 +52,9 @@ import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Random;
-import java.util.concurrent.CopyOnWriteArrayList;
 
 @Mixin(Level.class)
 public abstract class LevelMixin implements LevelHeightProvider, BlockStateProvider, PlaceChecker {
@@ -68,6 +70,11 @@ public abstract class LevelMixin implements LevelHeightProvider, BlockStateProvi
 	@Shadow public boolean stopPhysics;
 	@Shadow public boolean isClientSide;
 	@Shadow public List tileEntities;
+	@Shadow public List entities;
+	@Shadow public List entityToRemove;
+	@Shadow public List invalidBlockEntities;
+	@Shadow public List players;
+	@Shadow public List entitiesList;
 	
 	@Shadow public abstract Chunk getChunkFromCache(int i, int j);
 	@Shadow public abstract boolean isAreaLoaded(int i, int j, int k, int l, int m, int n);
@@ -584,7 +591,14 @@ public abstract class LevelMixin implements LevelHeightProvider, BlockStateProvi
 			bhapi_blocksUpdater = new LevelBlocksUpdater(level);
 			bhapi_lightUpdater = new LevelLightUpdater(level);
 		}
-		this.tileEntities = new CopyOnWriteArrayList<BaseBlockEntity>();
+		if (BHConfigs.GENERAL.getBool("multithreading.useThreads", true)) {
+			this.tileEntities = Collections.synchronizedList(new ArrayList<BaseBlockEntity>());
+			this.entities = Collections.synchronizedList(new ArrayList<BaseEntity>());
+			this.entityToRemove = Collections.synchronizedList(new ArrayList<BaseEntity>());
+			this.invalidBlockEntities = Collections.synchronizedList(new ArrayList<BaseBlockEntity>());
+			this.players = Collections.synchronizedList(new ArrayList<PlayerBase>());
+			this.entitiesList = Collections.synchronizedList(new ArrayList<BaseEntity>());
+		}
 	}
 	
 	@Inject(method = "getHeightIterating", at = @At("HEAD"), cancellable = true)
