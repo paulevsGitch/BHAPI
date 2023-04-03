@@ -635,16 +635,15 @@ public abstract class ChunkMixin implements NBTSerializable, LevelHeightProvider
 			this.blocks = null;
 		}
 		
-		int wx = this.x << 4;
+		/*int wx = this.x << 4;
 		int wz = this.z << 4;
-		int max = Math.min(128 >> 4, getSectionsCount());
+		int max = Math.min(128 >> 4, getSectionsCount());*/
 		/*for (short i = 0; i < max; i++) {
 			int wy = i << 4;
 			this.level.updateLight(LightType.BLOCK, wx, wy, wz, wx + 15, wy + 15, wz + 15);
 		}*/
 		
-		System.out.println("Added light area:");
-		this.level.updateLight(LightType.BLOCK, wx, 0, wz, wx | 15, max << 4 | 15, wz | 15);
+		//this.level.updateLight(LightType.BLOCK, wx, 0, wz, wx | 15, max << 4 | 15, wz | 15);
 		
 		//this.level.updateLight(LightType.BLOCK, wx, 0, wz, wx + 15, max, wz + 15);
 	}
@@ -822,7 +821,8 @@ public abstract class ChunkMixin implements NBTSerializable, LevelHeightProvider
 			//System.out.println("Light " + light + " state: " + state + " E: " + state.getEmittance());
 			//System.out.println("Decor: " + this.decorated);
 			section.setLight(LightType.BLOCK, x, py, z, light);
-			if (this.decorated) {
+			this.level.updateLight(LightType.BLOCK, wx, y, wz, wx, y, wz);
+			/*if (this.decorated) {
 				this.level.updateLight(LightType.BLOCK, wx, y, wz, wx, y, wz);
 			}
 			else {
@@ -830,7 +830,7 @@ public abstract class ChunkMixin implements NBTSerializable, LevelHeightProvider
 				int y1 = (y >> 4) << 4;
 				int z1 = (wz >> 4) << 4;
 				this.level.updateLight(LightType.BLOCK, x1, y1, z1, x1 + 15, y1 + 15, z1 + 15);
-			}
+			}*/
 		}
 		this.fillSkyLight(x, z);
 		

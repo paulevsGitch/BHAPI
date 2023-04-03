@@ -22,7 +22,7 @@ import java.util.Set;
 public class LevelLightUpdater extends ThreadedUpdater {
 	private final CircleCache<Vec3I> vectorCache = new CircleCache<>(131072);
 	private final Set<BHLightArea> updateRequests = new HashSet<>(8192);
-	private final Set<BHLightArea> updateAreas = new HashSet<>(8192);
+	private final List<BHLightArea> updateAreas = new ArrayList<>(8192);
 	private final BHLightScatter scatter = new BHLightScatter();
 	private final List<Vec3I> positions = new ArrayList<>(4096);
 	private final List<Byte> lights = new ArrayList<>(4096);
@@ -50,6 +50,10 @@ public class LevelLightUpdater extends ThreadedUpdater {
 		}
 		
 		BlockStateProvider provider = BlockStateProvider.cast(level);
+		
+		/*if (updateAreas.size() > 0 && level.dimension.id == -1) {
+			System.out.println(updateAreas.size());
+		}*/
 		
 		for (BHLightArea area: updateAreas) {
 			Vec3I min = area.getMinPos();

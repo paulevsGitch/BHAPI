@@ -41,6 +41,7 @@ public class BHLightScatter {
 		List<Vec3I> startPoints = buffers.get();
 		startPoints.add(vectorCache.get().set(14, 14, 14));
 		Vec3I center2 = center.clone().subtract(14);
+		
 		setLight(level, center.x, center.y, center.z, light);
 		
 		BlockStateProvider provider = BlockStateProvider.cast(level);
@@ -56,17 +57,16 @@ public class BHLightScatter {
 					Vec3I side = vectorCache.get().set(pos).move(face);
 					if (isInside(side.x) && isInside(side.y) && isInside(side.z)) {
 						index = getIndex(side.x, side.y, side.z);
-						if (!mask[index]) {
-							blockPos.set(center2).add(side);
-							BlockState state = provider.getBlockState(blockPos);
-							if (!checkState(state, sideLight)) continue;
-							byte realLight = (byte) (sideLight - state.getLightOpacity());
-							if (!checkWorld(level, blockPos, realLight)) continue;
-							endPoints.add(side);
-							mask[index] = true;
-							data[index] = realLight;
-							setLight(level, blockPos.x, blockPos.y, blockPos.z, data[index]);
-						}
+						if (mask[index]) continue;
+						blockPos.set(center2).add(side);
+						BlockState state = provider.getBlockState(blockPos);
+						if (!checkState(state, sideLight)) continue;
+						byte realLight = (byte) (sideLight - state.getLightOpacity());
+						if (!checkWorld(level, blockPos, realLight)) continue;
+						endPoints.add(side);
+						mask[index] = true;
+						data[index] = realLight;
+						setLight(level, blockPos.x, blockPos.y, blockPos.z, data[index]);
 					}
 				}
 			});
@@ -86,7 +86,7 @@ public class BHLightScatter {
 	}
 	
 	private boolean checkState(BlockState state, int light) {
-		return state.getLightOpacity() < light && state.getEmittance() == 0;
+		return state.getLightOpacity() < light && state.getEmittance() < light;
 	}
 	
 	private boolean checkWorld(Level level, Vec3I pos, int light) {
