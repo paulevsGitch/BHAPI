@@ -40,7 +40,7 @@ import java.util.concurrent.ArrayBlockingQueue;
 
 @Environment(EnvType.CLIENT)
 public class ClientChunks {
-	private static final Queue<Vec3I> UPDATE_QUEUE = new ArrayBlockingQueue<>(8192);
+	private static final Queue<Vec3I> UPDATE_QUEUE = new ArrayBlockingQueue<>(32768);
 	private static final List<Vec3I> UPDATE_ORDER = new ArrayList<>(8192);
 	private static final Set<Vec3I> UPDATE_REQUESTS = new HashSet<>(8192);
 	private static final FrustumCulling FRUSTUM_CULLING = new FrustumCulling();

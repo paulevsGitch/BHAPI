@@ -13,6 +13,7 @@ import net.bhapi.storage.IncrementalPermutationTable;
 import net.bhapi.storage.PermutationTable;
 import net.bhapi.storage.Vec2I;
 import net.bhapi.storage.Vec3I;
+import net.bhapi.util.UnsafeUtil;
 import net.minecraft.block.BaseBlock;
 import net.minecraft.entity.LightningEntity;
 import net.minecraft.entity.player.PlayerBase;
@@ -30,7 +31,6 @@ import java.util.List;
 import java.util.Set;
 
 public class LevelChunkUpdater extends ThreadedUpdater {
-	private static final BiomeSource FAIL_SOURCE = new FixedBiomeSource(BaseBiome.PLAINS, 0.5F, 0.5F);
 	private final List<PlayerBase> playersList = new ArrayList<>();
 	private final ExpandableCache<Vec3I> cache3D = new ExpandableCache<>(Vec3I::new);
 	private final ExpandableCache<Vec2I> cache2D = new ExpandableCache<>(Vec2I::new);
@@ -50,7 +50,7 @@ public class LevelChunkUpdater extends ThreadedUpdater {
 		LevelHeightProvider heightProvider = LevelHeightProvider.cast(level);
 		height = heightProvider.getSectionsCount();
 		caveSoundTicks = random.getInt(12000) + 6000;
-		biomeSource = level.getBiomeSource();
+		biomeSource = UnsafeUtil.copyObject(level.getBiomeSource());
 		updatesVertical = BHConfigs.GENERAL.getInt("updates.verticalChunks", 8);
 		updatesHorizontal = BHConfigs.GENERAL.getInt("updates.horizontalChunks", 8);
 		BHConfigs.GENERAL.save();
@@ -60,6 +60,7 @@ public class LevelChunkUpdater extends ThreadedUpdater {
 	public void process() {
 		synchronized (playersList) {
 			playersList.clear();
+			//noinspection unchecked
 			playersList.addAll(level.players);
 		}
 		super.process();
