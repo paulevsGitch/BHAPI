@@ -51,7 +51,7 @@ public abstract class OverlaysRendererMixin {
 	@Shadow protected abstract void renderFireOverlay(float f);
 	@Shadow protected abstract void renderSuffocateOverlay(float f, int i);
 	
-	@Unique private BlockItemView bhapi_itemView = new BlockItemView();
+	@Unique private final BlockItemView bhapi_itemView = new BlockItemView();
 	
 	@Inject(method = "renderItemInHand", at = @At("HEAD"), cancellable = true)
 	private void bhapi_renderItemInHand(float delta, CallbackInfo info) {
@@ -121,7 +121,7 @@ public abstract class OverlaysRendererMixin {
 				PlayerRenderer playerRenderer = (PlayerRenderer)entityRenderer;
 				float f9 = 1.0f;
 				GL11.glScalef(f9, f9, f9);
-				playerRenderer.method_345();
+				playerRenderer.renderHand();
 				GL11.glPopMatrix();
 			}
 			
@@ -202,7 +202,7 @@ public abstract class OverlaysRendererMixin {
 			PlayerRenderer playerRenderer = (PlayerRenderer)entityRenderer;
 			b = 1.0f;
 			GL11.glScalef(b, b, b);
-			playerRenderer.method_345();
+			playerRenderer.renderHand();
 			GL11.glPopMatrix();
 		}
 		GL11.glDisable(32826);

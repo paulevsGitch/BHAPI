@@ -93,7 +93,7 @@ public abstract class BaseBlockMixin implements BlockStateContainer, BHBlockRend
 	@Inject(method = "drop(Lnet/minecraft/level/Level;IIIIF)V", at = @At("HEAD"), cancellable = true)
 	private void bhapi_drop(Level level, int x, int y, int z, int meta, float f, CallbackInfo info) {
 		info.cancel();
-		if (level.isClientSide) return;
+		if (level.isRemote) return;
 		if (this instanceof CustomDropProvider) {
 			List<ItemStack> drop = new ArrayList<>();
 			CustomDropProvider.cast(this).getCustomDrop(level, x, y, z, drop);

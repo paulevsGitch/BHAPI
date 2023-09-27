@@ -28,7 +28,7 @@ import java.util.List;
 public abstract class ServerPlayerMixin extends PlayerBase {
 	@Shadow public MinecraftServer server;
 	@Shadow public ServerPlayerPacketHandler packetHandler;
-	@Shadow public List field_264;
+	@Shadow public List trackedChunkList;
 	@Shadow protected abstract void sendBlockEntity(BaseBlockEntity arg);
 	@Shadow private int field_257;
 	
@@ -51,22 +51,22 @@ public abstract class ServerPlayerMixin extends PlayerBase {
 		super.tick();
 		
 		for (short i = 0; i < this.inventory.getInventorySize(); ++i) {
-			ItemStack stack = this.inventory.getInventoryItem(i);
-			if (stack == null || !stack.getType().isMap() || this.packetHandler.method_834() > 2 || (object = ((MapBaseItem) stack.getType()).method_1855(stack, this.level, this)) == null) continue;
+			ItemStack stack = this.inventory.getItem(i);
+			if (stack == null || !stack.getType().isMap() || this.packetHandler.getQueuedChunkDataPacketsSize() > 2 || (object = ((MapBaseItem) stack.getType()).method_1855(stack, this.level, this)) == null) continue;
 			this.packetHandler.send((AbstractPacket) object);
 		}
 		
-		if (flag && !this.field_264.isEmpty() && (pos = (Vec2i) this.field_264.get(0)) != null) {
+		if (flag && !this.trackedChunkList.isEmpty() && (pos = (Vec2i) this.trackedChunkList.get(0)) != null) {
 			boolean bl2 = false;
-			if (this.packetHandler.method_834() < 4) {
+			if (this.packetHandler.getQueuedChunkDataPacketsSize() < 4) {
 				bl2 = true;
 			}
 			if (bl2) {
 				object = this.server.getLevel(this.dimensionId);
-				this.field_264.remove(pos);
+				this.trackedChunkList.remove(pos);
 				short height = LevelHeightProvider.cast(this.server.getLevel(this.dimensionId)).getLevelHeight();
 				this.packetHandler.send(new MapChunkPacket(pos.x << 4, 0, pos.z << 4, 16, height, 16, (Level)object));
-				List<?> entities = ((ServerLevel) object).method_330(pos.x << 4, 0, pos.z << 4, (pos.x << 4) + 16, height, (pos.z << 4) + 16);
+				List<?> entities = ((ServerLevel) object).getBlockEntitiesInArea(pos.x << 4, 0, pos.z << 4, (pos.x << 4) + 16, height, (pos.z << 4) + 16);
 				for (int i = 0; i < entities.size(); ++i) {
 					this.sendBlockEntity((BaseBlockEntity) entities.get(i));
 				}

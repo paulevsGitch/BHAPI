@@ -56,7 +56,7 @@ public class PistonRendererMixin {
 			if (block == BaseBlock.PISTON_HEAD && entity.getProgress(delta) < 0.5f) {
 				renderer.renderPistonHeadAllSides(state, entity.x, entity.y, entity.z, false);
 			}
-			else if (entity.canRender() && !entity.isExtended() && block instanceof PistonBlock) {
+			else if (entity.canRender() && !entity.isExtending() && block instanceof PistonBlock) {
 				BaseBlock.PISTON_HEAD.setTexture(((PistonBlock) block).getPistonTexture());
 				if (bhapi_headState == null) {
 					bhapi_headState = BlockState.getDefaultState(BaseBlock.PISTON_HEAD);

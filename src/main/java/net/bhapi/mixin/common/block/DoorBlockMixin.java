@@ -23,7 +23,7 @@ import java.util.List;
 
 @Mixin(DoorBlock.class)
 public abstract class DoorBlockMixin extends BaseBlock implements BlockStateContainer {
-	@Shadow public abstract void method_837(Level arg, int i, int j, int k, boolean bl);
+	@Shadow public abstract void updateDoor(Level arg, int i, int j, int k, boolean bl);
 	
 	protected DoorBlockMixin(int i, Material arg) {
 		super(i, arg);
@@ -65,13 +65,13 @@ public abstract class DoorBlockMixin extends BaseBlock implements BlockStateCont
 			}
 			
 			if (drop) {
-				if (!level.isClientSide) {
+				if (!level.isRemote) {
 					this.drop(level, x, y, z, meta);
 				}
 			}
 			else if (!neighbour.isAir() && neighbour.emitsPower()) {
 				boolean power = level.hasRedstonePower(x, y, z) || level.hasRedstonePower(x, y + 1, z);
-				this.method_837(level, x, y, z, power);
+				this.updateDoor(level, x, y, z, power);
 			}
 		}
 	}
@@ -88,15 +88,15 @@ public abstract class DoorBlockMixin extends BaseBlock implements BlockStateCont
 		);
 	}
 	
-	@Inject(method = "method_837", at = @At("HEAD"), cancellable = true)
-	public void bhapi_method_837(Level level, int x, int y, int z, boolean power, CallbackInfo info) {
+	@Inject(method = "updateDoor", at = @At("HEAD"), cancellable = true)
+	public void bhapi_updateDoor(Level level, int x, int y, int z, boolean power, CallbackInfo info) {
 		info.cancel();
 		BlockStateProvider provider = BlockStateProvider.cast(level);
 		BlockState state = provider.getBlockState(x, y, z);
 		int meta = state.getMeta();
 		if ((meta & 8) != 0) {
 			if (provider.getBlockState(x, y - 1, z).is(this)) {
-				this.method_837(level, x, y - 1, z, power);
+				this.updateDoor(level, x, y - 1, z, power);
 			}
 			return;
 		}
@@ -106,7 +106,7 @@ public abstract class DoorBlockMixin extends BaseBlock implements BlockStateCont
 			provider.setBlockState(x, y + 1, z, state.withMeta((meta ^ 4) + 8));
 		}
 		provider.setBlockState(x, y, z, state.withMeta(meta ^ 4));
-		level.callAreaEvents(x, y - 1, z, x, y, z);
+		level.updateArea(x, y - 1, z, x, y, z);
 		level.playLevelEvent(null, 1003, x, y, z, 0);
 	}
 }

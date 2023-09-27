@@ -12,7 +12,6 @@ import net.bhapi.level.light.ClientLightLevel;
 import net.bhapi.registry.CommonRegistries;
 import net.minecraft.block.BaseBlock;
 import net.minecraft.block.BlockSounds;
-import net.minecraft.class_68;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.render.LevelRenderer;
 import net.minecraft.client.render.Tessellator;
@@ -23,6 +22,7 @@ import net.minecraft.level.Level;
 import net.minecraft.util.hit.HitResult;
 import net.minecraft.util.hit.HitType;
 import net.minecraft.util.maths.Box;
+import net.minecraft.util.maths.BoxCollider;
 import net.minecraft.util.maths.MathHelper;
 import org.lwjgl.opengl.GL11;
 import org.spongepowered.asm.mixin.Mixin;
@@ -40,25 +40,28 @@ import java.util.List;
 @Mixin(LevelRenderer.class)
 public abstract class LevelRendererMixin implements LevelHeightProvider {
 	@Shadow private Level level;
-	@Shadow private Minecraft client;
+	@Shadow private Minecraft minecraft;
 	@Shadow public float blockBreakDelta;
+	@SuppressWarnings("rawtypes")
+	@Shadow private List areaRenderers;
+	@Shadow private int sectionCounX;
+	@Shadow private int sectionCounY;
+	@Shadow private int sectionCounZ;
 	
 	@Shadow protected abstract void renderBox(Box arg);
 	
-	@Shadow private List field_1807;
-	
-	@Shadow private int sectionCounX;
-	
-	@Shadow private int sectionCounY;
-	
-	@Shadow private int sectionCounZ;
-	
-	@ModifyConstant(method = "method_1544(Lnet/minecraft/util/maths/Vec3f;Lnet/minecraft/class_68;F)V", constant = @Constant(intValue = 128))
+	@ModifyConstant(
+		method = "method_1544(Lnet/minecraft/util/maths/Vec3f;Lnet/minecraft/util/maths/BoxCollider;F)V",
+		constant = @Constant(intValue = 128)
+	)
 	private int bhapi_changeMaxHeight(int value) {
 		return getLevelHeight();
 	}
 	
-	@ModifyConstant(method = "method_1544(Lnet/minecraft/util/maths/Vec3f;Lnet/minecraft/class_68;F)V", constant = @Constant(intValue = 127))
+	@ModifyConstant(
+		method = "method_1544(Lnet/minecraft/util/maths/Vec3f;Lnet/minecraft/util/maths/BoxCollider;F)V",
+		constant = @Constant(intValue = 127)
+	)
 	private int bhapi_changeMaxBlockHeight(int value) {
 		return getLevelHeight() - 1;
 	}
@@ -111,7 +114,7 @@ public abstract class LevelRendererMixin implements LevelHeightProvider {
 			BlockState state = CommonRegistries.BLOCKSTATES_MAP.get(data);
 			if (state == null) return;
 			BlockSounds sounds = state.getSounds();
-			this.client.soundHelper.playSound(
+			this.minecraft.soundHelper.playSound(
 				sounds.getBreakSound(),
 				x + 0.5f,
 				y + 0.5f,
@@ -119,7 +122,7 @@ public abstract class LevelRendererMixin implements LevelHeightProvider {
 				(sounds.getVolume() + 1.0f) / 2.0f,
 				sounds.getPitch() * 0.8f
 			);
-			this.client.particleManager.addBlockBreakParticles(x, y, z, state.getID(), 0);
+			this.minecraft.particleManager.addBlockBreakParticles(x, y, z, state.getID(), 0);
 		}
 	}
 	
@@ -203,11 +206,11 @@ public abstract class LevelRendererMixin implements LevelHeightProvider {
 	
 	@Inject(method = "playSound", at = @At("HEAD"), cancellable = true)
 	private void bhapi_playSound(String string, double d, double e, double f, float g, float h, CallbackInfo info) {
-		if (this.client.viewEntity == null) info.cancel();
+		if (this.minecraft.viewEntity == null) info.cancel();
 	}
 	
-	@Inject(method = "method_1550", at = @At("HEAD"), cancellable = true)
-	private void bhapi_disableAreasCheck(class_68 arg, float f, CallbackInfo info) {
+	@Inject(method = "checkVisibility", at = @At("HEAD"), cancellable = true)
+	private void bhapi_disableAreasCheck(BoxCollider arg, float f, CallbackInfo info) {
 		info.cancel();
 	}
 }

@@ -43,7 +43,7 @@ public class LevelBlocksUpdater extends ThreadedUpdater {
 				for (short i = 0; i < 64 && iterator.hasNext(); i++) {
 					Vec3I pos = iterator.next();
 					iterator.remove();
-					level.callAreaEvents(pos.x, pos.y, pos.z, pos.x, pos.y, pos.z);
+					level.updateBlock(pos.x, pos.y, pos.z);
 				}
 			}
 		}

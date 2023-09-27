@@ -197,7 +197,7 @@ public class ChunkSection implements NBTSerializable {
 		if (listTag != null) {
 			for (int i = 0; i < listTag.size(); ++i) {
 				CompoundTag entityTag = (CompoundTag) listTag.get(i);
-				BaseBlockEntity blockEntity = BaseBlockEntity.tileEntityFromNBT(entityTag);
+				BaseBlockEntity blockEntity = BaseBlockEntity.blockEntityFromNBT(entityTag);
 				if (blockEntity == null) continue;
 				Vec3I pos = new Vec3I(blockEntity.x & 15, blockEntity.y & 15, blockEntity.z & 15);
 				blockEntity.level = level;
@@ -215,7 +215,7 @@ public class ChunkSection implements NBTSerializable {
 			CompoundTag entityTag = (CompoundTag) listTag.get(i);
 			BaseEntity entity = EntityRegistry.create(entityTag, level);
 			if (entity != null) {
-				entity.placedInWorld = true;
+				entity.placedInLevel = true;
 				entity.chunkX = x;
 				entity.chunkIndex = y;
 				entity.chunkZ = z;

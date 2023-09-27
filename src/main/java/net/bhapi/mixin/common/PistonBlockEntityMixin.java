@@ -15,23 +15,23 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 @Mixin(PistonBlockEntity.class)
 public abstract class PistonBlockEntityMixin extends BaseBlockEntity implements BlockStateContainer {
-	@Shadow private int xPos;
+	@Shadow private int blockID;
 	@Shadow private float progress;
 	@Shadow private float maxProgress;
-	@Shadow private boolean isExtended;
-	@Shadow private int yPos;
+	@Shadow private boolean isExtending;
+	@Shadow private int blockData;
 	
 	@Shadow protected abstract void moveBlocks(float f, float g);
 	
 	@Override
 	public void setDefaultState(BlockState state) {
-		this.xPos = state.getID();
-		this.yPos = state.getMeta();
+		this.blockID = state.getID();
+		this.blockData = state.getMeta();
 	}
 	
 	@Override
 	public BlockState getDefaultState() {
-		return CommonRegistries.BLOCKSTATES_MAP.get(this.xPos);
+		return CommonRegistries.BLOCKSTATES_MAP.get(this.blockID);
 	}
 	
 	@Inject(method = "resetBlock", at = @At("HEAD"), cancellable = true)
@@ -67,7 +67,7 @@ public abstract class PistonBlockEntityMixin extends BaseBlockEntity implements 
 		if (this.maxProgress >= 1.0f) {
 			this.maxProgress = 1.0f;
 		}
-		if (this.isExtended) {
+		if (this.isExtending) {
 			this.moveBlocks(this.maxProgress, this.maxProgress - this.progress + 0.0625f);
 		}
 	}

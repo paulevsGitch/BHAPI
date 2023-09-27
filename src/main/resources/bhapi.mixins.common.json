@@ -68,7 +68,7 @@
 		"item.BlockItemMixin",
 		"level.LevelAccessor",
 		"BaseDimensionMixin",
-		"ContainerBaseMixin",
+		"BaseContainerMixin",
 		"item.BaseItemMixin",
 		"item.DoorItemMixin",
 		"RegionLoaderMixin",

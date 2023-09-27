@@ -33,9 +33,9 @@ public abstract class LevelMixin {
 	
 	@Shadow private long skyColor;
 	@Shadow @Final public BaseDimension dimension;
-	@Unique private Random bhapi_clientRandom = new Random();
-	@Unique private Vec3f bhapi_skyColor = Vec3f.make(0, 0, 0);
-	@Unique private Vec3f bhapi_sunColor = Vec3f.make(0, 0, 0);
+	@Unique private final Random bhapi_clientRandom = new Random();
+	@Unique private final Vec3f bhapi_skyColor = Vec3f.make(0, 0, 0);
+	@Unique private final Vec3f bhapi_sunColor = Vec3f.make(0, 0, 0);
 	
 	@Inject(method = "shuffleSpawnPoint", at = @At("HEAD"), cancellable = true)
 	private void bhapi_fixShuffleSpawnPoint(CallbackInfo info) {

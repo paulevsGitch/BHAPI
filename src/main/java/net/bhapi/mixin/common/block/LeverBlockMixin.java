@@ -92,17 +92,18 @@ public abstract class LeverBlockMixin extends BaseBlock implements BlockStateCon
 	
 	@Inject(method = "canUse", at = @At("HEAD"), cancellable = true)
 	private void bhapi_canUse(Level level, int x, int y, int z, PlayerBase player, CallbackInfoReturnable<Boolean> info) {
-		if (level.isClientSide) {
+		if (level.isRemote) {
 			info.setReturnValue(true);
 			return;
 		}
+		
 		BlockStateProvider provider = BlockStateProvider.cast(level);
 		BlockState state = provider.getBlockState(x, y, z);
 		int meta = state.getMeta();
 		int wrappedMeta = meta & 7;
 		int powered = 8 - (meta & 8);
 		level.setBlockMeta(x, y, z, wrappedMeta + powered);
-		level.callAreaEvents(x, y, z, x, y, z);
+		level.updateArea(x, y, z, x, y, z);
 		level.playSound((double)x + 0.5, (double)y + 0.5, (double)z + 0.5, "random.click", 0.3f, powered > 0 ? 0.6f : 0.5f);
 		level.updateAdjacentBlocks(x, y, z, this.id);
 		/*if (wrappedMeta == 1) {

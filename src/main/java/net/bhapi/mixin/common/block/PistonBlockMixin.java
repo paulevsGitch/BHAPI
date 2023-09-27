@@ -96,7 +96,7 @@ public abstract class PistonBlockMixin extends BaseBlock implements BlockStateCo
 				int z2 = z + PistonDataValues.OFFSET_Z[meta] * 2;
 				BlockState state = provider.getBlockState(x2, y2, z2);
 				boolean skipUpdate = false;
-				if (state.is(BaseBlock.MOVING_PISTON) && (entity2 = level.getBlockEntity(x2, y2, z2)) != null && entity2 instanceof PistonBlockEntity && (pistonEntity = (PistonBlockEntity)entity2).getFacing() == meta && pistonEntity.isExtended()) {
+				if (state.is(BaseBlock.MOVING_PISTON) && (entity2 = level.getBlockEntity(x2, y2, z2)) != null && entity2 instanceof PistonBlockEntity && (pistonEntity = (PistonBlockEntity)entity2).getFacing() == meta && pistonEntity.isExtending()) {
 					pistonEntity.resetBlock();
 					state = BlockStateContainer.cast(pistonEntity).getDefaultState();
 					if (state == null) state = BlockUtil.AIR_STATE;

@@ -15,14 +15,14 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 @Mixin(FallingBlockEntity.class)
 public class FallingBlockEntityMixin implements BlockStateContainer {
-	@Shadow public int tile;
+	@Shadow public int block;
 	@Unique private BlockState bhapi_blockState;
 	
 	@Inject(method = "<init>(Lnet/minecraft/level/Level;DDDI)V", at = @At("TAIL"))
 	private void bhapi_onFallingBlockEntityInit(Level arg, double d, double e, double f, int id, CallbackInfo info) {
 		bhapi_blockState = BlockUtil.getLegacyBlock(id, 0);
 		if (bhapi_blockState == null) {
-			this.tile = 0;
+			this.block = 0;
 		}
 	}
 	
@@ -39,7 +39,7 @@ public class FallingBlockEntityMixin implements BlockStateContainer {
 		if (tag.containsKey("state")) {
 			this.bhapi_blockState = BlockState.loadFromNBT(tag.getCompoundTag("state"));
 		}
-		else this.tile = 0;
+		else this.block = 0;
 		info.cancel();
 	}
 	

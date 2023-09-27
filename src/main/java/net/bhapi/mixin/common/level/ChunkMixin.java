@@ -54,6 +54,7 @@ public abstract class ChunkMixin implements NBTSerializable, LevelHeightProvider
 	@Shadow public NibbleArray blockLight;
 	@Shadow public boolean decorated;
 	@Shadow public boolean hasEntities;
+	@SuppressWarnings("rawtypes")
 	@Shadow public List[] entities;
 	@Shadow public boolean canHaveBlockEntities;
 	@Shadow public static boolean hasSkyLight;
@@ -305,7 +306,7 @@ public abstract class ChunkMixin implements NBTSerializable, LevelHeightProvider
 		
 		this.hasEntities = true;
 		
-		entity.placedInWorld = true;
+		entity.placedInLevel = true;
 		entity.chunkX = this.x;
 		entity.chunkIndex = sectionY;
 		entity.chunkZ = this.z;
@@ -799,7 +800,7 @@ public abstract class ChunkMixin implements NBTSerializable, LevelHeightProvider
 			return true;
 		}
 		
-		if (!(oldState.getBlock() instanceof BHAirBlock) && !this.level.isClientSide) {
+		if (!(oldState.getBlock() instanceof BHAirBlock) && !this.level.isRemote) {
 			oldState.onBlockRemoved(this.level, wx, y, wz, state);
 		}
 		

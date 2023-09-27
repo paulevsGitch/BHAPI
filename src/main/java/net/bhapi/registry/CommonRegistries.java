@@ -24,7 +24,7 @@ import net.minecraft.client.render.block.BlockRenderer;
 import net.minecraft.entity.player.ServerPlayer;
 import net.minecraft.item.BaseItem;
 import net.minecraft.item.ItemStack;
-import net.minecraft.recipe.ArmourRecipes;
+import net.minecraft.recipe.ArmorRecipes;
 import net.minecraft.recipe.DyeRecipes;
 import net.minecraft.recipe.MaterialBlockRecipes;
 import net.minecraft.recipe.RecipeRegistry;
@@ -395,7 +395,7 @@ public class CommonRegistries {
 		new MaterialBlockRecipes().register(registry);
 		new StewAndCookieRecipes().register(registry);
 		new UtilitiesAndSandstoneRecipes().register(registry);
-		new ArmourRecipes().register(registry);
+		new ArmorRecipes().register(registry);
 		new DyeRecipes().register(registry);
 		accessor.callAddShapedRecipe(new ItemStack(BaseItem.paper, 3), "###", '#', BaseItem.sugarCanes);
 		accessor.callAddShapedRecipe(new ItemStack(BaseItem.book, 1), "#", "#", "#", '#', BaseItem.paper);

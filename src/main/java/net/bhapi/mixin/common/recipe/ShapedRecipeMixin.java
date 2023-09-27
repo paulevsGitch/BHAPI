@@ -1,6 +1,6 @@
 package net.bhapi.mixin.common.recipe;
 
-import net.minecraft.inventory.Crafting;
+import net.minecraft.inventory.CraftingInventory;
 import net.minecraft.item.ItemStack;
 import net.minecraft.recipe.ShapedRecipe;
 import org.spongepowered.asm.mixin.Mixin;
@@ -17,12 +17,12 @@ public class ShapedRecipeMixin {
 	@Shadow private ItemStack[] ingredients;
 	
 	@Inject(method = "craft", at = @At("HEAD"), cancellable = true)
-	private void bhapi_craft(Crafting arg, CallbackInfoReturnable<ItemStack> info) {
+	private void bhapi_craft(CraftingInventory arg, CallbackInfoReturnable<ItemStack> info) {
 		info.setReturnValue(this.output.copy());
 	}
 	
 	@Inject(method = "matches", at = @At("HEAD"), cancellable = true)
-	private void bhapi_matches(Crafting crafting, int x, int y, boolean flag, CallbackInfoReturnable<Boolean> info) {
+	private void bhapi_matches(CraftingInventory crafting, int x, int y, boolean flag, CallbackInfoReturnable<Boolean> info) {
 		for (int dx = 0; dx < 3; ++dx) {
 			for (int dy = 0; dy < 3; ++dy) {
 				ItemStack stack;

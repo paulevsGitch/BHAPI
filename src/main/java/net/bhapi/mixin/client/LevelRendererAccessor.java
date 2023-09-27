@@ -9,6 +9,6 @@ import java.util.List;
 
 @Mixin(LevelRenderer.class)
 public interface LevelRendererAccessor {
-	@Accessor("field_1807")
+	@Accessor("areaRenderers")
 	List<AreaRenderer> getUpdateAreas();
 }

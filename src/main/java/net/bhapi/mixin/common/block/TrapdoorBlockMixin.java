@@ -29,9 +29,8 @@ public abstract class TrapdoorBlockMixin extends BaseBlock implements BlockState
 	
 	@Override
 	public void onNeighbourBlockUpdate(Level level, int x, int y, int z, BlockDirection facing, BlockState state, BlockState neighbour) {
-		if (level.isClientSide) {
-			return;
-		}
+		if (level.isRemote) return;
+		
 		int meta = state.getMeta();
 		int dx = x;
 		int dz = z;

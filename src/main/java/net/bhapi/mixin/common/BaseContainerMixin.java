@@ -1,6 +1,6 @@
 package net.bhapi.mixin.common;
 
-import net.minecraft.container.ContainerBase;
+import net.minecraft.container.BaseContainer;
 import net.minecraft.container.slot.Slot;
 import net.minecraft.entity.player.PlayerBase;
 import net.minecraft.entity.player.PlayerInventory;
@@ -14,8 +14,9 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 import java.util.List;
 
-@Mixin(ContainerBase.class)
-public abstract class ContainerBaseMixin {
+@Mixin(BaseContainer.class)
+public abstract class BaseContainerMixin {
+	@SuppressWarnings("rawtypes")
 	@Shadow public List slots;
 	
 	@Shadow public abstract ItemStack transferSlot(int i);

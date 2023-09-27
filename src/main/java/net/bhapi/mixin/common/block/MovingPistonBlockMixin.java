@@ -47,7 +47,7 @@ public abstract class MovingPistonBlockMixin extends BaseBlock implements BlockS
 			BaseBlock block = state.getBlock();
 			block.updateBoundingBox(view, x, y, z);
 			float delta = entity.getProgress(0.0f);
-			if (entity.isExtended()) {
+			if (entity.isExtending()) {
 				delta = 1.0f - delta;
 			}
 			int facing = entity.getFacing();

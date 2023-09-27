@@ -1,6 +1,6 @@
 package net.bhapi.mixin.common.recipe;
 
-import net.minecraft.inventory.Crafting;
+import net.minecraft.inventory.CraftingInventory;
 import net.minecraft.item.ItemStack;
 import net.minecraft.recipe.ShapelessRecipe;
 import org.spongepowered.asm.mixin.Final;
@@ -19,7 +19,7 @@ public class ShapelessRecipeMixin {
 	
 	@SuppressWarnings("unchecked")
 	@Inject(method = "canCraft", at = @At("HEAD"), cancellable = true)
-	private void bhapi_canCraft(Crafting crafting, CallbackInfoReturnable<Boolean> info) {
+	private void bhapi_canCraft(CraftingInventory crafting, CallbackInfoReturnable<Boolean> info) {
 		ArrayList<ItemStack> items = new ArrayList<ItemStack>(this.input);
 		for (int dx = 0; dx < 3; ++dx) {
 			for (int dy = 0; dy < 3; ++dy) {

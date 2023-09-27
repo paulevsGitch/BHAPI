@@ -8,7 +8,7 @@ import net.minecraft.entity.player.ServerPlayer;
 import net.minecraft.item.ItemStack;
 import net.minecraft.level.Level;
 import net.minecraft.packet.play.BlockChangePacket;
-import net.minecraft.server.ServerPlayerInterractionManager;
+import net.minecraft.server.ServerPlayerInteractionManager;
 import net.minecraft.server.level.ServerLevel;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
@@ -17,8 +17,8 @@ import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
-@Mixin(ServerPlayerInterractionManager.class)
-public abstract class ServerPlayerInterractionManagerMixin {
+@Mixin(ServerPlayerInteractionManager.class)
+public abstract class ServerPlayerInteractionManagerMixin {
 	@Shadow private int ticks;
 	@Shadow private boolean skipPlacing;
 	@Shadow private int blockTicks;

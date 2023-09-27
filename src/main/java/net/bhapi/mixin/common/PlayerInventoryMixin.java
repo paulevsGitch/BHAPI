@@ -14,14 +14,13 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 @Mixin(PlayerInventory.class)
 public abstract class PlayerInventoryMixin {
 	@Shadow public ItemStack[] main;
+	@Shadow public ItemStack[] armor;
 	
-	@Shadow public abstract int getMaxItemCount();
+	@Shadow public abstract int getMaxStackSize();
 	
 	@Shadow protected abstract int getIdenticalStackSlot(ItemStack arg);
 	
 	@Shadow protected abstract int getFirstEmptySlotIndex();
-	
-	@Shadow public ItemStack[] armour;
 	
 	@Inject(method = "getIdenticalStackSlot", at = @At("HEAD"), cancellable = true)
 	private void bhapi_getIdenticalStackSlot(ItemStack stack, CallbackInfoReturnable<Integer> info) {
@@ -31,7 +30,7 @@ public abstract class PlayerInventoryMixin {
 				this.main[i].getType() != stack.getType() ||
 				!this.main[i].isStackable() ||
 				this.main[i].count >= this.main[i].getMaxStackSize() ||
-				this.main[i].count >= this.getMaxItemCount() ||
+				this.main[i].count >= this.getMaxStackSize() ||
 				this.main[i].usesMeta() && this.main[i].getDamage() != stack.getDamage()
 			) continue;
 			info.setReturnValue(i);
@@ -63,8 +62,8 @@ public abstract class PlayerInventoryMixin {
 			difference = this.main[slotIndex].getMaxStackSize() - this.main[slotIndex].count;
 		}
 		
-		if (difference > this.getMaxItemCount() - this.main[slotIndex].count) {
-			difference = this.getMaxItemCount() - this.main[slotIndex].count;
+		if (difference > this.getMaxStackSize() - this.main[slotIndex].count) {
+			difference = this.getMaxStackSize() - this.main[slotIndex].count;
 		}
 		
 		if (difference == 0) {
@@ -92,8 +91,8 @@ public abstract class PlayerInventoryMixin {
 			list.add(tag);
 		}
 		
-		for (index = 0; index < this.armour.length; ++index) {
-			ItemStack stack = this.armour[index];
+		for (index = 0; index < this.armor.length; ++index) {
+			ItemStack stack = this.armor[index];
 			if (stack == null || stack.count == 0) continue;
 			tag = new CompoundTag();
 			tag.put("Slot", (byte)(index + 100));
@@ -108,15 +107,15 @@ public abstract class PlayerInventoryMixin {
 	private void bhapi_fromTag(ListTag list, CallbackInfo info) {
 		info.cancel();
 		this.main = new ItemStack[36];
-		this.armour = new ItemStack[4];
+		this.armor = new ItemStack[4];
 		for (byte index = 0; index < list.size(); ++index) {
 			CompoundTag tag = (CompoundTag) list.get(index);
 			int slot = tag.getByte("Slot") & 0xFF;
 			ItemStack stack = new ItemStack(tag);
 			if (stack.getType() == null || stack.count == 0) continue;
 			if (slot < this.main.length) this.main[slot] = stack;
-			if (slot < 100 || slot >= this.armour.length + 100) continue;
-			this.armour[slot - 100] = stack;
+			if (slot < 100 || slot >= this.armor.length + 100) continue;
+			this.armor[slot - 100] = stack;
 		}
 	}
 }

@@ -57,6 +57,7 @@ import java.util.List;
 import java.util.Random;
 
 @Mixin(Level.class)
+@SuppressWarnings("rawtypes")
 public abstract class LevelMixin implements LevelHeightProvider, BlockStateProvider, PlaceChecker {
 	@Shadow public Random random;
 	@Shadow @Final public BaseDimension dimension;
@@ -65,14 +66,14 @@ public abstract class LevelMixin implements LevelHeightProvider, BlockStateProvi
 	@Shadow public boolean forceBlockUpdate;
 	@Shadow private int lightUpdateTicks;
 	@Shadow private List lightingUpdates;
-	@Shadow private static int areaUpdates;
+	@Shadow static int areaUpdates;
 	@Shadow private ArrayList collidingEntitySearchCache;
 	@Shadow public boolean stopPhysics;
-	@Shadow public boolean isClientSide;
-	@Shadow public List tileEntities;
+	@Shadow public boolean isRemote;
+	@Shadow public List blockEntities;
 	@Shadow public List entities;
-	@Shadow public List entityToRemove;
-	@Shadow public List invalidBlockEntities;
+	@Shadow private List entityToRemove;
+	@Shadow private List invalidBlockEntities;
 	@Shadow public List players;
 	@Shadow public List entitiesList;
 	
@@ -82,7 +83,7 @@ public abstract class LevelMixin implements LevelHeightProvider, BlockStateProvi
 	@Shadow public abstract void updateAdjacentBlocks(int i, int j, int k, int l);
 	@Shadow public abstract Chunk getChunk(int i, int j);
 	@Shadow public abstract boolean isBlockLoaded(int i, int j, int k);
-	@Shadow public abstract void callAreaEvents(int i, int j, int k, int l, int m, int n);
+	@Shadow public abstract void updateArea(int i, int j, int k, int l, int m, int n);
 	@Shadow public abstract int getBlockMeta(int i, int j, int k);
 	@Shadow public abstract List getEntities(BaseEntity arg, Box arg2);
 	@Shadow public abstract boolean canSuffocate(int i, int j, int k);
@@ -95,7 +96,7 @@ public abstract class LevelMixin implements LevelHeightProvider, BlockStateProvi
 	@Unique private LevelChunkUpdater bhapi_chunksUpdater;
 	@Unique private LevelTicksUpdater bhapi_ticksUpdater;
 	@Unique private LevelLightUpdater bhapi_lightUpdater;
-	@Unique private Vec3f bhapi_tempPos = Vec3f.make(0, 0, 0);
+	@Unique private final Vec3f bhapi_tempPos = Vec3f.make(0, 0, 0);
 	
 	@Inject(
 		method = "<init>(Lnet/minecraft/level/dimension/DimensionData;Ljava/lang/String;Lnet/minecraft/level/dimension/BaseDimension;J)V",
@@ -323,7 +324,7 @@ public abstract class LevelMixin implements LevelHeightProvider, BlockStateProvi
 					pz2 = 16;
 				}
 				index = this.getChunkFromCache(cx, cz).setClientBlockData(data, px1, py1, pz1, px2, py2, pz2, index);
-				this.callAreaEvents((cx << 4) + px1, py1, (cz << 4) + pz1, (cx << 4) + x1 + px2, py2, (cz << 4) + pz2);
+				this.updateArea((cx << 4) + px1, py1, (cz << 4) + pz1, (cx << 4) + x1 + px2, py2, (cz << 4) + pz2);
 			}
 		}
 	}
@@ -592,7 +593,7 @@ public abstract class LevelMixin implements LevelHeightProvider, BlockStateProvi
 			bhapi_lightUpdater = new LevelLightUpdater(level);
 		}
 		if (BHConfigs.GENERAL.getBool("multithreading.useThreads", true)) {
-			this.tileEntities = Collections.synchronizedList(new ArrayList<BaseBlockEntity>());
+			this.blockEntities = Collections.synchronizedList(new ArrayList<BaseBlockEntity>());
 			this.entities = Collections.synchronizedList(new ArrayList<BaseEntity>());
 			this.entityToRemove = Collections.synchronizedList(new ArrayList<BaseEntity>());
 			this.invalidBlockEntities = Collections.synchronizedList(new ArrayList<BaseBlockEntity>());
@@ -636,7 +637,7 @@ public abstract class LevelMixin implements LevelHeightProvider, BlockStateProvi
 	@Inject(method = "updateAdjacentBlocks", at = @At("HEAD"), cancellable = true)
 	private void bhapi_updateAdjacentBlocks(int x, int y, int z, int id, CallbackInfo info) {
 		info.cancel();
-		if (this.stopPhysics || this.isClientSide) return;
+		if (this.stopPhysics || this.isRemote) return;
 		for (BlockDirection dir: BlockDirection.VALUES) {
 			bhapi_blocksUpdater.add(new Vec3I(x, y, z).move(dir), dir.invert());
 		}

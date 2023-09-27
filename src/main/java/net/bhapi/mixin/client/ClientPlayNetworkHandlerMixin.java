@@ -56,7 +56,7 @@ public class ClientPlayNetworkHandlerMixin {
 			int y = s & 0xFF;
 			provider.setBlockState(x, y, z, states[i]);
 			this.level.method_1498(x | cx, y, z | cz, x | cx, y, z | cz);
-			this.level.callAreaEvents(x | cx, y, z | cz, x | cx, y, z | cz);
+			this.level.updateArea(x | cx, y, z | cz, x | cx, y, z | cz);
 		}
 	}
 	

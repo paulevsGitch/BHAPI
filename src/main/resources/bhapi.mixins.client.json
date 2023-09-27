@@ -55,7 +55,7 @@
 		"GrassBlockMixin",
 		"PlayerBaseMixin",
 		"MinecraftMixin",
-		"MainMenuMixin",
+		"MainMenuScreenMixin",
 		"DisplayMixin",
 		"InGameMixin",
 		"LevelMixin"

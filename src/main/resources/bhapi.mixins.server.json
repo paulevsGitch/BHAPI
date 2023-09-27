@@ -4,7 +4,7 @@
 	"package": "net.bhapi.mixin.server",
 	"compatibilityLevel": "JAVA_17",
 	"server": [
-		"ServerPlayerInterractionManagerMixin",
+		"ServerPlayerInteractionManagerMixin",
 		"ServerPacketHandlerMixin",
 		"MinecraftServerMixin",
 		"CommandManagerMixin",

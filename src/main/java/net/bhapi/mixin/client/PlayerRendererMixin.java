@@ -29,11 +29,11 @@ public abstract class PlayerRendererMixin extends LivingEntityRenderer {
 		info.cancel();
 		
 		float scale;
-		ItemStack itemStack = player.inventory.getArmourItem(3);
+		ItemStack itemStack = player.inventory.getArmorItem(3);
 		
 		if (itemStack != null && itemStack.getType() instanceof BHBlockItem) {
 			GL11.glPushMatrix();
-			this.playerModel.field_619.method_1820(0.0625f);
+			this.playerModel.head.method_1820(0.0625f);
 			if (BHBlockItem.cast(itemStack.getType()).isFlat()) {
 				float f3 = 0.625f;
 				GL11.glTranslatef(0.0f, -0.25f, 0.0f);
@@ -57,7 +57,7 @@ public abstract class PlayerRendererMixin extends LivingEntityRenderer {
 				GL11.glRotatef(-scale, 0.0f, 1.0f, 0.0f);
 				float f5 = 1.3333334f;
 				GL11.glScalef(f5, f5, f5);
-				this.playerModel.method_605(0.0625f);
+				this.playerModel.renderDeadMau5Ears(0.0625f);
 				GL11.glPopMatrix();
 			}
 		}
@@ -92,14 +92,14 @@ public abstract class PlayerRendererMixin extends LivingEntityRenderer {
 			GL11.glRotatef(f9 / 2.0f, 0.0f, 0.0f, 1.0f);
 			GL11.glRotatef(-f9 / 2.0f, 0.0f, 1.0f, 0.0f);
 			GL11.glRotatef(180.0f, 0.0f, 1.0f, 0.0f);
-			this.playerModel.method_606(0.0625f);
+			this.playerModel.renderCloak(0.0625f);
 			GL11.glPopMatrix();
 		}
 		
 		ItemStack handItem = player.inventory.getHeldItem();
 		if (handItem != null) {
 			GL11.glPushMatrix();
-			this.playerModel.field_622.method_1820(0.0625f);
+			this.playerModel.rightArm.method_1820(0.0625f);
 			GL11.glTranslatef(-0.0625f, 0.4375f, 0.0625f);
 			if (player.fishHook != null) {
 				handItem = new ItemStack(BaseItem.stick);

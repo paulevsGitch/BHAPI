@@ -1,10 +1,10 @@
 package net.bhapi.client.gui;
 
 import net.minecraft.entity.player.PlayerBase;
-import net.minecraft.inventory.InventoryBase;
+import net.minecraft.inventory.BaseInventory;
 import net.minecraft.item.ItemStack;
 
-public class DebugAllItems implements InventoryBase {
+public class DebugAllItems implements BaseInventory {
 	private final ItemStack[] items;
 	
 	public DebugAllItems(int size) {
@@ -17,25 +17,25 @@ public class DebugAllItems implements InventoryBase {
 	}
 	
 	@Override
-	public ItemStack getInventoryItem(int i) {
+	public ItemStack getItem(int i) {
 		return items[i];
 	}
 	
 	@Override
-	public ItemStack takeInventoryItem(int i, int j) {
+	public ItemStack takeItem(int i, int j) {
 		return items[i].copy();
 	}
 	
 	@Override
-	public void setInventoryItem(int i, ItemStack arg) {}
+	public void setItem(int i, ItemStack arg) {}
 	
 	@Override
-	public String getContainerName() {
+	public String getInventoryName() {
 		return "All Items";
 	}
 	
 	@Override
-	public int getMaxItemCount() {
+	public int getMaxStackSize() {
 		return 64;
 	}
 	

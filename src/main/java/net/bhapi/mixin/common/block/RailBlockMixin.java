@@ -36,9 +36,7 @@ public abstract class RailBlockMixin extends BaseBlock implements BlockStateCont
 	
 	@Override
 	public void onNeighbourBlockUpdate(Level level, int x, int y, int z, BlockDirection facing, BlockState state, BlockState neighbour) {
-		if (level.isClientSide) {
-			return;
-		}
+		if (level.isRemote) return;
 		
 		int meta = state.getValue(LegacyProperties.META_16);
 		
