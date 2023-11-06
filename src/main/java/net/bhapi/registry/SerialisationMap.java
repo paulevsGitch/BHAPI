@@ -1,5 +1,9 @@
 package net.bhapi.registry;
 
+import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
+import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
+import it.unimi.dsi.fastutil.objects.Object2IntMap;
+import it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap;
 import net.bhapi.BHAPI;
 import net.bhapi.interfaces.IDProvider;
 import net.bhapi.storage.ExpandableArray;
@@ -17,9 +21,9 @@ import java.util.function.Function;
 public class SerialisationMap<T> {
 	private static final String KEY_ID = "rawID";
 	
-	private final Map<Integer, T> loadingObjects = new HashMap<>();
+	private final Int2ObjectMap<T> loadingObjects = new Int2ObjectOpenHashMap<>();
 	private final ExpandableArray<T> idToOBJ = new ExpandableArray<>();
-	private final Map<T, Integer> objToID = new HashMap<>();
+	private final Object2IntMap<T> objToID = new Object2IntOpenHashMap<>();
 	private final Function<CompoundTag, T> deserializer;
 	private final Function<T, CompoundTag> serializer;
 	private byte[] compressedData;
@@ -102,13 +106,7 @@ public class SerialisationMap<T> {
 			}
 			
 			if (loadingObjects.containsKey(rawID)) {
-				StringBuilder builder = new StringBuilder("Object [");
-				builder.append(loadingObjects.get(rawID));
-				builder.append("] and [");
-				builder.append(obj);
-				builder.append("] have identical rawID: ");
-				builder.append(rawID);
-				throw new RuntimeException(builder.toString());
+				throw new RuntimeException("Object [" + loadingObjects.get(rawID) + "] and [" + obj + "] have identical rawID: " + rawID);
 			}
 			loadingObjects.put(rawID, obj);
 		}
@@ -126,7 +124,7 @@ public class SerialisationMap<T> {
 		
 		idToOBJ.putAll(loadingObjects);
 		idToOBJ.forEach((rawID, obj) -> {
-			objToID.put(obj, rawID);
+			objToID.put(obj, rawID.intValue());
 			if (obj instanceof IDProvider) {
 				((IDProvider) obj).setID(rawID);
 			}

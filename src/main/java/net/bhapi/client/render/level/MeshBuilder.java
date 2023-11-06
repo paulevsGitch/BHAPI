@@ -1,5 +1,11 @@
 package net.bhapi.client.render.level;
 
+import it.unimi.dsi.fastutil.bytes.ByteArrayList;
+import it.unimi.dsi.fastutil.bytes.ByteList;
+import it.unimi.dsi.fastutil.floats.FloatArrayList;
+import it.unimi.dsi.fastutil.floats.FloatList;
+import it.unimi.dsi.fastutil.ints.IntArrayList;
+import it.unimi.dsi.fastutil.ints.IntList;
 import net.bhapi.client.render.vbo.VBO;
 import net.bhapi.util.BufferUtil;
 import net.fabricmc.api.EnvType;
@@ -12,12 +18,12 @@ import java.util.List;
 
 @Environment(EnvType.CLIENT)
 public class MeshBuilder {
-	private final List<Integer> normalIndexes = new ArrayList<>(2048);
-	private final List<Integer> colorIndexes = new ArrayList<>(2048);
-	private final List<Float> vertexData = new ArrayList<>(32768);
-	private final List<Float> normalData = new ArrayList<>(2048);
-	private final List<Byte> colorData = new ArrayList<>(2048);
-	private final List<Float> uvData = new ArrayList<>(32768);
+	private final IntList normalIndexes = new IntArrayList(2048);
+	private final IntList colorIndexes = new IntArrayList(2048);
+	private final FloatList vertexData = new FloatArrayList(32768);
+	private final FloatList normalData = new FloatArrayList(2048);
+	private final ByteList colorData = new ByteArrayList(2048);
+	private final FloatList uvData = new FloatArrayList(32768);
 	private double offsetX;
 	private double offsetY;
 	private double offsetZ;
@@ -120,30 +126,30 @@ public class MeshBuilder {
 			int vertexIndex = i * 3;
 			int uvIndex = i << 1;
 			
-			x = vertexData.get(vertexIndex++);
-			y = vertexData.get(vertexIndex++);
-			z = vertexData.get(vertexIndex);
+			x = vertexData.getFloat(vertexIndex++);
+			y = vertexData.getFloat(vertexIndex++);
+			z = vertexData.getFloat(vertexIndex);
 			
-			u = uvData.get(uvIndex++);
-			v = uvData.get(uvIndex);
+			u = uvData.getFloat(uvIndex++);
+			v = uvData.getFloat(uvIndex);
 			
-			int index = colorIndexes.get(i);
+			int index = colorIndexes.getInt(i);
 			if (index != colorIndex) {
 				colorIndex = index << 2;
-				r = colorData.get(colorIndex++) & 255;
-				g = colorData.get(colorIndex++) & 255;
-				b = colorData.get(colorIndex++) & 255;
-				a = colorData.get(colorIndex) & 255;
+				r = colorData.getByte(colorIndex++) & 255;
+				g = colorData.getByte(colorIndex++) & 255;
+				b = colorData.getByte(colorIndex++) & 255;
+				a = colorData.getByte(colorIndex) & 255;
 				tessellator.color(r, g, b, a);
 				colorIndex = index;
 			}
 			
-			index = normalIndexes.get(i);
+			index = normalIndexes.getInt(i);
 			if (index != normalIndex) {
 				normalIndex = index * 3;
-				nx = normalData.get(normalIndex++);
-				ny = normalData.get(normalIndex++);
-				nz = normalData.get(normalIndex);
+				nx = normalData.getFloat(normalIndex++);
+				ny = normalData.getFloat(normalIndex++);
+				nz = normalData.getFloat(normalIndex);
 				tessellator.setNormal(nx, ny, nz);
 				normalIndex = index;
 			}
@@ -177,29 +183,29 @@ public class MeshBuilder {
 			int vertexIndex = i * 3;
 			int uvIndex = i << 1;
 			
-			x = vertexData.get(vertexIndex++);
-			y = vertexData.get(vertexIndex++);
-			z = vertexData.get(vertexIndex);
+			x = vertexData.getFloat(vertexIndex++);
+			y = vertexData.getFloat(vertexIndex++);
+			z = vertexData.getFloat(vertexIndex);
 			
-			u = uvData.get(uvIndex++);
-			v = uvData.get(uvIndex);
+			u = uvData.getFloat(uvIndex++);
+			v = uvData.getFloat(uvIndex);
 			
-			int index = colorIndexes.get(i);
+			int index = colorIndexes.getInt(i);
 			if (index != colorIndex) {
 				colorIndex = index << 2;
-				r = (colorData.get(colorIndex++) & 255) / 255F;
-				g = (colorData.get(colorIndex++) & 255) / 255F;
-				b = (colorData.get(colorIndex++) & 255) / 255F;
-				a = (colorData.get(colorIndex) & 255) / 255F;
+				r = (colorData.getByte(colorIndex++) & 255) / 255F;
+				g = (colorData.getByte(colorIndex++) & 255) / 255F;
+				b = (colorData.getByte(colorIndex++) & 255) / 255F;
+				a = (colorData.getByte(colorIndex) & 255) / 255F;
 				colorIndex = index;
 			}
 			
-			index = normalIndexes.get(i);
+			index = normalIndexes.getInt(i);
 			if (index != normalIndex) {
 				normalIndex = index * 3;
-				nx = normalData.get(normalIndex++);
-				ny = normalData.get(normalIndex++);
-				nz = normalData.get(normalIndex);
+				nx = normalData.getFloat(normalIndex++);
+				ny = normalData.getFloat(normalIndex++);
+				nz = normalData.getFloat(normalIndex);
 				normalIndex = index;
 			}
 			

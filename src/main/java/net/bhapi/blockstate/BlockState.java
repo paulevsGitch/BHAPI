@@ -199,7 +199,7 @@ public final class BlockState implements IDProvider {
 				CompoundTag propertyTag = new CompoundTag();
 				list.add(propertyTag);
 				propertyTag.put("name", property.getName());
-				propertyTag.put("index", property.getCastedIndex(value));
+				propertyTag.put("uvID", property.getCastedIndex(value));
 			});
 		}
 		return tag;
@@ -224,7 +224,7 @@ public final class BlockState implements IDProvider {
 				String name = propertyTag.getString("name");
 				StateProperty<?> property = state.getProperty(name);
 				if (property != null) {
-					int index = propertyTag.getInt("index");
+					int index = propertyTag.getInt("uvID");
 					List<?> values = property.getValues();
 					if (index < 0 || index >= values.size()) continue;
 					state = state.with(property, values.get(index));
@@ -358,7 +358,7 @@ public final class BlockState implements IDProvider {
 	 * @param x X coordinate
 	 * @param y Y coordinate
 	 * @param z Z coordinate
-	 * @param facing Facing index
+	 * @param facing Facing uvID
 	 */
 	public void onBlockPlaced(Level level, int x, int y, int z, int facing) {
 		getContainer().onBlockPlaced(level, x, y, z, facing, this);
@@ -491,15 +491,15 @@ public final class BlockState implements IDProvider {
 	}
 	
 	/**
-	 * Get texture for current model index. Vanilla blocks have indexes equal to quad face directions, custom models
+	 * Get texture for current model uvID. Vanilla blocks have indexes equal to quad face directions, custom models
 	 * can have any indexes.
 	 * @see net.bhapi.util.BlockDirection
 	 * @param view {@link BlockView}
 	 * @param x X block coordinate
 	 * @param y Y block coordinate
 	 * @param z Z block coordinate
-	 * @param textureIndex current texture index
-	 * @param overlayIndex current overlay index
+	 * @param textureIndex current texture uvID
+	 * @param overlayIndex current overlay uvID
 	 * @return {@link TextureSample} or null
 	 */
 	@Environment(EnvType.CLIENT)

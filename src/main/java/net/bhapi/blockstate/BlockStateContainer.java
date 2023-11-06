@@ -173,7 +173,7 @@ public interface BlockStateContainer {
 	 * @param x X coordinate
 	 * @param y Y coordinate
 	 * @param z Z coordinate
-	 * @param facing Facing index
+	 * @param facing Facing uvID
 	 * @param state {@link BlockState} that was placed
 	 */
 	default void onBlockPlaced(Level level, int x, int y, int z, int facing, BlockState state) {

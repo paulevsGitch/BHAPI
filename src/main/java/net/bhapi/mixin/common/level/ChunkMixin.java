@@ -38,6 +38,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 
 @Mixin(Chunk.class)
 public abstract class ChunkMixin implements NBTSerializable, LevelHeightProvider, ChunkSectionProvider, BlockStateProvider, ChunkHeightProvider {
@@ -324,7 +325,7 @@ public abstract class ChunkMixin implements NBTSerializable, LevelHeightProvider
 	private void bhapi_addEntitiesToLevel(CallbackInfo info) {
 		info.cancel();
 		this.canHaveBlockEntities = true;
-		Arrays.stream(bhapi_sections).filter(s -> s != null).forEach(section -> {
+		Arrays.stream(bhapi_sections).filter(Objects::nonNull).forEach(section -> {
 			this.level.addEntities(section.entities);
 			this.level.addBlockEntities(section.getBlockEntities());
 		});
@@ -334,13 +335,13 @@ public abstract class ChunkMixin implements NBTSerializable, LevelHeightProvider
 	private void bhapi_removeEntitiesFromLevel(CallbackInfo info) {
 		info.cancel();
 		this.canHaveBlockEntities = false;
-		Arrays.stream(bhapi_sections).filter(s -> s != null).forEach(section -> {
+		Arrays.stream(bhapi_sections).filter(Objects::nonNull).forEach(section -> {
 			section.getBlockEntities().forEach(BaseBlockEntity::invalidate);
 			level.removeEntities(section.entities);
 		});
 	}
 	
-	@SuppressWarnings("unchecked")
+	@SuppressWarnings({"unchecked", "rawtypes"})
 	@Inject(method = "getEntities(Lnet/minecraft/entity/BaseEntity;Lnet/minecraft/util/maths/Box;Ljava/util/List;)V", at = @At("HEAD"), cancellable = true)
 	private void bhapi_getEntities(BaseEntity entity, Box area, List list, CallbackInfo info) {
 		info.cancel();
@@ -357,7 +358,7 @@ public abstract class ChunkMixin implements NBTSerializable, LevelHeightProvider
 		}
 	}
 	
-	@SuppressWarnings("unchecked")
+	@SuppressWarnings({"unchecked", "rawtypes"})
 	@Inject(method = "getEntities(Ljava/lang/Class;Lnet/minecraft/util/maths/Box;Ljava/util/List;)V", at = @At("HEAD"), cancellable = true)
 	private void bhapi_getEntities(Class entityClass, Box area, List list, CallbackInfo info) {
 		info.cancel();

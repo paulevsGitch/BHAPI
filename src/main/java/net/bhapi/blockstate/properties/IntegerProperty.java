@@ -1,22 +1,30 @@
 package net.bhapi.blockstate.properties;
 
+import it.unimi.dsi.fastutil.ints.IntArrayList;
+import it.unimi.dsi.fastutil.ints.IntList;
+
 import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
 public class IntegerProperty extends StateProperty<Integer> {
-	private final List<Integer> values;
+	private final IntList values;
 	final int minValue;
 	final int maxValue;
 	final int count;
 	
 	public IntegerProperty(String name, int minValue, int maxValue) {
 		super(name);
-		if (maxValue < minValue) throw new RuntimeException("Maximum is less than minimum for " + name + " property");
+		if (maxValue < minValue) {
+			throw new RuntimeException("Maximum is less than minimum for " + name + " property");
+		}
 		this.minValue = minValue;
 		this.maxValue = maxValue;
-		this.values = IntStream.rangeClosed(minValue, maxValue).boxed().collect(Collectors.toUnmodifiableList());
-		this.count = this.values.size();
+		this.count = maxValue - minValue + 1;
+		this.values = new IntArrayList(this.count);
+		for (int i = minValue; i <= maxValue; i++) {
+			this.values.add(i);
+		}
 	}
 	
 	@Override

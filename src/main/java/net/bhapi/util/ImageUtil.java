@@ -148,7 +148,7 @@ public class ImageUtil {
 								}
 								else {
 									JsonObject obj = element.getAsJsonObject();
-									int index = obj.get("index").getAsInt();
+									int index = obj.get("uvID").getAsInt();
 									sortedFrames[i] = frames[index];
 									if (obj.has("time")) {
 										time[i] = obj.get("time").getAsInt();

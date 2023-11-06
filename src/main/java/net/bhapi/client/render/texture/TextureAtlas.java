@@ -10,7 +10,6 @@ import net.bhapi.util.MathUtil;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
 import net.fabricmc.loader.api.FabricLoader;
-import net.fabricmc.tinyremapper.extension.mixin.common.data.Pair;
 import org.lwjgl.opengl.GL11;
 
 import javax.imageio.ImageIO;
@@ -27,7 +26,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 @Environment(EnvType.CLIENT)
 public class TextureAtlas {
 	private static final Identifier EMPTY_ID = Identifier.make("empty");
-	private final Map<Identifier, Pair<Integer, RenderLayer>> textures = new HashMap<>();
+	private final Map<Identifier, TextureInfo> textures = new HashMap<>();
 	private final UVPair[] uvs;
 	private final int glTarget;
 	
@@ -54,7 +53,10 @@ public class TextureAtlas {
 		BufferedImage atlasImage = null;
 		short start = (short) MathUtil.getClosestPowerOfTwo((int) Math.sqrt(totalArea));
 		List<Layer> layers = new ArrayList<>(8);
-		for (short side = start; side <= 16384 && (atlasImage = pack(info, side, layers)) == null; side <<= 1);
+		
+		short side = start;
+		while (side <= 16384 && (atlasImage = pack(info, side, layers)) == null) {side <<= 1;}
+		
 		if (atlasImage == null) {
 			throw new RuntimeException("Can't create texture atlas! Size is larger than 16384 pixels");
 		}
@@ -82,7 +84,7 @@ public class TextureAtlas {
 			int uvID = data[0]++;
 			uvs[uvID] = new UVPair(tpos, size, uv1, uv2);
 			RenderLayer renderLayer = ImageUtil.getLayer(img);
-			textures.put(id, Pair.of(uvID, renderLayer));
+			textures.put(id, new TextureInfo(uvID, renderLayer));
 		}));
 		
 		glTarget = BHAPIClient.getMinecraft().textureManager.bindImage(atlasImage);
@@ -114,7 +116,12 @@ public class TextureAtlas {
 		BufferedImage atlasImage = null;
 		short start = (short) MathUtil.getClosestPowerOfTwo((int) Math.sqrt(totalArea));
 		List<Layer> layers = new ArrayList<>(8);
-		for (short side = start; side <= 16384 && (atlasImage = pack(info, side, layers)) == null; side <<= 1);
+		
+		short side = start;
+		while (side <= 16384 && (atlasImage = pack(info, side, layers)) == null) {
+			side <<= 1;
+		}
+		
 		if (atlasImage == null) {
 			throw new RuntimeException("Can't create texture atlas! Size is larger than 16384 pixels");
 		}
@@ -134,7 +141,7 @@ public class TextureAtlas {
 			int py = pos.y << layer.index;
 			BufferedImage img = imgInfo.img();
 			Identifier id = inverted.get(img);
-			int uvID = textures.get(id).first();
+			int uvID = textures.get(id).uvID;
 			Vec2I tpos = new Vec2I(px, py);
 			Vec2I size = new Vec2I(img.getWidth(), img.getHeight());
 			Vec2F uv1 = new Vec2F(px, py).divide(data[1]);
@@ -145,13 +152,13 @@ public class TextureAtlas {
 		BHAPIClient.getMinecraft().textureManager.bindImage(atlasImage, glTarget);
 	}
 	
-	private Pair<Integer, RenderLayer> getPair(Identifier id, boolean silent) {
-		Pair<Integer, RenderLayer> pair = textures.get(id);
-		if (pair == null) {
+	private TextureInfo getInfo(Identifier id, boolean silent) {
+		TextureInfo info = textures.get(id);
+		if (info == null) {
 			if (!silent) BHAPI.warn("No texture " + id + " in atlas");
-			return getPair(EMPTY_ID, true);
+			return getInfo(EMPTY_ID, true);
 		}
-		return pair;
+		return info;
 	}
 	
 	public int getTextureIndex(Identifier id) {
@@ -159,7 +166,7 @@ public class TextureAtlas {
 	}
 	
 	public int getTextureIndex(Identifier id, boolean silent) {
-		return getPair(id, silent).first();
+		return getInfo(id, silent).uvID;
 	}
 	
 	public UVPair getUV(int index) {
@@ -171,8 +178,8 @@ public class TextureAtlas {
 	}
 	
 	public TextureSample getSample(Identifier id, boolean silent) {
-		Pair<Integer, RenderLayer> pair = getPair(id, silent);
-		return new TextureSample(this, pair.first(), pair.second());
+		TextureInfo info = getInfo(id, silent);
+		return new TextureSample(this, info.uvID, info.layer);
 	}
 	
 	public void bind() {
@@ -222,7 +229,7 @@ public class TextureAtlas {
 		}
 	}
 	
-	private class Layer implements Comparable<Layer> {
+	private static class Layer implements Comparable<Layer> {
 		Map<Vec2I, ImageInfo> images = new HashMap<>();
 		List<Layer> layers = new ArrayList<>();
 		final int index;
@@ -272,4 +279,6 @@ public class TextureAtlas {
 			return Integer.compare(index, layer.index);
 		}
 	}
+	
+	record TextureInfo(int uvID, RenderLayer layer) {}
 }

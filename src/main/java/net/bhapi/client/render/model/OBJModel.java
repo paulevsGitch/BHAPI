@@ -2,6 +2,10 @@ package net.bhapi.client.render.model;
 
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
+import it.unimi.dsi.fastutil.floats.FloatArrayList;
+import it.unimi.dsi.fastutil.floats.FloatList;
+import it.unimi.dsi.fastutil.ints.IntArrayList;
+import it.unimi.dsi.fastutil.ints.IntList;
 import net.bhapi.BHAPI;
 import net.bhapi.storage.EnumArray;
 import net.bhapi.storage.Resource;
@@ -66,8 +70,10 @@ public class OBJModel extends CustomModel {
 					JsonObject preCull = culling.getAsJsonObject();
 					preCull.keySet().forEach(key -> {
 						BlockDirection dir = BlockDirection.getByName(key);
-						boolean cull = preCull.get(key).getAsBoolean();
-						cullingMap.set(dir, cull);
+						if (dir != null) {
+							boolean cull = preCull.get(key).getAsBoolean();
+							cullingMap.set(dir, cull);
+						}
 					});
 					for (BlockDirection dir : BlockDirection.VALUES) {
 						String dirName = dir.toString();
@@ -96,11 +102,11 @@ public class OBJModel extends CustomModel {
 	}
 	
 	private static void loadOBJ(Resource resource, EnumArray<FaceGroup, List<ModelQuad>> quads, Map<String, MaterialInfo> materials, Vec3F offset) {
-		List<Float> vertexData = new ArrayList<>(12);
-		List<Float> uvData = new ArrayList<>(8);
+		FloatList vertexData = new FloatArrayList(12);
+		FloatList uvData = new FloatArrayList(8);
 		
-		List<Integer> vertexIndex = new ArrayList<>(4);
-		List<Integer> uvIndex = new ArrayList<>(4);
+		IntList vertexIndex = new IntArrayList(4);
+		IntList uvIndex = new IntArrayList(4);
 		
 		try {
 			InputStreamReader streamReader = new InputStreamReader(resource.getStream());
@@ -160,15 +166,15 @@ public class OBJModel extends CustomModel {
 					
 					boolean hasUV = !uvIndex.isEmpty();
 					for (byte i = 0; i < 4; i++) {
-						int index = vertexIndex.get(i) * 3;
-						float x = vertexData.get(index++) + offset.x;
-						float y = vertexData.get(index++) + offset.y;
-						float z = vertexData.get(index) + offset.z;
+						int index = vertexIndex.getInt(i) * 3;
+						float x = vertexData.getFloat(index++) + offset.x;
+						float y = vertexData.getFloat(index++) + offset.y;
+						float z = vertexData.getFloat(index) + offset.z;
 						quad.setPosition(i, x, y, z);
 						if (hasUV) {
-							index = uvIndex.get(i) << 1;
-							float u = uvData.get(index++);
-							float v = (1.0F - uvData.get(index));
+							index = uvIndex.getInt(i) << 1;
+							float u = uvData.getFloat(index++);
+							float v = (1.0F - uvData.getFloat(index));
 							quad.setUV(i, u, v);
 						}
 					}

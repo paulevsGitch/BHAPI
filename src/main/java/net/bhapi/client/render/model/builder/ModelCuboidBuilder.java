@@ -73,7 +73,7 @@ public class ModelCuboidBuilder {
 	}
 	
 	/**
-	 * Set texture index for face.
+	 * Set texture uvID for face.
 	 */
 	public ModelCuboidBuilder setTextureIndex(BlockDirection facing, int index) {
 		textureIndex.set(facing, index);

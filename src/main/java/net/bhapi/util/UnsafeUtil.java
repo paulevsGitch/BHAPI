@@ -19,27 +19,27 @@ public class UnsafeUtil {
 		
 		if (objClass.isArray()) {
 			switch (objClass.getName()) {
-				case "[B" -> {
+				case "B[", "[B" -> {
 					byte[] src = (byte[]) obj;
 					return (T) Arrays.copyOf(src, src.length);
 				}
-				case "S[" -> {
+				case "S[", "[S" -> {
 					short[] src = (short[]) obj;
 					return (T) Arrays.copyOf(src, src.length);
 				}
-				case "C[" -> {
+				case "C[", "[C" -> {
 					char[] src = (char[]) obj;
 					return (T) Arrays.copyOf(src, src.length);
 				}
-				case "I[" -> {
+				case "I[", "[I" -> {
 					int[] src = (int[]) obj;
 					return (T) Arrays.copyOf(src, src.length);
 				}
-				case "J[" -> {
+				case "J[", "[J" -> {
 					long[] src = (long[]) obj;
 					return (T) Arrays.copyOf(src, src.length);
 				}
-				case "F[" -> {
+				case "F[", "[F" -> {
 					float[] src = (float[]) obj;
 					return (T) Arrays.copyOf(src, src.length);
 				}
@@ -47,7 +47,7 @@ public class UnsafeUtil {
 					double[] src = (double[]) obj;
 					return (T) Arrays.copyOf(src, src.length);
 				}
-				case "Z[" -> {
+				case "Z[", "[Z" -> {
 					boolean[] src = (boolean[]) obj;
 					return (T) Arrays.copyOf(src, src.length);
 				}

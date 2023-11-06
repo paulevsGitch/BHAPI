@@ -25,7 +25,7 @@ public interface BHBlockRender {
 	}
 	
 	/**
-	 * Get texture for current model index. Vanilla blocks have indexes equal to quad face directions, custom models
+	 * Get texture for current model uvID. Vanilla blocks have indexes equal to quad face directions, custom models
 	 * can have any indexes.
 	 * @see net.bhapi.util.BlockDirection
 	 * @param view {@link BlockView}
@@ -33,8 +33,8 @@ public interface BHBlockRender {
 	 * @param y Y block coordinate
 	 * @param z Z block coordinate
 	 * @param state current {@link BlockState}
-	 * @param textureIndex current texture index
-	 * @param overlayIndex current overlay index
+	 * @param textureIndex current texture uvID
+	 * @param overlayIndex current overlay uvID
 	 * @return {@link TextureSample} or null
 	 */
 	@Environment(EnvType.CLIENT)
