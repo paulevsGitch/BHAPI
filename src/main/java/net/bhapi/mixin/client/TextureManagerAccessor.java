@@ -9,5 +9,5 @@ import java.util.List;
 @Mixin(TextureManager.class)
 public interface TextureManagerAccessor {
 	@Accessor("textureBinders")
-	List<?> getTextureBinders();
+	List<?> bhapi_getTextureBinders();
 }

@@ -4,7 +4,7 @@ import net.bhapi.blockstate.BlockState;
 import net.bhapi.level.BlockStateProvider;
 import net.bhapi.util.BlockUtil;
 import net.minecraft.block.BlockSounds;
-import net.minecraft.client.BaseClientInteractionManager;
+import net.minecraft.client.ClientInteractionManager;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.SinglePlayerClientInteractionManager;
 import net.minecraft.item.ItemStack;
@@ -16,7 +16,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 @Mixin(SinglePlayerClientInteractionManager.class)
-public abstract class SinglePlayerClientInteractionManagerMixin extends BaseClientInteractionManager {
+public abstract class SinglePlayerClientInteractionManagerMixin extends ClientInteractionManager {
 	@Shadow private float damage;
 	@Shadow private int hitDelay;
 	@Shadow private int blockX;
@@ -31,7 +31,7 @@ public abstract class SinglePlayerClientInteractionManagerMixin extends BaseClie
 	
 	@Inject(method = "activateBlock", at = @At("HEAD"), cancellable = true)
 	private void bhapi_activateBlock(int x, int y, int z, int l, CallbackInfoReturnable<Boolean> info) {
-		BlockState state = BlockStateProvider.cast(this.minecraft.level).getBlockState(x, y, z);
+		BlockState state = BlockStateProvider.cast(this.minecraft.level).bhapi_getBlockState(x, y, z);
 		boolean result = super.activateBlock(x, y, z, l);
 		ItemStack itemStack = this.minecraft.player.getHeldItem();
 		
@@ -57,7 +57,7 @@ public abstract class SinglePlayerClientInteractionManagerMixin extends BaseClie
 	private void bhapi_playerDigBlock(int x, int y, int z, int l, CallbackInfo info) {
 		info.cancel();
 		this.minecraft.level.firePlayer(this.minecraft.player, x, y, z, l);
-		BlockState state = BlockStateProvider.cast(this.minecraft.level).getBlockState(x, y, z);
+		BlockState state = BlockStateProvider.cast(this.minecraft.level).bhapi_getBlockState(x, y, z);
 		if (!state.isAir() && this.damage == 0.0f) {
 			state.getBlock().activate(this.minecraft.level, x, y, z, this.minecraft.player);
 		}
@@ -76,7 +76,7 @@ public abstract class SinglePlayerClientInteractionManagerMixin extends BaseClie
 		}
 		
 		if (x == this.blockX && y == this.blockY && z == this.blockZ) {
-			BlockState state = BlockStateProvider.cast(this.minecraft.level).getBlockState(x, y, z);
+			BlockState state = BlockStateProvider.cast(this.minecraft.level).bhapi_getBlockState(x, y, z);
 			if (state.isAir()) return;
 			
 			this.damage += state.getHardness(this.minecraft.player);

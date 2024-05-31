@@ -4,10 +4,10 @@ import net.bhapi.level.ChunkHeightProvider;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.render.GameRenderer;
 import net.minecraft.client.render.Tessellator;
-import net.minecraft.entity.LivingEntity;
+import net.minecraft.entity.living.LivingEntity;
 import net.minecraft.level.Level;
-import net.minecraft.level.biome.BaseBiome;
-import net.minecraft.util.maths.MathHelper;
+import net.minecraft.level.biome.Biome;
+import net.minecraft.util.maths.MCMath;
 import org.lwjgl.opengl.GL11;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
@@ -38,9 +38,9 @@ public class GameRendererMixin {
 		LivingEntity entity = this.minecraft.viewEntity;
 		Level level = this.minecraft.level;
 		
-		int ix = MathHelper.floor(entity.x);
-		int iy = MathHelper.floor(entity.y);
-		int iz = MathHelper.floor(entity.z);
+		int ix = MCMath.floor(entity.x);
+		int iy = MCMath.floor(entity.y);
+		int iz = MCMath.floor(entity.z);
 		
 		Tessellator tessellator = Tessellator.INSTANCE;
 		GL11.glDisable(2884);
@@ -53,14 +53,14 @@ public class GameRendererMixin {
 		double posX = entity.prevRenderX + (entity.x - entity.prevRenderX) * delta;
 		double posY = entity.prevRenderY + (entity.y - entity.prevRenderY) * delta;
 		double posZ = entity.prevRenderZ + (entity.z - entity.prevRenderZ) * delta;
-		int minY = MathHelper.floor(posY);
+		int minY = MCMath.floor(posY);
 		
 		int distance = 5;
 		if (this.minecraft.options.fancyGraphics) {
 			distance = 10;
 		}
 		
-		BaseBiome[] baseBiomeArray = level.getBiomeSource().getBiomes(ix - distance, iz - distance, distance * 2 + 1, distance * 2 + 1);
+		Biome[] baseBiomeArray = level.getBiomeSource().getBiomes(ix - distance, iz - distance, distance * 2 + 1, distance * 2 + 1);
 		int index = 0;
 		for (dx = ix - distance; dx <= ix + distance; ++dx) {
 			for (dz = iz - distance; dz <= iz + distance; ++dz) {
@@ -88,7 +88,7 @@ public class GameRendererMixin {
 				float f7 = this.random.nextFloat() + offset * (float) this.random.nextGaussian() * 0.001F;
 				double d4 = dx + 0.5 - entity.x;
 				double d5 = dz + 0.5 - entity.z;
-				float f8 = MathHelper.sqrt(d4 * d4 + d5 * d5) / (float)distance;
+				float f8 = MCMath.sqrt(d4 * d4 + d5 * d5) / (float)distance;
 				
 				tessellator.start();
 				float light = level.getBrightness(dx, dy, dz);
@@ -108,7 +108,7 @@ public class GameRendererMixin {
 				tessellator.vertex(dx + 0.5, h, dz + 1, f2 + f6, v2);
 				tessellator.vertex(dx + 0.5, h, dz, f6, v2);
 				tessellator.setOffset(0.0, 0.0, 0.0);
-				tessellator.draw();
+				tessellator.render();
 			}
 		}
 		
@@ -139,7 +139,7 @@ public class GameRendererMixin {
 				double distX = dx + 0.5 - entity.x;
 				double distZ = dz + 0.5 - entity.z;
 				
-				float length = MathHelper.sqrt(distX * distX + distZ * distZ) / distance;
+				float length = MCMath.sqrt(distX * distX + distZ * distZ) / distance;
 				
 				tessellator.start();
 				float light = level.getBrightness(dx, dy, dz) * 0.85f + 0.15f;
@@ -159,7 +159,7 @@ public class GameRendererMixin {
 				tessellator.vertex(dx + 0.5, y2, dz + 1, u, v2);
 				tessellator.vertex(dx + 0.5, y2, dz, 0, v2);
 				tessellator.setOffset(0.0, 0.0, 0.0);
-				tessellator.draw();
+				tessellator.render();
 			}
 		}
 		GL11.glEnable(2884);

@@ -1,16 +1,15 @@
 package net.bhapi.storage.vanilla;
 
-import net.minecraft.util.maths.Vec3f;
-
 import java.util.ArrayList;
 import java.util.List;
+import net.minecraft.util.maths.Vec3D;
 
 public class VanillaVectorCache {
-	private final List<Vec3f> data = new ArrayList<>(8192);
+	private final List<Vec3D> data = new ArrayList<>(8192);
 	private int index = 0;
 	
-	public Vec3f get(double x, double y, double z) {
-		Vec3f vector;
+	public Vec3D get(double x, double y, double z) {
+		Vec3D vector;
 		if (index < data.size()) {
 			vector = data.get(index);
 			vector.x = x;
@@ -18,7 +17,7 @@ public class VanillaVectorCache {
 			vector.z = z;
 		}
 		else {
-			vector = Vec3f.make(x, y, z);
+			vector = Vec3D.make(x, y, z);
 			data.add(vector);
 		}
 		if (++index >= 8192) index = 0;

@@ -13,7 +13,7 @@ import net.bhapi.item.BHItemRender;
 import net.bhapi.level.BlockStateProvider;
 import net.bhapi.storage.Vec2F;
 import net.bhapi.util.MathUtil;
-import net.minecraft.block.BaseBlock;
+import net.minecraft.block.Block;
 import net.minecraft.block.material.Material;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.render.OverlaysRenderer;
@@ -23,13 +23,13 @@ import net.minecraft.client.render.entity.EntityRenderDispatcher;
 import net.minecraft.client.render.entity.EntityRenderer;
 import net.minecraft.client.render.entity.PlayerRenderer;
 import net.minecraft.client.render.item.MapRenderer;
-import net.minecraft.entity.LivingEntity;
-import net.minecraft.entity.player.AbstractClientPlayer;
-import net.minecraft.item.BaseItem;
+import net.minecraft.entity.living.LivingEntity;
+import net.minecraft.entity.living.player.AbstractClientPlayer;
+import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.MapItem;
 import net.minecraft.level.storage.MapStorage;
-import net.minecraft.util.maths.MathHelper;
+import net.minecraft.util.maths.MCMath;
 import org.lwjgl.opengl.GL11;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
@@ -71,13 +71,13 @@ public abstract class OverlaysRendererMixin {
 		GL11.glPopMatrix();
 		
 		float light = this.minecraft.level.getBrightness(
-			MathHelper.floor(player.x),
-			MathHelper.floor(player.y),
-			MathHelper.floor(player.z)
+			MCMath.floor(player.x),
+			MCMath.floor(player.y),
+			MCMath.floor(player.z)
 		);
 		
 		if (this.stack != null) {
-			BaseItem item = this.stack.getType();
+			Item item = this.stack.getType();
 			int color = item.getColorMultiplier(this.stack.getDamage());
 			r = (float) (color >> 16 & 0xFF) / 255.0F;
 			g = (float) (color >> 8 & 0xFF) / 255.0F;
@@ -92,9 +92,9 @@ public abstract class OverlaysRendererMixin {
 			GL11.glPushMatrix();
 			float f8 = 0.8f;
 			r = player.getHandSwing(delta);
-			g = MathHelper.sin(r * (float)Math.PI);
-			b = MathHelper.sin(MathHelper.sqrt(r) * (float)Math.PI);
-			GL11.glTranslatef(-b * 0.4f, MathHelper.sin(MathHelper.sqrt(r) * (float) Math.PI * 2.0f) * 0.2f, -g * 0.2f);
+			g = MCMath.sin(r * (float)Math.PI);
+			b = MCMath.sin(MCMath.sqrt(r) * (float)Math.PI);
+			GL11.glTranslatef(-b * 0.4f, MCMath.sin(MCMath.sqrt(r) * (float) Math.PI * 2.0f) * 0.2f, -g * 0.2f);
 			r = 1.0f - rotation / 45.0f + 0.1f;
 			if (r < 0.0f) {
 				r = 0.0f;
@@ -102,7 +102,7 @@ public abstract class OverlaysRendererMixin {
 			if (r > 1.0f) {
 				r = 1.0f;
 			}
-			r = -MathHelper.cos(r * (float)Math.PI) * 0.5f + 0.5f;
+			r = -MCMath.cos(r * (float)Math.PI) * 0.5f + 0.5f;
 			GL11.glTranslatef(0.0f, 0.0f * f8 - (1.0f - offset) * 1.2f - r * 0.5f + 0.04f, -0.9f * f8);
 			GL11.glRotatef(90.0f, 0.0f, 1.0f, 0.0f);
 			GL11.glRotatef(r * -85.0f, 0.0f, 0.0f, 1.0f);
@@ -126,8 +126,8 @@ public abstract class OverlaysRendererMixin {
 			}
 			
 			float f10 = player.getHandSwing(delta);
-			b = MathHelper.sin(f10 * f10 * (float)Math.PI);
-			float f11 = MathHelper.sin(MathHelper.sqrt(f10) * (float)Math.PI);
+			b = MCMath.sin(f10 * f10 * (float)Math.PI);
+			float f11 = MCMath.sin(MCMath.sqrt(f10) * (float)Math.PI);
 			GL11.glRotatef(-b * 20.0f, 0.0f, 1.0f, 0.0f);
 			GL11.glRotatef(-f11 * 20.0f, 0.0f, 0.0f, 1.0f);
 			GL11.glRotatef(-f11 * 80.0f, 1.0f, 0.0f, 0.0f);
@@ -147,8 +147,8 @@ public abstract class OverlaysRendererMixin {
 			tessellator.vertex(128 + n, 128 + n, 0.0, 1.0, 1.0);
 			tessellator.vertex(128 + n, 0 - n, 0.0, 1.0, 0.0);
 			tessellator.vertex(0 - n, 0 - n, 0.0, 0.0, 0.0);
-			tessellator.draw();
-			MapStorage mapStorage = BaseItem.map.getMapStorage(this.stack, this.minecraft.level);
+			tessellator.render();
+			MapStorage mapStorage = Item.map.getMapStorage(this.stack, this.minecraft.level);
 			this.mapRenderer.loadData(this.minecraft.player, this.minecraft.textureManager, mapStorage);
 			GL11.glPopMatrix();
 		}
@@ -156,15 +156,15 @@ public abstract class OverlaysRendererMixin {
 			GL11.glPushMatrix();
 			float f12 = 0.8f;
 			r = player.getHandSwing(delta);
-			g = MathHelper.sin(r * (float)Math.PI);
-			b = MathHelper.sin(MathHelper.sqrt(r) * (float)Math.PI);
-			GL11.glTranslatef(-b * 0.4f, MathHelper.sin(MathHelper.sqrt(r) * (float)Math.PI * 2.0f) * 0.2f, -g * 0.2f);
+			g = MCMath.sin(r * (float)Math.PI);
+			b = MCMath.sin(MCMath.sqrt(r) * (float)Math.PI);
+			GL11.glTranslatef(-b * 0.4f, MCMath.sin(MCMath.sqrt(r) * (float)Math.PI * 2.0f) * 0.2f, -g * 0.2f);
 			GL11.glTranslatef(0.7f * f12, -0.65f * f12 - (1.0f - offset) * 0.6f, -0.9f * f12);
 			GL11.glRotatef(45.0f, 0.0f, 1.0f, 0.0f);
 			GL11.glEnable(32826);
 			r = player.getHandSwing(delta);
-			g = MathHelper.sin(r * r * (float)Math.PI);
-			b = MathHelper.sin(MathHelper.sqrt(r) * (float)Math.PI);
+			g = MCMath.sin(r * r * (float)Math.PI);
+			b = MCMath.sin(MCMath.sqrt(r) * (float)Math.PI);
 			GL11.glRotatef(-g * 20.0f, 0.0f, 1.0f, 0.0f);
 			GL11.glRotatef(-b * 20.0f, 0.0f, 0.0f, 1.0f);
 			GL11.glRotatef(-b * 80.0f, 1.0f, 0.0f, 0.0f);
@@ -180,15 +180,15 @@ public abstract class OverlaysRendererMixin {
 			GL11.glPushMatrix();
 			float f13 = 0.8f;
 			r = player.getHandSwing(delta);
-			g = MathHelper.sin(r * (float)Math.PI);
-			b = MathHelper.sin(MathHelper.sqrt(r) * (float)Math.PI);
-			GL11.glTranslatef(-b * 0.3f, MathHelper.sin(MathHelper.sqrt(r) * (float)Math.PI * 2.0f) * 0.4f, -g * 0.4f);
+			g = MCMath.sin(r * (float)Math.PI);
+			b = MCMath.sin(MCMath.sqrt(r) * (float)Math.PI);
+			GL11.glTranslatef(-b * 0.3f, MCMath.sin(MCMath.sqrt(r) * (float)Math.PI * 2.0f) * 0.4f, -g * 0.4f);
 			GL11.glTranslatef(0.8f * f13, -0.75f * f13 - (1.0f - offset) * 0.6f, -0.9f * f13);
 			GL11.glRotatef(45.0f, 0.0f, 1.0f, 0.0f);
 			GL11.glEnable(32826);
 			r = player.getHandSwing(delta);
-			g = MathHelper.sin(r * r * (float)Math.PI);
-			b = MathHelper.sin(MathHelper.sqrt(r) * (float)Math.PI);
+			g = MCMath.sin(r * r * (float)Math.PI);
+			b = MCMath.sin(MCMath.sqrt(r) * (float)Math.PI);
 			GL11.glRotatef(b * 70.0f, 0.0f, 1.0f, 0.0f);
 			GL11.glRotatef(-g * 20.0f, 0.0f, 0.0f, 1.0f);
 			GL11.glBindTexture(3553, this.minecraft.textureManager.getOnlineImageOrDefaultTextureId(this.minecraft.player.skinUrl, this.minecraft.player.getTextured()));
@@ -213,7 +213,7 @@ public abstract class OverlaysRendererMixin {
 	private void bhapi_renderHand(LivingEntity entity, ItemStack stack, CallbackInfo info) {
 		info.cancel();
 		GL11.glPushMatrix();
-		BaseItem item = stack.getType();
+		Item item = stack.getType();
 		TextureAtlas atlas = Textures.getAtlas();
 		atlas.bind();
 		
@@ -296,7 +296,7 @@ public abstract class OverlaysRendererMixin {
 				tessellator.vertex(1.0, y, 0.0, uv1.x, u22);
 			}
 			
-			tessellator.draw();
+			tessellator.render();
 			
 			GL11.glDisable(32826);
 		}
@@ -315,11 +315,11 @@ public abstract class OverlaysRendererMixin {
 		}
 		
 		if (this.minecraft.player.isInsideWall()) {
-			x = MathHelper.floor(this.minecraft.player.x);
-			y = MathHelper.floor(this.minecraft.player.y);
-			z = MathHelper.floor(this.minecraft.player.z);
+			x = MCMath.floor(this.minecraft.player.x);
+			y = MCMath.floor(this.minecraft.player.y);
+			z = MCMath.floor(this.minecraft.player.z);
 			Textures.getAtlas().bind();
-			BlockState state = BlockStateProvider.cast(this.minecraft.level).getBlockState(x, y, z);
+			BlockState state = BlockStateProvider.cast(this.minecraft.level).bhapi_getBlockState(x, y, z);
 			if (this.minecraft.level.canSuffocate(x, y, z)) {
 				int texture = state.getTextureForIndex(this.minecraft.level, x, y, z, 2, 0).getTextureID();
 				this.renderSuffocateOverlay(delta, texture);
@@ -329,11 +329,11 @@ public abstract class OverlaysRendererMixin {
 					float fx = (((i) & 1) - 0.5f) * this.minecraft.player.width * 0.9f;
 					float fy = (((i >> 1) & 1) - 0.5f) * this.minecraft.player.height * 0.2f;
 					float fz = (((i >> 2) & 1) - 0.5f) * this.minecraft.player.width * 0.9f;
-					int px = MathHelper.floor(x + fx);
-					int py = MathHelper.floor(y + fy);
-					int pz = MathHelper.floor(z + fz);
+					int px = MCMath.floor(x + fx);
+					int py = MCMath.floor(y + fy);
+					int pz = MCMath.floor(z + fz);
 					if (!this.minecraft.level.canSuffocate(px, py, pz)) continue;
-					state = BlockStateProvider.cast(this.minecraft.level).getBlockState(px, py, pz);
+					state = BlockStateProvider.cast(this.minecraft.level).bhapi_getBlockState(px, py, pz);
 				}
 			}
 			if (!state.isAir()) {
@@ -363,7 +363,7 @@ public abstract class OverlaysRendererMixin {
 		for (int i = 0; i < 2; ++i) {
 			GL11.glPushMatrix();
 			
-			TextureSample sample = BlockState.getDefaultState(BaseBlock.FIRE).getTextureForIndex(bhapi_itemView, 0, 0, 0, i, 0);
+			TextureSample sample = BlockState.getDefaultState(Block.FIRE).getTextureForIndex(bhapi_itemView, 0, 0, 0, i, 0);
 			Vec2F uv1 = sample.getUV(0, 0);
 			Vec2F uv2 = sample.getUV(1, 1);
 			
@@ -380,7 +380,7 @@ public abstract class OverlaysRendererMixin {
 			tessellator.vertex(x2, y1, -0.5f, uv1.x, uv2.y);
 			tessellator.vertex(x2, y2, -0.5f, uv1.x, uv1.y);
 			tessellator.vertex(x1, y2, -0.5f, uv2.x, uv1.y);
-			tessellator.draw();
+			tessellator.render();
 			
 			GL11.glPopMatrix();
 		}
@@ -408,7 +408,7 @@ public abstract class OverlaysRendererMixin {
 		tessellator.vertex(1.0f, -1.0f, -0.5f, u1, v2);
 		tessellator.vertex(1.0f, 1.0f, -0.5f, u1, v1);
 		tessellator.vertex(-1.0f, 1.0f, -0.5f, u2, v1);
-		tessellator.draw();
+		tessellator.render();
 		
 		GL11.glPopMatrix();
 		GL11.glColor4f(1.0f, 1.0f, 1.0f, 1.0f);

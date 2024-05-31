@@ -67,7 +67,7 @@ public class MinecraftMixin {
 		ClientChunks.onExit();
 	}
 	
-	@Inject(method = "startLoginThread", at = @At("HEAD"))
+	@Inject(method = "startLoginThread", at = @At("HEAD"), cancellable = true)
 	private void bhapi_cancelLogin(CallbackInfo info) {
 		info.cancel();
 	}

@@ -9,11 +9,11 @@ import net.bhapi.util.Identifier;
 import net.bhapi.util.ItemUtil;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
-import net.minecraft.block.BaseBlock;
-import net.minecraft.entity.BaseEntity;
-import net.minecraft.entity.LivingEntity;
-import net.minecraft.entity.player.PlayerBase;
-import net.minecraft.item.BaseItem;
+import net.minecraft.block.Block;
+import net.minecraft.entity.Entity;
+import net.minecraft.entity.living.LivingEntity;
+import net.minecraft.entity.living.player.PlayerEntity;
+import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.level.Level;
 import net.minecraft.stat.Stats;
@@ -32,25 +32,25 @@ public abstract class ItemStackMixin implements ItemProvider {
 	@Shadow private int damage;
 	@Shadow public int itemId;
 	
-	@Shadow public abstract BaseItem getType();
+	@Shadow public abstract Item getType();
 	@Shadow public abstract boolean hasDurability();
 	@Shadow public abstract int getDurability();
 	
 	@Shadow public int cooldown;
-	@Unique private BaseItem bhapi_item;
+	@Unique private Item bhapi_item;
 	
-	@Inject(method = "<init>(Lnet/minecraft/block/BaseBlock;)V", at = @At("TAIL"))
-	private void bhapi_onItemStackInit1(BaseBlock block, CallbackInfo info) {
+	@Inject(method = "<init>(Lnet/minecraft/block/Block;)V", at = @At("TAIL"))
+	private void bhapi_onItemStackInit1(Block block, CallbackInfo info) {
 		bhapi_processBlockItem(block);
 	}
 	
-	@Inject(method = "<init>(Lnet/minecraft/block/BaseBlock;I)V", at = @At("TAIL"))
-	private void bhapi_onItemStackInit2(BaseBlock block, int count, CallbackInfo info) {
+	@Inject(method = "<init>(Lnet/minecraft/block/Block;I)V", at = @At("TAIL"))
+	private void bhapi_onItemStackInit2(Block block, int count, CallbackInfo info) {
 		bhapi_processBlockItem(block);
 	}
 	
-	@Inject(method = "<init>(Lnet/minecraft/block/BaseBlock;II)V", at = @At("TAIL"))
-	private void bhapi_onItemStackInit3(BaseBlock block, int count, int damage, CallbackInfo info) {
+	@Inject(method = "<init>(Lnet/minecraft/block/Block;II)V", at = @At("TAIL"))
+	private void bhapi_onItemStackInit3(Block block, int count, int damage, CallbackInfo info) {
 		if (this.bhapi_item != null) return;
 		if (!ItemUtil.isFrozen()) {
 			ItemUtil.addStackForPostProcessing(BlockState.getDefaultState(block), ItemStack.class.cast(this));
@@ -60,18 +60,18 @@ public abstract class ItemStackMixin implements ItemProvider {
 		this.bhapi_item = BHBlockItem.get(state);
 	}
 	
-	@Inject(method = "<init>(Lnet/minecraft/item/BaseItem;)V", at = @At("TAIL"))
-	private void bhapi_onItemStackInit4(BaseItem item, CallbackInfo info) {
+	@Inject(method = "<init>(Lnet/minecraft/item/Item;)V", at = @At("TAIL"))
+	private void bhapi_onItemStackInit4(Item item, CallbackInfo info) {
 		this.bhapi_item = item;
 	}
 	
-	@Inject(method = "<init>(Lnet/minecraft/item/BaseItem;I)V", at = @At("TAIL"))
-	private void bhapi_onItemStackInit5(BaseItem item, int count, CallbackInfo info) {
+	@Inject(method = "<init>(Lnet/minecraft/item/Item;I)V", at = @At("TAIL"))
+	private void bhapi_onItemStackInit5(Item item, int count, CallbackInfo info) {
 		this.bhapi_item = item;
 	}
 	
-	@Inject(method = "<init>(Lnet/minecraft/item/BaseItem;II)V", at = @At("TAIL"))
-	private void bhapi_onItemStackInit6(BaseItem item, int count, int damage, CallbackInfo info) {
+	@Inject(method = "<init>(Lnet/minecraft/item/Item;II)V", at = @At("TAIL"))
+	private void bhapi_onItemStackInit6(Item item, int count, int damage, CallbackInfo info) {
 		this.bhapi_item = item;
 	}
 	
@@ -94,7 +94,7 @@ public abstract class ItemStackMixin implements ItemProvider {
 				}
 				else return;
 			}
-			else this.bhapi_item = BaseItem.byId[id];
+			else this.bhapi_item = Item.byId[id];
 			if (this.bhapi_item == null) {
 				this.itemId = 256;
 				this.count = 0;
@@ -109,17 +109,17 @@ public abstract class ItemStackMixin implements ItemProvider {
 	}
 	
 	@Inject(method = "getType", at = @At("HEAD"), cancellable = true)
-	private void bhapi_getType(CallbackInfoReturnable<BaseItem> info) {
+	private void bhapi_getType(CallbackInfoReturnable<Item> info) {
 		if (this.bhapi_item == null) {
-			info.setReturnValue(BaseItem.ironShovel);
+			info.setReturnValue(Item.ironShovel);
 		}
 		else info.setReturnValue(this.bhapi_item);
 	}
 	
 	@Inject(method = "useOnBlock", at = @At("HEAD"), cancellable = true)
-	private void bhapi_useOnBlock(PlayerBase arg, Level level, int x, int y, int z, int facing, CallbackInfoReturnable<Boolean> info) {
+	private void bhapi_useOnBlock(PlayerEntity arg, Level level, int x, int y, int z, int facing, CallbackInfoReturnable<Boolean> info) {
 		ItemStack stack = ItemStack.class.cast(this);
-		BaseItem type = this.getType();
+		Item type = this.getType();
 		boolean result = type.useOnBlock(stack, arg, level, x, y, z, facing);
 		if (result) {
 			arg.increaseStat(Stats.useItem[type.id], 1);
@@ -129,13 +129,13 @@ public abstract class ItemStackMixin implements ItemProvider {
 	
 	@Inject(method = "toTag", at = @At("HEAD"), cancellable = true)
 	private void bhapi_toTag(CompoundTag tag, CallbackInfoReturnable<CompoundTag> info) {
-		BaseItem item = getType();
+		Item item = getType();
 		Identifier id = CommonRegistries.ITEM_REGISTRY.getID(item);
 		if (id == null) {
 			if (item instanceof BHBlockItem) {
 				id = CommonRegistries.BLOCK_REGISTRY.getID(BHBlockItem.cast(item).getState().getBlock());
 				item = CommonRegistries.ITEM_REGISTRY.get(id);
-				setItem(item);
+				bhapi_setItem(item);
 			}
 			if (id == null) count = 0;
 		}
@@ -170,14 +170,14 @@ public abstract class ItemStackMixin implements ItemProvider {
 	}
 	
 	@Inject(method = "applyDamage", at = @At("HEAD"), cancellable = true)
-	private void applyDamage(int damage, BaseEntity entity, CallbackInfo info) {
+	private void applyDamage(int damage, Entity entity, CallbackInfo info) {
 		info.cancel();
 		if (!this.hasDurability()) return;
 		this.damage += damage;
 		if (this.damage > this.getDurability()) {
-			if (entity instanceof PlayerBase) {
-				BaseItem type = this.getType();
-				((PlayerBase)entity).increaseStat(Stats.breakItem[type.id], 1);
+			if (entity instanceof PlayerEntity) {
+				Item type = this.getType();
+				((PlayerEntity)entity).increaseStat(Stats.breakItem[type.id], 1);
 			}
 			--this.count;
 			if (this.count < 0) this.count = 0;
@@ -186,32 +186,32 @@ public abstract class ItemStackMixin implements ItemProvider {
 	}
 	
 	@Inject(method = "postHit", at = @At("HEAD"), cancellable = true)
-	private void bhapi_postHit(LivingEntity entity, PlayerBase arg2, CallbackInfo info) {
+	private void bhapi_postHit(LivingEntity entity, PlayerEntity arg2, CallbackInfo info) {
 		info.cancel();
 		ItemStack stack = ItemStack.class.cast(this);
-		BaseItem type = this.getType();
+		Item type = this.getType();
 		if (type.postHit(stack, entity, arg2)) {
 			arg2.increaseStat(Stats.useItem[type.id], 1);
 		}
 	}
 	
 	@Inject(method = "postMine", at = @At("HEAD"), cancellable = true)
-	private void bhapi_postMine(int i, int j, int k, int l, PlayerBase arg, CallbackInfo info) {
+	private void bhapi_postMine(int i, int j, int k, int l, PlayerEntity arg, CallbackInfo info) {
 		info.cancel();
 		ItemStack stack = ItemStack.class.cast(this);
-		BaseItem type = this.getType();
+		Item type = this.getType();
 		if (type.postMine(stack, i, j, k, l, arg)) {
 			arg.increaseStat(Stats.useItem[type.id], 1);
 		}
 	}
 	
 	@Inject(method = "getAttack", at = @At("HEAD"), cancellable = true)
-	private void bhapi_getAttack(BaseEntity entity, CallbackInfoReturnable<Integer> info) {
+	private void bhapi_getAttack(Entity entity, CallbackInfoReturnable<Integer> info) {
 		info.setReturnValue(this.getType().getAttackDamage(entity));
 	}
 	
 	@Inject(method = "isEffectiveOn", at = @At("HEAD"), cancellable = true)
-	private void bhapi_isEffectiveOn(BaseBlock block, CallbackInfoReturnable<Boolean> info) {
+	private void bhapi_isEffectiveOn(Block block, CallbackInfoReturnable<Boolean> info) {
 		info.setReturnValue(this.getType().isEffectiveOn(block));
 	}
 	
@@ -249,7 +249,7 @@ public abstract class ItemStackMixin implements ItemProvider {
 	@Inject(method = "getTranslationKey", at = @At("HEAD"), cancellable = true)
 	private void bhapi_getTranslationKey(CallbackInfoReturnable<String> info) {
 		ItemStack stack = ItemStack.class.cast(this);
-		BaseItem type = this.getType();
+		Item type = this.getType();
 		info.setReturnValue(type.getTranslationKey(stack));
 	}
 	
@@ -259,19 +259,19 @@ public abstract class ItemStackMixin implements ItemProvider {
 	}
 	
 	@Inject(method = "inventoryTick", at = @At("HEAD"), cancellable = true)
-	private void bhapi_inventoryTick(Level level, BaseEntity entity, int i, boolean bl, CallbackInfo info) {
+	private void bhapi_inventoryTick(Level level, Entity entity, int i, boolean bl, CallbackInfo info) {
 		info.cancel();
 		if (this.cooldown > 0) --this.cooldown;
 		ItemStack stack = ItemStack.class.cast(this);
-		BaseItem type = this.getType();
+		Item type = this.getType();
 		type.inventoryTick(stack, level, entity, i, bl);
 	}
 	
 	@Inject(method = "onCrafted", at = @At("HEAD"), cancellable = true)
-	private void bhapi_onCrafted(Level level, PlayerBase player, CallbackInfo info) {
+	private void bhapi_onCrafted(Level level, PlayerEntity player, CallbackInfo info) {
 		info.cancel();
 		ItemStack stack = ItemStack.class.cast(this);
-		BaseItem type = this.getType();
+		Item type = this.getType();
 		player.increaseStat(Stats.timesCrafted[type.id], this.count);
 		type.onCreation(stack, level, player);
 	}
@@ -282,7 +282,7 @@ public abstract class ItemStackMixin implements ItemProvider {
 	}
 	
 	@Unique
-	private void bhapi_processBlockItem(BaseBlock block) {
+	private void bhapi_processBlockItem(Block block) {
 		if (this.bhapi_item != null) return;
 		if (!ItemUtil.isFrozen()) {
 			ItemUtil.addStackForPostProcessing(BlockState.getDefaultState(block), ItemStack.class.cast(this));
@@ -294,13 +294,13 @@ public abstract class ItemStackMixin implements ItemProvider {
 	
 	@Unique
 	@Override
-	public BaseItem getItem() {
+	public Item bhapi_getItem() {
 		return this.bhapi_item;
 	}
 	
 	@Unique
 	@Override
-	public void setItem(BaseItem item) {
+	public void bhapi_setItem(Item item) {
 		this.bhapi_item = item;
 	}
 }

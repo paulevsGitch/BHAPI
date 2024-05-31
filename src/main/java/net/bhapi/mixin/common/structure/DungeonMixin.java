@@ -1,7 +1,7 @@
 package net.bhapi.mixin.common.structure;
 
 import net.minecraft.level.Level;
-import net.minecraft.level.structure.Dungeon;
+import net.minecraft.level.structure.DungeonStructure;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
@@ -11,7 +11,7 @@ import org.spongepowered.asm.mixin.injection.callback.LocalCapture;
 import java.util.Random;
 
 // Not required (yet)
-@Mixin(Dungeon.class)
+@Mixin(DungeonStructure.class)
 public class DungeonMixin {
 	@Inject(method = "generate", at = @At(
 		value = "INVOKE",

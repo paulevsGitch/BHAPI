@@ -4,8 +4,8 @@ import net.bhapi.client.render.texture.TextureSample;
 import net.bhapi.client.render.texture.TextureSampleProvider;
 import net.bhapi.storage.Vec2F;
 import net.minecraft.client.render.Tessellator;
-import net.minecraft.entity.BaseEntity;
-import net.minecraft.entity.BaseParticle;
+import net.minecraft.entity.Entity;
+import net.minecraft.entity.technical.ParticleEntity;
 import net.minecraft.level.Level;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
@@ -14,8 +14,8 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
-@Mixin(BaseParticle.class)
-public abstract class BaseParticleMixin extends BaseEntity implements TextureSampleProvider {
+@Mixin(ParticleEntity.class)
+public abstract class ParticleEntityMixin extends Entity implements TextureSampleProvider {
 	@Shadow public static double posX;
 	@Shadow public static double posY;
 	@Shadow public static double posZ;
@@ -27,19 +27,19 @@ public abstract class BaseParticleMixin extends BaseEntity implements TextureSam
 	
 	@Unique private TextureSample bhapi_sample;
 	
-	public BaseParticleMixin(Level arg) {
+	public ParticleEntityMixin(Level arg) {
 		super(arg);
 	}
 	
 	@Unique
 	@Override
-	public TextureSample getTextureSample() {
+	public TextureSample bhapi_getTextureSample() {
 		return bhapi_sample;
 	}
 	
 	@Unique
 	@Override
-	public void setTextureSample(TextureSample sample) {
+	public void bhapi_setTextureSample(TextureSample sample) {
 		bhapi_sample = sample;
 	}
 	
@@ -47,7 +47,7 @@ public abstract class BaseParticleMixin extends BaseEntity implements TextureSam
 	private void bhapi_render(Tessellator tessellator, float delta, float dx, float dy, float dz, float width, float height, CallbackInfo info) {
 		info.cancel();
 		
-		TextureSample sample = getTextureSample();
+		TextureSample sample = bhapi_getTextureSample();
 		if (sample == null) return;
 		
 		Vec2F uv1 = sample.getUV(0, 0);

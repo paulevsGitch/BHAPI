@@ -21,14 +21,14 @@ import java.util.List;
 @Mixin(LeavesBlock.class)
 public abstract class LeavesBlockMixin implements BlockStateContainer {
 	@Override
-	public void appendProperties(List<StateProperty<?>> properties) {
+	public void bhapi_appendProperties(List<StateProperty<?>> properties) {
 		properties.add(LegacyProperties.META_16); // Leaves use meta | 8 for updating states.
 	}
 	
 	@Environment(value= EnvType.CLIENT)
 	@Inject(method = "getColorMultiplier", at = @At("HEAD"), cancellable = true)
 	private void bhapi_getColorMultiplier(BlockView view, int x, int y, int z, CallbackInfoReturnable<Integer> info) {
-		BlockState state = BlockStateProvider.cast(view).getBlockState(x, y, z);
+		BlockState state = BlockStateProvider.cast(view).bhapi_getBlockState(x, y, z);
 		int meta = state.getMeta();
 		
 		if ((meta & 1) == 1) {

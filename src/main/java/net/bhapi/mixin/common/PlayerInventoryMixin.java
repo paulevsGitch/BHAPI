@@ -1,6 +1,6 @@
 package net.bhapi.mixin.common;
 
-import net.minecraft.entity.player.PlayerInventory;
+import net.minecraft.inventory.PlayerInventory;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.io.CompoundTag;
 import net.minecraft.util.io.ListTag;

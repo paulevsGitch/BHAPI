@@ -13,6 +13,6 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 public abstract class FireParticleMixin {
 	@Inject(method = "<init>", at = @At("TAIL"))
 	private void bhapi_onParticleInit(Level arg, double d, double e, double f, double g, double h, double i, CallbackInfo info) {
-		TextureSampleProvider.cast(this).setTextureSample(ParticleTextures.FLAME);
+		TextureSampleProvider.cast(this).bhapi_setTextureSample(ParticleTextures.FLAME);
 	}
 }

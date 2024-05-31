@@ -13,10 +13,10 @@ import net.bhapi.level.LevelHeightProvider;
 import net.bhapi.util.BlockUtil;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
-import net.minecraft.block.BaseBlock;
+import net.minecraft.block.Block;
 import net.minecraft.block.MovingPistonBlock;
 import net.minecraft.block.PistonBlock;
-import net.minecraft.block.entity.BaseBlockEntity;
+import net.minecraft.block.entity.BlockEntity;
 import net.minecraft.block.entity.PistonBlockEntity;
 import net.minecraft.block.material.Material;
 import net.minecraft.block.technical.PistonDataValues;
@@ -35,7 +35,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 import java.util.List;
 
 @Mixin(PistonBlock.class)
-public abstract class PistonBlockMixin extends BaseBlock implements BlockStateContainer, BHBlockRender {
+public abstract class PistonBlockMixin extends Block implements BlockStateContainer, BHBlockRender {
 	@Shadow private boolean updateBlock;
 	@Shadow private boolean actionByRotation;
 	
@@ -48,7 +48,7 @@ public abstract class PistonBlockMixin extends BaseBlock implements BlockStateCo
 	}
 	
 	@Override
-	public void appendProperties(List<StateProperty<?>> properties) {
+	public void bhapi_appendProperties(List<StateProperty<?>> properties) {
 		properties.add(LegacyProperties.META_16);
 	}
 	
@@ -61,7 +61,7 @@ public abstract class PistonBlockMixin extends BaseBlock implements BlockStateCo
 	
 	@Unique
 	private static short getLevelHeight() {
-		return LevelHeightProvider.cast(bhapi_level).getLevelHeight();
+		return LevelHeightProvider.cast(bhapi_level).bhapi_getLevelHeight();
 	}
 	
 	@Inject(method = "onBlockPlaced", at = @At("HEAD"), cancellable = true)
@@ -80,45 +80,45 @@ public abstract class PistonBlockMixin extends BaseBlock implements BlockStateCo
 			}
 		}
 		else if (flag == 1) {
-			BaseBlockEntity entity = level.getBlockEntity(x + PistonDataValues.OFFSET_X[meta], y + PistonDataValues.OFFSET_Y[meta], z + PistonDataValues.OFFSET_Z[meta]);
+			BlockEntity entity = level.getBlockEntity(x + PistonDataValues.OFFSET_X[meta], y + PistonDataValues.OFFSET_Y[meta], z + PistonDataValues.OFFSET_Z[meta]);
 			if (entity instanceof PistonBlockEntity) {
 				((PistonBlockEntity) entity).resetBlock();
 			}
 			BlockStateProvider provider = BlockStateProvider.cast(level);
-			provider.setBlockState(x, y, z, BlockState.getDefaultState(BaseBlock.MOVING_PISTON).withMeta(meta));
+			provider.bhapi_setBlockState(x, y, z, BlockState.getDefaultState(Block.MOVING_PISTON).withMeta(meta));
 			PistonBlockEntity pistonEntity = (PistonBlockEntity) MovingPistonBlock.createEntity(this.id, meta, meta, false, true);
-			BlockStateContainer.cast(pistonEntity).setDefaultState(BlockUtil.getLegacyBlock(this.id, meta));
+			BlockStateContainer.cast(pistonEntity).bhapi_setDefaultState(BlockUtil.getLegacyBlock(this.id, meta));
 			level.setBlockEntity(x, y, z, pistonEntity);
 			if (this.actionByRotation) {
-				BaseBlockEntity entity2;
+				BlockEntity entity2;
 				int x2 = x + PistonDataValues.OFFSET_X[meta] * 2;
 				int y2 = y + PistonDataValues.OFFSET_Y[meta] * 2;
 				int z2 = z + PistonDataValues.OFFSET_Z[meta] * 2;
-				BlockState state = provider.getBlockState(x2, y2, z2);
+				BlockState state = provider.bhapi_getBlockState(x2, y2, z2);
 				boolean skipUpdate = false;
-				if (state.is(BaseBlock.MOVING_PISTON) && (entity2 = level.getBlockEntity(x2, y2, z2)) != null && entity2 instanceof PistonBlockEntity && (pistonEntity = (PistonBlockEntity)entity2).getFacing() == meta && pistonEntity.isExtending()) {
+				if (state.is(Block.MOVING_PISTON) && (entity2 = level.getBlockEntity(x2, y2, z2)) != null && entity2 instanceof PistonBlockEntity && (pistonEntity = (PistonBlockEntity)entity2).getFacing() == meta && pistonEntity.isExtending()) {
 					pistonEntity.resetBlock();
-					state = BlockStateContainer.cast(pistonEntity).getDefaultState();
+					state = BlockStateContainer.cast(pistonEntity).bhapi_getDefaultState();
 					if (state == null) state = BlockUtil.AIR_STATE;
 					skipUpdate = true;
 				}
-				if (!skipUpdate && !state.isAir() && bhapi_canMoveBlock(state, level, x2, y2, z2, false) && (state.getBlock().getPistonPushMode() == 0 || state.is(BaseBlock.PISTON) || state.is(BaseBlock.STICKY_PISTON))) {
+				if (!skipUpdate && !state.isAir() && bhapi_canMoveBlock(state, level, x2, y2, z2, false) && (state.getBlock().getPistonPushMode() == 0 || state.is(Block.PISTON) || state.is(Block.STICKY_PISTON))) {
 					this.updateBlock = false;
-					provider.setBlockState(x2, y2, z2, BlockUtil.AIR_STATE);
+					provider.bhapi_setBlockState(x2, y2, z2, BlockUtil.AIR_STATE);
 					this.updateBlock = true;
-					provider.setBlockState(
+					provider.bhapi_setBlockState(
 						x += PistonDataValues.OFFSET_X[meta],
 						y += PistonDataValues.OFFSET_Y[meta],
 						z += PistonDataValues.OFFSET_Z[meta],
-						BlockState.getDefaultState(BaseBlock.MOVING_PISTON).withMeta(meta)
+						BlockState.getDefaultState(Block.MOVING_PISTON).withMeta(meta)
 					);
 					pistonEntity = (PistonBlockEntity) MovingPistonBlock.createEntity(0, 0, meta, false, false);
-					BlockStateContainer.cast(pistonEntity).setDefaultState(state);
+					BlockStateContainer.cast(pistonEntity).bhapi_setDefaultState(state);
 					level.setBlockEntity(x, y, z, pistonEntity);
 				}
 				else if (!skipUpdate) {
 					this.updateBlock = false;
-					provider.setBlockState(
+					provider.bhapi_setBlockState(
 						x + PistonDataValues.OFFSET_X[meta],
 						y + PistonDataValues.OFFSET_Y[meta],
 						z + PistonDataValues.OFFSET_Z[meta],
@@ -129,7 +129,7 @@ public abstract class PistonBlockMixin extends BaseBlock implements BlockStateCo
 			}
 			else {
 				this.updateBlock = false;
-				provider.setBlockState(
+				provider.bhapi_setBlockState(
 					x + PistonDataValues.OFFSET_X[meta],
 					y + PistonDataValues.OFFSET_Y[meta],
 					z + PistonDataValues.OFFSET_Z[meta],
@@ -158,7 +158,7 @@ public abstract class PistonBlockMixin extends BaseBlock implements BlockStateCo
 				return;
 			}
 			
-			BlockState state = provider.getBlockState(x2, y2, z2);
+			BlockState state = provider.bhapi_getBlockState(x2, y2, z2);
 			if (state.isAir()) break;
 			
 			if (!bhapi_canMoveBlock(state, level, x2, y2, z2, true)) {
@@ -187,22 +187,22 @@ public abstract class PistonBlockMixin extends BaseBlock implements BlockStateCo
 			y3 = y2 - PistonDataValues.OFFSET_Y[meta];
 			int z3 = z2 - PistonDataValues.OFFSET_Z[meta];
 			
-			BlockState state = provider.getBlockState(x3, y3, z3);
+			BlockState state = provider.bhapi_getBlockState(x3, y3, z3);
 			
 			if (state.is(this) && x3 == x && y3 == y && z3 == z) {
 				int meta2 = meta | (this.actionByRotation ? 8 : 0);
-				BlockState piston = BlockState.getDefaultState(BaseBlock.MOVING_PISTON).withMeta(meta2);
-				provider.setBlockState(x2, y2, z2, piston);
-				BlockState head = BlockState.getDefaultState(BaseBlock.PISTON_HEAD).withMeta(meta2);
+				BlockState piston = BlockState.getDefaultState(Block.MOVING_PISTON).withMeta(meta2);
+				provider.bhapi_setBlockState(x2, y2, z2, piston);
+				BlockState head = BlockState.getDefaultState(Block.PISTON_HEAD).withMeta(meta2);
 				PistonBlockEntity entity = (PistonBlockEntity) MovingPistonBlock.createEntity(0, 0, meta, true, false);
-				BlockStateContainer.cast(entity).setDefaultState(head);
+				BlockStateContainer.cast(entity).bhapi_setDefaultState(head);
 				level.setBlockEntity(x2, y2, z2, entity);
 			}
 			else {
-				BlockState state2 = BlockState.getDefaultState(BaseBlock.MOVING_PISTON).withMeta(state.getMeta());
-				provider.setBlockState(x2, y2, z2, state2);
+				BlockState state2 = BlockState.getDefaultState(Block.MOVING_PISTON).withMeta(state.getMeta());
+				provider.bhapi_setBlockState(x2, y2, z2, state2);
 				PistonBlockEntity entity = (PistonBlockEntity) MovingPistonBlock.createEntity(0, 0, meta, true, false);
-				BlockStateContainer.cast(entity).setDefaultState(state);
+				BlockStateContainer.cast(entity).bhapi_setDefaultState(state);
 				level.setBlockEntity(x2, y2, z2, entity);
 			}
 			
@@ -220,7 +220,7 @@ public abstract class PistonBlockMixin extends BaseBlock implements BlockStateCo
 		int px = x + PistonDataValues.OFFSET_X[l];
 		int py = y + PistonDataValues.OFFSET_Y[l];
 		int pz = z + PistonDataValues.OFFSET_Z[l];
-		short height = LevelHeightProvider.cast(level).getLevelHeight();
+		short height = LevelHeightProvider.cast(level).bhapi_getLevelHeight();
 		BlockStateProvider provider = BlockStateProvider.cast(level);
 		for (int i = 0; i < 13; ++i) {
 			if (py <= 0 || py >= height) {
@@ -228,7 +228,7 @@ public abstract class PistonBlockMixin extends BaseBlock implements BlockStateCo
 				return;
 			}
 			
-			BlockState state = provider.getBlockState(px, py, pz);
+			BlockState state = provider.bhapi_getBlockState(px, py, pz);
 			if (state.isAir()) break;
 			
 			if (!bhapi_canMoveBlock(state, level, px, py, pz, true)) {
@@ -251,8 +251,8 @@ public abstract class PistonBlockMixin extends BaseBlock implements BlockStateCo
 	
 	@Unique
 	private static boolean bhapi_canMoveBlock(BlockState state, Level level, int x, int y, int z, boolean flag) {
-		if (state.is(BaseBlock.OBSIDIAN)) return false;
-		if (state.is(BaseBlock.PISTON) || state.is(BaseBlock.STICKY_PISTON)) {
+		if (state.is(Block.OBSIDIAN)) return false;
+		if (state.is(Block.PISTON) || state.is(Block.STICKY_PISTON)) {
 			return !PistonBlock.isExtendedByMeta(level.getBlockMeta(x, y, z));
 		}
 		else {
@@ -265,16 +265,16 @@ public abstract class PistonBlockMixin extends BaseBlock implements BlockStateCo
 	
 	@Override
 	@Environment(EnvType.CLIENT)
-	public TextureSample getTextureForIndex(BlockView view, int x, int y, int z, BlockState state, int textureIndex, int overlayIndex) {
+	public TextureSample bhapi_getTextureForIndex(BlockView view, int x, int y, int z, BlockState state, int textureIndex, int overlayIndex) {
 		if (view instanceof BlockItemView) {
-			BaseBlock block = state.getBlock();
-			int texture = block.getTextureForSide(textureIndex, 1);
+			Block block = state.getBlock();
+			int texture = block.getTexture(textureIndex, 1);
 			TextureSample sample = Textures.getVanillaBlockSample(texture);
 			sample.setRotation(0);
 			return sample;
 		}
-		BaseBlock block = state.getBlock();
-		int texture = block.getTextureForSide(view, x, y, z, textureIndex);
+		Block block = state.getBlock();
+		int texture = block.getTexture(view, x, y, z, textureIndex);
 		return Textures.getVanillaBlockSample(texture);
 	}
 }

@@ -2,7 +2,7 @@ package net.bhapi.mixin.common.packet;
 
 import net.bhapi.registry.CommonRegistries;
 import net.bhapi.util.Identifier;
-import net.minecraft.item.BaseItem;
+import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.packet.AbstractPacket;
 import net.minecraft.packet.play.InventoryUpdatePacket;
@@ -43,7 +43,7 @@ public abstract class InventoryUpdatePacketMixin extends AbstractPacket {
 			if (id == null) continue;
 			byte count = dataInputStream.readByte();
 			short damage = dataInputStream.readShort();
-			BaseItem item = CommonRegistries.ITEM_REGISTRY.get(id);
+			Item item = CommonRegistries.ITEM_REGISTRY.get(id);
 			if (item == null) continue;
 			this.stacks[i] = new ItemStack(item, count, damage);
 		}

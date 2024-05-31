@@ -23,7 +23,7 @@ public abstract class FireBlockMixin implements BlockStateContainer, ClientPostI
 	private static final TextureSample[] BHAPI_SAMPLES = new TextureSample[2];
 	
 	@Override
-	public void appendProperties(List<StateProperty<?>> properties) {
+	public void bhapi_appendProperties(List<StateProperty<?>> properties) {
 		properties.add(LegacyProperties.META_16);
 	}
 	
@@ -37,7 +37,7 @@ public abstract class FireBlockMixin implements BlockStateContainer, ClientPostI
 	
 	@Override
 	@Environment(EnvType.CLIENT)
-	public TextureSample getTextureForIndex(BlockView view, int x, int y, int z, BlockState state, int textureIndex, int overlayIndex) {
+	public TextureSample bhapi_getTextureForIndex(BlockView view, int x, int y, int z, BlockState state, int textureIndex, int overlayIndex) {
 		return BHAPI_SAMPLES[textureIndex & 1];
 	}
 }

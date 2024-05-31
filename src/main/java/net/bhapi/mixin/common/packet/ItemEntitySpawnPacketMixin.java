@@ -5,8 +5,8 @@ import net.bhapi.item.BHBlockItem;
 import net.bhapi.item.ItemProvider;
 import net.bhapi.registry.CommonRegistries;
 import net.bhapi.util.Identifier;
-import net.minecraft.entity.ItemEntity;
-import net.minecraft.item.BaseItem;
+import net.minecraft.entity.technical.ItemEntity;
+import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.packet.AbstractPacket;
 import net.minecraft.packet.play.ItemEntitySpawnPacket;
@@ -34,13 +34,13 @@ public abstract class ItemEntitySpawnPacketMixin extends AbstractPacket implemen
 	@Shadow public byte velocityY;
 	@Shadow public byte velocityZ;
 	
-	@Unique private BaseItem bhapi_item;
+	@Unique private Item bhapi_item;
 	@Unique private ItemEntity bhapi_entity;
 	@Unique private int bhapi_size;
 	
-	@Inject(method = "<init>(Lnet/minecraft/entity/ItemEntity;)V", at = @At("TAIL"))
+	@Inject(method = "<init>(Lnet/minecraft/entity/technical/ItemEntity;)V", at = @At("TAIL"))
 	private void bhapi_onPacketInit(ItemEntity entity, CallbackInfo info) {
-		setItem(entity.stack.getType());
+		bhapi_setItem(entity.stack.getType());
 		bhapi_entity = entity;
 	}
 	
@@ -70,7 +70,7 @@ public abstract class ItemEntitySpawnPacketMixin extends AbstractPacket implemen
 			BlockState state = BHBlockItem.cast(bhapi_item).getState();
 			id = CommonRegistries.BLOCK_REGISTRY.getID(state.getBlock());
 			if (bhapi_entity != null) {
-				BaseItem item = CommonRegistries.ITEM_REGISTRY.get(id);
+				Item item = CommonRegistries.ITEM_REGISTRY.get(id);
 				if (item != null) bhapi_entity.stack = new ItemStack(item, bhapi_entity.stack.count);
 			}
 		}
@@ -93,13 +93,13 @@ public abstract class ItemEntitySpawnPacketMixin extends AbstractPacket implemen
 	
 	@Unique
 	@Override
-	public BaseItem getItem() {
+	public Item bhapi_getItem() {
 		return bhapi_item;
 	}
 	
 	@Unique
 	@Override
-	public void setItem(BaseItem item) {
+	public void bhapi_setItem(Item item) {
 		bhapi_item = item;
 	}
 }

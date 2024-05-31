@@ -21,8 +21,8 @@ import net.bhapi.util.ColorUtil;
 import net.bhapi.util.MathUtil;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
-import net.minecraft.block.BaseBlock;
 import net.minecraft.block.BedBlock;
+import net.minecraft.block.Block;
 import net.minecraft.block.FluidBlock;
 import net.minecraft.block.PistonBlock;
 import net.minecraft.block.PistonHeadBlock;
@@ -30,13 +30,13 @@ import net.minecraft.block.RailBlock;
 import net.minecraft.block.RedstoneDustBlock;
 import net.minecraft.block.RedstoneRepeaterBlock;
 import net.minecraft.block.material.Material;
-import net.minecraft.block.technical.MagicBedNumbers;
+import net.minecraft.block.technical.BedData;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.render.GameRenderer;
 import net.minecraft.client.render.Tessellator;
 import net.minecraft.level.BlockView;
-import net.minecraft.util.maths.MathHelper;
-import net.minecraft.util.maths.Vec3f;
+import net.minecraft.util.maths.MCMath;
+import net.minecraft.util.maths.Vec3D;
 import org.lwjgl.opengl.GL11;
 
 import java.util.ArrayList;
@@ -197,12 +197,12 @@ public class BHBlockRenderer {
 		
 		builder.build(tessellator, RenderLayer.SOLID);
 		builder.build(tessellator, RenderLayer.TRANSPARENT);
-		tessellator.draw();
+		tessellator.render();
 		GL11.glEnable(GL11.GL_BLEND);
 		GL11.glBlendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE_MINUS_SRC_ALPHA);
 		tessellator.start();
 		builder.build(tessellator, RenderLayer.TRANSLUCENT);
-		tessellator.draw();
+		tessellator.render();
 		GL11.glDisable(GL11.GL_BLEND);
 		GL11.glPopMatrix();
 		
@@ -244,7 +244,7 @@ public class BHBlockRenderer {
 		return result;
 	}
 	
-	private float getBrightness(BaseBlock block, int x, int y, int z) {
+	private float getBrightness(Block block, int x, int y, int z) {
 		return item ? itemLight : block.getBrightness(blockView, x, y, z);
 	}
 	
@@ -260,7 +260,7 @@ public class BHBlockRenderer {
 	}
 	
 	private boolean renderCubeSmooth(BlockState state, int x, int y, int z) {
-		BaseBlock block = state.getBlock();
+		Block block = state.getBlock();
 		
 		shadeTopFace = true;
 		boolean result = false;
@@ -275,18 +275,18 @@ public class BHBlockRenderer {
 		
 		if (blockView instanceof BlockStateProvider) {
 			BlockStateProvider provider = BlockStateProvider.cast(blockView);
-			allowsGrassUnderTopSouth = provider.getBlockState(x + 1, y + 1, z).isAir();
-			allowsGrassUnderBottomSouth = provider.getBlockState(x + 1, y - 1, z).isAir();
-			allowsGrassUnderSouthWest = provider.getBlockState(x + 1, y, z + 1).isAir();
-			allowsGrassUnderSouthEast = provider.getBlockState(x + 1, y, z - 1).isAir();
-			allowsGrassUnderTopNorth = provider.getBlockState(x - 1, y + 1, z).isAir();
-			allowsGrassUnderBottomNorth = provider.getBlockState(x - 1, y - 1, z).isAir();
-			allowsGrassUnderNorthEast = provider.getBlockState(x - 1, y, z - 1).isAir();
-			allowsGrassUnderNorthWest = provider.getBlockState(x - 1, y, z + 1).isAir();
-			allowsGrassUnderTopWest = provider.getBlockState(x, y + 1, z + 1).isAir();
-			allowsGrassUnderTopEast = provider.getBlockState(x, y + 1, z - 1).isAir();
-			allowsGrassUnderBottomWest = provider.getBlockState(x, y - 1, z + 1).isAir();
-			allowsGrassUnderBottomEast = provider.getBlockState(x, y - 1, z - 1).isAir();
+			allowsGrassUnderTopSouth = provider.bhapi_getBlockState(x + 1, y + 1, z).isAir();
+			allowsGrassUnderBottomSouth = provider.bhapi_getBlockState(x + 1, y - 1, z).isAir();
+			allowsGrassUnderSouthWest = provider.bhapi_getBlockState(x + 1, y, z + 1).isAir();
+			allowsGrassUnderSouthEast = provider.bhapi_getBlockState(x + 1, y, z - 1).isAir();
+			allowsGrassUnderTopNorth = provider.bhapi_getBlockState(x - 1, y + 1, z).isAir();
+			allowsGrassUnderBottomNorth = provider.bhapi_getBlockState(x - 1, y - 1, z).isAir();
+			allowsGrassUnderNorthEast = provider.bhapi_getBlockState(x - 1, y, z - 1).isAir();
+			allowsGrassUnderNorthWest = provider.bhapi_getBlockState(x - 1, y, z + 1).isAir();
+			allowsGrassUnderTopWest = provider.bhapi_getBlockState(x, y + 1, z + 1).isAir();
+			allowsGrassUnderTopEast = provider.bhapi_getBlockState(x, y + 1, z - 1).isAir();
+			allowsGrassUnderBottomWest = provider.bhapi_getBlockState(x, y - 1, z + 1).isAir();
+			allowsGrassUnderBottomEast = provider.bhapi_getBlockState(x, y - 1, z - 1).isAir();
 		}
 		
 		float brightnessBottomSouthWest;
@@ -567,7 +567,7 @@ public class BHBlockRenderer {
 	}
 	
 	private boolean renderCubeFast(BlockState state, int x, int y, int z) {
-		BaseBlock block = state.getBlock();
+		Block block = state.getBlock();
 		float light;
 		shadeTopFace = false;
 		boolean result = false;
@@ -723,7 +723,7 @@ public class BHBlockRenderer {
 		}
 	}
 	
-	private void renderNegYFace(BaseBlock block, double x, double y, double z, TextureSample sample, BlockState state) {
+	private void renderNegYFace(Block block, double x, double y, double z, TextureSample sample, BlockState state) {
 		float u11, u12, v11, v12;
 		
 		if (forceRotation) sample.setRotation(rotation.get(BlockDirection.NEG_Y));
@@ -785,7 +785,7 @@ public class BHBlockRenderer {
 		}
 	}
 	
-	private void renderPosYFace(BaseBlock block, double x, double y, double z, TextureSample sample, BlockState state) {
+	private void renderPosYFace(Block block, double x, double y, double z, TextureSample sample, BlockState state) {
 		float u11, u12, v11, v12;
 		
 		if (forceRotation) sample.setRotation(rotation.get(BlockDirection.POS_Y));
@@ -847,7 +847,7 @@ public class BHBlockRenderer {
 		}
 	}
 	
-	private void renderNegZFace(BaseBlock block, double x, double y, double z, TextureSample sample, BlockState state) {
+	private void renderNegZFace(Block block, double x, double y, double z, TextureSample sample, BlockState state) {
 		float u11, u12, v11, v12;
 		
 		if (forceRotation) sample.setRotation(rotation.get(BlockDirection.NEG_Z));
@@ -909,7 +909,7 @@ public class BHBlockRenderer {
 		}
 	}
 	
-	private void renderPosZFace(BaseBlock block, double x, double y, double z, TextureSample sample, BlockState state) {
+	private void renderPosZFace(Block block, double x, double y, double z, TextureSample sample, BlockState state) {
 		float u11, u12, v11, v12;
 		
 		if (forceRotation) sample.setRotation(rotation.get(BlockDirection.POS_Z));
@@ -971,7 +971,7 @@ public class BHBlockRenderer {
 		}
 	}
 	
-	private void renderNegXFace(BaseBlock block, double x, double y, double z, TextureSample sample, BlockState state) {
+	private void renderNegXFace(Block block, double x, double y, double z, TextureSample sample, BlockState state) {
 		float u11, u12, v11, v12;
 		
 		if (forceRotation) sample.setRotation(rotation.get(BlockDirection.NEG_X));
@@ -1033,7 +1033,7 @@ public class BHBlockRenderer {
 		}
 	}
 	
-	private void renderPosXFace(BaseBlock block, double x, double y, double z, TextureSample sample, BlockState state) {
+	private void renderPosXFace(Block block, double x, double y, double z, TextureSample sample, BlockState state) {
 		float u11, u12, v11, v12;
 		
 		if (forceRotation) sample.setRotation(rotation.get(BlockDirection.POS_X));
@@ -1099,7 +1099,7 @@ public class BHBlockRenderer {
 		TextureSample sample = state.getTextureForIndex(blockView, x, y, z, 0, overlayIndex);
 		if (sample == null) return false;
 		
-		BaseBlock block = state.getBlock();
+		Block block = state.getBlock();
 		
 		int color = sample.getColorMultiplier(blockView, x + 0.5, y, z + 0.5, state);
 		float r = ColorUtil.getRed(color);
@@ -1132,7 +1132,7 @@ public class BHBlockRenderer {
 		double py = y;
 		double pz = z;
 		
-		if (block == BaseBlock.TALLGRASS) {
+		if (block == Block.TALL_GRASS) {
 			px += TABLES[0].getFloat(x, y, z) * 0.5F - 0.25F;
 			pz += TABLES[1].getFloat(x, y, z) * 0.5F - 0.25F;
 			py -= TABLES[2].getFloat(x, y, z) * 0.2F;
@@ -1177,7 +1177,7 @@ public class BHBlockRenderer {
 		if (sample == null) return false;
 		
 		int meta = state.getMeta();
-		BaseBlock block = state.getBlock();
+		Block block = state.getBlock();
 		
 		float light = getBrightness(block, x, y, z);
 		if (state.getEmittance() > 0) {
@@ -1246,7 +1246,7 @@ public class BHBlockRenderer {
 	}
 	
 	private boolean renderFire(BlockState state, int x, int y, int z) {
-		BaseBlock block = state.getBlock();
+		Block block = state.getBlock();
 		
 		TextureSample sample1 = state.getTextureForIndex(blockView, x, y, z, 0, overlayIndex);
 		TextureSample sample2 = state.getTextureForIndex(blockView, x, y, z, 1, overlayIndex);
@@ -1271,7 +1271,7 @@ public class BHBlockRenderer {
 		}
 		
 		float size = 1.4f;
-		if (blockView.canSuffocate(x, y - 1, z) || BaseBlock.FIRE.method_1824(blockView, x, y - 1, z)) {
+		if (blockView.canSuffocate(x, y - 1, z) || Block.FIRE.canBurnBlock(blockView, x, y - 1, z)) {
 			double x2 = x + 0.5 + 0.2;
 			double x1 = x + 0.5 - 0.2;
 			double z2 = z + 0.5 + 0.2;
@@ -1359,7 +1359,7 @@ public class BHBlockRenderer {
 				u2v2.x = u;
 			}
 			
-			if (BaseBlock.FIRE.method_1824(blockView, x - 1, y, z)) {
+			if (Block.FIRE.canBurnBlock(blockView, x - 1, y, z)) {
 				builder.vertex(x + f3, y + size + f4, z + 1, u2v1.x, u2v1.y);
 				builder.vertex(x, y + f4, z + 1, u2v2.x, u2v2.y);
 				builder.vertex(x, y + f4, z, u1v2.x, u1v2.y);
@@ -1370,7 +1370,7 @@ public class BHBlockRenderer {
 				builder.vertex(x + f3, y + size + f4, z + 1, u2v1.x, u2v1.y);
 			}
 			
-			if (BaseBlock.FIRE.method_1824(blockView, x + 1, y, z)) {
+			if (Block.FIRE.canBurnBlock(blockView, x + 1, y, z)) {
 				builder.vertex(x + 1 - f3, y + size + f4, z, u1v1.x, u1v1.y);
 				builder.vertex(x + 1, y + f4, z, u1v2.x, u1v2.y);
 				builder.vertex(x + 1, y + f4, z + 1, u2v2.x, u2v2.y);
@@ -1381,7 +1381,7 @@ public class BHBlockRenderer {
 				builder.vertex(x + 1 - f3, y + size + f4, z, u1v1.x, u1v1.y);
 			}
 			
-			if (BaseBlock.FIRE.method_1824(blockView, x, y, z - 1)) {
+			if (Block.FIRE.canBurnBlock(blockView, x, y, z - 1)) {
 				builder.vertex(x, y + size + f4, z + f3, u2v1.x, u2v1.y);
 				builder.vertex(x, y + f4, z, u2v2.x, u2v2.y);
 				builder.vertex(x + 1, y + f4, z, u1v2.x, u1v2.y);
@@ -1392,7 +1392,7 @@ public class BHBlockRenderer {
 				builder.vertex(x, y + size + f4, z + f3, u2v1.x, u2v1.y);
 			}
 			
-			if (BaseBlock.FIRE.method_1824(blockView, x, y, z + 1)) {
+			if (Block.FIRE.canBurnBlock(blockView, x, y, z + 1)) {
 				builder.vertex(x + 1, y + size + f4, z + 1 - f3, u1v1.x, u1v1.y);
 				builder.vertex(x + 1, y + f4, z + 1, u1v2.x, u1v2.y);
 				builder.vertex(x, y + f4, z + 1, u2v2.x, u2v2.y);
@@ -1403,7 +1403,7 @@ public class BHBlockRenderer {
 				builder.vertex(x + 1, y + size + f4, z + 1 - f3, u1v1.x, u1v1.y);
 			}
 			
-			if (BaseBlock.FIRE.method_1824(blockView, x, y + 1, z)) {
+			if (Block.FIRE.canBurnBlock(blockView, x, y + 1, z)) {
 				double x6 = x + 0.5 + 0.5;
 				double x5 = x + 0.5 - 0.5;
 				double z6 = z + 0.5 + 0.5;
@@ -1453,7 +1453,7 @@ public class BHBlockRenderer {
 	}
 	
 	private boolean renderFluid(BlockState state, int x, int y, int z) {
-		BaseBlock block = state.getBlock();
+		Block block = state.getBlock();
 		
 		boolean renderTop = state.isSideRendered(blockView, x, y + 1, z, BlockDirection.POS_Y);
 		boolean renderBottom = state.isSideRendered(blockView, x, y - 1, z, BlockDirection.NEG_Y);
@@ -1495,8 +1495,8 @@ public class BHBlockRenderer {
 					v1 = isFlowing ? 0.5F : 1.0F;
 				}
 				
-				float sin = MathHelper.sin(angle) * (isFlowing ? 0.25F : 0.5F);
-				float cos = MathHelper.cos(angle) * (isFlowing ? 0.25F : 0.5F);
+				float sin = MCMath.sin(angle) * (isFlowing ? 0.25F : 0.5F);
+				float cos = MCMath.cos(angle) * (isFlowing ? 0.25F : 0.5F);
 				
 				float light = getBrightness(block, x, y, z);
 				light = Math.max(light, sample.getLight());
@@ -1670,7 +1670,7 @@ public class BHBlockRenderer {
 		
 		if (sample1 == null || sample2 == null) return false;
 		
-		BaseBlock block = state.getBlock();
+		Block block = state.getBlock();
 		
 		int meta = state.getMeta();
 		
@@ -1774,7 +1774,7 @@ public class BHBlockRenderer {
 			u2v1 = sample2.getUV(1, 0, u2v1);
 			u2v2 = sample2.getUV(1, 1, u2v2);
 			
-			if (blockView.canSuffocate(x - 1, y, z) && blockView.getBlockId(x - 1, y + 1, z) == BaseBlock.REDSTONE_DUST.id) {
+			if (blockView.canSuffocate(x - 1, y, z) && blockView.getBlockID(x - 1, y + 1, z) == Block.REDSTONE_DUST.id) {
 				builder.setColor(light * r, light * g, light * b);
 				builder.vertex(x + 0.015625, y + 1.021875, z + 1, u2v1.x, u2v1.y);
 				builder.vertex(x + 0.015625, y, z + 1, u1v1.x, u1v1.y);
@@ -1782,7 +1782,7 @@ public class BHBlockRenderer {
 				builder.vertex(x + 0.015625, y + 1.021875, z, u2v2.x, u2v2.y);
 			}
 			
-			if (blockView.canSuffocate(x + 1, y, z) && blockView.getBlockId(x + 1, y + 1, z) == BaseBlock.REDSTONE_DUST.id) {
+			if (blockView.canSuffocate(x + 1, y, z) && blockView.getBlockID(x + 1, y + 1, z) == Block.REDSTONE_DUST.id) {
 				builder.setColor(light * r, light * g, light * b);
 				builder.vertex(x + 0.984375, y, z + 1, u1v2.x, u1v2.y);
 				builder.vertex(x + 0.984375, y + 1.021875, z + 1, u2v2.y, u2v2.y);
@@ -1790,7 +1790,7 @@ public class BHBlockRenderer {
 				builder.vertex(x + 0.984375, y, z, u1v1.y, u1v1.y);
 			}
 			
-			if (blockView.canSuffocate(x, y, z - 1) && blockView.getBlockId(x, y + 1, z - 1) == BaseBlock.REDSTONE_DUST.id) {
+			if (blockView.canSuffocate(x, y, z - 1) && blockView.getBlockID(x, y + 1, z - 1) == Block.REDSTONE_DUST.id) {
 				builder.setColor(light * r, light * g, light * b);
 				builder.vertex(x + 1, y, z + 0.015625, u1v2.x, u1v2.y);
 				builder.vertex(x + 1, y + 1.021875, z + 0.015625, u2v2.x, u2v2.y);
@@ -1798,7 +1798,7 @@ public class BHBlockRenderer {
 				builder.vertex(x, y, z + 0.015625, u1v1.x, u1v1.y);
 			}
 			
-			if (blockView.canSuffocate(x, y, z + 1) && blockView.getBlockId(x, y + 1, z + 1) == BaseBlock.REDSTONE_DUST.id) {
+			if (blockView.canSuffocate(x, y, z + 1) && blockView.getBlockID(x, y + 1, z + 1) == Block.REDSTONE_DUST.id) {
 				builder.setColor(light * r, light * g, light * b);
 				builder.vertex(x + 1, y + 1.021875, z + 0.984375, u2v1.x, u2v1.y);
 				builder.vertex(x + 1, y, z + 0.984375, u1v1.x, u1v1.y);
@@ -1814,7 +1814,7 @@ public class BHBlockRenderer {
 		int meta = state.getMeta();
 		TextureSample sample = state.getTextureForIndex(blockView, x, y, z, meta, overlayIndex);
 		if (sample == null) return false;
-		BaseBlock block = state.getBlock();
+		Block block = state.getBlock();
 		float light = getBrightness(block, x, y, z);
 		light = Math.max(light, sample.getLight());
 		MeshBuilder builder = this.builder.getBuilder(sample.getLayer());
@@ -1877,7 +1877,7 @@ public class BHBlockRenderer {
 	}
 	
 	private boolean renderDoor(BlockState state, int x, int y, int z) {
-		BaseBlock block = state.getBlock();
+		Block block = state.getBlock();
 		boolean result = false;
 		
 		float lightT = getBrightness(block, x, y, z);
@@ -1913,7 +1913,7 @@ public class BHBlockRenderer {
 		int texture;
 		sample = state.getTextureForIndex(blockView, x, y, z, BlockDirection.NEG_Z.getFacing(), overlayIndex);
 		if (sample != null) {
-			texture = block.getTextureForSide(blockView, x, y, z, BlockDirection.NEG_Z.getFacing());
+			texture = block.getTexture(blockView, x, y, z, BlockDirection.NEG_Z.getFacing());
 			if (texture < 0) sample.setMirrorU(true);
 			lightB = Math.max(lightB * 0.8f, sample.getLight());
 			cr00 = lightB; cg00 = lightB; cb00 = lightB;
@@ -1928,7 +1928,7 @@ public class BHBlockRenderer {
 		
 		sample = state.getTextureForIndex(blockView, x, y, z, 3, overlayIndex);
 		if (sample != null) {
-			texture = block.getTextureForSide(blockView, x, y, z, 3);
+			texture = block.getTexture(blockView, x, y, z, 3);
 			if (texture < 0) sample.setMirrorU(true);
 			lightB = Math.max(lightB * 0.8f, sample.getLight());
 			cr00 = lightB; cg00 = lightB; cb00 = lightB;
@@ -1943,7 +1943,7 @@ public class BHBlockRenderer {
 		
 		sample = state.getTextureForIndex(blockView, x, y, z, 4, overlayIndex);
 		if (sample != null) {
-			texture = block.getTextureForSide(blockView, x, y, z, 4);
+			texture = block.getTexture(blockView, x, y, z, 4);
 			if (texture < 0) sample.setMirrorU(true);
 			lightB = Math.max(lightB * 0.6f, sample.getLight());
 			cr00 = lightB; cg00 = lightB; cb00 = lightB;
@@ -1958,7 +1958,7 @@ public class BHBlockRenderer {
 		
 		sample = state.getTextureForIndex(blockView, x, y, z, 5, overlayIndex);
 		if (sample != null) {
-			texture = block.getTextureForSide(blockView, x, y, z, 5);
+			texture = block.getTexture(blockView, x, y, z, 5);
 			if (texture < 0) sample.setMirrorU(true);
 			lightB = Math.max(lightB * 0.6f, sample.getLight());
 			cr00 = lightB; cg00 = lightB; cb00 = lightB;
@@ -1971,7 +1971,7 @@ public class BHBlockRenderer {
 	}
 	
 	private boolean renderLadder(BlockState state, int x, int y, int z) {
-		BaseBlock block = state.getBlock();
+		Block block = state.getBlock();
 		
 		TextureSample sample = state.getTextureForIndex(blockView, x, y, z, 0, overlayIndex);
 		if (sample == null) return false;
@@ -2111,7 +2111,7 @@ public class BHBlockRenderer {
 	}
 	
 	private boolean renderStairs(BlockState state, int x, int y, int z) {
-		BaseBlock block = state.getBlock();
+		Block block = state.getBlock();
 		boolean result = false;
 		
 		int meta = state.getMeta();
@@ -2145,16 +2145,16 @@ public class BHBlockRenderer {
 	}
 	
 	private boolean renderFence(BlockState state, int x, int y, int z) {
-		BaseBlock block = state.getBlock();
+		Block block = state.getBlock();
 		block.setBoundingBox(0.375f, 0.0f, 0.375f, 0.625f, 1.0f, 0.625f);
 		boolean result = renderFullCube(state, x, y, z);
 		
 		BlockStateProvider provider = BlockStateProvider.cast(blockView);
 		
-		boolean cx1 = provider.getBlockState(x - 1, y, z).is(block);
-		boolean cx2 = provider.getBlockState(x + 1, y, z).is(block);
-		boolean cz1 = provider.getBlockState(x, y, z - 1).is(block);
-		boolean cz2 = provider.getBlockState(x, y, z + 1).is(block);
+		boolean cx1 = provider.bhapi_getBlockState(x - 1, y, z).is(block);
+		boolean cx2 = provider.bhapi_getBlockState(x + 1, y, z).is(block);
+		boolean cz1 = provider.bhapi_getBlockState(x, y, z - 1).is(block);
+		boolean cz2 = provider.bhapi_getBlockState(x, y, z + 1).is(block);
 		
 		boolean cx = cx1 || cx2;
 		boolean cz = cz1 || cz2;
@@ -2185,7 +2185,7 @@ public class BHBlockRenderer {
 	}
 	
 	private boolean renderLever(BlockState state, int x, int y, int z) {
-		BaseBlock block = state.getBlock();
+		Block block = state.getBlock();
 		
 		int meta = state.getMeta();
 		int wrappedMeta = meta & 7;
@@ -2223,17 +2223,17 @@ public class BHBlockRenderer {
 			u2v2.set(1, 1);
 		}
 		
-		Vec3f[] points = new Vec3f[8];
+		Vec3D[] points = new Vec3D[8];
 		
 		// TODO switch this into my own implementation
-		points[0] = Vec3f.getFromCacheAndSet(-0.0625f, 0.0, -0.0625f);
-		points[1] = Vec3f.getFromCacheAndSet(0.0625f, 0.0, -0.0625f);
-		points[2] = Vec3f.getFromCacheAndSet(0.0625f, 0.0, 0.0625f);
-		points[3] = Vec3f.getFromCacheAndSet(-0.0625f, 0.0, 0.0625f);
-		points[4] = Vec3f.getFromCacheAndSet(-0.0625f, 0.625f, -0.0625f);
-		points[5] = Vec3f.getFromCacheAndSet(0.0625f, 0.625f, -0.0625f);
-		points[6] = Vec3f.getFromCacheAndSet(0.0625f, 0.625f, 0.0625f);
-		points[7] = Vec3f.getFromCacheAndSet(-0.0625f, 0.625f, 0.0625f);
+		points[0] = Vec3D.getFromCacheAndSet(-0.0625f, 0.0, -0.0625f);
+		points[1] = Vec3D.getFromCacheAndSet(0.0625f, 0.0, -0.0625f);
+		points[2] = Vec3D.getFromCacheAndSet(0.0625f, 0.0, 0.0625f);
+		points[3] = Vec3D.getFromCacheAndSet(-0.0625f, 0.0, 0.0625f);
+		points[4] = Vec3D.getFromCacheAndSet(-0.0625f, 0.625f, -0.0625f);
+		points[5] = Vec3D.getFromCacheAndSet(0.0625f, 0.625f, -0.0625f);
+		points[6] = Vec3D.getFromCacheAndSet(0.0625f, 0.625f, 0.0625f);
+		points[7] = Vec3D.getFromCacheAndSet(-0.0625f, 0.625f, 0.0625f);
 		
 		for (int i2 = 0; i2 < 8; ++i2) {
 			if (isActive) {
@@ -2275,10 +2275,10 @@ public class BHBlockRenderer {
 			points[i2].z += z + 0.5;
 		}
 		
-		Vec3f p1 = null;
-		Vec3f p2 = null;
-		Vec3f p3 = null;
-		Vec3f p4 = null;
+		Vec3D p1 = null;
+		Vec3D p2 = null;
+		Vec3D p3 = null;
+		Vec3D p4 = null;
 		
 		for (int side = 0; side < 6; ++side) {
 			if (side == 0) {
@@ -2343,11 +2343,11 @@ public class BHBlockRenderer {
 	}
 	
 	private boolean renderCactus(BlockState state, int x, int y, int z) {
-		BaseBlock block = state.getBlock();
+		Block block = state.getBlock();
 		return renderCactusBlock(state, block, x, y, z);
 	}
 	
-	private boolean renderCactusBlock(BlockState state, BaseBlock block, int x, int y, int z) {
+	private boolean renderCactusBlock(BlockState state, Block block, int x, int y, int z) {
 		float r2 = item ? 0.6f : 0.8f;
 		float r3 = item ? 0.8f : 0.6f;
 		float g2 = item ? 0.6f : 0.8f;
@@ -2449,7 +2449,7 @@ public class BHBlockRenderer {
 	
 	//TODO finish bed rendering
 	private boolean renderBed(BlockState state, int x, int y, int z) {
-		BaseBlock block = state.getBlock();
+		Block block = state.getBlock();
 		
 		int meta = state.getMeta();
 		int facing = BedBlock.orientationOnly(meta);
@@ -2529,9 +2529,9 @@ public class BHBlockRenderer {
 		builder.vertex(d22, d24, d25, d15, d17);
 		builder.vertex(d22, d24, d26, d19, d21);
 		
-		int magic = MagicBedNumbers.field_792[facing];
+		int magic = BedData.sidesVisibilityA[facing];
 		if (isFoot) {
-			magic = MagicBedNumbers.field_792[MagicBedNumbers.field_793[facing]];
+			magic = BedData.sidesVisibilityA[BedData.sidesVisibilityB[facing]];
 		}
 		
 		int face = 4;
@@ -2583,7 +2583,7 @@ public class BHBlockRenderer {
 	}
 	
 	private boolean renderRedstoneRepeater(BlockState state, int x, int y, int z) {
-		BaseBlock block = state.getBlock();
+		Block block = state.getBlock();
 		int meta = state.getMeta();
 		int wrappedMeta = meta & 3;
 		int powered = (meta & 0xC) >> 2;
@@ -2686,7 +2686,7 @@ public class BHBlockRenderer {
 	}
 	
 	private boolean renderPiston(BlockState state, int x, int y, int z, boolean extend) {
-		BaseBlock block = state.getBlock();
+		Block block = state.getBlock();
 		int meta = state.getMeta();
 		boolean extended = extend || (meta & 8) != 0;
 		int rotation = PistonBlock.getRotationByMeta(meta);
@@ -2783,7 +2783,7 @@ public class BHBlockRenderer {
 	}
 	
 	private boolean renderPistonHead(BlockState state, int x, int y, int z, boolean extended) {
-		BaseBlock block = state.getBlock();
+		Block block = state.getBlock();
 		int meta = state.getMeta();
 		int offset = PistonHeadBlock.getOffsetIndex(meta);
 		float light = getBrightness(block, x, y, z);

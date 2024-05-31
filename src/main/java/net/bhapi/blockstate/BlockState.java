@@ -14,11 +14,11 @@ import net.bhapi.util.BlockDirection;
 import net.bhapi.util.Identifier;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
-import net.minecraft.block.BaseBlock;
+import net.minecraft.block.Block;
 import net.minecraft.block.BlockSounds;
 import net.minecraft.block.material.Material;
-import net.minecraft.entity.BaseEntity;
-import net.minecraft.entity.player.PlayerBase;
+import net.minecraft.entity.Entity;
+import net.minecraft.entity.living.player.PlayerEntity;
 import net.minecraft.level.BlockView;
 import net.minecraft.level.Level;
 import net.minecraft.util.io.CompoundTag;
@@ -32,30 +32,30 @@ import java.util.Map;
 import java.util.Random;
 
 public final class BlockState implements IDProvider {
-	private static final Map<BaseBlock, BlockState[]> POSSIBLE_STATES = new HashMap<>();
+	private static final Map<Block, BlockState[]> POSSIBLE_STATES = new HashMap<>();
 	private static int incrementalHash = 0;
 	
 	private final Map<StateProperty<?>, Object> propertyValues = new HashMap<>();
 	private final Map<String, StateProperty<?>> properties;
 	private final int hash = incrementalHash++;
 	private final BlockState[] localCache;
-	private final BaseBlock block;
+	private final Block block;
 	private int rawID;
 	
-	private BlockState(BaseBlock block) {
+	private BlockState(Block block) {
 		this(block, new HashMap<>());
 	}
 	
-	private BlockState(BaseBlock block, Map<String, StateProperty<?>> properties) {
+	private BlockState(Block block, Map<String, StateProperty<?>> properties) {
 		this.properties = properties;
 		synchronized (POSSIBLE_STATES) {
 			this.localCache = POSSIBLE_STATES.computeIfAbsent(block, key -> {
 				BlockStateContainer container = BlockStateContainer.cast(block);
 				ArrayList<StateProperty<?>> rawProperties = new ArrayList<>();
-				container.appendProperties(rawProperties);
+				container.bhapi_appendProperties(rawProperties);
 				int size = 1;
 				for (StateProperty<?> property : rawProperties) size *= property.getCount();
-				container.setDefaultState(this);
+				container.bhapi_setDefaultState(this);
 				rawProperties.forEach(property -> {
 					this.propertyValues.put(property, property.defaultValue());
 					this.properties.put(property.getName(), property);
@@ -97,7 +97,7 @@ public final class BlockState implements IDProvider {
 		return withProperty(property, (T) value);
 	}
 	
-	public BaseBlock getBlock() {
+	public Block getBlock() {
 		return block;
 	}
 	
@@ -160,7 +160,7 @@ public final class BlockState implements IDProvider {
 		return builder.toString();
 	}
 	
-	public static BlockState getDefaultState(BaseBlock block) {
+	public static BlockState getDefaultState(Block block) {
 		if (POSSIBLE_STATES.containsKey(block)) return POSSIBLE_STATES.get(block)[0];
 		return new BlockState(block);
 	}
@@ -212,7 +212,7 @@ public final class BlockState implements IDProvider {
 	 */
 	public static BlockState loadFromNBT(CompoundTag tag) {
 		Identifier blockID = Identifier.make(tag.getString("block"));
-		BaseBlock block = CommonRegistries.BLOCK_REGISTRY.get(blockID);
+		Block block = CommonRegistries.BLOCK_REGISTRY.get(blockID);
 		if (block == null) return null;
 		
 		BlockState state = getDefaultState(block);
@@ -239,7 +239,7 @@ public final class BlockState implements IDProvider {
 		return this.block instanceof BHAirBlock;
 	}
 	
-	public boolean is(BaseBlock block) {
+	public boolean is(Block block) {
 		return this.block == block;
 	}
 	
@@ -248,7 +248,7 @@ public final class BlockState implements IDProvider {
 	 * @return {@link BlockSounds}
 	 */
 	public BlockSounds getSounds() {
-		return getContainer().getSounds(this);
+		return getContainer().bhapi_getSounds(this);
 	}
 	
 	/**
@@ -257,7 +257,7 @@ public final class BlockState implements IDProvider {
 	 * @return {@code true} if state has random ticks and {@code false} if not
 	 */
 	public boolean hasRandomTicks() {
-		return getContainer().hasRandomTicks(this);
+		return getContainer().bhapi_hasRandomTicks(this);
 	}
 	
 	/**
@@ -265,15 +265,15 @@ public final class BlockState implements IDProvider {
 	 * @return {@code true} if state is opaque and {@code false} if not
 	 */
 	public boolean isFullOpaque() {
-		return getContainer().isFullOpaque(this);
+		return getContainer().bhapi_isFullOpaque(this);
 	}
 	
 	/**
-	 * Check if this {@link BlockState} has {@link net.minecraft.block.entity.BaseBlockEntity} (examples: furnace, sign).
+	 * Check if this {@link BlockState} has {@link net.minecraft.block.entity.BlockEntity} (examples: furnace, sign).
 	 * @return {@code true} if state has entity and {@code false} if not
 	 */
 	public boolean hasBlockEntity() {
-		return getContainer().hasBlockEntity(this);
+		return getContainer().bhapi_hasBlockEntity(this);
 	}
 	
 	/**
@@ -282,7 +282,7 @@ public final class BlockState implements IDProvider {
 	 * @return {@code integer} value of light opacity
 	 */
 	public int getLightOpacity() {
-		return getContainer().getLightOpacity(this);
+		return getContainer().bhapi_getLightOpacity(this);
 	}
 	
 	/**
@@ -292,7 +292,7 @@ public final class BlockState implements IDProvider {
 	 * @return {@code true} if state allows grass growing and {@code false} if not
 	 */
 	public boolean allowsGrasUnder() {
-		return getContainer().allowsGrasUnder(this);
+		return getContainer().bhapi_allowsGrasUnder(this);
 	}
 	
 	/**
@@ -300,7 +300,7 @@ public final class BlockState implements IDProvider {
 	 * @return {@code integer} value of emittance in [0-15] range
 	 */
 	public int getEmittance() {
-		return getContainer().getEmittance(this);
+		return getContainer().bhapi_getEmittance(this);
 	}
 	
 	/**
@@ -308,25 +308,25 @@ public final class BlockState implements IDProvider {
 	 * @return {@code float} hardness value
 	 */
 	public float getHardness() {
-		return getContainer().getHardness(this);
+		return getContainer().bhapi_getHardness(this);
 	}
 	
 	/**
-	 * Get current {@link BlockState} hardness for specific {@link PlayerBase}, used in digging time calculations.
-	 * @param player current {@link PlayerBase}
+	 * Get current {@link BlockState} hardness for specific {@link PlayerEntity}, used in digging time calculations.
+	 * @param player current {@link PlayerEntity}
 	 * @return {@code float} hardness value
 	 */
-	public float getHardness(PlayerBase player) {
-		return getContainer().getHardness(this, player);
+	public float getHardness(PlayerEntity player) {
+		return getContainer().bhapi_getHardness(this, player);
 	}
 	
 	/**
 	 * Get {@link BlockState} blast resistance, used in digging explosions calculations.
-	 * @param entity current {@link BaseEntity} (explosion cause)
+	 * @param entity current {@link Entity} (explosion cause)
 	 * @return {@code float} blast resistance value
 	 */
-	public float getBlastResistance(BaseEntity entity) {
-		return getContainer().getBlastResistance(this, entity);
+	public float getBlastResistance(Entity entity) {
+		return getContainer().bhapi_getBlastResistance(this, entity);
 	}
 	
 	/**
@@ -338,7 +338,7 @@ public final class BlockState implements IDProvider {
 	 * @param newState {@link BlockState} that will replace this state
 	 */
 	public void onBlockRemoved(Level level, int x, int y, int z, BlockState newState) {
-		getContainer().onBlockRemoved(level, x, y, z, this, newState);
+		getContainer().bhapi_onBlockRemoved(level, x, y, z, this, newState);
 	}
 	
 	/**
@@ -349,7 +349,7 @@ public final class BlockState implements IDProvider {
 	 * @param z Z coordinate
 	 */
 	public void onBlockPlaced(Level level, int x, int y, int z) {
-		getContainer().onBlockPlaced(level, x, y, z, this);
+		getContainer().bhapi_onBlockPlaced(level, x, y, z, this);
 	}
 	
 	/**
@@ -361,7 +361,7 @@ public final class BlockState implements IDProvider {
 	 * @param facing Facing uvID
 	 */
 	public void onBlockPlaced(Level level, int x, int y, int z, int facing) {
-		getContainer().onBlockPlaced(level, x, y, z, facing, this);
+		getContainer().bhapi_onBlockPlaced(level, x, y, z, facing, this);
 	}
 	
 	/**
@@ -373,7 +373,7 @@ public final class BlockState implements IDProvider {
 	 * @param random {@link Random}
 	 */
 	public void onScheduledTick(Level level, int x, int y, int z, Random random) {
-		getContainer().onScheduledTick(level, x, y, z, random, this);
+		getContainer().bhapi_onScheduledTick(level, x, y, z, random, this);
 	}
 	
 	/**
@@ -394,7 +394,7 @@ public final class BlockState implements IDProvider {
 	 * @param neighbour Neighbour {@link BlockState}
 	 */
 	public void onNeighbourBlockUpdate(Level level, int x, int y, int z, BlockDirection facing, BlockState neighbour) {
-		getContainer().onNeighbourBlockUpdate(level, x, y, z, facing, this, neighbour);
+		getContainer().bhapi_onNeighbourBlockUpdate(level, x, y, z, facing, this, neighbour);
 	}
 	
 	/**
@@ -407,7 +407,7 @@ public final class BlockState implements IDProvider {
 	 * @return {@code true} if blockstate has redstone power
 	 */
 	public boolean isPowered(Level level, int x, int y, int z, BlockDirection facing) {
-		return getContainer().isPowered(level, x, y, z, facing, this);
+		return getContainer().bhapi_isPowered(level, x, y, z, facing, this);
 	}
 	
 	public boolean emitsPower() {
@@ -444,7 +444,7 @@ public final class BlockState implements IDProvider {
 	
 	@Environment(EnvType.CLIENT)
 	public CustomModel getModel(BlockView view, int x, int y, int z) {
-		return BHBlockRender.cast(getBlock()).getModel(view, x, y, z, this);
+		return BHBlockRender.cast(getBlock()).bhapi_getModel(view, x, y, z, this);
 	}
 	
 	/**
@@ -459,7 +459,7 @@ public final class BlockState implements IDProvider {
 	 */
 	@Environment(EnvType.CLIENT)
 	public boolean isSideRendered(BlockView blockView, int x, int y, int z, BlockDirection facing, BlockState target) {
-		return getContainer().isSideRendered(blockView, x, y, z, facing, this, target);
+		return getContainer().bhapi_isSideRendered(blockView, x, y, z, facing, this, target);
 	}
 	
 	/**
@@ -473,7 +473,7 @@ public final class BlockState implements IDProvider {
 	 */
 	@Environment(EnvType.CLIENT)
 	public boolean isSideRendered(BlockView blockView, int x, int y, int z, BlockDirection facing) {
-		BlockState neighbour = BlockStateProvider.cast(blockView).getBlockState(x, y, z);
+		BlockState neighbour = BlockStateProvider.cast(blockView).bhapi_getBlockState(x, y, z);
 		return neighbour.isSideRendered(blockView, x, y, z, facing, this);
 	}
 	
@@ -487,7 +487,7 @@ public final class BlockState implements IDProvider {
 	 */
 	@Environment(EnvType.CLIENT)
 	public byte getRenderType(BlockView view, int x, int y, int z) {
-		return BHBlockRender.cast(getBlock()).getRenderType(view, x, y, z, this);
+		return BHBlockRender.cast(getBlock()).bhapi_getRenderType(view, x, y, z, this);
 	}
 	
 	/**
@@ -504,7 +504,7 @@ public final class BlockState implements IDProvider {
 	 */
 	@Environment(EnvType.CLIENT)
 	public TextureSample getTextureForIndex(BlockView view, int x, int y, int z, int textureIndex, int overlayIndex) {
-		return BHBlockRender.cast(getBlock()).getTextureForIndex(view, x, y, z, this, textureIndex, overlayIndex);
+		return BHBlockRender.cast(getBlock()).bhapi_getTextureForIndex(view, x, y, z, this, textureIndex, overlayIndex);
 	}
 	
 	/**
@@ -513,7 +513,7 @@ public final class BlockState implements IDProvider {
 	 */
 	@Environment(EnvType.CLIENT)
 	public int getOverlayCount(BlockView view, int x, int y, int z) {
-		return BHBlockRender.cast(getBlock()).getOverlayCount(view, x, y, z, this);
+		return BHBlockRender.cast(getBlock()).bhapi_getOverlayCount(view, x, y, z, this);
 	}
 	
 	@Override

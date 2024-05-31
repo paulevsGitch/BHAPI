@@ -1,6 +1,6 @@
 package net.bhapi.storage.vanilla;
 
-import net.minecraft.level.biome.BaseBiome;
+import net.minecraft.level.biome.Biome;
 import net.minecraft.util.noise.SimplexOctaveNoise;
 
 import java.util.Random;
@@ -12,7 +12,7 @@ public class VanillaBiomeSourceData {
 	public double[] temperatureNoises;
 	public double[] rainfallNoises;
 	public double[] detailNoises;
-	public BaseBiome[] biomes;
+	public Biome[] biomes;
 	
 	public VanillaBiomeSourceData(long seed) {
 		this.temperatureNoise = new SimplexOctaveNoise(new Random(seed * 9871L), 4);

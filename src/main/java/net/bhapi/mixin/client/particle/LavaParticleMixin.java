@@ -13,6 +13,6 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 public abstract class LavaParticleMixin {
 	@Inject(method = "<init>", at = @At("TAIL"))
 	private void bhapi_onParticleInit(Level arg, double d, double e, double f, CallbackInfo info) {
-		TextureSampleProvider.cast(this).setTextureSample(ParticleTextures.LAVA);
+		TextureSampleProvider.cast(this).bhapi_setTextureSample(ParticleTextures.LAVA);
 	}
 }

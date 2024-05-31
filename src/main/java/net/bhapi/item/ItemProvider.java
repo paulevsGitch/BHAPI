@@ -1,10 +1,10 @@
 package net.bhapi.item;
 
-import net.minecraft.item.BaseItem;
+import net.minecraft.item.Item;
 
 public interface ItemProvider {
-	BaseItem getItem();
-	void setItem(BaseItem item);
+	Item bhapi_getItem();
+	void bhapi_setItem(Item item);
 	
 	static ItemProvider cast(Object obj) {
 		return (ItemProvider) obj;

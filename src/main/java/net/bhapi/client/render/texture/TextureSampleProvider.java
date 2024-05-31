@@ -5,10 +5,10 @@ import net.fabricmc.api.Environment;
 
 public interface TextureSampleProvider {
 	@Environment(EnvType.CLIENT)
-	TextureSample getTextureSample();
+	TextureSample bhapi_getTextureSample();
 	
 	@Environment(EnvType.CLIENT)
-	void setTextureSample(TextureSample sample);
+	void bhapi_setTextureSample(TextureSample sample);
 	
 	static TextureSampleProvider cast(Object obj) {
 		return (TextureSampleProvider) obj;

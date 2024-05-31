@@ -2,10 +2,10 @@ package net.bhapi.event;
 
 import net.bhapi.registry.Registry;
 import net.bhapi.util.Identifier;
-import net.minecraft.item.BaseItem;
+import net.minecraft.item.Item;
 
-public class ItemRegistryEvent extends RegistryEvent<Identifier, BaseItem> {
-	public ItemRegistryEvent(Registry<BaseItem> registry) {
+public class ItemRegistryEvent extends RegistryEvent<Identifier, Item> {
+	public ItemRegistryEvent(Registry<Item> registry) {
 		super(registry::register);
 	}
 	
@@ -15,7 +15,7 @@ public class ItemRegistryEvent extends RegistryEvent<Identifier, BaseItem> {
 	}
 	
 	@Override
-	public void register(Identifier id, BaseItem value) {
+	public void register(Identifier id, Item value) {
 		super.register(id, value);
 		value.setTranslationKey(id.getModID() + "." + id.getName());
 	}

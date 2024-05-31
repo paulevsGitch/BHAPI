@@ -6,7 +6,7 @@ import net.bhapi.client.render.texture.TextureSample;
 import net.bhapi.client.render.texture.Textures;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
-import net.minecraft.block.BaseBlock;
+import net.minecraft.block.Block;
 import net.minecraft.level.BlockView;
 
 public interface BHBlockRender {
@@ -20,7 +20,7 @@ public interface BHBlockRender {
 	 * @param state current {@link BlockState}
 	 */
 	@Environment(EnvType.CLIENT)
-	default byte getRenderType(BlockView view, int x, int y, int z, BlockState state) {
+	default byte bhapi_getRenderType(BlockView view, int x, int y, int z, BlockState state) {
 		return (byte) state.getBlock().getRenderType();
 	}
 	
@@ -38,9 +38,9 @@ public interface BHBlockRender {
 	 * @return {@link TextureSample} or null
 	 */
 	@Environment(EnvType.CLIENT)
-	default TextureSample getTextureForIndex(BlockView view, int x, int y, int z, BlockState state, int textureIndex, int overlayIndex) {
-		BaseBlock block = state.getBlock();
-		int texture = block.getTextureForSide(view, x, y, z, textureIndex);
+	default TextureSample bhapi_getTextureForIndex(BlockView view, int x, int y, int z, BlockState state, int textureIndex, int overlayIndex) {
+		Block block = state.getBlock();
+		int texture = block.getTexture(view, x, y, z, textureIndex);
 		return Textures.getVanillaBlockSample(texture);
 	}
 	
@@ -55,7 +55,7 @@ public interface BHBlockRender {
 	 * @return {@link CustomModel}
 	 */
 	@Environment(EnvType.CLIENT)
-	default CustomModel getModel(BlockView view, int x, int y, int z, BlockState state) {
+	default CustomModel bhapi_getModel(BlockView view, int x, int y, int z, BlockState state) {
 		return null;
 	}
 	
@@ -64,7 +64,7 @@ public interface BHBlockRender {
 	 * Each overlay will be rendered as same model, but with different textures.
 	 */
 	@Environment(EnvType.CLIENT)
-	default int getOverlayCount(BlockView view, int x, int y, int z, BlockState state) {
+	default int bhapi_getOverlayCount(BlockView view, int x, int y, int z, BlockState state) {
 		return 1;
 	}
 	

@@ -71,7 +71,7 @@ public class Textures {
 		ID_BLOCK.forEach((index, id) -> VANILLA_BLOCKS.put(index, atlas.getSample(id)));
 		ID_ITEM.forEach((index, id) -> VANILLA_ITEMS.put(index, atlas.getSample(id)));
 		
-		List<?> binders = ((TextureManagerAccessor) BHAPIClient.getMinecraft().textureManager).getTextureBinders();
+		List<?> binders = ((TextureManagerAccessor) BHAPIClient.getMinecraft().textureManager).bhapi_getTextureBinders();
 		binders.forEach(obj -> {
 			TextureBinder binder = (TextureBinder) obj;
 			Identifier id = binder.renderMode == 0 ? ID_BLOCK.get(binder.index) : ID_ITEM.get(binder.index);

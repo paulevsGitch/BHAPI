@@ -13,6 +13,6 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 public class HeartParticleMixin {
 	@Inject(method = "<init>(Lnet/minecraft/level/Level;DDDDDDF)V", at = @At("TAIL"))
 	private void bhapi_onParticleInit(Level d, double e, double f, double g, double h, double i, double j, float par8, CallbackInfo ci) {
-		TextureSampleProvider.cast(this).setTextureSample(ParticleTextures.HEART);
+		TextureSampleProvider.cast(this).bhapi_setTextureSample(ParticleTextures.HEART);
 	}
 }

@@ -5,7 +5,7 @@ import net.bhapi.blockstate.BlockStateContainer;
 import net.bhapi.blockstate.properties.LegacyProperties;
 import net.bhapi.blockstate.properties.StateProperty;
 import net.bhapi.util.BlockDirection;
-import net.minecraft.block.BaseBlock;
+import net.minecraft.block.Block;
 import net.minecraft.block.TrapdoorBlock;
 import net.minecraft.block.material.Material;
 import net.minecraft.level.Level;
@@ -15,7 +15,7 @@ import org.spongepowered.asm.mixin.Shadow;
 import java.util.List;
 
 @Mixin(TrapdoorBlock.class)
-public abstract class TrapdoorBlockMixin extends BaseBlock implements BlockStateContainer {
+public abstract class TrapdoorBlockMixin extends Block implements BlockStateContainer {
 	@Shadow public abstract void method_1059(Level arg, int i, int j, int k, boolean bl);
 	
 	protected TrapdoorBlockMixin(int i, Material arg) {
@@ -23,12 +23,12 @@ public abstract class TrapdoorBlockMixin extends BaseBlock implements BlockState
 	}
 	
 	@Override
-	public void appendProperties(List<StateProperty<?>> properties) {
+	public void bhapi_appendProperties(List<StateProperty<?>> properties) {
 		properties.add(LegacyProperties.META_8);
 	}
 	
 	@Override
-	public void onNeighbourBlockUpdate(Level level, int x, int y, int z, BlockDirection facing, BlockState state, BlockState neighbour) {
+	public void bhapi_onNeighbourBlockUpdate(Level level, int x, int y, int z, BlockDirection facing, BlockState state, BlockState neighbour) {
 		if (level.isRemote) return;
 		
 		int meta = state.getMeta();

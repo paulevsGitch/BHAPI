@@ -10,7 +10,7 @@ import net.bhapi.util.BlockUtil;
 import net.bhapi.util.ItemUtil;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
-import net.minecraft.block.BaseBlock;
+import net.minecraft.block.Block;
 import net.minecraft.block.material.Material;
 import net.minecraft.item.ItemStack;
 import net.minecraft.level.BlockView;
@@ -29,7 +29,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
 
-@Mixin(BaseBlock.class)
+@Mixin(Block.class)
 public abstract class BaseBlockMixin implements BlockStateContainer, BHBlockRender {
 	@Shadow protected abstract void drop(Level arg, int i, int j, int k, ItemStack arg2);
 	@Shadow public abstract int getDropCount(Random random);
@@ -51,11 +51,11 @@ public abstract class BaseBlockMixin implements BlockStateContainer, BHBlockRend
 	@Inject(method = "<init>(ILnet/minecraft/block/material/Material;)V", at = @At("TAIL"))
 	private void bhapi_resetBlockEntries(int id, Material material, CallbackInfo info) {
 		if (id == BlockUtil.MOD_BLOCK_ID) {
-			BaseBlock.BY_ID[id] = null;
-			BaseBlock.FULL_OPAQUE[id] = BaseBlock.FULL_OPAQUE[0];
-			BaseBlock.LIGHT_OPACITY[id] = BaseBlock.LIGHT_OPACITY[0];
-			BaseBlock.ALLOWS_GRASS_UNDER[id] = BaseBlock.ALLOWS_GRASS_UNDER[0];
-			BaseBlock.HAS_TILE_ENTITY[id] = BaseBlock.HAS_TILE_ENTITY[0];
+			Block.BY_ID[id] = null;
+			Block.FULL_OPAQUE[id] = Block.FULL_OPAQUE[0];
+			Block.LIGHT_OPACITY[id] = Block.LIGHT_OPACITY[0];
+			Block.NO_AMBIENT_OCCLUSION[id] = Block.NO_AMBIENT_OCCLUSION[0];
+			Block.HAS_BLOCK_ENTITY[id] = Block.HAS_BLOCK_ENTITY[0];
 		}
 	}
 	
@@ -64,30 +64,30 @@ public abstract class BaseBlockMixin implements BlockStateContainer, BHBlockRend
 	private void bhapi_getBrightness(BlockView blockView, int x, int y, int z, CallbackInfoReturnable<Float> info) {
 		if (blockView == null) info.setReturnValue(1F);
 		else {
-			int light = BlockStateProvider.cast(blockView).getBlockState(x, y, z).getEmittance();
+			int light = BlockStateProvider.cast(blockView).bhapi_getBlockState(x, y, z).getEmittance();
 			info.setReturnValue(blockView.getLight(x, y, z, light));
 		}
 	}
 	
 	@Unique
 	@Override
-	public BlockState getDefaultState() {
+	public BlockState bhapi_getDefaultState() {
 		if (defaultState == null) {
-			setDefaultState(BlockState.getDefaultState(BaseBlock.class.cast(this)));
+			bhapi_setDefaultState(BlockState.getDefaultState(Block.class.cast(this)));
 		}
 		return defaultState;
 	}
 	
 	@Unique
 	@Override
-	public void setDefaultState(BlockState state) {
+	public void bhapi_setDefaultState(BlockState state) {
 		defaultState = state;
 	}
 	
 	@Inject(method = "canPlaceAt(Lnet/minecraft/level/Level;III)Z", at = @At("HEAD"), cancellable = true)
 	private void bhapi_canPlaceAt(Level level, int x, int y, int z, CallbackInfoReturnable<Boolean> info) {
-		BlockState state = BlockStateProvider.cast(level).getBlockState(x, y, z);
-		info.setReturnValue(state.getBlock().material.isReplaceable() || state.is(BaseBlock.SNOW));
+		BlockState state = BlockStateProvider.cast(level).bhapi_getBlockState(x, y, z);
+		info.setReturnValue(state.getBlock().material.isReplaceable() || state.is(Block.SNOW));
 	}
 	
 	@Inject(method = "drop(Lnet/minecraft/level/Level;IIIIF)V", at = @At("HEAD"), cancellable = true)
@@ -102,9 +102,9 @@ public abstract class BaseBlockMixin implements BlockStateContainer, BHBlockRend
 		}
 		BlockState state = BlockUtil.brokenBlock;
 		if (state == null) return;
-		if (state.getBlock() == BaseBlock.class.cast(this)) {
+		if (state.getBlock() == Block.class.cast(this)) {
 			if (this.id == BlockUtil.MOD_BLOCK_ID) {
-				ItemStack stack = ItemUtil.makeStack(getDefaultState(), 1);
+				ItemStack stack = ItemUtil.makeStack(bhapi_getDefaultState(), 1);
 				if (stack.count > 0) this.drop(level, x, y, z, stack);
 			}
 			else {

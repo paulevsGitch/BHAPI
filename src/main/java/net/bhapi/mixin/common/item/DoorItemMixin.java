@@ -1,13 +1,13 @@
 package net.bhapi.mixin.common.item;
 
 import net.bhapi.level.BlockStateProvider;
-import net.minecraft.block.BaseBlock;
+import net.minecraft.block.Block;
 import net.minecraft.block.material.Material;
-import net.minecraft.entity.player.PlayerBase;
+import net.minecraft.entity.living.player.PlayerEntity;
 import net.minecraft.item.DoorItem;
 import net.minecraft.item.ItemStack;
 import net.minecraft.level.Level;
-import net.minecraft.util.maths.MathHelper;
+import net.minecraft.util.maths.MCMath;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.injection.At;
@@ -19,19 +19,19 @@ public class DoorItemMixin {
 	@Shadow private Material material;
 	
 	@Inject(method = "useOnBlock", at = @At("HEAD"), cancellable = true)
-	private void bhapi_useOnBlock(ItemStack stack, PlayerBase player, Level level, int x, int y, int z, int facing, CallbackInfoReturnable<Boolean> info) {
+	private void bhapi_useOnBlock(ItemStack stack, PlayerEntity player, Level level, int x, int y, int z, int facing, CallbackInfoReturnable<Boolean> info) {
 		if (facing != 1) {
 			info.setReturnValue(false);
 			return;
 		}
 		
-		BaseBlock block = this.material == Material.WOOD ? BaseBlock.WOOD_DOOR : BaseBlock.IRON_DOOR;
+		Block block = this.material == Material.WOOD ? Block.WOOD_DOOR : Block.IRON_DOOR;
 		if (!block.canPlaceAt(level, x, ++y, z)) {
 			info.setReturnValue(false);
 			return;
 		}
 		
-		int angle = MathHelper.floor(((player.yaw + 180.0f) * 4.0f / 360.0f) - 0.5) & 3;
+		int angle = MCMath.floor(((player.yaw + 180.0f) * 4.0f / 360.0f) - 0.5) & 3;
 		int dx = 0;
 		int dz = 0;
 		
@@ -44,8 +44,8 @@ public class DoorItemMixin {
 		int n5 = (level.canSuffocate(x + dx, y, z + dz) ? 1 : 0) + (level.canSuffocate(x + dx, y + 1, z + dz) ? 1 : 0);
 		
 		BlockStateProvider provider = BlockStateProvider.cast(level);
-		boolean testX = provider.getBlockState(x - dx, y, z - dz).is(block) || provider.getBlockState(x - dx, y + 1, z - dz).is(block);
-		boolean testZ = provider.getBlockState(x + dx, y, z + dz).is(block) || provider.getBlockState(x + dx, y + 1, z + dz).is(block);
+		boolean testX = provider.bhapi_getBlockState(x - dx, y, z - dz).is(block) || provider.bhapi_getBlockState(x - dx, y + 1, z - dz).is(block);
+		boolean testZ = provider.bhapi_getBlockState(x + dx, y, z + dz).is(block) || provider.bhapi_getBlockState(x + dx, y + 1, z + dz).is(block);
 		
 		boolean mirror = false;
 		if (testX && !testZ) mirror = true;

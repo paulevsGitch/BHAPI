@@ -3,8 +3,8 @@ package net.bhapi.mixin.server;
 import net.bhapi.blockstate.BlockState;
 import net.bhapi.level.BlockStateProvider;
 import net.bhapi.util.BlockUtil;
-import net.minecraft.entity.player.PlayerBase;
-import net.minecraft.entity.player.ServerPlayer;
+import net.minecraft.entity.living.player.PlayerEntity;
+import net.minecraft.entity.living.player.ServerPlayer;
 import net.minecraft.item.ItemStack;
 import net.minecraft.level.Level;
 import net.minecraft.packet.play.BlockChangePacket;
@@ -26,7 +26,7 @@ public abstract class ServerPlayerInteractionManagerMixin {
 	@Shadow private int nextX;
 	@Shadow private int nextY;
 	@Shadow private int nextZ;
-	@Shadow public PlayerBase player;
+	@Shadow public PlayerEntity player;
 	@Shadow private int lastTicks;
 	@Shadow private int posX;
 	@Shadow private int posY;
@@ -41,7 +41,7 @@ public abstract class ServerPlayerInteractionManagerMixin {
 		++this.ticks;
 		if (this.skipPlacing) {
 			int n = this.ticks - this.blockTicks;
-			BlockState state = BlockStateProvider.cast(this.level).getBlockState(this.nextX, this.nextY, this.nextZ);
+			BlockState state = BlockStateProvider.cast(this.level).bhapi_getBlockState(this.nextX, this.nextY, this.nextZ);
 			if (!state.isAir()) {
 				float f = state.getHardness(this.player) * (float) (n + 1);
 				if (f >= 1.0f) {
@@ -59,7 +59,7 @@ public abstract class ServerPlayerInteractionManagerMixin {
 		info.cancel();
 		this.level.firePlayer(null, x, y, z, l);
 		this.lastTicks = this.ticks;
-		BlockState state = BlockStateProvider.cast(this.level).getBlockState(x, y, z);
+		BlockState state = BlockStateProvider.cast(this.level).bhapi_getBlockState(x, y, z);
 		if (!state.isAir()) {
 			state.getBlock().activate(this.level, x, y, z, this.player);
 		}
@@ -78,7 +78,7 @@ public abstract class ServerPlayerInteractionManagerMixin {
 		info.cancel();
 		if (x == this.posX && y == this.posY && z == this.posZ) {
 			int n = this.ticks - this.lastTicks;
-			BlockState state = BlockStateProvider.cast(this.level).getBlockState(x, y, z);
+			BlockState state = BlockStateProvider.cast(this.level).bhapi_getBlockState(x, y, z);
 			if (!state.isAir()) {
 				float f = state.getHardness(this.player) * (float)(n + 1);
 				if (f >= 0.7f) {
@@ -97,8 +97,8 @@ public abstract class ServerPlayerInteractionManagerMixin {
 	
 	@Inject(method = "removeBlock", at = @At("HEAD"), cancellable = true)
 	private void bhapi_removeBlock(int x, int y, int z, CallbackInfoReturnable<Boolean> info) {
-		BlockState state = BlockStateProvider.cast(this.level).getBlockState(x, y, z);
-		boolean result = BlockStateProvider.cast(this.level).setBlockState(x, y, z, BlockUtil.AIR_STATE);
+		BlockState state = BlockStateProvider.cast(this.level).bhapi_getBlockState(x, y, z);
+		boolean result = BlockStateProvider.cast(this.level).bhapi_setBlockState(x, y, z, BlockUtil.AIR_STATE);
 		if (result) {
 			int meta = this.level.getBlockMeta(x, y, z);
 			state.getBlock().activate(this.level, x, y, z, meta);
@@ -108,7 +108,7 @@ public abstract class ServerPlayerInteractionManagerMixin {
 	
 	@Inject(method = "processBlockBreak", at = @At("HEAD"), cancellable = true)
 	private void bhapi_processBlockBreak(int x, int y, int z, CallbackInfoReturnable<Boolean> info) {
-		BlockState state = BlockStateProvider.cast(this.level).getBlockState(x, y, z);
+		BlockState state = BlockStateProvider.cast(this.level).bhapi_getBlockState(x, y, z);
 		int meta = this.level.getBlockMeta(x, y, z);
 		this.level.playLevelEvent(this.player, 2001, x, y, z, state.getID());
 		boolean result = this.removeBlock(x, y, z);
@@ -131,8 +131,8 @@ public abstract class ServerPlayerInteractionManagerMixin {
 	}
 	
 	@Inject(method = "useOnBlock", at = @At("HEAD"), cancellable = true)
-	private void useOnBlock(PlayerBase player, Level level, ItemStack stack, int x, int y, int z, int l, CallbackInfoReturnable<Boolean> info) {
-		BlockState state = BlockStateProvider.cast(level).getBlockState(x, y, z);
+	private void useOnBlock(PlayerEntity player, Level level, ItemStack stack, int x, int y, int z, int l, CallbackInfoReturnable<Boolean> info) {
+		BlockState state = BlockStateProvider.cast(level).bhapi_getBlockState(x, y, z);
 		if (state.getBlock().canUse(level, x, y, z, player)) {
 			info.setReturnValue(true);
 			return;

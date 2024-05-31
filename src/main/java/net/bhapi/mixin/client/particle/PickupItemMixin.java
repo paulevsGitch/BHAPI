@@ -4,8 +4,8 @@ import net.bhapi.util.MathUtil;
 import net.minecraft.client.render.Tessellator;
 import net.minecraft.client.render.entity.EntityRenderDispatcher;
 import net.minecraft.client.render.particle.PickupItem;
-import net.minecraft.entity.BaseEntity;
-import net.minecraft.entity.BaseParticle;
+import net.minecraft.entity.Entity;
+import net.minecraft.entity.technical.ParticleEntity;
 import net.minecraft.level.Level;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
@@ -14,11 +14,11 @@ import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 @Mixin(PickupItem.class)
-public abstract class PickupItemMixin extends BaseParticle {
+public abstract class PickupItemMixin extends ParticleEntity {
 	@Shadow private int particleAge;
 	@Shadow private int maxParticleAge;
-	@Shadow private BaseEntity itemEntity;
-	@Shadow private BaseEntity magnetTarget;
+	@Shadow private Entity itemEntity;
+	@Shadow private Entity magnetTarget;
 	@Shadow private float yOffset;
 	
 	public PickupItemMixin(Level arg, double d, double e, double f, double g, double h, double i) {

@@ -52,7 +52,7 @@ public class LevelTicksUpdater extends ThreadedUpdater {
 			int y = info.getY();
 			int z = info.getZ();
 			if (!level.isAreaLoaded(x - side, y - side, z - side, x + side, y + side, z + side)) continue;
-			BlockState state = BlockStateProvider.cast(level).getBlockState(x, y, z);
+			BlockState state = BlockStateProvider.cast(level).bhapi_getBlockState(x, y, z);
 			if (state != info.getState()) continue;
 			state.onScheduledTick(level, x, y, z, this.random);
 		}

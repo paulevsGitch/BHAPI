@@ -2,7 +2,7 @@ package net.bhapi.mixin.common.packet;
 
 import net.bhapi.registry.CommonRegistries;
 import net.bhapi.util.Identifier;
-import net.minecraft.item.BaseItem;
+import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.packet.AbstractPacket;
 import net.minecraft.packet.play.SlotUpdatePacket;
@@ -33,7 +33,7 @@ public abstract class SlotUpdatePacketMixin extends AbstractPacket {
 		this.slotIndex = stream.readShort();
 		String name = readString(stream, 256);
 		if (!name.isEmpty()) {
-			BaseItem item = CommonRegistries.ITEM_REGISTRY.get(Identifier.make(name));
+			Item item = CommonRegistries.ITEM_REGISTRY.get(Identifier.make(name));
 			if (item == null) {
 				this.stack = null;
 				return;

@@ -5,8 +5,8 @@ import net.bhapi.blockstate.BlockState;
 import net.bhapi.item.BHBlockItem;
 import net.bhapi.item.ItemProvider;
 import net.bhapi.registry.CommonRegistries;
-import net.fabricmc.tinyremapper.extension.mixin.common.data.Pair;
-import net.minecraft.item.BaseItem;
+import net.bhapi.storage.Pair;
+import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 
 import java.util.ArrayList;
@@ -35,15 +35,15 @@ public class ItemUtil {
 	}
 	
 	public static void addStackForPostProcessing(BlockState state, ItemStack stack) {
-		POST_PROCESSING_STACKS.add(Pair.of(state, stack));
+		POST_PROCESSING_STACKS.add(new Pair<>(state, stack));
 	}
 	
 	public static void postProcessStacks() {
 		POST_PROCESSING_STACKS.forEach(pair -> {
 			BlockState state = pair.first();
 			ItemStack stack = pair.second();
-			BaseItem item = BHBlockItem.get(state);
-			if (item != null) ItemProvider.cast(stack).setItem(item);
+			Item item = BHBlockItem.get(state);
+			if (item != null) ItemProvider.cast(stack).bhapi_setItem(item);
 		});
 	}
 	
@@ -56,7 +56,7 @@ public class ItemUtil {
 	}
 	
 	public static ItemStack makeStack(Identifier id, int count, int damage) {
-		BaseItem item = CommonRegistries.ITEM_REGISTRY.get(id);
+		Item item = CommonRegistries.ITEM_REGISTRY.get(id);
 		if (item == null) {
 			BHAPI.warn("No item " + id + " in registry");
 			return null;

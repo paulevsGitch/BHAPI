@@ -3,8 +3,8 @@ package net.bhapi.mixin.client;
 import net.bhapi.config.BHConfigs;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.util.Session;
-import net.minecraft.entity.player.AbstractClientPlayer;
-import net.minecraft.entity.player.PlayerBase;
+import net.minecraft.entity.living.player.AbstractClientPlayer;
+import net.minecraft.entity.living.player.PlayerEntity;
 import net.minecraft.level.Level;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
@@ -12,7 +12,7 @@ import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 @Mixin(AbstractClientPlayer.class)
-public abstract class AbstractClientPlayerMixin extends PlayerBase {
+public abstract class AbstractClientPlayerMixin extends PlayerEntity {
 	public AbstractClientPlayerMixin(Level arg) {
 		super(arg);
 	}

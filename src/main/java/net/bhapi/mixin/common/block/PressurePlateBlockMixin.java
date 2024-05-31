@@ -11,7 +11,7 @@ import java.util.List;
 @Mixin(PressurePlateBlock.class)
 public abstract class PressurePlateBlockMixin implements BlockStateContainer {
 	@Override
-	public void appendProperties(List<StateProperty<?>> properties) {
+	public void bhapi_appendProperties(List<StateProperty<?>> properties) {
 		properties.add(LegacyProperties.META_2);
 	}
 }

@@ -3,11 +3,11 @@ package net.bhapi.mixin.client;
 import net.bhapi.blockstate.BlockState;
 import net.bhapi.level.BlockStateProvider;
 import net.minecraft.block.BlockSounds;
-import net.minecraft.client.BaseClientInteractionManager;
+import net.minecraft.client.ClientInteractionManager;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.MultiPlayerClientInteractionManager;
+import net.minecraft.client.network.ClientPlayerPacketHandler;
 import net.minecraft.item.ItemStack;
-import net.minecraft.network.ClientPlayNetworkHandler;
 import net.minecraft.packet.play.PlayerDiggingPacket;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
@@ -17,12 +17,12 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 @Mixin(MultiPlayerClientInteractionManager.class)
-public abstract class MultiPlayerClientInteractionManagerMixin extends BaseClientInteractionManager {
+public abstract class MultiPlayerClientInteractionManagerMixin extends ClientInteractionManager {
 	@Shadow private int posX;
 	@Shadow private int posY;
 	@Shadow private int posZ;
 	@Shadow private boolean canBreakBlock;
-	@Shadow private ClientPlayNetworkHandler networkHandler;
+	@Shadow private ClientPlayerPacketHandler networkHandler;
 	@Shadow private float hardness;
 	@Shadow private float oldHardness;
 	@Shadow private float field_2613;
@@ -36,7 +36,7 @@ public abstract class MultiPlayerClientInteractionManagerMixin extends BaseClien
 	
 	@Inject(method = "activateBlock", at = @At("HEAD"), cancellable = true)
 	private void bhapi_activateBlock(int x, int y, int z, int l, CallbackInfoReturnable<Boolean> info) {
-		BlockState state = BlockStateProvider.cast(this.minecraft.level).getBlockState(x, y, z);
+		BlockState state = BlockStateProvider.cast(this.minecraft.level).bhapi_getBlockState(x, y, z);
 		boolean result = super.activateBlock(x, y, z, l);
 		ItemStack stack = this.minecraft.player.getHeldItem();
 		if (stack != null) {
@@ -54,7 +54,7 @@ public abstract class MultiPlayerClientInteractionManagerMixin extends BaseClien
 		info.cancel();
 		if (!this.canBreakBlock || x != this.posX || y != this.posY || z != this.posZ) {
 			this.networkHandler.sendPacket(new PlayerDiggingPacket(0, x, y, z, l));
-			BlockState state = BlockStateProvider.cast(this.minecraft.level).getBlockState(x, y, z);
+			BlockState state = BlockStateProvider.cast(this.minecraft.level).bhapi_getBlockState(x, y, z);
 			
 			if (!state.isAir() && this.hardness == 0.0f) {
 				state.getBlock().activate(this.minecraft.level, x, y, z, this.minecraft.player);
@@ -90,7 +90,7 @@ public abstract class MultiPlayerClientInteractionManagerMixin extends BaseClien
 		}
 		
 		if (x == this.posX && y == this.posY && z == this.posZ) {
-			BlockState state = BlockStateProvider.cast(this.minecraft.level).getBlockState(x, y, z);
+			BlockState state = BlockStateProvider.cast(this.minecraft.level).bhapi_getBlockState(x, y, z);
 			
 			if (state.isAir()) {
 				this.canBreakBlock = false;

@@ -1,9 +1,8 @@
 package net.bhapi.storage;
 
-import net.minecraft.util.maths.MathHelper;
-
 import java.util.Locale;
 import java.util.Objects;
+import net.minecraft.util.maths.MCMath;
 
 public class Vec2F {
 	public float x;
@@ -21,7 +20,7 @@ public class Vec2F {
 	}
 	
 	public float length() {
-		return MathHelper.sqrt(lengthSqr());
+		return MCMath.sqrt(lengthSqr());
 	}
 	
 	public Vec2F rotateCW(int index) {

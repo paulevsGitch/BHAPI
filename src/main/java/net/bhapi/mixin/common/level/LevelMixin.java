@@ -18,24 +18,24 @@ import net.bhapi.util.BlockDirection;
 import net.bhapi.util.BlockUtil;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
-import net.minecraft.block.BaseBlock;
-import net.minecraft.block.entity.BaseBlockEntity;
+import net.minecraft.block.Block;
+import net.minecraft.block.entity.BlockEntity;
 import net.minecraft.block.material.Material;
-import net.minecraft.entity.BaseEntity;
-import net.minecraft.entity.player.PlayerBase;
+import net.minecraft.entity.Entity;
+import net.minecraft.entity.living.player.PlayerEntity;
 import net.minecraft.level.Level;
 import net.minecraft.level.LevelProperties;
 import net.minecraft.level.LightType;
 import net.minecraft.level.LightUpdateArea;
 import net.minecraft.level.chunk.Chunk;
-import net.minecraft.level.dimension.BaseDimension;
+import net.minecraft.level.dimension.Dimension;
 import net.minecraft.level.dimension.DimensionData;
 import net.minecraft.util.hit.HitResult;
 import net.minecraft.util.io.CompoundTag;
 import net.minecraft.util.io.NBTIO;
 import net.minecraft.util.maths.Box;
-import net.minecraft.util.maths.MathHelper;
-import net.minecraft.util.maths.Vec3f;
+import net.minecraft.util.maths.MCMath;
+import net.minecraft.util.maths.Vec3D;
 import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
@@ -60,7 +60,7 @@ import java.util.Random;
 @SuppressWarnings("rawtypes")
 public abstract class LevelMixin implements LevelHeightProvider, BlockStateProvider, PlaceChecker {
 	@Shadow public Random random;
-	@Shadow @Final public BaseDimension dimension;
+	@Shadow @Final public Dimension dimension;
 	@Shadow @Final protected DimensionData dimensionData;
 	@Shadow protected LevelProperties properties;
 	@Shadow public boolean forceBlockUpdate;
@@ -85,7 +85,7 @@ public abstract class LevelMixin implements LevelHeightProvider, BlockStateProvi
 	@Shadow public abstract boolean isBlockLoaded(int i, int j, int k);
 	@Shadow public abstract void updateArea(int i, int j, int k, int l, int m, int n);
 	@Shadow public abstract int getBlockMeta(int i, int j, int k);
-	@Shadow public abstract List getEntities(BaseEntity arg, Box arg2);
+	@Shadow public abstract List getEntities(Entity arg, Box arg2);
 	@Shadow public abstract boolean canSuffocate(int i, int j, int k);
 	@Shadow public abstract boolean hasInderectPower(int i, int j, int k);
 	@Shadow public abstract boolean isAboveGround(int i, int j, int k);
@@ -96,33 +96,33 @@ public abstract class LevelMixin implements LevelHeightProvider, BlockStateProvi
 	@Unique private LevelChunkUpdater bhapi_chunksUpdater;
 	@Unique private LevelTicksUpdater bhapi_ticksUpdater;
 	@Unique private LevelLightUpdater bhapi_lightUpdater;
-	@Unique private final Vec3f bhapi_tempPos = Vec3f.make(0, 0, 0);
+	@Unique private final Vec3D bhapi_tempPos = Vec3D.make(0, 0, 0);
 	
 	@Inject(
-		method = "<init>(Lnet/minecraft/level/dimension/DimensionData;Ljava/lang/String;Lnet/minecraft/level/dimension/BaseDimension;J)V",
+		method = "<init>(Lnet/minecraft/level/dimension/DimensionData;Ljava/lang/String;Lnet/minecraft/level/dimension/Dimension;J)V",
 		at = @At("TAIL")
 	)
 	@Environment(value= EnvType.CLIENT)
-	private void bhapi_onWorldInit1(DimensionData data, String name, BaseDimension dimension, long seed, CallbackInfo info) {
+	private void bhapi_onLevelInit1(DimensionData data, String name, Dimension dimension, long seed, CallbackInfo info) {
 		bhapi_loadBlockStates();
 		initUpdater();
 	}
 	
 	@Inject(
-		method = "<init>(Lnet/minecraft/level/Level;Lnet/minecraft/level/dimension/BaseDimension;)V",
+		method = "<init>(Lnet/minecraft/level/Level;Lnet/minecraft/level/dimension/Dimension;)V",
 		at = @At("TAIL")
 	)
 	@Environment(value=EnvType.CLIENT)
-	private void bhapi_onWorldInit2(Level level, BaseDimension dimension, CallbackInfo info) {
+	private void bhapi_onLevelInit2(Level level, Dimension dimension, CallbackInfo info) {
 		bhapi_loadBlockStates();
 		initUpdater();
 	}
 	
 	@Inject(
-		method = "<init>(Lnet/minecraft/level/dimension/DimensionData;Ljava/lang/String;JLnet/minecraft/level/dimension/BaseDimension;)V",
+		method = "<init>(Lnet/minecraft/level/dimension/DimensionData;Ljava/lang/String;JLnet/minecraft/level/dimension/Dimension;)V",
 		at = @At("TAIL")
 	)
-	private void bhapi_onWorldInit3(DimensionData data, String name, long seed, BaseDimension dimension, CallbackInfo info) {
+	private void bhapi_onLevelInit3(DimensionData data, String name, long seed, Dimension dimension, CallbackInfo info) {
 		bhapi_loadBlockStates();
 		initUpdater();
 	}
@@ -162,7 +162,7 @@ public abstract class LevelMixin implements LevelHeightProvider, BlockStateProvi
 		final int uv = bhapi_chunksUpdater.getUpdatesVertical();
 		final int uh = bhapi_chunksUpdater.getUpdatesHorizontal();
 		
-		BlockState state = getBlockState(x, y, z);
+		BlockState state = bhapi_getBlockState(x, y, z);
 		if (state.isAir()) return;
 		BHTimeInfo info = new BHTimeInfo(x, y, z, state);
 		
@@ -269,7 +269,7 @@ public abstract class LevelMixin implements LevelHeightProvider, BlockStateProvi
 		int py2 = y1 + dy;
 		
 		if (py1 < 0) py1 = 0;
-		short height = getLevelHeight();
+		short height = bhapi_getLevelHeight();
 		if (py2 > height) py2 = height;
 		
 		for (int cx = cx1; cx <= cx2; ++cx) {
@@ -306,7 +306,7 @@ public abstract class LevelMixin implements LevelHeightProvider, BlockStateProvi
 		int py2 = y1 + dy;
 		
 		if (py1 < 0) py1 = 0;
-		short height = getLevelHeight();
+		short height = bhapi_getLevelHeight();
 		if (py2 > height) py2 = height;
 		
 		for (int cx = cx1; cx <= cx2; ++cx) {
@@ -330,10 +330,10 @@ public abstract class LevelMixin implements LevelHeightProvider, BlockStateProvi
 	}
 	
 	@Inject(
-		method = "getHitResult(Lnet/minecraft/util/maths/Vec3f;Lnet/minecraft/util/maths/Vec3f;ZZ)Lnet/minecraft/util/hit/HitResult;",
+		method = "getHitResult(Lnet/minecraft/util/maths/Vec3D;Lnet/minecraft/util/maths/Vec3D;ZZ)Lnet/minecraft/util/hit/HitResult;",
 		at = @At("HEAD"), cancellable = true
 	)
-	private void getHitResult(Vec3f pos, Vec3f pos2, boolean bl, boolean bl2, CallbackInfoReturnable<HitResult> info) {
+	private void getHitResult(Vec3D pos, Vec3D pos2, boolean bl, boolean bl2, CallbackInfoReturnable<HitResult> info) {
 		if (Double.isNaN(pos.x) || Double.isNaN(pos.y) || Double.isNaN(pos.z)) {
 			info.setReturnValue(null);
 			return;
@@ -344,20 +344,20 @@ public abstract class LevelMixin implements LevelHeightProvider, BlockStateProvi
 			return;
 		}
 		
-		int ix = MathHelper.floor(pos2.x);
-		int iy = MathHelper.floor(pos2.y);
-		int iz = MathHelper.floor(pos2.z);
-		int x = MathHelper.floor(pos.x);
-		int y = MathHelper.floor(pos.y);
-		int z = MathHelper.floor(pos.z);
+		int ix = MCMath.floor(pos2.x);
+		int iy = MCMath.floor(pos2.y);
+		int iz = MCMath.floor(pos2.z);
+		int x = MCMath.floor(pos.x);
+		int y = MCMath.floor(pos.y);
+		int z = MCMath.floor(pos.z);
 		
 		Level level = Level.class.cast(this);
-		BlockState state = getBlockState(x, y, z);
-		BaseBlock block = state.getBlock();
+		BlockState state = bhapi_getBlockState(x, y, z);
+		Block block = state.getBlock();
 		int meta = this.getBlockMeta(x, y, z);
 		
 		HitResult hitResult;
-		if ((!bl2 || state.isAir() || block.getCollisionShape(level, x, y, z) != null) && block.isCollidable(meta, bl) && (hitResult = block.getHitResult(level, x, y, z, pos, pos2)) != null) {
+		if ((!bl2 || state.isAir() || block.getCollisionShape(level, x, y, z) != null) && block.isSelectable(meta, bl) && (hitResult = block.getHitResult(level, x, y, z, pos, pos2)) != null) {
 			info.setReturnValue(hitResult);
 			return;
 		}
@@ -449,21 +449,21 @@ public abstract class LevelMixin implements LevelHeightProvider, BlockStateProvi
 				pos.z = d3;
 			}
 			
-			bhapi_tempPos.x = MathHelper.floor(pos.x);
+			bhapi_tempPos.x = MCMath.floor(pos.x);
 			x = (int) bhapi_tempPos.x;
 			if (side == 5) {
 				--x;
 				bhapi_tempPos.x += 1.0;
 			}
 			
-			bhapi_tempPos.y = MathHelper.floor(pos.y);
+			bhapi_tempPos.y = MCMath.floor(pos.y);
 			y = (int)bhapi_tempPos.y;
 			if (side == 1) {
 				--y;
 				bhapi_tempPos.y += 1.0;
 			}
 			
-			bhapi_tempPos.z = MathHelper.floor(pos.z);
+			bhapi_tempPos.z = MCMath.floor(pos.z);
 			z = (int)bhapi_tempPos.z;
 			if (side == 3) {
 				--z;
@@ -472,9 +472,9 @@ public abstract class LevelMixin implements LevelHeightProvider, BlockStateProvi
 			
 			int meta2 = this.getBlockMeta(x, y, z);
 			
-			state = getBlockState(x, y, z);
+			state = bhapi_getBlockState(x, y, z);
 			block = state.getBlock();
-			if (bl2 && !state.isAir() && block.getCollisionShape(level, x, y, z) == null || !block.isCollidable(meta2, bl) || (hitResult = block.getHitResult(level, x, y, z, pos, pos2)) == null) continue;
+			if (bl2 && !state.isAir() && block.getCollisionShape(level, x, y, z) == null || !block.isSelectable(meta2, bl) || (hitResult = block.getHitResult(level, x, y, z, pos, pos2)) == null) continue;
 			
 			info.setReturnValue(hitResult);
 			return;
@@ -491,23 +491,23 @@ public abstract class LevelMixin implements LevelHeightProvider, BlockStateProvi
 	
 	@SuppressWarnings("all")
 	@Inject(method = "getCollidingEntities", at = @At("HEAD"), cancellable = true)
-	private void bhapi_getCollidingEntities(BaseEntity entity, Box area, CallbackInfoReturnable<List> info) {
+	private void bhapi_getCollidingEntities(Entity entity, Box area, CallbackInfoReturnable<List> info) {
 		this.collidingEntitySearchCache.clear();
 		
-		int x1 = MathHelper.floor(area.minX);
-		int x2 = MathHelper.floor(area.maxX + 1.0);
-		int y1 = MathHelper.floor(area.minY);
-		int y2 = MathHelper.floor(area.maxY + 1.0);
-		int z1 = MathHelper.floor(area.minZ);
-		int z2 = MathHelper.floor(area.maxZ + 1.0);
+		int x1 = MCMath.floor(area.minX);
+		int x2 = MCMath.floor(area.maxX + 1.0);
+		int y1 = MCMath.floor(area.minY);
+		int y2 = MCMath.floor(area.maxY + 1.0);
+		int z1 = MCMath.floor(area.minZ);
+		int z2 = MCMath.floor(area.maxZ + 1.0);
 		
 		Level level = Level.class.cast(this);
 		for (int x = x1; x < x2; ++x) {
 			for (int z = z1; z < z2; ++z) {
 				if (!this.isBlockLoaded(x, 64, z)) continue;
 				for (int y = y1 - 1; y < y2; ++y) {
-					BaseBlock baseBlock = getBlockState(x, y, z).getBlock();
-					if (!baseBlock.isCollidable()) continue;
+					Block baseBlock = bhapi_getBlockState(x, y, z).getBlock();
+					if (!baseBlock.isSelectable()) continue;
 					baseBlock.doesBoxCollide(level, x, y, z, area, this.collidingEntitySearchCache);
 				}
 			}
@@ -516,11 +516,11 @@ public abstract class LevelMixin implements LevelHeightProvider, BlockStateProvi
 		double d = 0.25;
 		List list = this.getEntities(entity, area.expandNegative(d, d, d));
 		for (int i = 0; i < list.size(); ++i) {
-			Box box = ((BaseEntity)list.get(i)).method_1381();
+			Box box = ((Entity)list.get(i)).getBoundingBox();
 			if (box != null && box.boxIntersects(area)) {
 				this.collidingEntitySearchCache.add(box);
 			}
-			if ((box = entity.getBoundingBox((BaseEntity)list.get(i))) == null || !box.boxIntersects(area)) continue;
+			if ((box = entity.getBoundingBox((Entity)list.get(i))) == null || !box.boxIntersects(area)) continue;
 			this.collidingEntitySearchCache.add(box);
 		}
 		
@@ -531,10 +531,10 @@ public abstract class LevelMixin implements LevelHeightProvider, BlockStateProvi
 	@Override
 	public boolean canPlaceState(BlockState state, int x, int y, int z, boolean flag, int facing) {
 		Level level = Level.class.cast(this);
-		BlockState levelState = getBlockState(x, y, z);
+		BlockState levelState = bhapi_getBlockState(x, y, z);
 		if (!levelState.isAir() && !levelState.getMaterial().isReplaceable()) return false;
 		
-		BaseBlock placeBlock = state.getBlock();
+		Block placeBlock = state.getBlock();
 		Box collider = placeBlock.getCollisionShape(level, x, y, z);
 		
 		if (flag) {
@@ -593,12 +593,12 @@ public abstract class LevelMixin implements LevelHeightProvider, BlockStateProvi
 			bhapi_lightUpdater = new LevelLightUpdater(level);
 		}
 		if (BHConfigs.GENERAL.getBool("multithreading.useThreads", true)) {
-			this.blockEntities = Collections.synchronizedList(new ArrayList<BaseBlockEntity>());
-			this.entities = Collections.synchronizedList(new ArrayList<BaseEntity>());
-			this.entityToRemove = Collections.synchronizedList(new ArrayList<BaseEntity>());
-			this.invalidBlockEntities = Collections.synchronizedList(new ArrayList<BaseBlockEntity>());
-			this.players = Collections.synchronizedList(new ArrayList<PlayerBase>());
-			this.entitiesList = Collections.synchronizedList(new ArrayList<BaseEntity>());
+			this.blockEntities = Collections.synchronizedList(new ArrayList<BlockEntity>());
+			this.entities = Collections.synchronizedList(new ArrayList<Entity>());
+			this.entityToRemove = Collections.synchronizedList(new ArrayList<Entity>());
+			this.invalidBlockEntities = Collections.synchronizedList(new ArrayList<BlockEntity>());
+			this.players = Collections.synchronizedList(new ArrayList<PlayerEntity>());
+			this.entitiesList = Collections.synchronizedList(new ArrayList<Entity>());
 		}
 	}
 	
@@ -607,8 +607,8 @@ public abstract class LevelMixin implements LevelHeightProvider, BlockStateProvi
 		BlockStateProvider provider = BlockStateProvider.cast(this.getChunk(x, z));
 		x &= 15;
 		z &= 15;
-		for (int y = getLevelHeight(); y > 0; --y) {
-			Material material = provider.getBlockState(x, y, z).getMaterial();
+		for (int y = bhapi_getLevelHeight(); y > 0; --y) {
+			Material material = provider.bhapi_getBlockState(x, y, z).getMaterial();
 			if (!material.blocksMovement() && !material.isLiquid()) continue;
 			info.setReturnValue(y + 1);
 			return;
@@ -618,19 +618,19 @@ public abstract class LevelMixin implements LevelHeightProvider, BlockStateProvi
 	
 	@Inject(method = "getMaterial(III)Lnet/minecraft/block/material/Material;", at = @At("HEAD"), cancellable = true)
 	private void bhapi_getMaterial(int x, int y, int z, CallbackInfoReturnable<Material> info) {
-		BlockState state = getBlockState(x, y, z);
+		BlockState state = bhapi_getBlockState(x, y, z);
 		info.setReturnValue(state.getMaterial());
 	}
 	
 	@Inject(method = "isFullOpaque", at = @At("HEAD"), cancellable = true)
 	private void bhapi_isFullOpaque(int x, int y, int z, CallbackInfoReturnable<Boolean> info) {
-		BlockState state = getBlockState(x, y, z);
+		BlockState state = bhapi_getBlockState(x, y, z);
 		info.setReturnValue(state.isFullOpaque());
 	}
 	
 	@Inject(method = "canSuffocate", at = @At("HEAD"), cancellable = true)
 	private void bhapi_canSuffocate(int x, int y, int z, CallbackInfoReturnable<Boolean> info) {
-		BlockState state = getBlockState(x, y, z);
+		BlockState state = bhapi_getBlockState(x, y, z);
 		info.setReturnValue(state.getMaterial().hasNoSuffocation() && state.getBlock().isFullCube());
 	}
 	
@@ -650,7 +650,7 @@ public abstract class LevelMixin implements LevelHeightProvider, BlockStateProvi
 		}
 		else {
 			Level level = Level.class.cast(this);
-			info.setReturnValue(getBlockState(x, y, z).isPowered(level, x, y, z, BlockDirection.getFromFacing(facing)));
+			info.setReturnValue(bhapi_getBlockState(x, y, z).isPowered(level, x, y, z, BlockDirection.getFromFacing(facing)));
 		}
 	}
 	
@@ -666,7 +666,7 @@ public abstract class LevelMixin implements LevelHeightProvider, BlockStateProvi
 			if (this.isAboveGround(x, y, z)) light = 15;
 		}
 		else if (type == LightType.BLOCK) {
-			BlockState state = getBlockState(x, y, z);
+			BlockState state = bhapi_getBlockState(x, y, z);
 			int blockLight = state.getEmittance();
 			if (blockLight > light) {
 				light = blockLight;
@@ -685,7 +685,7 @@ public abstract class LevelMixin implements LevelHeightProvider, BlockStateProvi
 	}
 	
 	@ModifyConstant(method = {
-		"getBlockId(III)I",
+		"getBlockID(III)I",
 		"isBlockLoaded(III)Z",
 		"isAreaLoaded(IIIIII)Z",
 		"getLightLevel(III)I",
@@ -697,10 +697,10 @@ public abstract class LevelMixin implements LevelHeightProvider, BlockStateProvi
 		"getLight(IIIZ)I",
 		"getLight(Lnet/minecraft/level/LightType;III)I",
 		"setLight",
-		"addEntityWithChecks(Lnet/minecraft/entity/BaseEntity;Z)V"
+		"addEntityWithChecks(Lnet/minecraft/entity/Entity;Z)V"
 	}, constant = @Constant(intValue = 128))
 	private int bhapi_changeMaxHeight(int value) {
-		return getLevelHeight();
+		return bhapi_getLevelHeight();
 	}
 	
 	@ModifyConstant(method = {
@@ -709,28 +709,28 @@ public abstract class LevelMixin implements LevelHeightProvider, BlockStateProvi
 		"getLight(Lnet/minecraft/level/LightType;III)I"
 	}, constant = @Constant(intValue = 127))
 	private int bhapi_changeMaxBlockHeight(int value) {
-		return getLevelHeight() - 1;
+		return bhapi_getLevelHeight() - 1;
 	}
 	
 	@ModifyConstant(
-		method = "getHitResult(Lnet/minecraft/util/maths/Vec3f;Lnet/minecraft/util/maths/Vec3f;ZZ)Lnet/minecraft/util/hit/HitResult;",
+		method = "getHitResult(Lnet/minecraft/util/maths/Vec3D;Lnet/minecraft/util/maths/Vec3D;ZZ)Lnet/minecraft/util/hit/HitResult;",
 		constant = @Constant(intValue = 200)
 	)
 	private int bhapi_changeMaxEntityCalcHeight(int value) {
-		return getLevelHeight() + 64;
+		return bhapi_getLevelHeight() + 64;
 	}
 	
 	@Unique
 	@Override
-	public short getLevelHeight() {
-		return LevelHeightProvider.cast(this.dimension).getLevelHeight();
+	public short bhapi_getLevelHeight() {
+		return LevelHeightProvider.cast(this.dimension).bhapi_getLevelHeight();
 	}
 	
 	@Unique
 	@Override
-	public boolean setBlockState(int x, int y, int z, BlockState state, boolean update) {
+	public boolean bhapi_setBlockState(int x, int y, int z, BlockState state, boolean update) {
 		BlockStateProvider provider = BlockStateProvider.cast(this.getChunkFromCache(x >> 4, z >> 4));
-		boolean result = provider.setBlockState(x & 15, y, z & 15, state, update);
+		boolean result = provider.bhapi_setBlockState(x & 15, y, z & 15, state, update);
 		if (update && result) {
 			this.updateListenersLight(x, y, z);
 			this.updateAdjacentBlocks(x, y, z, state.getBlock().id);
@@ -740,9 +740,9 @@ public abstract class LevelMixin implements LevelHeightProvider, BlockStateProvi
 	
 	@Unique
 	@Override
-	public BlockState getBlockState(int x, int y, int z) {
-		if (y < 0 || y >= getLevelHeight()) return BlockUtil.AIR_STATE;
+	public BlockState bhapi_getBlockState(int x, int y, int z) {
+		if (y < 0 || y >= bhapi_getLevelHeight()) return BlockUtil.AIR_STATE;
 		BlockStateProvider provider = BlockStateProvider.cast(this.getChunkFromCache(x >> 4, z >> 4));
-		return provider.getBlockState(x & 15, y, z & 15);
+		return provider.bhapi_getBlockState(x & 15, y, z & 15);
 	}
 }

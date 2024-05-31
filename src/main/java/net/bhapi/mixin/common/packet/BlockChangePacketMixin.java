@@ -28,7 +28,7 @@ public abstract class BlockChangePacketMixin extends AbstractPacket {
 	@Inject(method = "<init>(IIILnet/minecraft/level/Level;)V", at = @At("TAIL"))
 	private void bhapi_onPacketInit(int x, int y, int z, Level level, CallbackInfo info) {
 		this.levelPacket = true;
-		this.blockId = BlockStateProvider.cast(level).getBlockState(x, y, z).getID();
+		this.blockId = BlockStateProvider.cast(level).bhapi_getBlockState(x, y, z).getID();
 	}
 	
 	@Inject(method = "read", at = @At("HEAD"), cancellable = true)

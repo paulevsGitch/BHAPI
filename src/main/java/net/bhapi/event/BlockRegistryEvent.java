@@ -2,10 +2,10 @@ package net.bhapi.event;
 
 import net.bhapi.registry.Registry;
 import net.bhapi.util.Identifier;
-import net.minecraft.block.BaseBlock;
+import net.minecraft.block.Block;
 
-public class BlockRegistryEvent extends RegistryEvent<Identifier, BaseBlock> {
-	public BlockRegistryEvent(Registry<BaseBlock> registry) {
+public class BlockRegistryEvent extends RegistryEvent<Identifier, Block> {
+	public BlockRegistryEvent(Registry<Block> registry) {
 		super(registry::register);
 	}
 	
@@ -15,7 +15,7 @@ public class BlockRegistryEvent extends RegistryEvent<Identifier, BaseBlock> {
 	}
 	
 	@Override
-	public void register(Identifier id, BaseBlock value) {
+	public void register(Identifier id, Block value) {
 		super.register(id, value);
 		value.setTranslationKey(id.getModID() + "." + id.getName());
 	}

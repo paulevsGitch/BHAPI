@@ -27,7 +27,7 @@ public class LevelChunkLoaderMixin {
 	
 	@Inject(method = "loadChunk", at = @At("HEAD"), cancellable = true)
 	private void bhapi_fixLoadChunk(Level level, int x, int z, CallbackInfoReturnable<Chunk> info) {
-		DataInputStream stream = RegionLoader.method_1215(this.file, x, z);
+		DataInputStream stream = RegionLoader.getInputStream(this.file, x, z);
 		if (stream == null) {
 			info.setReturnValue(null);
 			return;
@@ -50,13 +50,13 @@ public class LevelChunkLoaderMixin {
 		info.cancel();
 		level.checkSessionLock();
 		try {
-			DataOutputStream stream = RegionLoader.method_1216(this.file, chunk.x, chunk.z);
+			DataOutputStream stream = RegionLoader.getOutputStream(this.file, chunk.x, chunk.z);
 			CompoundTag tag = new CompoundTag();
 			LevelManager.saveData(chunk, level, tag);
 			NBTIO.writeTag(tag, stream);
 			stream.close();
 			LevelProperties properties = level.getProperties();
-			properties.setSizeOnDisk(properties.getSizeOnDisk() + (long) RegionLoader.method_1214(this.file, chunk.x, chunk.z));
+			properties.setSizeOnDisk(properties.getSizeOnDisk() + (long) RegionLoader.getSizeDelta(this.file, chunk.x, chunk.z));
 		}
 		catch (Exception exception) {
 			exception.printStackTrace();

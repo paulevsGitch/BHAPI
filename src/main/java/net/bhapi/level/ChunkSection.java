@@ -9,8 +9,8 @@ import net.bhapi.storage.MultiThreadStorage;
 import net.bhapi.storage.Vec3I;
 import net.bhapi.util.BlockUtil;
 import net.bhapi.util.MathUtil;
-import net.minecraft.block.entity.BaseBlockEntity;
-import net.minecraft.entity.BaseEntity;
+import net.minecraft.block.entity.BlockEntity;
+import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityRegistry;
 import net.minecraft.level.Level;
 import net.minecraft.level.LightType;
@@ -27,10 +27,10 @@ import java.util.concurrent.ConcurrentHashMap;
 public class ChunkSection implements NBTSerializable {
 	public static final ChunkSection EMPTY = new ChunkSection();
 	private static final MultiThreadStorage<StatesLoader> LOADERS = new MultiThreadStorage<>(StatesLoader::new);
-	private final Map<Vec3I, BaseBlockEntity> blockEntities = new ConcurrentHashMap<>();
+	private final Map<Vec3I, BlockEntity> blockEntities = new ConcurrentHashMap<>();
 	private final int[] states = new int[4096];
 	private final byte[] light = new byte[4096];
-	public final List<BaseEntity> entities;
+	public final List<Entity> entities;
 	
 	public ChunkSection() {
 		boolean useThreads = BHConfigs.GENERAL.getBool("multithreading.useThreads", true);
@@ -67,11 +67,11 @@ public class ChunkSection implements NBTSerializable {
 		states[index] = state.withMeta(meta).getID();
 	}
 	
-	public BaseBlockEntity getBlockEntity(Vec3I pos) {
+	public BlockEntity getBlockEntity(Vec3I pos) {
 		return blockEntities.get(pos);
 	}
 	
-	public void setBlockEntity(Vec3I pos, BaseBlockEntity entity) {
+	public void setBlockEntity(Vec3I pos, BlockEntity entity) {
 		blockEntities.put(pos, entity);
 	}
 	
@@ -79,7 +79,7 @@ public class ChunkSection implements NBTSerializable {
 		blockEntities.remove(pos);
 	}
 	
-	public Collection<BaseBlockEntity> getBlockEntities() {
+	public Collection<BlockEntity> getBlockEntities() {
 		return blockEntities.values();
 	}
 	
@@ -197,7 +197,7 @@ public class ChunkSection implements NBTSerializable {
 		if (listTag != null) {
 			for (int i = 0; i < listTag.size(); ++i) {
 				CompoundTag entityTag = (CompoundTag) listTag.get(i);
-				BaseBlockEntity blockEntity = BaseBlockEntity.blockEntityFromNBT(entityTag);
+				BlockEntity blockEntity = BlockEntity.blockEntityFromNBT(entityTag);
 				if (blockEntity == null) continue;
 				Vec3I pos = new Vec3I(blockEntity.x & 15, blockEntity.y & 15, blockEntity.z & 15);
 				blockEntity.level = level;
@@ -213,7 +213,7 @@ public class ChunkSection implements NBTSerializable {
 		if (listTag == null) return;
 		for (int i = 0; i < listTag.size(); ++i) {
 			CompoundTag entityTag = (CompoundTag) listTag.get(i);
-			BaseEntity entity = EntityRegistry.create(entityTag, level);
+			Entity entity = EntityRegistry.create(entityTag, level);
 			if (entity != null) {
 				entity.placedInLevel = true;
 				entity.chunkX = x;

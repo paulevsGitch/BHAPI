@@ -10,6 +10,7 @@ import net.bhapi.mixin.common.packet.AbstractPackerAccessor;
 import net.bhapi.packet.BlockStatesPacket;
 import net.bhapi.recipe.RecipeSorter;
 import net.bhapi.registry.CommonRegistries;
+import net.bhapi.storage.Pair;
 import net.bhapi.storage.Resource;
 import net.bhapi.util.BlockUtil;
 import net.bhapi.util.ItemUtil;
@@ -18,7 +19,6 @@ import net.bhapi.util.ResourceUtil;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.ModInitializer;
 import net.fabricmc.loader.api.FabricLoader;
-import net.fabricmc.tinyremapper.extension.mixin.common.data.Pair;
 import net.minecraft.client.resource.language.TranslationStorage;
 import net.minecraft.recipe.RecipeRegistry;
 import org.apache.logging.log4j.Level;
@@ -145,7 +145,7 @@ public class BHAPI implements ModInitializer {
 						  Class<? extends BHEvent> event = (Class<? extends BHEvent>) parameters[0];
 						  if (!eventRegistry.containsKey(event)) return;
 						  List<Pair<Object, Method>> pairs = events.computeIfAbsent(event, i -> new ArrayList<>());
-						  pairs.add(Pair.of(entrypoint, method));
+						  pairs.add(new Pair<>(entrypoint, method));
 					  }
 				  });
 		});

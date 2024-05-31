@@ -23,13 +23,13 @@ public abstract class FlowingFluidBlockMixin implements BlockStateContainer, Cli
 	private static final TextureSample[] BHAPI_SAMPLES = new TextureSample[4];
 	
 	@Override
-	public void appendProperties(List<StateProperty<?>> properties) {
+	public void bhapi_appendProperties(List<StateProperty<?>> properties) {
 		properties.add(LegacyProperties.META_16);
 	}
 	
 	@Override
 	@Environment(EnvType.CLIENT)
-	public TextureSample getTextureForIndex(BlockView view, int x, int y, int z, BlockState state, int textureIndex, int overlayIndex) {
+	public TextureSample bhapi_getTextureForIndex(BlockView view, int x, int y, int z, BlockState state, int textureIndex, int overlayIndex) {
 		textureIndex = textureIndex > 1 ? 1 : 0;
 		if (FlowingFluidBlock.class.cast(this).material == Material.LAVA) textureIndex += 2;
 		return BHAPI_SAMPLES[textureIndex];

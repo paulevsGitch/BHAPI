@@ -4,8 +4,8 @@ import net.bhapi.blockstate.BlockState;
 import net.bhapi.blockstate.BlockStateContainer;
 import net.bhapi.level.BlockStateProvider;
 import net.bhapi.registry.CommonRegistries;
-import net.minecraft.block.BaseBlock;
-import net.minecraft.block.entity.BaseBlockEntity;
+import net.minecraft.block.Block;
+import net.minecraft.block.entity.BlockEntity;
 import net.minecraft.block.entity.PistonBlockEntity;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
@@ -14,7 +14,7 @@ import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 @Mixin(PistonBlockEntity.class)
-public abstract class PistonBlockEntityMixin extends BaseBlockEntity implements BlockStateContainer {
+public abstract class PistonBlockEntityMixin extends BlockEntity implements BlockStateContainer {
 	@Shadow private int blockID;
 	@Shadow private float progress;
 	@Shadow private float maxProgress;
@@ -24,13 +24,13 @@ public abstract class PistonBlockEntityMixin extends BaseBlockEntity implements 
 	@Shadow protected abstract void moveBlocks(float f, float g);
 	
 	@Override
-	public void setDefaultState(BlockState state) {
+	public void bhapi_setDefaultState(BlockState state) {
 		this.blockID = state.getID();
 		this.blockData = state.getMeta();
 	}
 	
 	@Override
-	public BlockState getDefaultState() {
+	public BlockState bhapi_getDefaultState() {
 		return CommonRegistries.BLOCKSTATES_MAP.get(this.blockID);
 	}
 	
@@ -43,8 +43,8 @@ public abstract class PistonBlockEntityMixin extends BaseBlockEntity implements 
 			this.level.removeBlockEntity(this.x, this.y, this.z);
 			this.invalidate();
 			BlockStateProvider provider = BlockStateProvider.cast(level);
-			if (provider.getBlockState(this.x, this.y, this.z).is(BaseBlock.MOVING_PISTON)) {
-				provider.setBlockState(this.x, this.y, this.z, getDefaultState());
+			if (provider.bhapi_getBlockState(this.x, this.y, this.z).is(Block.MOVING_PISTON)) {
+				provider.bhapi_setBlockState(this.x, this.y, this.z, bhapi_getDefaultState());
 			}
 		}
 	}
@@ -58,8 +58,8 @@ public abstract class PistonBlockEntityMixin extends BaseBlockEntity implements 
 			this.level.removeBlockEntity(this.x, this.y, this.z);
 			this.invalidate();
 			BlockStateProvider provider = BlockStateProvider.cast(level);
-			if (provider.getBlockState(this.x, this.y, this.z).is(BaseBlock.MOVING_PISTON)) {
-				provider.setBlockState(this.x, this.y, this.z, getDefaultState());
+			if (provider.bhapi_getBlockState(this.x, this.y, this.z).is(Block.MOVING_PISTON)) {
+				provider.bhapi_setBlockState(this.x, this.y, this.z, bhapi_getDefaultState());
 			}
 			return;
 		}

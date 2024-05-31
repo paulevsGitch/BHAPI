@@ -4,11 +4,11 @@ import net.bhapi.item.BHBlockItem;
 import net.minecraft.client.render.entity.LivingEntityRenderer;
 import net.minecraft.client.render.entity.PlayerRenderer;
 import net.minecraft.client.render.entity.model.BipedModel;
-import net.minecraft.client.render.entity.model.EntityModelBase;
-import net.minecraft.entity.player.PlayerBase;
-import net.minecraft.item.BaseItem;
+import net.minecraft.client.render.entity.model.EntityModel;
+import net.minecraft.entity.living.player.PlayerEntity;
+import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
-import net.minecraft.util.maths.MathHelper;
+import net.minecraft.util.maths.MCMath;
 import org.lwjgl.opengl.GL11;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
@@ -20,12 +20,12 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 public abstract class PlayerRendererMixin extends LivingEntityRenderer {
 	@Shadow private BipedModel playerModel;
 	
-	public PlayerRendererMixin(EntityModelBase arg, float f) {
+	public PlayerRendererMixin(EntityModel arg, float f) {
 		super(arg, f);
 	}
 	
 	@Inject(method = "method_342", at = @At("HEAD"), cancellable = true)
-	protected void bhapi_renderPlayerAdditions(PlayerBase player, float delta, CallbackInfo info) {
+	protected void bhapi_renderPlayerAdditions(PlayerEntity player, float delta, CallbackInfo info) {
 		info.cancel();
 		
 		float scale;
@@ -33,7 +33,7 @@ public abstract class PlayerRendererMixin extends LivingEntityRenderer {
 		
 		if (itemStack != null && itemStack.getType() instanceof BHBlockItem) {
 			GL11.glPushMatrix();
-			this.playerModel.head.method_1820(0.0625f);
+			this.playerModel.head.update(0.0625f);
 			if (BHBlockItem.cast(itemStack.getType()).isFlat()) {
 				float f3 = 0.625f;
 				GL11.glTranslatef(0.0f, -0.25f, 0.0f);
@@ -46,7 +46,7 @@ public abstract class PlayerRendererMixin extends LivingEntityRenderer {
 		
 		if (player.name.equals("deadmau5") && this.tryBindTexture(player.skinUrl, null)) {
 			for (int i = 0; i < 2; ++i) {
-				scale = player.prevYaw + (player.yaw - player.prevYaw) * delta - (player.field_1013 + (player.field_1012 - player.field_1013) * delta);
+				scale = player.prevYaw + (player.yaw - player.prevYaw) * delta - (player.prevBodyYaw + (player.bodyYaw - player.prevBodyYaw) * delta);
 				float f4 = player.prevPitch + (player.pitch - player.prevPitch) * delta;
 				GL11.glPushMatrix();
 				GL11.glRotatef(scale, 0.0f, 1.0f, 0.0f);
@@ -68,9 +68,9 @@ public abstract class PlayerRendererMixin extends LivingEntityRenderer {
 			double d = player.preX + (player.newX - player.preX) * (double)delta - (player.prevX + (player.x - player.prevX) * (double)delta);
 			double d2 = player.preY + (player.newY - player.preY) * (double)delta - (player.prevY + (player.y - player.prevY) * (double)delta);
 			double d3 = player.preZ + (player.newZ - player.preZ) * (double)delta - (player.prevZ + (player.z - player.prevZ) * (double)delta);
-			float f6 = player.field_1013 + (player.field_1012 - player.field_1013) * delta;
-			double d4 = MathHelper.sin(f6 * (float)Math.PI / 180.0f);
-			double d5 = -MathHelper.cos(f6 * (float)Math.PI / 180.0f);
+			float f6 = player.prevBodyYaw + (player.bodyYaw - player.prevBodyYaw) * delta;
+			double d4 = MCMath.sin(f6 * (float)Math.PI / 180.0f);
+			double d5 = -MCMath.cos(f6 * (float)Math.PI / 180.0f);
 			float f7 = (float)d2 * 10.0f;
 			if (f7 < -6.0f) {
 				f7 = -6.0f;
@@ -84,7 +84,7 @@ public abstract class PlayerRendererMixin extends LivingEntityRenderer {
 				f8 = 0.0f;
 			}
 			float f10 = player.field_524 + (player.field_525 - player.field_524) * delta;
-			f7 += MathHelper.sin((player.field_1634 + (player.field_1635 - player.field_1634) * delta) * 6.0f) * 32.0f * f10;
+			f7 += MCMath.sin((player.prevWalkedDistance + (player.walkedDistance - player.prevWalkedDistance) * delta) * 6.0f) * 32.0f * f10;
 			if (player.isChild()) {
 				f7 += 25.0f;
 			}
@@ -99,12 +99,12 @@ public abstract class PlayerRendererMixin extends LivingEntityRenderer {
 		ItemStack handItem = player.inventory.getHeldItem();
 		if (handItem != null) {
 			GL11.glPushMatrix();
-			this.playerModel.rightArm.method_1820(0.0625f);
+			this.playerModel.rightArm.update(0.0625f);
 			GL11.glTranslatef(-0.0625f, 0.4375f, 0.0625f);
 			if (player.fishHook != null) {
-				handItem = new ItemStack(BaseItem.stick);
+				handItem = new ItemStack(Item.stick);
 			}
-			BaseItem item = handItem.getType();
+			Item item = handItem.getType();
 			// TODO make 2D item models
 			if (item instanceof BHBlockItem) {
 				scale = 0.5f;

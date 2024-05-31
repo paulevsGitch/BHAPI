@@ -6,7 +6,7 @@ import net.bhapi.level.LevelHeightProvider;
 import net.bhapi.util.BlockUtil;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
-import net.minecraft.block.BaseBlock;
+import net.minecraft.block.Block;
 import net.minecraft.block.StairsBlock;
 import net.minecraft.level.Level;
 import net.minecraft.level.LevelPopulationRegion;
@@ -36,7 +36,7 @@ public abstract class LevelPopulationRegionMixin implements BlockStateProvider, 
 		"getBlockMeta(III)I"
 	}, constant = @Constant(intValue = 128))
 	private int bhapi_changeMaxHeight(int value) {
-		return getLevelHeight();
+		return bhapi_getLevelHeight();
 	}
 	
 	@Environment(value= EnvType.CLIENT)
@@ -48,8 +48,8 @@ public abstract class LevelPopulationRegionMixin implements BlockStateProvider, 
 		}
 		
 		if (flag) {
-			BlockState state = getBlockState(x, y, z);
-			if (state.is(BaseBlock.STONE_SLAB) || state.is(BaseBlock.FARMLAND) || state.getBlock() instanceof StairsBlock) {
+			BlockState state = bhapi_getBlockState(x, y, z);
+			if (state.is(Block.STONE_SLAB) || state.is(Block.FARMLAND) || state.getBlock() instanceof StairsBlock) {
 				int light = this.method_142(x, y + 1, z, false);
 				int lx1 = this.method_142(x + 1, y, z, false);
 				int lx2 = this.method_142(x - 1, y, z, false);
@@ -79,7 +79,7 @@ public abstract class LevelPopulationRegionMixin implements BlockStateProvider, 
 			return;
 		}
 		
-		if (y >= getLevelHeight()) {
+		if (y >= bhapi_getLevelHeight()) {
 			int light = 15 - this.level.correctLightValue;
 			if (light < 0) {
 				light = 0;
@@ -97,29 +97,29 @@ public abstract class LevelPopulationRegionMixin implements BlockStateProvider, 
 	@Environment(value=EnvType.CLIENT)
 	@Inject(method = "isFullOpaque", at = @At("HEAD"), cancellable = true)
 	private void bhapi_isFullOpaque(int x, int y, int z, CallbackInfoReturnable<Boolean> info) {
-		info.setReturnValue(getBlockState(x, y, z).isFullOpaque());
+		info.setReturnValue(bhapi_getBlockState(x, y, z).isFullOpaque());
 	}
 	
 	@Unique
 	@Override
-	public short getLevelHeight() {
-		return LevelHeightProvider.cast(this.level).getLevelHeight();
+	public short bhapi_getLevelHeight() {
+		return LevelHeightProvider.cast(this.level).bhapi_getLevelHeight();
 	}
 	
 	@Unique
 	@Override
-	public boolean setBlockState(int x, int y, int z, BlockState state, boolean update) {
+	public boolean bhapi_setBlockState(int x, int y, int z, BlockState state, boolean update) {
 		return false;
 	}
 	
 	@Unique
 	@Override
-	public BlockState getBlockState(int x, int y, int z) {
+	public BlockState bhapi_getBlockState(int x, int y, int z) {
 		if (y < 0) {
 			return BlockUtil.AIR_STATE;
 		}
 		
-		if (y >= getLevelHeight()) {
+		if (y >= bhapi_getLevelHeight()) {
 			return BlockUtil.AIR_STATE;
 		}
 		
@@ -134,11 +134,11 @@ public abstract class LevelPopulationRegionMixin implements BlockStateProvider, 
 			return BlockUtil.AIR_STATE;
 		}
 		
-		return BlockStateProvider.cast(chunk).getBlockState(x & 15, y, z & 15);
+		return BlockStateProvider.cast(chunk).bhapi_getBlockState(x & 15, y, z & 15);
 	}
 	
 	@Inject(method = "getBlockMeta", at = @At("HEAD"), cancellable = true)
 	private void bhapi_getBlockMeta(int x, int y, int z, CallbackInfoReturnable<Integer> info) {
-		info.setReturnValue(getBlockState(x, y, z).getMeta());
+		info.setReturnValue(bhapi_getBlockState(x, y, z).getMeta());
 	}
 }

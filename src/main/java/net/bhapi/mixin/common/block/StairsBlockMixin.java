@@ -11,7 +11,7 @@ import java.util.List;
 @Mixin(StairsBlock.class)
 public abstract class StairsBlockMixin implements BlockStateContainer {
 	@Override
-	public void appendProperties(List<StateProperty<?>> properties) {
+	public void bhapi_appendProperties(List<StateProperty<?>> properties) {
 		properties.add(LegacyProperties.META_4);
 	}
 }

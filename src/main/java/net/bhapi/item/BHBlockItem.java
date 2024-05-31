@@ -10,9 +10,9 @@ import net.bhapi.storage.Vec3I;
 import net.bhapi.util.BlockDirection;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
-import net.minecraft.block.BaseBlock;
+import net.minecraft.block.Block;
 import net.minecraft.block.BlockSounds;
-import net.minecraft.entity.player.PlayerBase;
+import net.minecraft.entity.living.player.PlayerEntity;
 import net.minecraft.item.ItemStack;
 import net.minecraft.level.Level;
 
@@ -36,18 +36,18 @@ public class BHBlockItem extends BHItem {
 		ITEMS.put(state, this);
 	}
 	
-	public BHBlockItem(BaseBlock block, boolean isFlat) {
+	public BHBlockItem(Block block, boolean isFlat) {
 		this(BlockState.getDefaultState(block), isFlat);
 	}
 	
 	@Override
-	public boolean useOnBlock(ItemStack stack, PlayerBase player, Level level, int x, int y, int z, int facing) {
+	public boolean useOnBlock(ItemStack stack, PlayerEntity player, Level level, int x, int y, int z, int facing) {
 		if (stack.count == 0) return false;
-		if (y < 0 || y >= LevelHeightProvider.cast(level).getLevelHeight()) return false;
+		if (y < 0 || y >= LevelHeightProvider.cast(level).bhapi_getLevelHeight()) return false;
 		
 		BlockStateProvider provider = BlockStateProvider.cast(level);
-		BlockState worldState = provider.getBlockState(x, y, z);
-		if (worldState.is(BaseBlock.SNOW)) facing = 0;
+		BlockState worldState = provider.bhapi_getBlockState(x, y, z);
+		if (worldState.is(Block.SNOW)) facing = 0;
 		
 		if (!place(stack, level, x, y, z, facing, player)) {
 			BlockDirection dir = BlockDirection.getFromFacing(facing);
@@ -57,11 +57,11 @@ public class BHBlockItem extends BHItem {
 		return true;
 	}
 	
-	private boolean place(ItemStack stack, Level level, int x, int y, int z, int facing, PlayerBase player) {
+	private boolean place(ItemStack stack, Level level, int x, int y, int z, int facing, PlayerEntity player) {
 		PlaceChecker checker = PlaceChecker.cast(level);
 		BlockStateProvider provider = BlockStateProvider.cast(level);
 		if (checker.canPlaceState(state, x, y, z, false, facing)) {
-			if (provider.setBlockState(x, y, z, state)) {
+			if (provider.bhapi_setBlockState(x, y, z, state)) {
 				state.onBlockPlaced(level, x, y, z, facing);
 				state.getBlock().afterPlaced(level, x, y, z, player);
 				BlockSounds sounds = state.getSounds();

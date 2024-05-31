@@ -16,10 +16,10 @@ import net.bhapi.util.BlockUtil;
 import net.bhapi.util.Identifier;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
-import net.minecraft.block.BaseBlock;
+import net.minecraft.block.Block;
 import net.minecraft.block.LeverBlock;
 import net.minecraft.block.material.Material;
-import net.minecraft.entity.player.PlayerBase;
+import net.minecraft.entity.living.player.PlayerEntity;
 import net.minecraft.level.BlockView;
 import net.minecraft.level.Level;
 import org.spongepowered.asm.mixin.Mixin;
@@ -31,7 +31,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 import java.util.List;
 
 @Mixin(LeverBlock.class)
-public abstract class LeverBlockMixin extends BaseBlock implements BlockStateContainer, ClientPostInit, BHBlockRender {
+public abstract class LeverBlockMixin extends Block implements BlockStateContainer, ClientPostInit, BHBlockRender {
 	private static final Vec3I[] OFFSETS = new Vec3I[] {
 		new Vec3I(0, -1, 0),
 		new Vec3I(-1, 0, 0),
@@ -51,7 +51,7 @@ public abstract class LeverBlockMixin extends BaseBlock implements BlockStateCon
 	private static final TextureSample[] BHAPI_SAMPLES = new TextureSample[2];
 	
 	@Override
-	public void appendProperties(List<StateProperty<?>> properties) {
+	public void bhapi_appendProperties(List<StateProperty<?>> properties) {
 		properties.add(LegacyProperties.META_16);
 	}
 	
@@ -65,19 +65,19 @@ public abstract class LeverBlockMixin extends BaseBlock implements BlockStateCon
 	
 	@Override
 	@Environment(EnvType.CLIENT)
-	public TextureSample getTextureForIndex(BlockView view, int x, int y, int z, BlockState state, int textureIndex, int overlayIndex) {
+	public TextureSample bhapi_getTextureForIndex(BlockView view, int x, int y, int z, BlockState state, int textureIndex, int overlayIndex) {
 		if (view instanceof BlockItemView) return BHAPI_SAMPLES[0];
 		return BHAPI_SAMPLES[textureIndex < 6 ? 1 : 0];
 	}
 	
 	@Override
-	public void onNeighbourBlockUpdate(Level level, int x, int y, int z, BlockDirection facing, BlockState state, BlockState neighbour) {
+	public void bhapi_onNeighbourBlockUpdate(Level level, int x, int y, int z, BlockDirection facing, BlockState state, BlockState neighbour) {
 		if (state.getMeta() == 0) return;
 		BlockStateProvider provider = BlockStateProvider.cast(level);
 		if (!this.canPlaceAt(level, x, y, z)) {
 			BlockUtil.brokenBlock = state;
 			this.drop(level, x, y, z, state.getMeta());
-			provider.setBlockState(x, y, z, BlockUtil.AIR_STATE);
+			provider.bhapi_setBlockState(x, y, z, BlockUtil.AIR_STATE);
 			return;
 		}
 		int wrapped = state.getMeta() & 7;
@@ -86,19 +86,19 @@ public abstract class LeverBlockMixin extends BaseBlock implements BlockStateCon
 		if (!level.canSuffocate(x + offset.x, y + offset.y, z + offset.z)) {
 			BlockUtil.brokenBlock = state;
 			this.drop(level, x, y, z, state.getMeta());
-			provider.setBlockState(x, y, z, BlockUtil.AIR_STATE);
+			provider.bhapi_setBlockState(x, y, z, BlockUtil.AIR_STATE);
 		}
 	}
 	
 	@Inject(method = "canUse", at = @At("HEAD"), cancellable = true)
-	private void bhapi_canUse(Level level, int x, int y, int z, PlayerBase player, CallbackInfoReturnable<Boolean> info) {
+	private void bhapi_canUse(Level level, int x, int y, int z, PlayerEntity player, CallbackInfoReturnable<Boolean> info) {
 		if (level.isRemote) {
 			info.setReturnValue(true);
 			return;
 		}
 		
 		BlockStateProvider provider = BlockStateProvider.cast(level);
-		BlockState state = provider.getBlockState(x, y, z);
+		BlockState state = provider.bhapi_getBlockState(x, y, z);
 		int meta = state.getMeta();
 		int wrappedMeta = meta & 7;
 		int powered = 8 - (meta & 8);

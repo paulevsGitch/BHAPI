@@ -35,7 +35,7 @@ public class LightUpdateAreaMixin {
 	
 	@ModifyConstant(method = "process(Lnet/minecraft/level/Level;)V", constant = @Constant(intValue = 128))
 	private int bhapi_changeMaxHeight(int value) {
-		return LevelHeightProvider.cast(bhapi_currentLevel).getLevelHeight() - 1;
+		return LevelHeightProvider.cast(bhapi_currentLevel).bhapi_getLevelHeight() - 1;
 	}
 	
 	@Inject(method = "process", at = @At("HEAD"), cancellable = true)
@@ -53,7 +53,7 @@ public class LightUpdateAreaMixin {
 			return;
 		}
 		
-		short height = LevelHeightProvider.cast(level).getLevelHeight();
+		short height = LevelHeightProvider.cast(level).bhapi_getLevelHeight();
 		if (this.y2 >= height) this.y2 = height - 1;
 		if (this.y1 < 0) this.y1 = 0;
 		
@@ -66,7 +66,7 @@ public class LightUpdateAreaMixin {
 				
 				for (int y = this.y1; y <= this.y2; ++y) {
 					int light = level.getLight(this.lightType, x, y, z);
-					BlockState state = BlockStateProvider.cast(level).getBlockState(x, y, z);
+					BlockState state = BlockStateProvider.cast(level).bhapi_getBlockState(x, y, z);
 					int resultLight = 0;
 					int opacity = state.getLightOpacity();
 					

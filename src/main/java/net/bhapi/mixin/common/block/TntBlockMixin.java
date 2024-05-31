@@ -15,10 +15,10 @@ public abstract class TntBlockMixin implements BlockStateContainer {
 	@Shadow public abstract void activate(Level arg, int i, int j, int k, int l);
 	
 	@Override
-	public void onNeighbourBlockUpdate(Level level, int x, int y, int z, BlockDirection facing, BlockState state, BlockState neighbour) {
+	public void bhapi_onNeighbourBlockUpdate(Level level, int x, int y, int z, BlockDirection facing, BlockState state, BlockState neighbour) {
 		if (!neighbour.isAir() && neighbour.emitsPower() && level.hasRedstonePower(x, y, z)) {
 			this.activate(level, x, y, z, 1);
-			BlockStateProvider.cast(level).setBlockState(x, y, z, BlockUtil.AIR_STATE);
+			BlockStateProvider.cast(level).bhapi_setBlockState(x, y, z, BlockUtil.AIR_STATE);
 		}
 	}
 }

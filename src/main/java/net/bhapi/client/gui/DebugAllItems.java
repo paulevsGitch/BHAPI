@@ -1,10 +1,10 @@
 package net.bhapi.client.gui;
 
-import net.minecraft.entity.player.PlayerBase;
-import net.minecraft.inventory.BaseInventory;
+import net.minecraft.entity.living.player.PlayerEntity;
+import net.minecraft.inventory.Inventory;
 import net.minecraft.item.ItemStack;
 
-public class DebugAllItems implements BaseInventory {
+public class DebugAllItems implements Inventory {
 	private final ItemStack[] items;
 	
 	public DebugAllItems(int size) {
@@ -43,7 +43,7 @@ public class DebugAllItems implements BaseInventory {
 	public void markDirty() {}
 	
 	@Override
-	public boolean canPlayerUse(PlayerBase arg) {
+	public boolean canPlayerUse(PlayerEntity arg) {
 		return true;
 	}
 	

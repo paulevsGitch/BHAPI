@@ -10,20 +10,20 @@ import net.bhapi.level.BlockStateProvider;
 import net.bhapi.level.LevelHeightProvider;
 import net.bhapi.level.light.ClientLightLevel;
 import net.bhapi.registry.CommonRegistries;
-import net.minecraft.block.BaseBlock;
+import net.minecraft.block.Block;
 import net.minecraft.block.BlockSounds;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.render.LevelRenderer;
 import net.minecraft.client.render.Tessellator;
-import net.minecraft.entity.LivingEntity;
-import net.minecraft.entity.player.PlayerBase;
+import net.minecraft.entity.living.LivingEntity;
+import net.minecraft.entity.living.player.PlayerEntity;
 import net.minecraft.item.ItemStack;
 import net.minecraft.level.Level;
 import net.minecraft.util.hit.HitResult;
 import net.minecraft.util.hit.HitType;
 import net.minecraft.util.maths.Box;
 import net.minecraft.util.maths.BoxCollider;
-import net.minecraft.util.maths.MathHelper;
+import net.minecraft.util.maths.MCMath;
 import org.lwjgl.opengl.GL11;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
@@ -51,34 +51,34 @@ public abstract class LevelRendererMixin implements LevelHeightProvider {
 	@Shadow protected abstract void renderBox(Box arg);
 	
 	@ModifyConstant(
-		method = "method_1544(Lnet/minecraft/util/maths/Vec3f;Lnet/minecraft/util/maths/BoxCollider;F)V",
+		method = "renderEntitiesFromPos",
 		constant = @Constant(intValue = 128)
 	)
 	private int bhapi_changeMaxHeight(int value) {
-		return getLevelHeight();
+		return bhapi_getLevelHeight();
 	}
 	
 	@ModifyConstant(
-		method = "method_1544(Lnet/minecraft/util/maths/Vec3f;Lnet/minecraft/util/maths/BoxCollider;F)V",
+		method = "renderEntitiesFromPos",
 		constant = @Constant(intValue = 127)
 	)
 	private int bhapi_changeMaxBlockHeight(int value) {
-		return getLevelHeight() - 1;
+		return bhapi_getLevelHeight() - 1;
 	}
 	
 	@ModifyConstant(method = "updateFromOptions()V", constant = @Constant(intValue = 8))
 	private int bhapi_changeSectionCount(int value) {
-		return getSectionsCount();
+		return bhapi_getSectionsCount();
 	}
 	
 	@Unique
 	@Override
-	public short getLevelHeight() {
-		return LevelHeightProvider.cast(this.level).getLevelHeight();
+	public short bhapi_getLevelHeight() {
+		return LevelHeightProvider.cast(this.level).bhapi_getLevelHeight();
 	}
 	
 	@Inject(method = "renderBlockOutline", at = @At("HEAD"), cancellable = true)
-	private void bhapi_renderBlockOutline(PlayerBase player, HitResult hit, int flag, ItemStack stack, float delta, CallbackInfo info) {
+	private void bhapi_renderBlockOutline(PlayerEntity player, HitResult hit, int flag, ItemStack stack, float delta, CallbackInfo info) {
 		info.cancel();
 		if (flag == 0 && hit.type == HitType.BLOCK) {
 			GL11.glEnable(GL11.GL_BLEND);
@@ -88,9 +88,9 @@ public abstract class LevelRendererMixin implements LevelHeightProvider {
 			GL11.glDisable(3553);
 			GL11.glDepthMask(false);
 			final float offset = 0.002f;
-			BlockState state = BlockStateProvider.cast(this.level).getBlockState(hit.x, hit.y, hit.z);
+			BlockState state = BlockStateProvider.cast(this.level).bhapi_getBlockState(hit.x, hit.y, hit.z);
 			if (!state.isAir()) {
-				BaseBlock block = state.getBlock();
+				Block block = state.getBlock();
 				block.updateBoundingBox(this.level, hit.x, hit.y, hit.z);
 				double dx = player.prevRenderX + (player.x - player.prevRenderX) * delta;
 				double dy = player.prevRenderY + (player.y - player.prevRenderY) * delta;
@@ -108,7 +108,7 @@ public abstract class LevelRendererMixin implements LevelHeightProvider {
 	}
 	
 	@Inject(method = "playLevelEvent", at = @At("HEAD"), cancellable = true)
-	private void bhapi_playLevelEvent(PlayerBase arg, int i, int x, int y, int z, int data, CallbackInfo info) {
+	private void bhapi_playLevelEvent(PlayerEntity arg, int i, int x, int y, int z, int data, CallbackInfo info) {
 		if (i == 2001) {
 			info.cancel();
 			BlockState state = CommonRegistries.BLOCKSTATES_MAP.get(data);
@@ -126,15 +126,15 @@ public abstract class LevelRendererMixin implements LevelHeightProvider {
 		}
 	}
 	
-	@Inject(method = "renderBlockBreak", at = @At("HEAD"), cancellable = true)
-	public void renderBlockBreak(PlayerBase player, HitResult hit, int flag, ItemStack stack, float delta, CallbackInfo info) {
+	@Inject(method = "renderBlockBreaking", at = @At("HEAD"), cancellable = true)
+	public void renderBlockBreak(PlayerEntity player, HitResult hit, int flag, ItemStack stack, float delta, CallbackInfo info) {
 		info.cancel();
 		
 		Tessellator tessellator = Tessellator.INSTANCE;
 		GL11.glEnable(GL11.GL_BLEND);
 		GL11.glEnable(GL11.GL_ALPHA_TEST);
 		GL11.glBlendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE);
-		GL11.glColor4f(1.0f, 1.0f, 1.0f, (MathHelper.sin((float) System.currentTimeMillis() / 100.0f) * 0.2f + 0.4f) * 0.5f);
+		GL11.glColor4f(1.0f, 1.0f, 1.0f, (MCMath.sin((float) System.currentTimeMillis() / 100.0f) * 0.2f + 0.4f) * 0.5f);
 		
 		if (this.blockBreakDelta > 0.0f) {
 			GL11.glBlendFunc(774, 768);
@@ -148,7 +148,7 @@ public abstract class LevelRendererMixin implements LevelHeightProvider {
 			GL11.glColor4f(1.0f, 1.0f, 1.0f, 0.5f);
 			GL11.glPushMatrix();
 			
-			BlockState state = BlockStateProvider.cast(level).getBlockState(hit.x, hit.y, hit.z);
+			BlockState state = BlockStateProvider.cast(level).bhapi_getBlockState(hit.x, hit.y, hit.z);
 			
 			GL11.glDisable(GL11.GL_ALPHA_TEST);
 			GL11.glPolygonOffset(-3.0f, -3.0f);
@@ -167,7 +167,7 @@ public abstract class LevelRendererMixin implements LevelHeightProvider {
 			renderer.setView(level);
 			renderer.renderBlockBreak(state, hit.x, hit.y, hit.z);
 			
-			tessellator.draw();
+			tessellator.render();
 			tessellator.setOffset(0.0, 0.0, 0.0);
 			
 			GL11.glDisable(GL11.GL_ALPHA_TEST);
@@ -186,12 +186,12 @@ public abstract class LevelRendererMixin implements LevelHeightProvider {
 		GL11.glDisable(GL11.GL_ALPHA_TEST);
 	}
 	
-	@Inject(method = "method_1549", at = @At("HEAD"), cancellable = true)
-	private void bhapi_method_1549(LivingEntity arg, boolean bl, CallbackInfoReturnable<Boolean> info) {
+	@Inject(method = "updateAreasAround", at = @At("HEAD"), cancellable = true)
+	private void bhapi_updateAreasAround(LivingEntity arg, boolean bl, CallbackInfoReturnable<Boolean> info) {
 		info.setReturnValue(true);
 	}
 	
-	@Inject(method = "method_1548", at = @At("HEAD"), cancellable = true)
+	@Inject(method = "updateOcclusion(Lnet/minecraft/entity/living/LivingEntity;ID)I", at = @At("HEAD"), cancellable = true)
 	private void bhapi_renderChunks(LivingEntity entity, int layer, double delta, CallbackInfoReturnable<Integer> info) {
 		info.setReturnValue(0);
 		if (layer != 0) return;

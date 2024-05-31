@@ -12,9 +12,9 @@ import net.bhapi.level.BlockStateProvider;
 import net.bhapi.util.Identifier;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
-import net.minecraft.block.BaseBlock;
+import net.minecraft.block.Block;
 import net.minecraft.block.RedstoneDustBlock;
-import net.minecraft.block.technical.MagicBedNumbers;
+import net.minecraft.block.technical.BedData;
 import net.minecraft.level.BlockView;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
@@ -29,7 +29,7 @@ public abstract class RedstoneDustBlockMixin implements BlockStateContainer, Cli
 	private static final TextureSample[] BHAPI_SAMPLES = new TextureSample[2];
 	
 	@Override
-	public void appendProperties(List<StateProperty<?>> properties) {
+	public void bhapi_appendProperties(List<StateProperty<?>> properties) {
 		properties.add(LegacyProperties.META_16);
 	}
 	
@@ -43,13 +43,13 @@ public abstract class RedstoneDustBlockMixin implements BlockStateContainer, Cli
 	
 	@Override
 	@Environment(EnvType.CLIENT)
-	public TextureSample getTextureForIndex(BlockView view, int x, int y, int z, BlockState state, int textureIndex, int overlayIndex) {
+	public TextureSample bhapi_getTextureForIndex(BlockView view, int x, int y, int z, BlockState state, int textureIndex, int overlayIndex) {
 		return BHAPI_SAMPLES[textureIndex & 1];
 	}
 	
 	@Inject(method = "canConnect", at = @At("HEAD"), cancellable = true)
 	private static void bhapi_canConnect(BlockView view, int x, int y, int z, int facing, CallbackInfoReturnable<Boolean> info) {
-		BlockState state = BlockStateProvider.cast(view).getBlockState(x, y, z);
+		BlockState state = BlockStateProvider.cast(view).bhapi_getBlockState(x, y, z);
 		
 		if (state.isAir()) {
 			info.setReturnValue(false);
@@ -66,9 +66,9 @@ public abstract class RedstoneDustBlockMixin implements BlockStateContainer, Cli
 			return;
 		}
 		
-		if (state.is(BaseBlock.REDSTONE_REPEATER) || state.is(BaseBlock.REDSTONE_REPEATER_LIT)) {
+		if (state.is(Block.REDSTONE_REPEATER) || state.is(Block.REDSTONE_REPEATER_LIT)) {
 			int meta = state.getMeta();
-			info.setReturnValue(facing == MagicBedNumbers.field_793[meta & 3]);
+			info.setReturnValue(facing == BedData.sidesVisibilityB[meta & 3]);
 			return;
 		}
 		

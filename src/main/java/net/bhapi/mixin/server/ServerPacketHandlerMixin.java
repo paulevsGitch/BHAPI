@@ -1,7 +1,7 @@
 package net.bhapi.mixin.server;
 
 import net.bhapi.packet.BlockStatesPacket;
-import net.minecraft.entity.player.ServerPlayer;
+import net.minecraft.entity.living.player.ServerPlayer;
 import net.minecraft.packet.login.LoginRequestPacket;
 import net.minecraft.server.network.ServerPacketHandler;
 import org.spongepowered.asm.mixin.Mixin;

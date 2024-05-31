@@ -59,7 +59,7 @@ public class BHLightScatter {
 						index = getIndex(side.x, side.y, side.z);
 						if (mask[index]) continue;
 						blockPos.set(center2).add(side);
-						BlockState state = provider.getBlockState(blockPos);
+						BlockState state = provider.bhapi_getBlockState(blockPos);
 						if (!checkState(state, sideLight)) continue;
 						byte realLight = (byte) (sideLight - state.getLightOpacity());
 						if (!checkWorld(level, blockPos, realLight)) continue;

@@ -18,7 +18,7 @@ public class BHAirBlock extends BHBaseBlock implements BlockStateContainer {
 	}
 	
 	@Override
-	public boolean isCollidable() {
+	public boolean isSelectable() {
 		return false;
 	}
 	
@@ -50,7 +50,7 @@ public class BHAirBlock extends BHBaseBlock implements BlockStateContainer {
 	protected void drop(Level arg, int i, int j, int k, ItemStack arg2) {}
 	
 	@Override
-	public boolean isFullOpaque(BlockState state) {
+	public boolean bhapi_isFullOpaque(BlockState state) {
 		return false;
 	}
 	
@@ -58,7 +58,7 @@ public class BHAirBlock extends BHBaseBlock implements BlockStateContainer {
 	public void getCustomDrop(Level level, int x, int y, int z, List<ItemStack> drop) {}
 	
 	@Override
-	public int getLightOpacity(BlockState state) {
+	public int bhapi_getLightOpacity(BlockState state) {
 		return 0;
 	}
 }

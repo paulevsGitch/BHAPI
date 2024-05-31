@@ -14,29 +14,27 @@ import net.bhapi.storage.PermutationTable;
 import net.bhapi.storage.Vec2I;
 import net.bhapi.storage.Vec3I;
 import net.bhapi.util.UnsafeUtil;
-import net.minecraft.block.BaseBlock;
-import net.minecraft.entity.LightningEntity;
-import net.minecraft.entity.player.PlayerBase;
+import net.minecraft.block.Block;
+import net.minecraft.entity.living.player.PlayerEntity;
+import net.minecraft.entity.technical.LightningEntity;
 import net.minecraft.level.Level;
 import net.minecraft.level.LightType;
-import net.minecraft.level.biome.BaseBiome;
+import net.minecraft.level.biome.Biome;
+import net.minecraft.level.biome.BiomeSource;
 import net.minecraft.level.chunk.Chunk;
-import net.minecraft.level.gen.BiomeSource;
-import net.minecraft.level.gen.FixedBiomeSource;
-import net.minecraft.util.maths.MathHelper;
-
+import net.minecraft.util.maths.MCMath;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
 public class LevelChunkUpdater extends ThreadedUpdater {
-	private final List<PlayerBase> playersList = new ArrayList<>();
+	private final List<PlayerEntity> playersList = new ArrayList<>();
 	private final ExpandableCache<Vec3I> cache3D = new ExpandableCache<>(Vec3I::new);
 	private final ExpandableCache<Vec2I> cache2D = new ExpandableCache<>(Vec2I::new);
 	private final Set<Vec3I> loadedSections = new HashSet<>();
 	private final Set<Vec2I> loadedChunks = new HashSet<>();
-	private final BaseBiome[] biomes = new BaseBiome[1];
+	private final Biome[] biomes = new Biome[1];
 	private final PermutationTable random = new IncrementalPermutationTable();
 	private final BiomeSource biomeSource;
 	private final int height;
@@ -48,7 +46,7 @@ public class LevelChunkUpdater extends ThreadedUpdater {
 	public LevelChunkUpdater(Level level) {
 		super("chunk_updater_", level);
 		LevelHeightProvider heightProvider = LevelHeightProvider.cast(level);
-		height = heightProvider.getSectionsCount();
+		height = heightProvider.bhapi_getSectionsCount();
 		caveSoundTicks = random.getInt(12000) + 6000;
 		biomeSource = UnsafeUtil.copyObject(level.getBiomeSource());
 		updatesVertical = BHConfigs.GENERAL.getInt("updates.verticalChunks", 8);
@@ -75,9 +73,9 @@ public class LevelChunkUpdater extends ThreadedUpdater {
 		
 		synchronized (playersList) {
 			playersList.forEach(player -> {
-				int chunkX = MathHelper.floor(player.x / 16.0);
-				int chunkZ = MathHelper.floor(player.z / 16.0);
-				int sectionY = MathHelper.floor(player.y / 16.0);
+				int chunkX = MCMath.floor(player.x / 16.0);
+				int chunkZ = MCMath.floor(player.z / 16.0);
+				int sectionY = MCMath.floor(player.y / 16.0);
 				int minY = sectionY - updatesVertical;
 				int maxY = sectionY + updatesVertical;
 				if (minY < 0) minY = 0;
@@ -118,8 +116,8 @@ public class LevelChunkUpdater extends ThreadedUpdater {
 						px |= chunkX;
 						py |= chunkY;
 						pz |= chunkZ;
-						PlayerBase playerBase = level.getClosestPlayer(px + 0.5, py + 0.5, pz + 0.5, 8.0);
-						if (playerBase != null && playerBase.squaredDistanceTo(px + 0.5, py + 0.5, pz + 0.5) > 4.0) {
+						PlayerEntity playerBase = level.getClosestPlayer(px + 0.5, py + 0.5, pz + 0.5, 8.0);
+						if (playerBase != null && playerBase.distanceToSqr(px + 0.5, py + 0.5, pz + 0.5) > 4.0) {
 							level.playSound(px + 0.5, py + 0.5, pz + 0.5, "ambient.cave.cave", 0.7F, 0.8F + random.nextFloat() * 0.2F);
 							this.caveSoundTicks = random.getInt(12000) + 6000;
 						}
@@ -131,14 +129,14 @@ public class LevelChunkUpdater extends ThreadedUpdater {
 					px = random.nextInt(16);
 					pz = random.nextInt(16);
 					py = random.nextInt(16);
-					BaseBiome[] biome = new BaseBiome[1];
+					Biome[] biome = new Biome[1];
 					biomeSource.getBiomes(biome, px | chunkX, pz | chunkZ, 1, 1);
 					if (biome[0].canSnow() && section.getLight(LightType.BLOCK, px, py, pz) < 10) {
 						BlockStateProvider provider = BlockStateProvider.cast(chunk);
-						BlockState block = provider.getBlockState(px, py - 1 + chunkY, pz);
+						BlockState block = provider.bhapi_getBlockState(px, py - 1 + chunkY, pz);
 						BlockState up = section.getBlockState(px, py, pz);
-						if ((up.isAir() || !up.getMaterial().blocksMovement()) && block.is(BaseBlock.STILL_WATER) && block.getMeta() == 0) {
-							levelProvider.setBlockState(px | chunkX, py - 1, pz | chunkZ, BlockState.getDefaultState(BaseBlock.ICE));
+						if ((up.isAir() || !up.getMaterial().blocksMovement()) && block.is(Block.STILL_WATER) && block.getMeta() == 0) {
+							levelProvider.bhapi_setBlockState(px | chunkX, py - 1, pz | chunkZ, BlockState.getDefaultState(Block.ICE));
 						}
 					}
 				}
@@ -181,10 +179,10 @@ public class LevelChunkUpdater extends ThreadedUpdater {
 				biomeSource.getBiomes(biomes, px | chunkX, pz | chunkZ, 1, 1);
 				if (biomes[0].canSnow() && chunk.getLight(LightType.BLOCK, px, py, pz) < 10) {
 					BlockStateProvider provider = BlockStateProvider.cast(chunk);
-					BlockState block = provider.getBlockState(px, py - 1, pz);
-					BlockState up = provider.getBlockState(px, py, pz);
-					if (up.isAir() && BaseBlock.SNOW.canPlaceAt(level, px | chunkX, py, pz | chunkZ) && !block.is(BaseBlock.ICE) && block.getBlock().material.blocksMovement()) {
-						levelProvider.setBlockState(px | chunkX, py, pz | chunkZ, BlockState.getDefaultState(BaseBlock.SNOW));
+					BlockState block = provider.bhapi_getBlockState(px, py - 1, pz);
+					BlockState up = provider.bhapi_getBlockState(px, py, pz);
+					if (up.isAir() && Block.SNOW.canPlaceAt(level, px | chunkX, py, pz | chunkZ) && !block.is(Block.ICE) && block.getBlock().material.blocksMovement()) {
+						levelProvider.bhapi_setBlockState(px | chunkX, py, pz | chunkZ, BlockState.getDefaultState(Block.SNOW));
 					}
 				}
 			}

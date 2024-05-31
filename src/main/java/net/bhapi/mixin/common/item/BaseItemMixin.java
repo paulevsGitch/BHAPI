@@ -6,7 +6,7 @@ import net.bhapi.item.BHItemRender;
 import net.bhapi.util.ItemUtil;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
-import net.minecraft.item.BaseItem;
+import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import org.jetbrains.annotations.Nullable;
 import org.spongepowered.asm.mixin.Final;
@@ -16,7 +16,7 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
-@Mixin(BaseItem.class)
+@Mixin(Item.class)
 public abstract class BaseItemMixin implements BHItemRender {
 	@Shadow @Final public int id;
 	@Shadow protected int texturePosition;
@@ -30,7 +30,7 @@ public abstract class BaseItemMixin implements BHItemRender {
 	private void bhapi_resetItem(int id, CallbackInfo info) {
 		ItemUtil.checkFrozen();
 		if (id == ItemUtil.MOD_ITEM_ID) {
-			BaseItem.byId[this.id] = null;
+			Item.byId[this.id] = null;
 		}
 	}
 	

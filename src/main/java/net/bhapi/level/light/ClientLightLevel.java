@@ -50,7 +50,7 @@ public class ClientLightLevel {
 	public static int getLight(int x, int y, int z) {
 		Level level = BHAPIClient.getMinecraft().level;
 		if (level == null) return 0;
-		if (y < 0 || y >= LevelHeightProvider.cast(level).getLevelHeight()) return 0;
+		if (y < 0 || y >= LevelHeightProvider.cast(level).bhapi_getLevelHeight()) return 0;
 		BHLightChunk chunk = getChunk(level, x, y, z);
 		return chunk.getLight(x & 15, y & 15, z & 15);
 	}
@@ -58,7 +58,7 @@ public class ClientLightLevel {
 	public static void setLight(int x, int y, int z, int light) {
 		Level level = BHAPIClient.getMinecraft().level;
 		if (level == null) return;
-		if (y < 0 || y >= LevelHeightProvider.cast(level).getLevelHeight()) return;
+		if (y < 0 || y >= LevelHeightProvider.cast(level).bhapi_getLevelHeight()) return;
 		BHLightChunk chunk = getChunk(level, x, y, z);
 		chunk.setLight(x & 15, y & 15, z & 15, light);
 	}
@@ -66,7 +66,7 @@ public class ClientLightLevel {
 	public static boolean fillSection(Vec3I pos) {
 		Level level = BHAPIClient.getMinecraft().level;
 		if (level == null) return false;
-		if (pos.y < 0 || pos.y >= LevelHeightProvider.cast(level).getSectionsCount()) return false;
+		if (pos.y < 0 || pos.y >= LevelHeightProvider.cast(level).bhapi_getSectionsCount()) return false;
 		BHLightChunk chunk = blockLight.get(pos);
 		if (chunk == null || !chunk.isFilled() || chunk.wrongPos(pos)) return false;
 		Chunk levelChunk = level.getChunkFromCache(pos.x, pos.z);

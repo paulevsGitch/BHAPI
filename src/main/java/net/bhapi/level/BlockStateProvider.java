@@ -13,7 +13,7 @@ public interface BlockStateProvider {
 	 * @param update will block trigger updates or not.
 	 * @return {@code true} on success
 	 */
-	boolean setBlockState(int x, int y, int z, BlockState state, boolean update);
+	boolean bhapi_setBlockState(int x, int y, int z, BlockState state, boolean update);
 	
 	/**
 	 * Set {@link BlockState} at specified position. Will return {@code true} on success.
@@ -22,8 +22,8 @@ public interface BlockStateProvider {
 	 * @param update will block trigger updates or not.
 	 * @return {@code true} on success
 	 */
-	default boolean setBlockState(Vec3I pos, BlockState state, boolean update) {
-		return setBlockState(pos.x, pos.y, pos.z, state, update);
+	default boolean bhapi_setBlockState(Vec3I pos, BlockState state, boolean update) {
+		return bhapi_setBlockState(pos.x, pos.y, pos.z, state, update);
 	}
 	
 	/**
@@ -34,8 +34,8 @@ public interface BlockStateProvider {
 	 * @param state {@link BlockState} to set
 	 * @return {@code true} on success
 	 */
-	default boolean setBlockState(int x, int y, int z, BlockState state) {
-		return setBlockState(x, y, z, state, true);
+	default boolean bhapi_setBlockState(int x, int y, int z, BlockState state) {
+		return bhapi_setBlockState(x, y, z, state, true);
 	}
 	
 	/**
@@ -44,8 +44,8 @@ public interface BlockStateProvider {
 	 * @param state {@link BlockState} to set
 	 * @return {@code true} on success
 	 */
-	default boolean setBlockState(Vec3I pos, BlockState state) {
-		return setBlockState(pos.x, pos.y, pos.z, state);
+	default boolean bhapi_setBlockState(Vec3I pos, BlockState state) {
+		return bhapi_setBlockState(pos.x, pos.y, pos.z, state);
 	}
 	
 	/**
@@ -55,15 +55,15 @@ public interface BlockStateProvider {
 	 * @param z Z coordinate
 	 * @return {@link BlockState}
 	 */
-	BlockState getBlockState(int x, int y, int z);
+	BlockState bhapi_getBlockState(int x, int y, int z);
 	
 	/**
 	 * Get {@link BlockState} at specified position.
 	 * @param pos {@link Vec3I} position
 	 * @return {@link BlockState}
 	 */
-	default BlockState getBlockState(Vec3I pos) {
-		return getBlockState(pos.x, pos.y, pos.z);
+	default BlockState bhapi_getBlockState(Vec3I pos) {
+		return bhapi_getBlockState(pos.x, pos.y, pos.z);
 	}
 	
 	static BlockStateProvider cast(Object obj) {

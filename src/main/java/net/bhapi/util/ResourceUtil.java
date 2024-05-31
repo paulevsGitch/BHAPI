@@ -4,7 +4,7 @@ import net.bhapi.storage.Resource;
 import net.fabricmc.loader.api.FabricLoader;
 import net.fabricmc.loader.api.ModContainer;
 import net.fabricmc.loader.api.metadata.ModOrigin.Kind;
-import net.fabricmc.tinyremapper.extension.mixin.common.data.Pair;
+import net.bhapi.storage.Pair;
 import org.spongepowered.include.com.google.common.collect.ImmutableList;
 
 import java.io.File;
@@ -120,7 +120,7 @@ public class ResourceUtil {
 		
 		ImmutableList.Builder<File> builder = ImmutableList.builder();
 		builder.addAll(order.keySet().stream().map(
-			key -> Pair.of(order.get(key), locations.get(key))
+			key -> new Pair<>(order.get(key), locations.get(key))
 		).filter(
 			pair -> pair.first() != null && pair.second() != null
 		).sorted(

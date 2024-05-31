@@ -26,7 +26,7 @@ public abstract class RedstoneRepeaterBlockMixin implements BlockStateContainer,
 	private static final TextureSample[] BHAPI_SAMPLES = new TextureSample[4];
 	
 	@Override
-	public void appendProperties(List<StateProperty<?>> properties) {
+	public void bhapi_appendProperties(List<StateProperty<?>> properties) {
 		properties.add(LegacyProperties.META_16);
 	}
 	
@@ -42,7 +42,7 @@ public abstract class RedstoneRepeaterBlockMixin implements BlockStateContainer,
 	
 	@Override
 	@Environment(EnvType.CLIENT)
-	public TextureSample getTextureForIndex(BlockView view, int x, int y, int z, BlockState state, int textureIndex, int overlayIndex) {
+	public TextureSample bhapi_getTextureForIndex(BlockView view, int x, int y, int z, BlockState state, int textureIndex, int overlayIndex) {
 		int i = textureIndex < 6 ? 0 : 2;
 		if (this.powered) i ++;
 		return BHAPI_SAMPLES[i];

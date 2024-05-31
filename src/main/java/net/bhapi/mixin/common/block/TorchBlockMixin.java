@@ -7,7 +7,7 @@ import net.bhapi.blockstate.properties.StateProperty;
 import net.bhapi.level.BlockStateProvider;
 import net.bhapi.storage.Vec3I;
 import net.bhapi.util.BlockDirection;
-import net.minecraft.block.BaseBlock;
+import net.minecraft.block.Block;
 import net.minecraft.block.TorchBlock;
 import net.minecraft.block.material.Material;
 import net.minecraft.level.Level;
@@ -20,7 +20,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import java.util.List;
 
 @Mixin(TorchBlock.class)
-public abstract class TorchBlockMixin extends BaseBlock implements BlockStateContainer {
+public abstract class TorchBlockMixin extends Block implements BlockStateContainer {
 	@Shadow protected abstract boolean method_1674(Level arg, int i, int j, int k);
 	
 	protected TorchBlockMixin(int i, Material arg) {
@@ -28,20 +28,20 @@ public abstract class TorchBlockMixin extends BaseBlock implements BlockStateCon
 	}
 	
 	@Override
-	public void appendProperties(List<StateProperty<?>> properties) {
+	public void bhapi_appendProperties(List<StateProperty<?>> properties) {
 		properties.add(LegacyProperties.META_6);
 	}
 	
 	@Override
 	public boolean canPlaceAt(Level level, int x, int y, int z, int facing) {
-		BlockState state = BlockStateProvider.cast(level).getBlockState(x, y, z);
+		BlockState state = BlockStateProvider.cast(level).bhapi_getBlockState(x, y, z);
 		if (state.is(this)) return true;
-		if (!state.getMaterial().isReplaceable() && !state.is(BaseBlock.SNOW)) {
+		if (!state.getMaterial().isReplaceable() && !state.is(Block.SNOW)) {
 			return false;
 		}
 		BlockDirection dir = BlockDirection.getFromFacing(facing).invert();
 		if (dir == BlockDirection.POS_Y) {
-			if (state.is(BaseBlock.SNOW)) dir = BlockDirection.NEG_Y;
+			if (state.is(Block.SNOW)) dir = BlockDirection.NEG_Y;
 			else return false;
 		}
 		Vec3I pos = dir.move(new Vec3I(x, y, z));
@@ -54,7 +54,7 @@ public abstract class TorchBlockMixin extends BaseBlock implements BlockStateCon
 		int meta = 6 - facing;
 		if (meta < 1 || meta > 5) meta = 5;
 		BlockState state = BlockState.getDefaultState(this);
-		BlockStateProvider.cast(level).setBlockState(x, y, z, state.withMeta(meta));
+		BlockStateProvider.cast(level).bhapi_setBlockState(x, y, z, state.withMeta(meta));
 		info.cancel();
 	}
 	

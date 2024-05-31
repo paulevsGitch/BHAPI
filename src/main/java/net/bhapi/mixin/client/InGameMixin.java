@@ -9,8 +9,8 @@ import net.bhapi.registry.CommonRegistries;
 import net.bhapi.storage.Vec2F;
 import net.bhapi.util.BlockUtil;
 import net.fabricmc.loader.api.FabricLoader;
-import net.minecraft.block.BaseBlock;
-import net.minecraft.block.entity.BaseBlockEntity;
+import net.minecraft.block.Block;
+import net.minecraft.block.entity.BlockEntity;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.DrawableHelper;
 import net.minecraft.client.gui.InGame;
@@ -21,7 +21,7 @@ import net.minecraft.level.Level;
 import net.minecraft.level.LightType;
 import net.minecraft.util.hit.HitResult;
 import net.minecraft.util.hit.HitType;
-import net.minecraft.util.maths.MathHelper;
+import net.minecraft.util.maths.MCMath;
 import org.lwjgl.opengl.GL11;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
@@ -54,9 +54,9 @@ public abstract class InGameMixin extends DrawableHelper {
 		text = "\u00A7eLight";
 		drawTextWithShadow(renderer, text, px - renderer.getTextWidth(text) - 2, offset += 10, 16777215);
 		
-		int x = MathHelper.floor(minecraft.player.x);
-		int y = MathHelper.floor(minecraft.player.y - minecraft.player.standingEyeHeight);
-		int z = MathHelper.floor(minecraft.player.z);
+		int x = MCMath.floor(minecraft.player.x);
+		int y = MCMath.floor(minecraft.player.y - minecraft.player.standingEyeHeight);
+		int z = MCMath.floor(minecraft.player.z);
 		Level level = minecraft.level;
 		
 		text = "\u00A76Block:\u00A7r " + String.format(Locale.ROOT, "%2d", level.getLight(LightType.BLOCK, x, y, z));
@@ -88,13 +88,13 @@ public abstract class InGameMixin extends DrawableHelper {
 		tessellator.vertex(px + h, py + w, this.zOffset, 1, 1);
 		tessellator.vertex(px + h, py, this.zOffset, 1, 0);
 		tessellator.vertex(px, py, this.zOffset, 0, 0);
-		tessellator.draw();
+		tessellator.render();
 	}
 	
 	@Unique
 	private int bhapi_blockstateInfo(int x, int y, int z, TextRenderer renderer, int px, int py) {
-		BlockState state = BlockStateProvider.cast(minecraft.level).getBlockState(x, y, z);
-		BaseBlockEntity entity = minecraft.level.getBlockEntity(x, y, z);
+		BlockState state = BlockStateProvider.cast(minecraft.level).bhapi_getBlockState(x, y, z);
+		BlockEntity entity = minecraft.level.getBlockEntity(x, y, z);
 		
 		String text = "\u00A7bBlock:\u00A7r ";
 		if (state.is(BlockUtil.AIR_BLOCK)) text += "Air";
@@ -139,7 +139,7 @@ public abstract class InGameMixin extends DrawableHelper {
 		GL11.glColor4f(1.0f, 1.0f, 1.0f, alpha);
 		Textures.getAtlas().bind();
 		if (bhapi_portalSample == null) {
-			BlockState state = BlockState.getDefaultState(BaseBlock.PORTAL);
+			BlockState state = BlockState.getDefaultState(Block.PORTAL);
 			bhapi_portalSample = state.getTextureForIndex(this.minecraft.level, 0, 0, 0, 0, 0);
 		}
 		Vec2F uv1 = bhapi_portalSample.getUV(0, 0);
@@ -150,7 +150,7 @@ public abstract class InGameMixin extends DrawableHelper {
 		tessellator.vertex(x, y, -90.0, uv2.x, uv2.y);
 		tessellator.vertex(x, 0.0, -90.0, uv2.x, uv1.y);
 		tessellator.vertex(0.0, 0.0, -90.0, uv1.x, uv1.y);
-		tessellator.draw();
+		tessellator.render();
 		GL11.glDepthMask(true);
 		GL11.glEnable(2929);
 		GL11.glEnable(3008);

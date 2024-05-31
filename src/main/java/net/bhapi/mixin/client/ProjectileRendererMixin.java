@@ -6,7 +6,7 @@ import net.bhapi.storage.Vec2F;
 import net.minecraft.client.render.Tessellator;
 import net.minecraft.client.render.entity.EntityRenderer;
 import net.minecraft.client.render.entity.ProjectileRenderer;
-import net.minecraft.entity.BaseEntity;
+import net.minecraft.entity.Entity;
 import org.lwjgl.opengl.GL11;
 import org.lwjgl.opengl.GL12;
 import org.spongepowered.asm.mixin.Mixin;
@@ -20,7 +20,7 @@ public abstract class ProjectileRendererMixin extends EntityRenderer {
 	@Shadow private int field_177;
 	
 	@Inject(method = "render", at = @At("HEAD"), cancellable = true)
-	private void bhapi_render(BaseEntity arg, double x, double y, double z, float g, float h, CallbackInfo info) {
+	private void bhapi_render(Entity arg, double x, double y, double z, float g, float h, CallbackInfo info) {
 		info.cancel();
 		GL11.glPushMatrix();
 		GL11.glTranslatef((float) x, (float) y, (float) z);
@@ -39,7 +39,7 @@ public abstract class ProjectileRendererMixin extends EntityRenderer {
 		tessellator.vertex(0.5f, -0.25f, 0.0, uv2.x, uv2.y);
 		tessellator.vertex(0.5f, 0.75f, 0.0, uv2.x, uv1.y);
 		tessellator.vertex(-0.5f, 0.75f, 0.0, uv1.x, uv1.y);
-		tessellator.draw();
+		tessellator.render();
 		GL11.glDisable(GL12.GL_RESCALE_NORMAL);
 		GL11.glPopMatrix();
 	}

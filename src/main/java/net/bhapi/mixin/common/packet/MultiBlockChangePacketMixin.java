@@ -47,7 +47,7 @@ public abstract class MultiBlockChangePacketMixin extends AbstractPacket impleme
 			int x = ss[i] >> 12 & 0xF;
 			int z = ss[i] >> 8 & 0xF;
 			int y = ss[i] & 0xFF;
-			bhapi_statesArray[i] = provider.getBlockState(x, y, z).getID();
+			bhapi_statesArray[i] = provider.bhapi_getBlockState(x, y, z).getID();
 		}
 	}
 	

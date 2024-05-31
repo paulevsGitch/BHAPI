@@ -23,14 +23,14 @@ public abstract class SaplingBlockMixin extends PlantBlock implements BlockState
 	}
 	
 	@Override
-	public void appendProperties(List<StateProperty<?>> properties) {
+	public void bhapi_appendProperties(List<StateProperty<?>> properties) {
 		properties.add(LegacyProperties.META_16); // Saplings use | 8 for some states
 	}
 	
 	@Override
 	@Environment(EnvType.CLIENT)
-	public TextureSample getTextureForIndex(BlockView view, int x, int y, int z, BlockState state, int textureIndex, int overlayIndex) {
-		return Textures.getVanillaBlockSample(getTextureForSide(0, state.getMeta()));
+	public TextureSample bhapi_getTextureForIndex(BlockView view, int x, int y, int z, BlockState state, int textureIndex, int overlayIndex) {
+		return Textures.getVanillaBlockSample(getTexture(0, state.getMeta()));
 	}
 }
 

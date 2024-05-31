@@ -11,8 +11,8 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.render.block.FoliageColor;
 import net.minecraft.client.render.block.GrassColor;
 import net.minecraft.item.ItemStack;
-import net.minecraft.level.gen.BiomeSource;
-import net.minecraft.util.maths.MathHelper;
+import net.minecraft.level.biome.BiomeSource;
+import net.minecraft.util.maths.MCMath;
 
 @Environment(EnvType.CLIENT)
 public class VanillaColorProviders {
@@ -29,7 +29,7 @@ public class VanillaColorProviders {
 	
 	public static final ColorProvider<BlockState> GRASS_BLOCK_COLOR = (view, x, y, z, state) -> {
 		BiomeSource source = BIOME_SOURCES.get();
-		source.getBiome(MathHelper.floor(x), MathHelper.floor(z));
+		source.getBiome(MCMath.floor(x), MCMath.floor(z));
 		double temperature = source.temperatureNoises[0];
 		double wetness = source.rainfallNoises[0];
 		temperature = MathUtil.clamp(temperature, 0, 1);
@@ -41,7 +41,7 @@ public class VanillaColorProviders {
 		int meta = state.getMeta() & 3;
 		if (meta == 2) return FoliageColor.getBirchColor();
 		BiomeSource source = BIOME_SOURCES.get();
-		source.getBiome(MathHelper.floor(x), MathHelper.floor(z));
+		source.getBiome(MCMath.floor(x), MCMath.floor(z));
 		double temperature = source.temperatureNoises[0];
 		double wetness = source.rainfallNoises[0];
 		temperature = MathUtil.clamp(temperature, 0, 1);

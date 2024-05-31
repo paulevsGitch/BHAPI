@@ -14,7 +14,7 @@ public abstract class SignBlockMixin implements BlockStateContainer {
 	@Shadow private boolean field_1760;
 	
 	@Override
-	public void appendProperties(List<StateProperty<?>> properties) {
+	public void bhapi_appendProperties(List<StateProperty<?>> properties) {
 		properties.add(this.field_1760 ? LegacyProperties.META_16 : LegacyProperties.META_5);
 	}
 }

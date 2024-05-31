@@ -9,8 +9,8 @@ import net.bhapi.storage.Vec2F;
 import net.bhapi.util.Identifier;
 import net.minecraft.client.render.Tessellator;
 import net.minecraft.client.render.particle.PoofParticle;
-import net.minecraft.entity.BaseParticle;
-import net.minecraft.item.BaseItem;
+import net.minecraft.entity.technical.ParticleEntity;
+import net.minecraft.item.Item;
 import net.minecraft.level.Level;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Unique;
@@ -22,7 +22,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 @Mixin(PoofParticle.class)
-public abstract class PoofParticleMixin extends BaseParticle implements TextureSampleProvider {
+public abstract class PoofParticleMixin extends ParticleEntity implements TextureSampleProvider {
 	@Unique private static final Map<String, TextureSample> BHAPI_SAMPLES = new HashMap<>();
 	
 	public PoofParticleMixin(Level arg, double d, double e, double f, double g, double h, double i) {
@@ -30,7 +30,7 @@ public abstract class PoofParticleMixin extends BaseParticle implements TextureS
 	}
 	
 	@Inject(method = "<init>", at = @At("TAIL"))
-	private void bhapi_onParticleInit(Level arg, double d, double e, double f, BaseItem item, CallbackInfo info) {
+	private void bhapi_onParticleInit(Level arg, double d, double e, double f, Item item, CallbackInfo info) {
 		TextureSample sample;
 		if (item instanceof BHItemRender) sample = BHItemRender.cast(item).getTexture(null);
 		else sample = BHAPI_SAMPLES.computeIfAbsent(this.getClass().getName(), n -> {
@@ -38,14 +38,14 @@ public abstract class PoofParticleMixin extends BaseParticle implements TextureS
 			id = Identifier.make(id.getModID(), "item/" + id.getName());
 			return Textures.getAtlas().getSample(id);
 		});
-		TextureSampleProvider.cast(this).setTextureSample(sample);
+		TextureSampleProvider.cast(this).bhapi_setTextureSample(sample);
 	}
 	
 	@Inject(method = "render", at = @At("HEAD"), cancellable = true)
 	private void bhapi_render(Tessellator tessellator, float delta, float dx, float dy, float dz, float width, float height, CallbackInfo info) {
 		info.cancel();
 		
-		TextureSample sample = getTextureSample();
+		TextureSample sample = bhapi_getTextureSample();
 		if (sample == null) return;
 		
 		float u1 = this.deltaU / 16F;

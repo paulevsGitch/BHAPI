@@ -4,15 +4,14 @@ import net.bhapi.block.BHAirBlock;
 import net.bhapi.blockstate.BlockState;
 import net.bhapi.blockstate.BlockStateContainer;
 import net.bhapi.storage.ExpandableArray;
-import net.minecraft.block.BaseBlock;
-
+import net.minecraft.block.Block;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
 
 public class BlockUtil {
-	private static final Map<BaseBlock, BlockInfo> INFO_MAP = new HashMap<>();
+	private static final Map<Block, BlockInfo> INFO_MAP = new HashMap<>();
 	private static final BlockInfo DEFAULT = new BlockInfo(false, true, false, 255, false, 0);
 	
 	private static final ExpandableArray<BlockState> LEGACY_BLOCKS = new ExpandableArray<>();
@@ -23,15 +22,15 @@ public class BlockUtil {
 	public static BlockState brokenBlock;
 	
 	public static void init() {
-		Arrays.stream(BaseBlock.BY_ID).filter(Objects::nonNull).forEach(block -> {
+		Arrays.stream(Block.BY_ID).filter(Objects::nonNull).forEach(block -> {
 			int id = block.id;
 			INFO_MAP.put(block, new BlockInfo(
-				BaseBlock.TICKS_RANDOMLY[id],
-				BaseBlock.FULL_OPAQUE[id],
-				BaseBlock.HAS_TILE_ENTITY[id],
-				BaseBlock.LIGHT_OPACITY[id],
-				BaseBlock.ALLOWS_GRASS_UNDER[id],
-				BaseBlock.EMITTANCE[id]
+				Block.TICKS_RANDOMLY[id],
+				Block.FULL_OPAQUE[id],
+				Block.HAS_BLOCK_ENTITY[id],
+				Block.LIGHT_OPACITY[id],
+				Block.NO_AMBIENT_OCCLUSION[id],
+				Block.EMITTANCE[id]
 			));
 		});
 		LEGACY_BLOCKS.put(0, AIR_STATE);
@@ -44,7 +43,7 @@ public class BlockUtil {
 		return state;
 	}
 	
-	public static BlockInfo getInfo(BaseBlock block) {
+	public static BlockInfo getInfo(Block block) {
 		if (block.id == BlockUtil.MOD_BLOCK_ID) return DEFAULT;
 		return INFO_MAP.getOrDefault(block, DEFAULT);
 	}
@@ -59,8 +58,8 @@ public class BlockUtil {
 	) {}
 	
 	static {
-		Arrays.stream(BaseBlock.BY_ID).filter(Objects::nonNull).forEach(
-			block -> LEGACY_BLOCKS.put(block.id, BlockStateContainer.cast(block).getDefaultState())
+		Arrays.stream(Block.BY_ID).filter(Objects::nonNull).forEach(
+			block -> LEGACY_BLOCKS.put(block.id, BlockStateContainer.cast(block).bhapi_getDefaultState())
 		);
 	}
 }

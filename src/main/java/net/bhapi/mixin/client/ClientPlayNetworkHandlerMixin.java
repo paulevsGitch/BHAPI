@@ -6,11 +6,11 @@ import net.bhapi.level.BlockStateProvider;
 import net.bhapi.level.MultiStatesProvider;
 import net.bhapi.registry.CommonRegistries;
 import net.minecraft.client.level.ClientLevel;
-import net.minecraft.entity.ItemEntity;
-import net.minecraft.item.BaseItem;
+import net.minecraft.client.network.ClientPlayerPacketHandler;
+import net.minecraft.entity.technical.ItemEntity;
+import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.level.chunk.Chunk;
-import net.minecraft.network.ClientPlayNetworkHandler;
 import net.minecraft.packet.play.BlockChangePacket;
 import net.minecraft.packet.play.ItemEntitySpawnPacket;
 import net.minecraft.packet.play.MultiBlockChangePacket;
@@ -20,7 +20,7 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
-@Mixin(ClientPlayNetworkHandler.class)
+@Mixin(ClientPlayerPacketHandler.class)
 public class ClientPlayNetworkHandlerMixin {
 	@Shadow private ClientLevel level;
 	
@@ -30,7 +30,7 @@ public class ClientPlayNetworkHandlerMixin {
 		double x = (double) packet.x / 32.0;
 		double y = (double) packet.y / 32.0;
 		double z = (double) packet.z / 32.0;
-		BaseItem item = ItemProvider.cast(packet).getItem();
+		Item item = ItemProvider.cast(packet).bhapi_getItem();
 		ItemEntity itemEntity = new ItemEntity(this.level, x, y, z, new ItemStack(item, packet.count, packet.damage));
 		itemEntity.velocityX = (double) packet.velocityX / 128.0;
 		itemEntity.velocityY = (double) packet.velocityY / 128.0;
@@ -54,7 +54,7 @@ public class ClientPlayNetworkHandlerMixin {
 			int x = s >> 12 & 0xF;
 			int z = s >> 8 & 0xF;
 			int y = s & 0xFF;
-			provider.setBlockState(x, y, z, states[i]);
+			provider.bhapi_setBlockState(x, y, z, states[i]);
 			this.level.method_1498(x | cx, y, z | cz, x | cx, y, z | cz);
 			this.level.updateArea(x | cx, y, z | cz, x | cx, y, z | cz);
 		}
@@ -64,6 +64,6 @@ public class ClientPlayNetworkHandlerMixin {
 	private void bhapi_onBlockChange(BlockChangePacket packet, CallbackInfo info) {
 		info.cancel();
 		BlockState state = CommonRegistries.BLOCKSTATES_MAP.get(packet.blockId);
-		BlockStateProvider.cast(this.level).setBlockState(packet.x, packet.y, packet.z, state);
+		BlockStateProvider.cast(this.level).bhapi_setBlockState(packet.x, packet.y, packet.z, state);
 	}
 }

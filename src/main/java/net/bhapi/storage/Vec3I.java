@@ -2,8 +2,7 @@ package net.bhapi.storage;
 
 import net.bhapi.util.BlockDirection;
 import net.bhapi.util.MathUtil;
-import net.minecraft.util.maths.MathHelper;
-
+import net.minecraft.util.maths.MCMath;
 import java.util.Locale;
 
 public class Vec3I {
@@ -69,7 +68,7 @@ public class Vec3I {
 	}
 	
 	public float length() {
-		return MathHelper.sqrt(lengthSqr());
+		return MCMath.sqrt(lengthSqr());
 	}
 	
 	public int distanceSqr(Vec3I vector) {
@@ -87,7 +86,7 @@ public class Vec3I {
 	}
 	
 	public float distance(Vec3I vector) {
-		return MathHelper.sqrt(distanceSqr(vector));
+		return MCMath.sqrt(distanceSqr(vector));
 	}
 	
 	@Override

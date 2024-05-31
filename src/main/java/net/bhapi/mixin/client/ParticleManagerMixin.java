@@ -6,15 +6,15 @@ import net.bhapi.client.render.texture.TextureSampleProvider;
 import net.bhapi.client.render.texture.Textures;
 import net.bhapi.level.BlockStateProvider;
 import net.bhapi.registry.CommonRegistries;
-import net.minecraft.block.BaseBlock;
+import net.minecraft.block.Block;
 import net.minecraft.client.particle.ParticleManager;
 import net.minecraft.client.render.Tessellator;
 import net.minecraft.client.render.particle.DiggingParticle;
 import net.minecraft.client.texture.TextureManager;
-import net.minecraft.entity.BaseEntity;
-import net.minecraft.entity.BaseParticle;
+import net.minecraft.entity.Entity;
+import net.minecraft.entity.technical.ParticleEntity;
 import net.minecraft.level.Level;
-import net.minecraft.util.maths.MathHelper;
+import net.minecraft.util.maths.MCMath;
 import org.lwjgl.opengl.GL11;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
@@ -28,6 +28,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
 
+@SuppressWarnings("rawtypes")
 @Mixin(ParticleManager.class)
 public abstract class ParticleManagerMixin {
 	@Shadow protected Level level;
@@ -35,10 +36,10 @@ public abstract class ParticleManagerMixin {
 	@Shadow private List[] renderLayers;
 	@Shadow private TextureManager textureManager;
 	
-	@Shadow public abstract void addParticle(BaseParticle arg);
+	@Shadow public abstract void addParticle(ParticleEntity arg);
 	
-	@Unique private final List<BaseParticle> bhapi_particles = new ArrayList<>(4096);
-	@Unique private final List<BaseParticle> bhapi_items = new ArrayList<>(16);
+	@Unique private final List<ParticleEntity> bhapi_particles = new ArrayList<>(4096);
+	@Unique private final List<ParticleEntity> bhapi_items = new ArrayList<>(16);
 	@Unique private byte bhapi_sortTicks;
 	
 	@Inject(method = "<init>", at = @At("TAIL"))
@@ -48,7 +49,7 @@ public abstract class ParticleManagerMixin {
 	}
 	
 	@Inject(method = "addParticle", at = @At("HEAD"), cancellable = true)
-	private void bhapi_addParticle(BaseParticle particle, CallbackInfo info) {
+	private void bhapi_addParticle(ParticleEntity particle, CallbackInfo info) {
 		info.cancel();
 		if (particle.getRenderType() == 3) {
 			synchronized (bhapi_items) {
@@ -73,7 +74,7 @@ public abstract class ParticleManagerMixin {
 		info.cancel();
 		
 		for (int i = 0; i < bhapi_particles.size(); i++) {
-			BaseParticle particle = bhapi_particles.get(i);
+			ParticleEntity particle = bhapi_particles.get(i);
 			particle.tick();
 			if (particle.removed) {
 				bhapi_particles.remove(i--);
@@ -81,7 +82,7 @@ public abstract class ParticleManagerMixin {
 		}
 		
 		for (int i = 0; i < bhapi_items.size(); i++) {
-			BaseParticle particle = bhapi_items.get(i);
+			ParticleEntity particle = bhapi_items.get(i);
 			particle.tick();
 			if (particle.removed) {
 				bhapi_items.remove(i--);
@@ -90,27 +91,27 @@ public abstract class ParticleManagerMixin {
 	}
 	
 	@Inject(method = "renderAll", at = @At("HEAD"), cancellable = true)
-	private void bhapi_renderAll(BaseEntity entity, float delta, CallbackInfo info) {
+	private void bhapi_renderAll(Entity entity, float delta, CallbackInfo info) {
 		info.cancel();
 		synchronized (bhapi_particles) {
 			if (bhapi_particles.isEmpty()) return;
 			
 			float coef = (float) Math.PI / 180.0F;
-			float dx = MathHelper.cos(entity.yaw * coef);
-			float dz = MathHelper.sin(entity.yaw * coef);
-			float width = -dz * MathHelper.sin(entity.pitch * coef);
-			float height = dx * MathHelper.sin(entity.pitch * coef);
-			float dy = MathHelper.cos(entity.pitch * coef);
+			float dx = MCMath.cos(entity.yaw * coef);
+			float dz = MCMath.sin(entity.yaw * coef);
+			float width = -dz * MCMath.sin(entity.pitch * coef);
+			float height = dx * MCMath.sin(entity.pitch * coef);
+			float dy = MCMath.cos(entity.pitch * coef);
 			
-			BaseParticle.posX = entity.prevRenderX + (entity.x - entity.prevRenderX) * delta;
-			BaseParticle.posY = entity.prevRenderY + (entity.y - entity.prevRenderY) * delta;
-			BaseParticle.posZ = entity.prevRenderZ + (entity.z - entity.prevRenderZ) * delta;
+			ParticleEntity.posX = entity.prevRenderX + (entity.x - entity.prevRenderX) * delta;
+			ParticleEntity.posY = entity.prevRenderY + (entity.y - entity.prevRenderY) * delta;
+			ParticleEntity.posZ = entity.prevRenderZ + (entity.z - entity.prevRenderZ) * delta;
 			
 			if (bhapi_sortTicks++ > 4) {
 				bhapi_sortTicks = 0;
 				bhapi_particles.sort((p1, p2) -> {
-					double d1 = p1.getDistanceSqr(entity);
-					double d2 = p2.getDistanceSqr(entity);
+					double d1 = p1.distanceToSqr(entity);
+					double d2 = p2.distanceToSqr(entity);
 					return Double.compare(d2, d1);
 				});
 			}
@@ -122,13 +123,13 @@ public abstract class ParticleManagerMixin {
 			GL11.glBlendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE_MINUS_SRC_ALPHA);
 			tessellator.start();
 			bhapi_particles.forEach(p -> p.render(tessellator, delta, dx, dy, dz, width, height));
-			tessellator.draw();
+			tessellator.render();
 			GL11.glDisable(GL11.GL_BLEND);
 		}
 	}
 	
 	@Inject(method = "render", at = @At("HEAD"), cancellable = true)
-	private void bhapi_renderPickup(BaseEntity entity, float delta, CallbackInfo info) {
+	private void bhapi_renderPickup(Entity entity, float delta, CallbackInfo info) {
 		info.cancel();
 		Tessellator tessellator = Tessellator.INSTANCE;
 		synchronized (bhapi_items) {
@@ -164,7 +165,7 @@ public abstract class ParticleManagerMixin {
 						side, meta
 					).applyColor(x, y, z);
 					TextureSample sample = state.getTextureForIndex(this.level, x, y, z, side, 0);
-					TextureSampleProvider.cast(particle).setTextureSample(sample);
+					TextureSampleProvider.cast(particle).bhapi_setTextureSample(sample);
 					this.addParticle(particle);
 				}
 			}
@@ -174,10 +175,10 @@ public abstract class ParticleManagerMixin {
 	@Inject(method = "addBlockClickParticle", at = @At("HEAD"), cancellable = true)
 	private void bhapi_addBlockClickParticle(int x, int y, int z, int side, CallbackInfo info) {
 		info.cancel();
-		BlockState state = BlockStateProvider.cast(this.level).getBlockState(x, y, z);
+		BlockState state = BlockStateProvider.cast(this.level).bhapi_getBlockState(x, y, z);
 		if (state.isAir()) return;
 		
-		BaseBlock block = state.getBlock();
+		Block block = state.getBlock();
 		
 		float scale = 0.1f;
 		double px = x + this.rand.nextDouble() * (block.maxX - block.minX - (scale * 2.0F)) + scale + block.minX;
@@ -191,14 +192,14 @@ public abstract class ParticleManagerMixin {
 		if (side == 4) px = x + block.minX - scale;
 		if (side == 5) px = x + block.maxX + scale;
 		
-		BaseParticle particle = new DiggingParticle(
+		ParticleEntity particle = new DiggingParticle(
 			this.level,
 			px, py, pz,
 			0.0, 0.0, 0.0,
 			block, side, 0
 		).applyColor(x, y, z).scaleVelocity(0.2f).scaleSize(0.6f);
 		TextureSample sample = state.getTextureForIndex(this.level, x, y, z, side, 0);
-		TextureSampleProvider.cast(particle).setTextureSample(sample);
+		TextureSampleProvider.cast(particle).bhapi_setTextureSample(sample);
 		this.addParticle(particle);
 	}
 	

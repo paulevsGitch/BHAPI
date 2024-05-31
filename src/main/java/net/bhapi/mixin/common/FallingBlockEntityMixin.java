@@ -3,7 +3,7 @@ package net.bhapi.mixin.common;
 import net.bhapi.blockstate.BlockState;
 import net.bhapi.blockstate.BlockStateContainer;
 import net.bhapi.util.BlockUtil;
-import net.minecraft.entity.FallingBlockEntity;
+import net.minecraft.entity.technical.FallingBlockEntity;
 import net.minecraft.level.Level;
 import net.minecraft.util.io.CompoundTag;
 import org.spongepowered.asm.mixin.Mixin;
@@ -44,12 +44,12 @@ public class FallingBlockEntityMixin implements BlockStateContainer {
 	}
 	
 	@Override
-	public void setDefaultState(BlockState state) {
+	public void bhapi_setDefaultState(BlockState state) {
 		this.bhapi_blockState = state;
 	}
 	
 	@Override
-	public BlockState getDefaultState() {
+	public BlockState bhapi_getDefaultState() {
 		return this.bhapi_blockState;
 	}
 }

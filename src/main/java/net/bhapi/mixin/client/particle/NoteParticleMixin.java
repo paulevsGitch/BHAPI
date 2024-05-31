@@ -13,6 +13,6 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 public abstract class NoteParticleMixin {
 	@Inject(method = "<init>(Lnet/minecraft/level/Level;DDDDDDF)V", at = @At("TAIL"))
 	private void bhapi_onParticleInit(Level arg, double d, double e, double f, double g, double h, double i, float j, CallbackInfo info) {
-		TextureSampleProvider.cast(this).setTextureSample(ParticleTextures.NOTE);
+		TextureSampleProvider.cast(this).bhapi_setTextureSample(ParticleTextures.NOTE);
 	}
 }

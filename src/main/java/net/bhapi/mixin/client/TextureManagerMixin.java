@@ -24,6 +24,7 @@ import java.awt.image.BufferedImage;
 import java.nio.ByteBuffer;
 import java.util.List;
 
+@SuppressWarnings("rawtypes")
 @Mixin(TextureManager.class)
 public abstract class TextureManagerMixin {
 	@Shadow private List textureBinders;

@@ -1,9 +1,9 @@
 package net.bhapi.mixin.common;
 
-import net.minecraft.container.BaseContainer;
+import net.minecraft.container.Container;
 import net.minecraft.container.slot.Slot;
-import net.minecraft.entity.player.PlayerBase;
-import net.minecraft.entity.player.PlayerInventory;
+import net.minecraft.entity.living.player.PlayerEntity;
+import net.minecraft.inventory.PlayerInventory;
 import net.minecraft.item.ItemStack;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
@@ -14,16 +14,16 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 import java.util.List;
 
-@Mixin(BaseContainer.class)
+@Mixin(Container.class)
 public abstract class BaseContainerMixin {
 	@SuppressWarnings("rawtypes")
 	@Shadow public List slots;
 	
 	@Shadow public abstract ItemStack transferSlot(int i);
-	@Shadow public abstract ItemStack clickSlot(int i, int j, boolean bl, PlayerBase arg);
+	@Shadow public abstract ItemStack clickSlot(int i, int j, boolean bl, PlayerEntity arg);
 	
 	@Inject(method = "clickSlot", at = @At("HEAD"), cancellable = true)
-	private void bhapi_clickSlot(int slotIndex, int useStackCount, boolean flag, PlayerBase player, CallbackInfoReturnable<ItemStack> info) {
+	private void bhapi_clickSlot(int slotIndex, int useStackCount, boolean flag, PlayerEntity player, CallbackInfoReturnable<ItemStack> info) {
 		ItemStack stack = null;
 		
 		if (useStackCount == 0 || useStackCount == 1) {

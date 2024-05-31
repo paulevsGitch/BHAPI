@@ -10,7 +10,7 @@ import net.bhapi.util.BlockDirection;
 import net.bhapi.util.MathUtil;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
-import net.fabricmc.tinyremapper.extension.mixin.common.data.Pair;
+import net.bhapi.storage.Pair;
 
 @Environment(EnvType.CLIENT)
 public class ModelCuboidBuilder {
@@ -129,7 +129,7 @@ public class ModelCuboidBuilder {
 			u2 /= 16.0F;
 			v2 /= 16.0F;
 		}
-		uvs.set(facing, Pair.of(new Vec2F(u1, v1), new Vec2F(u2, v2)));
+		uvs.set(facing, new Pair<>(new Vec2F(u1, v1), new Vec2F(u2, v2)));
 		return this;
 	}
 	

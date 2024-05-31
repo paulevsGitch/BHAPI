@@ -3,7 +3,7 @@ package net.bhapi.mixin.client;
 import net.bhapi.client.render.level.ClientChunks;
 import net.bhapi.storage.Vec3I;
 import net.minecraft.client.render.AreaRenderer;
-import net.minecraft.entity.BaseEntity;
+import net.minecraft.entity.Entity;
 import net.minecraft.level.Level;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
@@ -25,7 +25,7 @@ public abstract class AreaRendererMixin {
 	@Shadow public int startZ;
 	
 	@Inject(method = "distance", at = @At("HEAD"), cancellable = true)
-	private void bhapi_distance(BaseEntity entity, CallbackInfoReturnable<Float> info) {
+	private void bhapi_distance(Entity entity, CallbackInfoReturnable<Float> info) {
 		if (entity == null) info.setReturnValue(0F);
 	}
 	

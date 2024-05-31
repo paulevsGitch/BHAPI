@@ -224,7 +224,7 @@ public class ImageUtil {
 	@SuppressWarnings("unchecked")
 	public static void processAnimations() {
 		TextureAtlas atlas = Textures.getAtlas();
-		List<TextureBinder> binders = (List<TextureBinder>) ((TextureManagerAccessor) BHAPIClient.getMinecraft().textureManager).getTextureBinders();
+		List<TextureBinder> binders = (List<TextureBinder>) ((TextureManagerAccessor) BHAPIClient.getMinecraft().textureManager).bhapi_getTextureBinders();
 		
 		BINDERS.forEach((id, binder) -> {
 			binder.index = atlas.getTextureIndex(id);

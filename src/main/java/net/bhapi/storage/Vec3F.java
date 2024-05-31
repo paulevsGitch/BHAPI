@@ -1,9 +1,8 @@
 package net.bhapi.storage;
 
-import net.minecraft.util.maths.MathHelper;
-
 import java.util.Locale;
 import java.util.Objects;
+import net.minecraft.util.maths.MCMath;
 
 public class Vec3F {
 	public float x;
@@ -23,7 +22,7 @@ public class Vec3F {
 	}
 	
 	public float length() {
-		return MathHelper.sqrt(lengthSqr());
+		return MCMath.sqrt(lengthSqr());
 	}
 	
 	public Vec3F add(float value) {
@@ -126,7 +125,7 @@ public class Vec3F {
 	}
 	
 	public float distance(Vec3I vector) {
-		return MathHelper.sqrt(distanceSqr(vector));
+		return MCMath.sqrt(distanceSqr(vector));
 	}
 	
 	@Override

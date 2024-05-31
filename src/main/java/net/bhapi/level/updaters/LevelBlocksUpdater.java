@@ -55,9 +55,9 @@ public class LevelBlocksUpdater extends ThreadedUpdater {
 			iterator.remove();
 			Vec3I pos = info.pos();
 			BlockDirection facing = info.facing();
-			BlockState a = provider.getBlockState(pos);
+			BlockState a = provider.bhapi_getBlockState(pos);
 			if (a.isAir()) continue;
-			BlockState b = provider.getBlockState(pos2.set(pos).move(facing));
+			BlockState b = provider.bhapi_getBlockState(pos2.set(pos).move(facing));
 			a.onNeighbourBlockUpdate(level, pos.x, pos.y, pos.z, facing, b);
 			if (isClient) {
 				synchronized (updateAreas) {

@@ -33,6 +33,6 @@ public class LevelMonsterSpawnerMixin {
 		"getPositionWithOffset(Lnet/minecraft/level/Level;II)Lnet/minecraft/util/maths/BlockPos;"
 	}, constant = @Constant(intValue = 128))
 	private static int bhapi_changeMaxHeight(int value) {
-		return LevelHeightProvider.cast(bhapi_currentLevel).getLevelHeight();
+		return LevelHeightProvider.cast(bhapi_currentLevel).bhapi_getLevelHeight();
 	}
 }

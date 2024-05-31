@@ -11,7 +11,7 @@ import java.util.List;
 @Mixin(CakeBlock.class)
 public abstract class CakeBlockMixin implements BlockStateContainer {
 	@Override
-	public void appendProperties(List<StateProperty<?>> properties) {
+	public void bhapi_appendProperties(List<StateProperty<?>> properties) {
 		properties.add(LegacyProperties.META_8);
 	}
 }

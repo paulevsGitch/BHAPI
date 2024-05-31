@@ -22,12 +22,12 @@ import net.bhapi.util.ThreadManager;
 import net.bhapi.util.ThreadManager.RunnableThread;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
-import net.fabricmc.tinyremapper.extension.mixin.common.data.Pair;
-import net.minecraft.block.entity.BaseBlockEntity;
+import net.bhapi.storage.Pair;
+import net.minecraft.block.entity.BlockEntity;
 import net.minecraft.client.render.RenderHelper;
 import net.minecraft.client.render.blockentity.BlockEntityRenderer;
 import net.minecraft.client.render.entity.BlockEntityRenderDispatcher;
-import net.minecraft.entity.LivingEntity;
+import net.minecraft.entity.living.LivingEntity;
 import net.minecraft.level.Level;
 import org.lwjgl.opengl.GL11;
 
@@ -243,13 +243,13 @@ public class ClientChunks {
 	
 	private static void renderBlockEntities(Vec3I pos, ClientChunk chunk) {
 		if (!chunk.visible) return;
-		List<Pair<BaseBlockEntity, BlockEntityRenderer>> blockEntities = chunk.blockEntities;
+		List<Pair<BlockEntity, BlockEntityRenderer>> blockEntities = chunk.blockEntities;
 		if (blockEntities == null) return;
 		if (BlockEntityRenderDispatcher.INSTANCE.textureManager == null) return;
 		
 		blockEntities.forEach(pair -> {
 			BlockEntityRenderer renderer = pair.second();
-			BaseBlockEntity entity = pair.first();
+			BlockEntity entity = pair.first();
 			float light = level.getBrightness(entity.x, entity.y, entity.z);
 			GL11.glColor3f(light, light, light);
 			renderer.render(entity, entity.x - px, entity.y - py, entity.z - pz, delta);
@@ -292,7 +292,7 @@ public class ClientChunks {
 		if (pos == null) return;
 		if (!chunks.isInside(pos)) return;
 		
-		short sections = LevelHeightProvider.cast(level).getSectionsCount();
+		short sections = LevelHeightProvider.cast(level).bhapi_getSectionsCount();
 		if (pos.y < 0 || pos.y >= sections) return;
 		if (!level.isBlockLoaded(pos.x << 4, 0, pos.z << 4)) return;
 		
@@ -332,11 +332,11 @@ public class ClientChunks {
 			if (layer == RenderLayer.TRANSLUCENT) sort = true;
 		}
 		
-		List<Pair<BaseBlockEntity, BlockEntityRenderer>> blockEntities = new ArrayList<>();
+		List<Pair<BlockEntity, BlockEntityRenderer>> blockEntities = new ArrayList<>();
 		section.getBlockEntities().forEach(entity -> {
 			BlockEntityRenderer customRenderer = BlockEntityRenderDispatcher.INSTANCE.getCustomRenderer(entity);
 			if (customRenderer != null) {
-				blockEntities.add(Pair.of(entity, customRenderer));
+				blockEntities.add(new Pair<>(entity, customRenderer));
 			}
 		});
 		
@@ -345,7 +345,7 @@ public class ClientChunks {
 	}
 	
 	private static class ClientChunk {
-		List<Pair<BaseBlockEntity, BlockEntityRenderer>> blockEntities;
+		List<Pair<BlockEntity, BlockEntityRenderer>> blockEntities;
 		final EnumArray<RenderLayer, VBO> data;
 		final Vec3F renderPos;
 		final Vec3I pos;

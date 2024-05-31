@@ -2,9 +2,9 @@ package net.bhapi.mixin.client;
 
 import net.bhapi.blockstate.BlockState;
 import net.bhapi.level.BlockStateProvider;
-import net.minecraft.client.BaseClientInteractionManager;
+import net.minecraft.client.ClientInteractionManager;
 import net.minecraft.client.Minecraft;
-import net.minecraft.entity.player.PlayerBase;
+import net.minecraft.entity.living.player.PlayerEntity;
 import net.minecraft.item.ItemStack;
 import net.minecraft.level.Level;
 import org.spongepowered.asm.mixin.Final;
@@ -14,14 +14,14 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
-@Mixin(BaseClientInteractionManager.class)
-public class BaseClientInteractionManagerMixin {
+@Mixin(ClientInteractionManager.class)
+public class ClientInteractionManagerMixin {
 	@Shadow @Final protected Minecraft minecraft;
 	
 	@Inject(method = "activateBlock", at = @At("HEAD"), cancellable = true)
 	private void bhapi_activateBlock(int x, int y, int z, int l, CallbackInfoReturnable<Boolean> info) {
 		Level level = this.minecraft.level;
-		BlockState state = BlockStateProvider.cast(this.minecraft.level).getBlockState(x, y, z);
+		BlockState state = BlockStateProvider.cast(this.minecraft.level).bhapi_getBlockState(x, y, z);
 		level.playLevelEvent(2001, x, y, z, state.getID());
 		boolean result = level.setBlock(x, y, z, 0);
 		if (result) {
@@ -32,8 +32,8 @@ public class BaseClientInteractionManagerMixin {
 	}
 	
 	@Inject(method = "useOnBlock", at = @At("HEAD"), cancellable = true)
-	private void bhapi_useOnBlock(PlayerBase player, Level level, ItemStack stack, int x, int y, int z, int l, CallbackInfoReturnable<Boolean> info) {
-		BlockState state = BlockStateProvider.cast(this.minecraft.level).getBlockState(x, y, z);
+	private void bhapi_useOnBlock(PlayerEntity player, Level level, ItemStack stack, int x, int y, int z, int l, CallbackInfoReturnable<Boolean> info) {
+		BlockState state = BlockStateProvider.cast(this.minecraft.level).bhapi_getBlockState(x, y, z);
 		if (state.getBlock().canUse(level, x, y, z, player)) {
 			info.setReturnValue(true);
 			return;

@@ -6,8 +6,8 @@ import net.bhapi.util.BlockUtil;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
 import net.minecraft.block.BlockSounds;
-import net.minecraft.entity.BaseEntity;
-import net.minecraft.entity.player.PlayerBase;
+import net.minecraft.entity.Entity;
+import net.minecraft.entity.living.player.PlayerEntity;
 import net.minecraft.level.BlockView;
 import net.minecraft.level.Level;
 
@@ -18,27 +18,27 @@ public interface BlockStateContainer {
 	/**
 	 * Get default {@link BlockState} for this block.
 	 */
-	default BlockState getDefaultState() {
+	default BlockState bhapi_getDefaultState() {
 		return null;
 	}
 	
 	/**
 	 * Set default {@link BlockState} for this block.
 	 */
-	default void setDefaultState(BlockState state) {}
+	default void bhapi_setDefaultState(BlockState state) {}
 	
 	/**
 	 * Add additional properties into block. Properties should be added into input list.
 	 * @param properties {@link List} of available {@link StateProperty}
 	 */
-	default void appendProperties(List<StateProperty<?>> properties) {}
+	default void bhapi_appendProperties(List<StateProperty<?>> properties) {}
 	
 	/**
 	 * Get {@link BlockSounds} for specified {@link BlockState}.
 	 * @param state current {@link BlockState}
 	 * @return {@link BlockSounds}
 	 */
-	default BlockSounds getSounds(BlockState state) {
+	default BlockSounds bhapi_getSounds(BlockState state) {
 		return state.getBlock().sounds;
 	}
 	
@@ -48,7 +48,7 @@ public interface BlockStateContainer {
 	 * @param state current {@link BlockState}
 	 * @return {@code true} if state has random ticks and {@code false} if not
 	 */
-	default boolean hasRandomTicks(BlockState state) {
+	default boolean bhapi_hasRandomTicks(BlockState state) {
 		return BlockUtil.getInfo(state.getBlock()).ticksRandomly();
 	}
 	
@@ -61,7 +61,7 @@ public interface BlockStateContainer {
 	 * @param random {@link Random}
 	 * @param state {@link BlockState}
 	 */
-	default void onScheduledTick(Level level, int x, int y, int z, Random random, BlockState state) {
+	default void bhapi_onScheduledTick(Level level, int x, int y, int z, Random random, BlockState state) {
 		state.getBlock().onScheduledTick(level, x, y, z, random);
 	}
 	
@@ -70,16 +70,16 @@ public interface BlockStateContainer {
 	 * @param state current {@link BlockState}
 	 * @return {@code true} if state is opaque and {@code false} if not
 	 */
-	default boolean isFullOpaque(BlockState state) {
+	default boolean bhapi_isFullOpaque(BlockState state) {
 		return BlockUtil.getInfo(state.getBlock()).fullOpaque();
 	}
 	
 	/**
-	 * Check if specified {@link BlockState} has {@link net.minecraft.block.entity.BaseBlockEntity} (examples: furnace, sign).
+	 * Check if specified {@link BlockState} has {@link net.minecraft.block.entity.BlockEntity} (examples: furnace, sign).
 	 * @param state current {@link BlockState}
 	 * @return {@code true} if state has entity and {@code false} if not
 	 */
-	default boolean hasBlockEntity(BlockState state) {
+	default boolean bhapi_hasBlockEntity(BlockState state) {
 		return BlockUtil.getInfo(state.getBlock()).hasBlockEntity();
 	}
 	
@@ -89,7 +89,7 @@ public interface BlockStateContainer {
 	 * @param state current {@link BlockState}
 	 * @return {@code integer} value of light opacity
 	 */
-	default int getLightOpacity(BlockState state) {
+	default int bhapi_getLightOpacity(BlockState state) {
 		return BlockUtil.getInfo(state.getBlock()).lightOpacity();
 	}
 	
@@ -100,7 +100,7 @@ public interface BlockStateContainer {
 	 * @param state current {@link BlockState}
 	 * @return {@code true} if state allows grass growing and {@code false} if not
 	 */
-	default boolean allowsGrasUnder(BlockState state) {
+	default boolean bhapi_allowsGrasUnder(BlockState state) {
 		return BlockUtil.getInfo(state.getBlock()).allowsGrassUnder();
 	}
 	
@@ -109,7 +109,7 @@ public interface BlockStateContainer {
 	 * @param state current {@link BlockState}
 	 * @return {@code integer} value of emittance in [0-15] range
 	 */
-	default int getEmittance(BlockState state) {
+	default int bhapi_getEmittance(BlockState state) {
 		return BlockUtil.getInfo(state.getBlock()).emittance();
 	}
 	
@@ -118,27 +118,27 @@ public interface BlockStateContainer {
 	 * @param state current {@link BlockState}
 	 * @return {@code float} hardness value
 	 */
-	default float getHardness(BlockState state) {
+	default float bhapi_getHardness(BlockState state) {
 		return state.getBlock().getHardness();
 	}
 	
 	/**
-	 * Get current state hardness for specific {@link PlayerBase}, used in digging time calculations.
+	 * Get current state hardness for specific {@link PlayerEntity}, used in digging time calculations.
 	 * @param state current {@link BlockState}
-	 * @param player current {@link PlayerBase}
+	 * @param player current {@link PlayerEntity}
 	 * @return {@code float} hardness value
 	 */
-	default float getHardness(BlockState state, PlayerBase player) {
+	default float bhapi_getHardness(BlockState state, PlayerEntity player) {
 		return state.getBlock().getHardness(player);
 	}
 	
 	/**
 	 * Get state blast resistance, used in digging explosions calculations.
 	 * @param state current {@link BlockState}
-	 * @param entity current {@link BaseEntity} (explosion cause)
+	 * @param entity current {@link Entity} (explosion cause)
 	 * @return {@code float} blast resistance value
 	 */
-	default float getBlastResistance(BlockState state, BaseEntity entity) {
+	default float bhapi_getBlastResistance(BlockState state, Entity entity) {
 		return state.getBlock().getBlastResistance(entity);
 	}
 	
@@ -151,7 +151,7 @@ public interface BlockStateContainer {
 	 * @param oldState {@link BlockState} that will be removed
 	 * @param newState {@link BlockState} that will replace old state
 	 */
-	default void onBlockRemoved(Level level, int x, int y, int z, BlockState oldState, BlockState newState) {
+	default void bhapi_onBlockRemoved(Level level, int x, int y, int z, BlockState oldState, BlockState newState) {
 		oldState.getBlock().onBlockRemoved(level, x, y, z);
 	}
 	
@@ -163,7 +163,7 @@ public interface BlockStateContainer {
 	 * @param z Z coordinate
 	 * @param state {@link BlockState} that was placed
 	 */
-	default void onBlockPlaced(Level level, int x, int y, int z, BlockState state) {
+	default void bhapi_onBlockPlaced(Level level, int x, int y, int z, BlockState state) {
 		state.getBlock().onBlockPlaced(level, x, y, z);
 	}
 	
@@ -176,7 +176,7 @@ public interface BlockStateContainer {
 	 * @param facing Facing uvID
 	 * @param state {@link BlockState} that was placed
 	 */
-	default void onBlockPlaced(Level level, int x, int y, int z, int facing, BlockState state) {
+	default void bhapi_onBlockPlaced(Level level, int x, int y, int z, int facing, BlockState state) {
 		state.getBlock().onBlockPlaced(level, x, y, z, facing);
 	}
 	
@@ -190,7 +190,7 @@ public interface BlockStateContainer {
 	 * @param state Self {@link BlockState}
 	 * @param neighbour Neighbour {@link BlockState}
 	 */
-	default void onNeighbourBlockUpdate(Level level, int x, int y, int z, BlockDirection facing, BlockState state, BlockState neighbour) {
+	default void bhapi_onNeighbourBlockUpdate(Level level, int x, int y, int z, BlockDirection facing, BlockState state, BlockState neighbour) {
 		state.getBlock().onAdjacentBlockUpdate(level, x, y, z, neighbour.getBlock().id);
 	}
 	
@@ -204,7 +204,7 @@ public interface BlockStateContainer {
 	 * @param state {@link BlockState} that is checked
 	 * @return {@code true} if blockstate has redstone power
 	 */
-	default boolean isPowered(Level level, int x, int y, int z, BlockDirection facing, BlockState state) {
+	default boolean bhapi_isPowered(Level level, int x, int y, int z, BlockDirection facing, BlockState state) {
 		return state.getBlock().isPowered(level, x, y, z, facing.ordinal());
 	}
 	
@@ -220,7 +220,7 @@ public interface BlockStateContainer {
 	 * @return {@code true} if face should be rendered and {@code false} if not
 	 */
 	@Environment(EnvType.CLIENT)
-	default boolean isSideRendered(BlockView blockView, int x, int y, int z, BlockDirection facing, BlockState state, BlockState target) {
+	default boolean bhapi_isSideRendered(BlockView blockView, int x, int y, int z, BlockDirection facing, BlockState state, BlockState target) {
 		return target.getBlock().isSideRendered(blockView, x, y, z, facing.getFacing());
 	}
 	

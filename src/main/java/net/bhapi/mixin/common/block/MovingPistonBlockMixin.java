@@ -5,7 +5,7 @@ import net.bhapi.blockstate.BlockStateContainer;
 import net.bhapi.blockstate.properties.LegacyProperties;
 import net.bhapi.blockstate.properties.StateProperty;
 import net.bhapi.registry.CommonRegistries;
-import net.minecraft.block.BaseBlock;
+import net.minecraft.block.Block;
 import net.minecraft.block.MovingPistonBlock;
 import net.minecraft.block.entity.PistonBlockEntity;
 import net.minecraft.block.material.Material;
@@ -23,13 +23,13 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 import java.util.List;
 
 @Mixin(MovingPistonBlock.class)
-public abstract class MovingPistonBlockMixin extends BaseBlock implements BlockStateContainer {
+public abstract class MovingPistonBlockMixin extends Block implements BlockStateContainer {
 	protected MovingPistonBlockMixin(int i, Material arg) {
 		super(i, arg);
 	}
 	
 	@Override
-	public void appendProperties(List<StateProperty<?>> properties) {
+	public void bhapi_appendProperties(List<StateProperty<?>> properties) {
 		properties.add(LegacyProperties.META_16);
 	}
 	
@@ -40,11 +40,11 @@ public abstract class MovingPistonBlockMixin extends BaseBlock implements BlockS
 		info.cancel();
 		PistonBlockEntity entity = this.method_1535(view, x, y, z);
 		if (entity != null) {
-			BlockState state = BlockStateContainer.cast(entity).getDefaultState();
+			BlockState state = BlockStateContainer.cast(entity).bhapi_getDefaultState();
 			if (state == null || state.is(this)) {
 				return;
 			}
-			BaseBlock block = state.getBlock();
+			Block block = state.getBlock();
 			block.updateBoundingBox(view, x, y, z);
 			float delta = entity.getProgress(0.0f);
 			if (entity.isExtending()) {

@@ -61,7 +61,7 @@ public class LevelLightUpdater extends ThreadedUpdater {
 			byte light;
 			
 			if (max.equals(min)) {
-				light = (byte) provider.getBlockState(min).getEmittance();
+				light = (byte) provider.bhapi_getBlockState(min).getEmittance();
 				if (light == 0) {
 					light = getMaxLight(min);
 					if (light > 1) {
@@ -124,7 +124,7 @@ public class LevelLightUpdater extends ThreadedUpdater {
 		for (blockPos.x = p1.x; blockPos.x <= p2.x; blockPos.x++) {
 			for (blockPos.y = p1.y; blockPos.y <= p2.y; blockPos.y++) {
 				for (blockPos.z = p1.z; blockPos.z <= p2.z; blockPos.z++) {
-					BlockState state = provider.getBlockState(blockPos);
+					BlockState state = provider.bhapi_getBlockState(blockPos);
 					byte light = (byte) state.getEmittance();
 					
 					if (light == 0) continue;
@@ -179,7 +179,7 @@ public class LevelLightUpdater extends ThreadedUpdater {
 	private boolean canPropagate(BlockStateProvider provider, Vec3I pos, int light) {
 		for (BlockDirection face: BlockDirection.VALUES) {
 			blockPos.set(pos).move(face);
-			BlockState state = provider.getBlockState(blockPos);
+			BlockState state = provider.bhapi_getBlockState(blockPos);
 			int emittance = state.getEmittance();
 			int light2 = light - state.getLightOpacity();
 			if (light2 > 0 && emittance < light) return true;

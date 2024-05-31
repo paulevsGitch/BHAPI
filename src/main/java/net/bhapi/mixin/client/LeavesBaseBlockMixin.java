@@ -16,7 +16,7 @@ public class LeavesBaseBlockMixin implements BlockStateContainer {
 	
 	@Override
 	@Environment(EnvType.CLIENT)
-	public boolean isSideRendered(BlockView blockView, int x, int y, int z, BlockDirection facing, BlockState state, BlockState target) {
-		return this.isTransparent || BlockStateContainer.super.isSideRendered(blockView, x, y, z, facing, state, target);
+	public boolean bhapi_isSideRendered(BlockView blockView, int x, int y, int z, BlockDirection facing, BlockState state, BlockState target) {
+		return this.isTransparent || BlockStateContainer.super.bhapi_isSideRendered(blockView, x, y, z, facing, state, target);
 	}
 }

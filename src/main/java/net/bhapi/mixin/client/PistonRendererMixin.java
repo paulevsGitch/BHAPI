@@ -5,7 +5,7 @@ import net.bhapi.blockstate.BlockStateContainer;
 import net.bhapi.client.BHAPIClient;
 import net.bhapi.client.render.block.BHBlockRenderer;
 import net.bhapi.client.render.texture.Textures;
-import net.minecraft.block.BaseBlock;
+import net.minecraft.block.Block;
 import net.minecraft.block.PistonBlock;
 import net.minecraft.block.entity.PistonBlockEntity;
 import net.minecraft.client.Minecraft;
@@ -23,12 +23,12 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 public class PistonRendererMixin {
 	@Unique private BlockState bhapi_headState;
 	
-	@Inject(method = "render(Lnet/minecraft/block/entity/PistonBlockEntity;DDDF)V", at = @At("HEAD"), cancellable = true)
+	@Inject(method = "method_973", at = @At("HEAD"), cancellable = true)
 	private void bhapi_render(PistonBlockEntity entity, double x, double y, double z, float delta, CallbackInfo info) {
 		info.cancel();
-		BlockState state = BlockStateContainer.cast(entity).getDefaultState();//CommonRegistries.BLOCKSTATES_MAP.get(entity.getBlockID());
+		BlockState state = BlockStateContainer.cast(entity).bhapi_getDefaultState();//CommonRegistries.BLOCKSTATES_MAP.get(entity.getBlockID());
 		if (state == null) return;
-		BaseBlock block = state.getBlock();
+		Block block = state.getBlock();
 		if (entity.getProgress(delta) < 1.0f) {
 			Tessellator tessellator = Tessellator.INSTANCE;
 			Textures.getAtlas().bind();
@@ -53,17 +53,17 @@ public class PistonRendererMixin {
 			renderer.setView(entity.level);
 			renderer.startArea(0, 0, 0);
 			
-			if (block == BaseBlock.PISTON_HEAD && entity.getProgress(delta) < 0.5f) {
+			if (block == Block.PISTON_HEAD && entity.getProgress(delta) < 0.5f) {
 				renderer.renderPistonHeadAllSides(state, entity.x, entity.y, entity.z, false);
 			}
 			else if (entity.canRender() && !entity.isExtending() && block instanceof PistonBlock) {
-				BaseBlock.PISTON_HEAD.setTexture(((PistonBlock) block).getPistonTexture());
+				Block.PISTON_HEAD.setTexture(((PistonBlock) block).getPistonTexture());
 				if (bhapi_headState == null) {
-					bhapi_headState = BlockState.getDefaultState(BaseBlock.PISTON_HEAD);
+					bhapi_headState = BlockState.getDefaultState(Block.PISTON_HEAD);
 				}
 				bhapi_headState = bhapi_headState.withMeta(entity.getFacing());
 				renderer.renderPistonHeadAllSides(bhapi_headState, entity.x, entity.y, entity.z, entity.getProgress(delta) < 0.5f);
-				BaseBlock.PISTON_HEAD.resetTexture();
+				Block.PISTON_HEAD.resetTexture();
 				renderer.build(tessellator);
 				renderer.startArea(0, 0, 0);
 				tessellator.setOffset(x - entity.x, y - entity.y, z - entity.z);
@@ -75,7 +75,7 @@ public class PistonRendererMixin {
 			
 			renderer.build(tessellator);
 			tessellator.setOffset(0.0, 0.0, 0.0);
-			tessellator.draw();
+			tessellator.render();
 			RenderHelper.enableLighting();
 		}
 	}

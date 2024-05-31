@@ -2,7 +2,7 @@ package net.bhapi.mixin.client;
 
 import net.bhapi.client.render.block.BlockBreakingInfo;
 import net.bhapi.client.render.block.BreakInfo;
-import net.minecraft.block.entity.BaseBlockEntity;
+import net.minecraft.block.entity.BlockEntity;
 import net.minecraft.client.render.blockentity.BlockEntityRenderer;
 import net.minecraft.client.render.entity.BlockEntityRenderDispatcher;
 import org.lwjgl.opengl.GL11;
@@ -15,12 +15,12 @@ import org.spongepowered.asm.mixin.injection.callback.LocalCapture;
 
 @Mixin(BlockEntityRenderDispatcher.class)
 public class BlockEntityRenderDispatcherMixin {
-	@Inject(method = "renderBlockEntity(Lnet/minecraft/block/entity/BaseBlockEntity;DDDF)V", at = @At(
+	@Inject(method = "renderBlockEntity(Lnet/minecraft/block/entity/BlockEntity;DDDF)V", at = @At(
 		value = "INVOKE",
-		target = "Lnet/minecraft/client/render/blockentity/BlockEntityRenderer;render(Lnet/minecraft/block/entity/BaseBlockEntity;DDDF)V",
+		target = "Lnet/minecraft/client/render/blockentity/BlockEntityRenderer;render(Lnet/minecraft/block/entity/BlockEntity;DDDF)V",
 		shift = Shift.AFTER
 	), locals = LocalCapture.CAPTURE_FAILSOFT)
-	private void bhapi_renderBlockEntity(BaseBlockEntity entity, double x, double y, double z, float delta, CallbackInfo info, BlockEntityRenderer renderer) {
+	private void bhapi_renderBlockEntity(BlockEntity entity, double x, double y, double z, float delta, CallbackInfo info, BlockEntityRenderer renderer) {
 		if (BreakInfo.stage == -1) return;
 		if (BreakInfo.POS.x != entity.x || BreakInfo.POS.y != entity.y || BreakInfo.POS.z != entity.z) return;
 		

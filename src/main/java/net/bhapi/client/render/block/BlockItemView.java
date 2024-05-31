@@ -5,16 +5,16 @@ import net.bhapi.level.BlockStateProvider;
 import net.bhapi.util.BlockUtil;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
-import net.minecraft.block.entity.BaseBlockEntity;
+import net.minecraft.block.entity.BlockEntity;
 import net.minecraft.block.material.Material;
 import net.minecraft.level.BlockView;
-import net.minecraft.level.biome.BaseBiome;
-import net.minecraft.level.gen.BiomeSource;
-import net.minecraft.level.gen.FixedBiomeSource;
+import net.minecraft.level.biome.Biome;
+import net.minecraft.level.biome.BiomeSource;
+import net.minecraft.level.biome.FixedBiomeSource;
 
 @Environment(EnvType.CLIENT)
 public class BlockItemView implements BlockView, BlockStateProvider {
-	private static final BiomeSource BIOME_SOURCE = new FixedBiomeSource(BaseBiome.PLAINS, 0.5F, 0.5F);
+	private static final BiomeSource BIOME_SOURCE = new FixedBiomeSource(Biome.PLAINS, 0.5F, 0.5F);
 	private BlockState state;
 	private int meta;
 	
@@ -25,12 +25,12 @@ public class BlockItemView implements BlockView, BlockStateProvider {
 	}
 	
 	@Override
-	public int getBlockId(int i, int j, int k) {
+	public int getBlockID(int i, int j, int k) {
 		return state == null ? 0 : state.getBlock().id;
 	}
 	
 	@Override
-	public BaseBlockEntity getBlockEntity(int i, int j, int k) {
+	public BlockEntity getBlockEntity(int i, int j, int k) {
 		return null;
 	}
 	
@@ -70,12 +70,12 @@ public class BlockItemView implements BlockView, BlockStateProvider {
 	}
 	
 	@Override
-	public boolean setBlockState(int x, int y, int z, BlockState state, boolean update) {
+	public boolean bhapi_setBlockState(int x, int y, int z, BlockState state, boolean update) {
 		return false;
 	}
 	
 	@Override
-	public BlockState getBlockState(int x, int y, int z) {
+	public BlockState bhapi_getBlockState(int x, int y, int z) {
 		return state == null ? BlockUtil.AIR_STATE : state;
 	}
 }

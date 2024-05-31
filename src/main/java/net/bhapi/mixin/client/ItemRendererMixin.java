@@ -17,10 +17,10 @@ import net.minecraft.client.render.TextRenderer;
 import net.minecraft.client.render.entity.EntityRenderer;
 import net.minecraft.client.render.entity.ItemRenderer;
 import net.minecraft.client.texture.TextureManager;
-import net.minecraft.entity.ItemEntity;
-import net.minecraft.item.BaseItem;
+import net.minecraft.entity.technical.ItemEntity;
+import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
-import net.minecraft.util.maths.MathHelper;
+import net.minecraft.util.maths.MCMath;
 import org.lwjgl.opengl.GL11;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
@@ -52,7 +52,7 @@ public abstract class ItemRendererMixin extends EntityRenderer {
 	private void bhapi_renderItemInGUI(TextRenderer textRenderer, TextureManager manager, int id, int j, int texture, int x, int y, CallbackInfo info) {
 		info.cancel();
 		if (bhapi_renderingStack == null) return;
-		BaseItem item = bhapi_renderingStack.getType();
+		Item item = bhapi_renderingStack.getType();
 		if (item == null) return;
 		
 		if (item instanceof BHBlockItem && !BHBlockItem.cast(item).isFlat()) {
@@ -91,12 +91,12 @@ public abstract class ItemRendererMixin extends EntityRenderer {
 		GL11.glEnable(0xb44);
 	}
 	
-	@Inject(method = "render(Lnet/minecraft/entity/ItemEntity;DDDFF)V", at = @At("HEAD"), cancellable = true)
+	@Inject(method = "method_1484", at = @At("HEAD"), cancellable = true)
 	public void bhapi_renderItemEntity(ItemEntity entity, double x, double y, double z, float unused, float delta, CallbackInfo info) {
 		info.cancel();
 		this.rand.setSeed(187L);
 		GL11.glPushMatrix();
-		float offset = MathHelper.sin(((float) entity.age + delta) / 10.0f + entity.rotation) * 0.1f + 0.1f;
+		float offset = MCMath.sin(((float) entity.age + delta) / 10.0f + entity.rotation) * 0.1f + 0.1f;
 		float angle = (((float) entity.age + delta) / 20.0f + entity.rotation) * 57.295776f;
 		int count = 1;
 		if (entity.stack.count > 20) count = 4;
@@ -105,7 +105,7 @@ public abstract class ItemRendererMixin extends EntityRenderer {
 		GL11.glTranslatef((float) x, (float) y + offset, (float) z);
 		GL11.glEnable(32826);
 		
-		BaseItem item = entity.stack.getType();
+		Item item = entity.stack.getType();
 		if (item instanceof BHBlockItem && !BHBlockItem.cast(item).isFlat()) {
 			GL11.glRotatef(angle, 0.0f, 1.0f, 0.0f);
 			Textures.getAtlas().bind();
@@ -170,7 +170,7 @@ public abstract class ItemRendererMixin extends EntityRenderer {
 				tessellator.vertex(0.5F, -0.25F, 0.0, u2v2.x, u2v2.y);
 				tessellator.vertex(0.5F, 0.75F, 0.0, u2v1.x, u2v1.y);
 				tessellator.vertex(-0.5F, 0.75F, 0.0, u1v1.x, u1v1.y);
-				tessellator.draw();
+				tessellator.render();
 				
 				GL11.glPopMatrix();
 			}
@@ -194,6 +194,6 @@ public abstract class ItemRendererMixin extends EntityRenderer {
 		tessellator.vertex(x + 16, y + 16, 0, uv2.x, uv2.y);
 		tessellator.vertex(x + 16, y, 0, uv2.x, uv1.y);
 		tessellator.vertex(x, y, 0, uv1.x, uv1.y);
-		tessellator.draw();
+		tessellator.render();
 	}
 }
