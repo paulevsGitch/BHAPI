@@ -95,12 +95,14 @@ public class LevelLightUpdater extends ThreadedUpdater {
 		updateAreas.clear();
 		
 		if (isClient) {
-			clientUpdateRequests.forEach(pos -> {
-				if (ClientLightLevel.fillSection(pos)) {
-					ClientChunks.update(pos);
-				}
-			});
+			clientUpdateRequests.forEach(this::requestSectionUpdate);
 			clientUpdateRequests.clear();
+		}
+	}
+	
+	private void requestSectionUpdate(Vec3I pos) {
+		if (ClientLightLevel.fillSection(pos)) {
+			ClientChunks.update(pos);
 		}
 	}
 	

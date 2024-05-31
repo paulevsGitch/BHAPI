@@ -1,8 +1,9 @@
 package net.bhapi.storage;
 
+import net.minecraft.util.maths.MCMath;
+
 import java.util.Locale;
 import java.util.Objects;
-import net.minecraft.util.maths.MCMath;
 
 public class Vec3F {
 	public float x;

@@ -10,15 +10,13 @@ import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
 import net.minecraft.level.BlockView;
 
-import java.util.Arrays;
-
 @Environment(EnvType.CLIENT)
 public class CustomModel {
 	private final EnumArray<FaceGroup, ModelQuad[]> groups;
 	
 	public CustomModel(EnumArray<FaceGroup, ModelQuad[]> groups) {
 		this.groups = groups;
-		groups.forEach(quads -> Arrays.stream(quads).forEach(ModelQuad::finalise));
+		groups.forEach(CustomModel::finalizeQuads);
 	}
 	
 	public void render(ModelRenderingContext context, CircleCache<Vec2F> uvCache) {
@@ -33,6 +31,10 @@ public class CustomModel {
 				if (quads != null) renderQuads(context, quads, ix, iy, iz, uvCache);
 			}
 		}
+	}
+	
+	private static void finalizeQuads(ModelQuad[] quads) {
+		for (ModelQuad quad : quads) quad.finalise();
 	}
 	
 	private void renderQuads(ModelRenderingContext context, ModelQuad[] quads, int x, int y, int z, CircleCache<Vec2F> uvCache) {

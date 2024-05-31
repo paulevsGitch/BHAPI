@@ -1,10 +1,10 @@
 package net.bhapi.client.render.vbo;
 
+import net.bhapi.storage.Pair;
 import net.bhapi.storage.Vec3F;
 import net.bhapi.util.BufferUtil;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
-import net.bhapi.storage.Pair;
 import net.minecraft.util.maths.MCMath;
 import org.lwjgl.opengl.GL11;
 import org.lwjgl.opengl.GL15;

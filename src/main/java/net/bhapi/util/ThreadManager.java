@@ -47,7 +47,7 @@ public class ThreadManager {
 	}
 	
 	public static void stopAll() {
-		THREADS.forEach((name, tread) -> tread.stopThread());
+		THREADS.values().forEach(RunnableThread::stopThread);
 	}
 	
 	public static class RunnableThread extends Thread {

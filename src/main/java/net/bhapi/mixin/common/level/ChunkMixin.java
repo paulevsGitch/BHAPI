@@ -496,12 +496,12 @@ public abstract class ChunkMixin implements NBTSerializable, LevelHeightProvider
 	}
 	
 	@Inject(method = "isAboveGround", at = @At("HEAD"), cancellable = true)
-	private void isAboveGround(int x, int y, int z, CallbackInfoReturnable<Boolean> info) {
+	private void bhapi_isAboveGround(int x, int y, int z, CallbackInfoReturnable<Boolean> info) {
 		info.setReturnValue(y >= getHeightmapData(x, z));
 	}
 	
 	@Inject(method = "getHeight(II)I", at = @At("HEAD"), cancellable = true)
-	private void getHeightmapData(int x, int z, CallbackInfoReturnable<Integer> info) {
+	private void bhapi_getHeightmapData(int x, int z, CallbackInfoReturnable<Integer> info) {
 		info.setReturnValue((int) getHeightmapData(x, z));
 	}
 	

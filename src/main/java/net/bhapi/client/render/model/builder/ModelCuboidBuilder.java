@@ -4,13 +4,13 @@ import net.bhapi.client.render.model.FaceGroup;
 import net.bhapi.client.render.model.ModelQuad;
 import net.bhapi.storage.EnumArray;
 import net.bhapi.storage.Matrix4x4;
+import net.bhapi.storage.Pair;
 import net.bhapi.storage.Vec2F;
 import net.bhapi.storage.Vec3F;
 import net.bhapi.util.BlockDirection;
 import net.bhapi.util.MathUtil;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
-import net.bhapi.storage.Pair;
 
 @Environment(EnvType.CLIENT)
 public class ModelCuboidBuilder {

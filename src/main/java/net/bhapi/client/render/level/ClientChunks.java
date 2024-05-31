@@ -14,6 +14,7 @@ import net.bhapi.level.ChunkSection;
 import net.bhapi.level.ChunkSectionProvider;
 import net.bhapi.level.LevelHeightProvider;
 import net.bhapi.storage.EnumArray;
+import net.bhapi.storage.Pair;
 import net.bhapi.storage.Vec3F;
 import net.bhapi.storage.Vec3I;
 import net.bhapi.storage.WorldCache;
@@ -22,7 +23,6 @@ import net.bhapi.util.ThreadManager;
 import net.bhapi.util.ThreadManager.RunnableThread;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
-import net.bhapi.storage.Pair;
 import net.minecraft.block.entity.BlockEntity;
 import net.minecraft.client.render.RenderHelper;
 import net.minecraft.client.render.blockentity.BlockEntityRenderer;
@@ -152,29 +152,18 @@ public class ClientChunks {
 			int light = level.getEnvironmentLight(delta);
 			if (oldLight != light) {
 				oldLight = light;
-				synchronized (UPDATE_REQUESTS) {
-					chunks.forEach((pos, chunk) -> UPDATE_REQUESTS.add(pos.clone()));
-				}
+				chunks.forEach(ClientChunks::addRequest);
 			}
 		}
 		
-		if (UPDATE_QUEUE.size() == 0) {
+		if (UPDATE_QUEUE.isEmpty()) {
 			synchronized (UPDATE_REQUESTS) {
-				UPDATE_REQUESTS.forEach(pos -> {
-					if (chunks.isInside(pos)) {
-						UPDATE_ORDER.add(pos);
-					}
-				});
+				UPDATE_REQUESTS.forEach(ClientChunks::updateOrder);
 				UPDATE_REQUESTS.clear();
 			}
 			
-			if (UPDATE_ORDER.size() > 0) {
-				UPDATE_ORDER.sort((p1, p2) -> {
-					int l1 = p1.distanceSqr(ClientChunks.CAMERA_POS);
-					int l2 = p2.distanceSqr(ClientChunks.CAMERA_POS);
-					return Integer.compare(l1, l2);
-				});
-				
+			if (!UPDATE_ORDER.isEmpty()) {
+				UPDATE_ORDER.sort(ClientChunks::sort);
 				UPDATE_QUEUE.addAll(UPDATE_ORDER);
 				UPDATE_ORDER.clear();
 			}
@@ -221,6 +210,24 @@ public class ClientChunks {
 		chunks.forEach(ClientChunks::renderBlockEntities, true);
 	}
 	
+	private static void addRequest(Vec3I pos, ClientChunk chunk) {
+		synchronized (UPDATE_REQUESTS) {
+			UPDATE_REQUESTS.add(pos.clone());
+		}
+	}
+	
+	private static int sort(Vec3I p1, Vec3I p2) {
+		int l1 = p1.distanceSqr(ClientChunks.CAMERA_POS);
+		int l2 = p2.distanceSqr(ClientChunks.CAMERA_POS);
+		return Integer.compare(l1, l2);
+	}
+	
+	private static void updateOrder(Vec3I pos) {
+		if (chunks.isInside(pos)) {
+			UPDATE_ORDER.add(pos);
+		}
+	}
+	
 	private static void renderChunk(Vec3I pos, ClientChunk chunk) {
 		if (!chunk.visible) return;
 		
@@ -246,32 +253,34 @@ public class ClientChunks {
 		List<Pair<BlockEntity, BlockEntityRenderer>> blockEntities = chunk.blockEntities;
 		if (blockEntities == null) return;
 		if (BlockEntityRenderDispatcher.INSTANCE.textureManager == null) return;
+		blockEntities.forEach(ClientChunks::renderBlockEntity);
+	}
+	
+	private static void renderBlockEntity(Pair<BlockEntity, BlockEntityRenderer> pair) {
+		BlockEntityRenderer renderer = pair.second();
+		BlockEntity entity = pair.first();
 		
-		blockEntities.forEach(pair -> {
-			BlockEntityRenderer renderer = pair.second();
-			BlockEntity entity = pair.first();
-			float light = level.getBrightness(entity.x, entity.y, entity.z);
-			GL11.glColor3f(light, light, light);
-			renderer.render(entity, entity.x - px, entity.y - py, entity.z - pz, delta);
-			
-			if (BreakInfo.stage == -1) return;
-			if (BreakInfo.POS.x != entity.x || BreakInfo.POS.y != entity.y || BreakInfo.POS.z != entity.z) return;
-			
-			GL11.glEnable(GL11.GL_BLEND);
-			GL11.glBlendFunc(GL11.GL_DST_COLOR, GL11.GL_SRC_COLOR);
-			
-			GL11.glPolygonOffset(-3.0f, -3.0f);
-			GL11.glEnable(GL11.GL_POLYGON_OFFSET_FILL);
-			
-			BlockBreakingInfo.cast(renderer).setBreaking(BreakInfo.stage);
-			renderer.render(entity, entity.x - px, entity.y - py, entity.z - pz, delta);
-			BlockBreakingInfo.cast(renderer).setBreaking(-1);
-			
-			GL11.glPolygonOffset(0.0f, 0.0f);
-			GL11.glDisable(GL11.GL_POLYGON_OFFSET_FILL);
-			
-			GL11.glDisable(GL11.GL_BLEND);
-		});
+		float light = level.getBrightness(entity.x, entity.y, entity.z);
+		GL11.glColor3f(light, light, light);
+		renderer.render(entity, entity.x - px, entity.y - py, entity.z - pz, delta);
+		
+		if (BreakInfo.stage == -1) return;
+		if (BreakInfo.POS.x != entity.x || BreakInfo.POS.y != entity.y || BreakInfo.POS.z != entity.z) return;
+		
+		GL11.glEnable(GL11.GL_BLEND);
+		GL11.glBlendFunc(GL11.GL_DST_COLOR, GL11.GL_SRC_COLOR);
+		
+		GL11.glPolygonOffset(-3.0f, -3.0f);
+		GL11.glEnable(GL11.GL_POLYGON_OFFSET_FILL);
+		
+		BlockBreakingInfo.cast(renderer).setBreaking(BreakInfo.stage);
+		renderer.render(entity, entity.x - px, entity.y - py, entity.z - pz, delta);
+		BlockBreakingInfo.cast(renderer).setBreaking(-1);
+		
+		GL11.glPolygonOffset(0.0f, 0.0f);
+		GL11.glDisable(GL11.GL_POLYGON_OFFSET_FILL);
+		
+		GL11.glDisable(GL11.GL_BLEND);
 	}
 	
 	private static void checkVisibility(Vec3I pos, ClientChunk chunk) {

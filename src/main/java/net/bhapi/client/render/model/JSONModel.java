@@ -2,6 +2,7 @@ package net.bhapi.client.render.model;
 
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
+import it.unimi.dsi.fastutil.objects.Object2IntMap;
 import net.bhapi.BHAPI;
 import net.bhapi.client.render.model.builder.ModelBuilder;
 import net.bhapi.client.render.model.builder.ModelCuboidBuilder;
@@ -21,7 +22,7 @@ public class JSONModel extends CustomModel {
 	private static final Map<Identifier, JsonObject> MODEL_CACHE = new HashMap<>();
 	private static final Map<String, BlockDirection> FACES = new HashMap<>();
 	
-	public JSONModel(Identifier path, Map<String, Integer> textureIndexMap) {
+	public JSONModel(Identifier path, Object2IntMap<String> textureIndexMap) {
 		super(loadModel(path, textureIndexMap));
 	}
 	
@@ -46,7 +47,7 @@ public class JSONModel extends CustomModel {
 		return obj;
 	}
 	
-	private static EnumArray<FaceGroup, ModelQuad[]> loadModel(Identifier path, Map<String, Integer> textureIndexMap) {
+	private static EnumArray<FaceGroup, ModelQuad[]> loadModel(Identifier path, Object2IntMap<String> textureIndexMap) {
 		JsonObject json = getModel(path);
 		if (json == null) return new EnumArray<>(FaceGroup.class);
 		

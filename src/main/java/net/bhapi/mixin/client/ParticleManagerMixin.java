@@ -122,7 +122,9 @@ public abstract class ParticleManagerMixin {
 			GL11.glEnable(GL11.GL_ALPHA_TEST);
 			GL11.glBlendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE_MINUS_SRC_ALPHA);
 			tessellator.start();
-			bhapi_particles.forEach(p -> p.render(tessellator, delta, dx, dy, dz, width, height));
+			for (ParticleEntity particle : bhapi_particles) {
+				particle.render(tessellator, delta, dx, dy, dz, width, height);
+			}
 			tessellator.render();
 			GL11.glDisable(GL11.GL_BLEND);
 		}

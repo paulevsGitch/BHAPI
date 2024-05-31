@@ -5,7 +5,6 @@ import net.bhapi.config.BHConfigs;
 import net.bhapi.interfaces.NBTSerializable;
 import net.bhapi.level.light.BHLightChunk;
 import net.bhapi.registry.CommonRegistries;
-import net.bhapi.storage.MultiThreadStorage;
 import net.bhapi.storage.Vec3I;
 import net.bhapi.util.BlockUtil;
 import net.bhapi.util.MathUtil;
@@ -26,7 +25,7 @@ import java.util.concurrent.ConcurrentHashMap;
 
 public class ChunkSection implements NBTSerializable {
 	public static final ChunkSection EMPTY = new ChunkSection();
-	private static final MultiThreadStorage<StatesLoader> LOADERS = new MultiThreadStorage<>(StatesLoader::new);
+	private static final ThreadLocal<StatesLoader> LOADERS = ThreadLocal.withInitial(StatesLoader::new);
 	private final Map<Vec3I, BlockEntity> blockEntities = new ConcurrentHashMap<>();
 	private final int[] states = new int[4096];
 	private final byte[] light = new byte[4096];

@@ -6,14 +6,16 @@ import net.bhapi.level.BlockStateProvider;
 import net.minecraft.level.Level;
 import net.minecraft.level.LevelProperties;
 
+import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Random;
 import java.util.Set;
 
 public class LevelTicksUpdater extends ThreadedUpdater {
 	private final Set<BHTimeInfo> updateRequests = new HashSet<>();
-	private final Set<BHTimeInfo> updateInfos = new HashSet<>();
+	private final List<BHTimeInfo> updateInfos = new ArrayList<>();
 	private final LevelProperties properties;
 	private final Random random;
 	private boolean flag;
@@ -36,18 +38,21 @@ public class LevelTicksUpdater extends ThreadedUpdater {
 	
 	@Override
 	protected void update() {
-		synchronized (updateRequests) {
-			updateInfos.addAll(updateRequests);
-			updateRequests.clear();
+		if (updateInfos.isEmpty()) {
+			synchronized (updateRequests) {
+				updateInfos.addAll(updateRequests);
+				updateRequests.clear();
+			}
 		}
 		final int side = 8;
-		Iterator<BHTimeInfo> iterator = updateInfos.iterator();
-		for (short i = 0; i < 1024 && iterator.hasNext(); i++) {
-			BHTimeInfo info = iterator.next();
+		short count = (short) Math.min(updateInfos.size(), 1024);
+		for (short i = 0; i < count; i++) {
+			BHTimeInfo info = updateInfos.get(i);
 			if (!flag && info.getTime() > properties.getTime()) {
 				continue;
 			}
-			iterator.remove();
+			updateInfos.remove(i--);
+			count--;
 			int x = info.getX();
 			int y = info.getY();
 			int z = info.getZ();

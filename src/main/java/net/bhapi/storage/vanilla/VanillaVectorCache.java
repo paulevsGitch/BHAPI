@@ -1,8 +1,9 @@
 package net.bhapi.storage.vanilla;
 
+import net.minecraft.util.maths.Vec3D;
+
 import java.util.ArrayList;
 import java.util.List;
-import net.minecraft.util.maths.Vec3D;
 
 public class VanillaVectorCache {
 	private final List<Vec3D> data = new ArrayList<>(8192);

@@ -13,8 +13,6 @@ import net.fabricmc.api.Environment;
 import net.minecraft.client.render.Tessellator;
 
 import java.nio.FloatBuffer;
-import java.util.ArrayList;
-import java.util.List;
 
 @Environment(EnvType.CLIENT)
 public class MeshBuilder {

@@ -1,10 +1,12 @@
 package net.bhapi.util;
 
+import it.unimi.dsi.fastutil.objects.Object2IntMap;
+import it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap;
+import net.bhapi.storage.Pair;
 import net.bhapi.storage.Resource;
 import net.fabricmc.loader.api.FabricLoader;
 import net.fabricmc.loader.api.ModContainer;
 import net.fabricmc.loader.api.metadata.ModOrigin.Kind;
-import net.bhapi.storage.Pair;
 import org.spongepowered.include.com.google.common.collect.ImmutableList;
 
 import java.io.File;
@@ -99,7 +101,7 @@ public class ResourceUtil {
 	}
 	
 	static {
-		Map<String, Integer> order = new HashMap<>();
+		Object2IntMap<String> order = new Object2IntOpenHashMap<>();
 		Map<String, Path> locations = new HashMap<>();
 		Collection<ModContainer> list = FabricLoader.getInstance().getAllMods().stream().filter(
 			modContainer -> modContainer.getOrigin().getKind() == Kind.PATH

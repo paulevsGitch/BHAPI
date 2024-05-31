@@ -3,10 +3,6 @@ package net.bhapi.blockstate.properties;
 import it.unimi.dsi.fastutil.ints.IntArrayList;
 import it.unimi.dsi.fastutil.ints.IntList;
 
-import java.util.List;
-import java.util.stream.Collectors;
-import java.util.stream.IntStream;
-
 public class IntegerProperty extends StateProperty<Integer> {
 	private final IntList values;
 	final int minValue;
@@ -28,7 +24,7 @@ public class IntegerProperty extends StateProperty<Integer> {
 	}
 	
 	@Override
-	public List<Integer> getValues() {
+	public IntList getValues() {
 		return values;
 	}
 	

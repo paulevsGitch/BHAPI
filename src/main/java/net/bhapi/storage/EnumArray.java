@@ -56,4 +56,8 @@ public class EnumArray <K extends Enum<K>, V> {
 			if (values[i] != null) consumer.accept(keys[i], values[i]);
 		}
 	}
+	
+	public V[] getValues() {
+		return values;
+	}
 }

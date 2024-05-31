@@ -3,6 +3,7 @@ package net.bhapi.mixin.client;
 import net.bhapi.BHAPI;
 import net.bhapi.client.ClientRegistries;
 import net.bhapi.client.render.block.BHBlockRenderer;
+import net.bhapi.client.render.color.VanillaColorProviders;
 import net.bhapi.client.render.level.ClientChunks;
 import net.bhapi.client.render.texture.Textures;
 import net.bhapi.interfaces.ClientPostInit;
@@ -10,6 +11,8 @@ import net.bhapi.registry.CommonRegistries;
 import net.bhapi.util.ImageUtil;
 import net.bhapi.util.ThreadManager;
 import net.minecraft.client.Minecraft;
+import net.minecraft.entity.living.player.PlayerEntity;
+import net.minecraft.level.Level;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.injection.At;
@@ -70,5 +73,14 @@ public class MinecraftMixin {
 	@Inject(method = "startLoginThread", at = @At("HEAD"), cancellable = true)
 	private void bhapi_cancelLogin(CallbackInfo info) {
 		info.cancel();
+	}
+	
+	@Inject(method = "showLevelProgress", at = @At(
+		value = "FIELD",
+		target = "Lnet/minecraft/client/Minecraft;level:Lnet/minecraft/level/Level;",
+		shift = Shift.AFTER, ordinal = 2
+	))
+	private void bhapi_resetBiomeSource(Level level, String message, PlayerEntity player, CallbackInfo info) {
+		VanillaColorProviders.resetBiomeSources();
 	}
 }
