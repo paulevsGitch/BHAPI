@@ -11,6 +11,7 @@ import net.bhapi.storage.Vec3I;
 import net.bhapi.util.BlockDirection;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
+import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.level.Level;
 import net.minecraft.level.LightType;
 
@@ -30,10 +31,15 @@ public class LevelLightUpdater extends ThreadedUpdater {
 	
 	@Environment(EnvType.CLIENT)
 	private final Set<Vec3I> clientUpdateRequests = new HashSet<>();
+	@Environment(EnvType.CLIENT)
+	private final CircleCache<Vec3I> clientVectorCache = new CircleCache<>(8192);
 	
 	public LevelLightUpdater(Level level) {
 		super("light_updater_", level, true);
 		vectorCache.fill(Vec3I::new);
+		if (FabricLoader.getInstance().getEnvironmentType() == EnvType.CLIENT) {
+			clientVectorCache.fill(Vec3I::new);
+		}
 	}
 	
 	public void addArea(BHLightArea area) {
@@ -172,7 +178,8 @@ public class LevelLightUpdater extends ThreadedUpdater {
 		for (int x = x1; x <= x2; x++) {
 			for (int y = y1; y <= y2; y++) {
 				for (int z = z1; z <= z2; z++) {
-					clientUpdateRequests.add(new Vec3I(x, y, z));
+					//clientUpdateRequests.add(new Vec3I(x, y, z));
+					clientUpdateRequests.add(clientVectorCache.get().set(x, y, z));
 				}
 			}
 		}

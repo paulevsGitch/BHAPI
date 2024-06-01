@@ -40,7 +40,7 @@ public class LayeredMeshBuilder {
 	}
 	
 	public boolean isEmpty() {
-		for (RenderLayer layer: RenderLayer.VALUES) {
+		for (RenderLayer layer : RenderLayer.VALUES) {
 			if (!isEmpty(layer)) return false;
 		}
 		return true;
@@ -48,7 +48,8 @@ public class LayeredMeshBuilder {
 	
 	public void build(Tessellator tessellator) {
 		if (isEmpty()) return;
-		for (MeshBuilder builder : builders.getValues()) {
+		for (RenderLayer layer : RenderLayer.VALUES) {
+			MeshBuilder builder = builders.get(layer);
 			if (builder.isEmpty()) continue;
 			builder.build(tessellator);
 		}

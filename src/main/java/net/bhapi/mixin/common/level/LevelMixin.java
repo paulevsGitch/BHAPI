@@ -223,7 +223,7 @@ public abstract class LevelMixin implements LevelHeightProvider, BlockStateProvi
 		if (areaUpdates == 50) return;
 		
 		synchronized (lightingUpdates) {
-			++this.areaUpdates;
+			++areaUpdates;
 			try {
 				int count;
 				
